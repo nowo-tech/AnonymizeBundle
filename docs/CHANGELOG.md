@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.5] - 2026-01-19
+
+### Changed
+
+- **Doctrine Bundle Compatibility**: Improved compatibility with Symfony 8
+  - Updated `doctrine/doctrine-bundle` constraint from `^2.15` to `^2.8`
+  - Allows broader compatibility across Symfony 6, 7, and 8
+  - Symfony Flex can now resolve compatible versions automatically
+
+- **Demo Projects**: Updated demo configurations
+  - Symfony 8 demo now uses `dev-main` for bundle development
+  - Improved dependency resolution for Symfony 8 compatibility
+  - Removed explicit constraints that conflicted with Symfony 8
+
 ## [0.0.4] - 2026-01-19
 
 ### Added
