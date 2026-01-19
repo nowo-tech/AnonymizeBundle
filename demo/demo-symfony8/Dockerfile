@@ -17,8 +17,9 @@ RUN docker-php-ext-install -j$(nproc) zip pdo pdo_mysql pdo_pgsql
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Configure git safe directory
-RUN git config --global --add safe.directory /app
+# Configure git safe directories
+RUN git config --global --add safe.directory /app && \
+    git config --global --add safe.directory /bundle
 
 # Set working directory
 WORKDIR /app
