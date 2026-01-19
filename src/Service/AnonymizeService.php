@@ -35,8 +35,7 @@ final class AnonymizeService
     public function __construct(
         private FakerFactory $fakerFactory,
         private PatternMatcher $patternMatcher
-    ) {
-    }
+    ) {}
 
     /**
      * Gets all entities from the entity manager that have the Anonymize attribute.

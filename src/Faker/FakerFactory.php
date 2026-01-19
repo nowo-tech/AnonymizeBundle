@@ -21,12 +21,12 @@ final class FakerFactory
     /**
      * Creates a new FakerFactory instance.
      *
-     * @param ContainerInterface|null $container The service container for accessing faker services
      * @param string $locale The locale for Faker generators (fallback when container is not available)
+     * @param ContainerInterface|null $container The service container for accessing faker services
      */
     public function __construct(
-        private ?ContainerInterface $container = null,
-        private string $locale = 'en_US'
+        private string $locale = 'en_US',
+        private ?ContainerInterface $container = null
     ) {
     }
 

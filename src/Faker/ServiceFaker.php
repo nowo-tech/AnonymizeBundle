@@ -32,8 +32,7 @@ final class ServiceFaker implements FakerInterface
     public function __construct(
         private ContainerInterface $container,
         private string $serviceName
-    ) {
-    }
+    ) {}
 
     /**
      * Generates an anonymized value using the configured service.

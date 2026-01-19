@@ -18,8 +18,7 @@ class UserController extends AbstractController
 {
     public function __construct(
         private readonly ManagerRegistry $doctrine
-    ) {
-    }
+    ) {}
 
     #[Route('/', name: 'user_index', methods: ['GET'])]
     public function index(string $connection): Response
@@ -111,7 +110,7 @@ class UserController extends AbstractController
             throw $this->createNotFoundException('User not found');
         }
 
-        if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $user->getId(), $request->request->get('_token'))) {
             $em->remove($user);
             $em->flush();
 

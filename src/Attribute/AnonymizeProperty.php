@@ -33,6 +33,5 @@ final class AnonymizeProperty
         public array $excludePatterns = [],
         public ?string $service = null,
         public array $options = []
-    ) {
-    }
+    ) {}
 }
