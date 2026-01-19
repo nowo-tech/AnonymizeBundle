@@ -29,7 +29,7 @@ class UserController extends AbstractController
     {
         $em = $this->doctrine->getManager($connection);
         $hasAnonymizedColumn = $this->schemaService->hasAnonymizedColumn($em, User::class);
-        
+
         // Use native query if column doesn't exist to avoid SQL errors
         if (!$hasAnonymizedColumn) {
             /** @var ClassMetadata $metadata */
@@ -37,7 +37,7 @@ class UserController extends AbstractController
             $tableName = $metadata->getTableName();
             /** @var Connection $dbConnection */
             $dbConnection = $em->getConnection();
-            
+
             // Get all columns except anonymized
             $columns = [];
             foreach ($metadata->getFieldNames() as $fieldName) {
@@ -46,10 +46,10 @@ class UserController extends AbstractController
                     $columns[] = $dbConnection->quoteIdentifier($fieldMapping['columnName'] ?? $fieldName);
                 }
             }
-            
+
             $sql = sprintf('SELECT %s FROM %s', implode(', ', $columns), $dbConnection->quoteIdentifier($tableName));
             $results = $dbConnection->fetchAllAssociative($sql);
-            
+
             // Convert results to entities
             $users = [];
             foreach ($results as $row) {
