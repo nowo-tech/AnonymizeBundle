@@ -7,15 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **New Fakers**: Added 6 new faker types (Phase 1 implementation)
+  - `AddressFaker`: Generate anonymized street addresses with country, format, and postal code options
+  - `DateFaker`: Generate anonymized dates with min/max date, format, and type (past/future/between) options
+  - `UsernameFaker`: Generate anonymized usernames with length, prefix, suffix, and number options
+  - `UrlFaker`: Generate anonymized URLs with scheme, domain, and path options
+  - `CompanyFaker`: Generate anonymized company names with type (corporation/llc/inc) and suffix options
+  - `MaskingFaker`: Partial masking of sensitive data with preserve_start, preserve_end, mask_char options
+  - All new fakers registered in FakerType enum and FakerFactory
+  - Total fakers available: 14 (8 original + 6 new)
+
+- **Demo Enhancements**: Added 4 new entities and fixtures
+  - `Product` entity: Demonstrates name, url, date fakers (10 products)
+  - `Order` entity: Demonstrates service, address, date, email fakers with patterns (13 orders)
+  - `Invoice` entity: Demonstrates masking, company, iban, service fakers (8 invoices)
+  - `Employee` entity: Demonstrates username, date, company fakers with exclusion patterns (12 employees)
+  - All entities include `AnonymizableTrait` for anonymization tracking
+  - Comprehensive fixtures with realistic test data
+
+- **Custom Service Faker**: Added example service in demos
+  - `CustomReferenceFaker`: Example service implementing FakerInterface
+  - Demonstrates how to create custom anonymizers
+  - Used in Customer and Order entities
+  - Available in all demo projects (Symfony 6, 7, 8)
+
 ### Improved
 
 - **Demo Projects**: Synchronized all demo projects (Symfony 6, 7, 8)
   - Expanded fixtures: 20 users and 25 customers in all demos
+  - Added 4 new entities (Product, Order, Invoice, Employee) with fixtures
   - Updated controllers to use SchemaService for anonymized column detection
   - Updated templates with anonymized column alerts and conditional display
   - Added underscore naming strategy to Doctrine configuration
   - Updated bundle version to v0.0.10 in all demos
   - Consistent functionality across all Symfony versions
+  - Total entities in demos: 6 (User, Customer, Product, Order, Invoice, Employee)
+  - Total fixtures in demos: 6 (UserFixtures, CustomerFixtures, ProductFixtures, OrderFixtures, InvoiceFixtures, EmployeeFixtures)
 
 ## [0.0.10] - 2026-01-19
 

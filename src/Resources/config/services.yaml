@@ -12,6 +12,7 @@ services:
         exclude:
             - '../../Faker/FakerInterface.php'
             - '../../Faker/ServiceFaker.php'
+            - '../../Faker/MaskingFaker.php'
         arguments:
             $locale: '%nowo_anonymize.locale%'
 
@@ -24,6 +25,12 @@ services:
     nowo_anonymize.faker.phone: '@Nowo\AnonymizeBundle\Faker\PhoneFaker'
     nowo_anonymize.faker.iban: '@Nowo\AnonymizeBundle\Faker\IbanFaker'
     nowo_anonymize.faker.credit_card: '@Nowo\AnonymizeBundle\Faker\CreditCardFaker'
+    nowo_anonymize.faker.address: '@Nowo\AnonymizeBundle\Faker\AddressFaker'
+    nowo_anonymize.faker.date: '@Nowo\AnonymizeBundle\Faker\DateFaker'
+    nowo_anonymize.faker.username: '@Nowo\AnonymizeBundle\Faker\UsernameFaker'
+    nowo_anonymize.faker.url: '@Nowo\AnonymizeBundle\Faker\UrlFaker'
+    nowo_anonymize.faker.company: '@Nowo\AnonymizeBundle\Faker\CompanyFaker'
+    nowo_anonymize.faker.masking: '@Nowo\AnonymizeBundle\Faker\MaskingFaker'
 
     Nowo\AnonymizeBundle\Service\:
         resource: '../../Service/*'

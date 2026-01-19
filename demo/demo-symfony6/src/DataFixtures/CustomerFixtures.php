@@ -51,11 +51,13 @@ class CustomerFixtures extends Fixture
             ['email' => 'customer25@example.com', 'name' => 'Customer Twenty-Five', 'status' => 'active'],
         ];
 
-        foreach ($customers as $customerData) {
+        foreach ($customers as $index => $customerData) {
             $customer = new Customer();
             $customer->setEmail($customerData['email']);
             $customer->setName($customerData['name']);
             $customer->setStatus($customerData['status']);
+            // Set initial reference code (will be anonymized later)
+            $customer->setReferenceCode('CUST-' . str_pad((string) ($index + 1), 8, '0', STR_PAD_LEFT));
 
             $manager->persist($customer);
         }

@@ -48,6 +48,15 @@ class Customer
     #[ORM\Column(length: 50)]
     private ?string $status = null;
 
+    #[ORM\Column(length: 50, nullable: true)]
+    #[AnonymizeProperty(
+        type: 'service',
+        service: 'App\Service\CustomReferenceFaker',
+        weight: 3,
+        options: ['prefix' => 'CUST', 'length' => 8, 'separator' => '-']
+    )]
+    private ?string $referenceCode = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -85,6 +94,18 @@ class Customer
     public function setStatus(?string $status): static
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getReferenceCode(): ?string
+    {
+        return $this->referenceCode;
+    }
+
+    public function setReferenceCode(?string $referenceCode): static
+    {
+        $this->referenceCode = $referenceCode;
 
         return $this;
     }

@@ -13,6 +13,69 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.11 (Unreleased)
+
+**Release Date**: TBD
+
+#### What's New
+
+- **New Fakers**: Added 6 new faker types (Phase 1 implementation)
+  - `address`: Generate anonymized street addresses with country, format, and postal code options
+  - `date`: Generate anonymized dates with min/max date, format, and type (past/future/between) options
+  - `username`: Generate anonymized usernames with length, prefix, suffix, and number options
+  - `url`: Generate anonymized URLs with scheme, domain, and path options
+  - `company`: Generate anonymized company names with type (corporation/llc/inc) and suffix options
+  - `masking`: Partial masking of sensitive data with preserve_start, preserve_end, mask_char options
+  - All new fakers are registered in `FakerType` enum and `FakerFactory`
+  - Total fakers available: 14 (8 original + 6 new)
+
+- **Enhanced Demos**: Added 4 new entities and fixtures
+  - `Product` entity: Demonstrates name, url, date fakers (10 products)
+  - `Order` entity: Demonstrates service, address, date, email fakers with patterns (13 orders)
+  - `Invoice` entity: Demonstrates masking, company, iban, service fakers (8 invoices)
+  - `Employee` entity: Demonstrates username, date, company fakers with exclusion patterns (12 employees)
+  - All entities include `AnonymizableTrait` for anonymization tracking
+  - Comprehensive fixtures with realistic test data
+
+- **Custom Service Faker Example**: Added example service in demos
+  - `CustomReferenceFaker`: Example service implementing `FakerInterface`
+  - Demonstrates how to create custom anonymizers
+  - Used in Customer and Order entities
+  - Available in all demo projects (Symfony 6, 7, 8)
+
+#### Breaking Changes
+
+None - This is a backward-compatible feature release.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Verify installation**:
+   ```bash
+   php bin/console list nowo:anonymize
+   ```
+
+4. **Update your entities** (optional):
+   - You can now use the new faker types in your `#[AnonymizeProperty]` attributes
+   - See [README.md](../README.md) for examples of each faker type
+
+#### Notes
+
+- No configuration changes required
+- New fakers are automatically available after update
+- Existing anonymization configurations continue to work unchanged
+- You can start using new faker types immediately in your entities
+- See [ROADMAP.md](ROADMAP.md) for planned future fakers
+
 ### Upgrading to 0.0.10
 
 **Release Date**: 2026-01-19

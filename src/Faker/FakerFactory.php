@@ -56,6 +56,12 @@ final class FakerFactory
                 'phone' => 'nowo_anonymize.faker.phone',
                 'iban' => 'nowo_anonymize.faker.iban',
                 'credit_card' => 'nowo_anonymize.faker.credit_card',
+                'address' => 'nowo_anonymize.faker.address',
+                'date' => 'nowo_anonymize.faker.date',
+                'username' => 'nowo_anonymize.faker.username',
+                'url' => 'nowo_anonymize.faker.url',
+                'company' => 'nowo_anonymize.faker.company',
+                'masking' => 'nowo_anonymize.faker.masking',
                 default => null,
             };
 
@@ -73,6 +79,12 @@ final class FakerFactory
             'phone' => new PhoneFaker($this->locale),
             'iban' => new IbanFaker($this->locale),
             'credit_card' => new CreditCardFaker($this->locale),
+            'address' => new AddressFaker($this->locale),
+            'date' => new DateFaker($this->locale),
+            'username' => new UsernameFaker($this->locale),
+            'url' => new UrlFaker($this->locale),
+            'company' => new CompanyFaker($this->locale),
+            'masking' => new MaskingFaker(),
             'service' => new ServiceFaker($this->container, $serviceName ?? ''),
             default => throw new \InvalidArgumentException(sprintf('Unsupported faker type: %s', $type)),
         };

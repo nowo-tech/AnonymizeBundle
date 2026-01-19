@@ -12,7 +12,7 @@ Symfony bundle for anonymizing database records using Doctrine attributes and Fa
 
 - ✅ Attribute-based anonymization configuration
 - ✅ Support for multiple Doctrine connections
-- ✅ Multiple faker types (email, name, surname, age, phone, IBAN, credit card, custom service)
+- ✅ Multiple faker types (14 total: email, name, surname, age, phone, IBAN, credit card, address, date, username, url, company, masking, custom service)
 - ✅ Weight-based anonymization order
 - ✅ Pattern-based inclusion/exclusion filters
 - ✅ Support for MySQL and PostgreSQL (MongoDB coming soon)
@@ -289,6 +289,8 @@ php bin/console nowo:anonymize:run --stats-only
 
 The bundle supports the following faker types:
 
+### Basic Fakers
+
 - **email**: Generates anonymized email addresses
 - **name**: Generates anonymized first names
 - **surname**: Generates anonymized surnames
@@ -296,7 +298,19 @@ The bundle supports the following faker types:
 - **phone**: Generates anonymized phone numbers
 - **iban**: Generates anonymized IBAN numbers (supports `country` option)
 - **credit_card**: Generates anonymized credit card numbers
-- **service**: Uses a custom service for anonymization
+
+### Advanced Fakers
+
+- **address**: Generates anonymized street addresses (supports `country`, `format`, `include_postal_code` options)
+- **date**: Generates anonymized dates (supports `min_date`, `max_date`, `format`, `type` options)
+- **username**: Generates anonymized usernames (supports `min_length`, `max_length`, `prefix`, `suffix`, `include_numbers` options)
+- **url**: Generates anonymized URLs (supports `scheme`, `domain`, `path` options)
+- **company**: Generates anonymized company names (supports `type`, `suffix` options)
+- **masking**: Partial masking of sensitive data (supports `preserve_start`, `preserve_end`, `mask_char`, `mask_length` options)
+
+### Custom Fakers
+
+- **service**: Uses a custom service for anonymization (requires `service` option with service name)
 
 ## Pattern Matching
 
@@ -375,6 +389,9 @@ composer cs-fix
 - [Configuration Guide](docs/CONFIGURATION.md) - Detailed configuration options
 - [Changelog](docs/CHANGELOG.md) - Complete version history and changes
 - [Upgrade Guide](docs/UPGRADING.md) - Instructions for upgrading between versions
+- [Roadmap](docs/ROADMAP.md) - Planned features and future enhancements
+- [Branching Strategy](docs/BRANCHING.md) - Git workflow and branching guidelines
+- [Contributing Guide](docs/CONTRIBUTING.md) - How to contribute to this project
 
 ## License
 
@@ -382,7 +399,24 @@ The MIT License (MIT). Please see [LICENSE](LICENSE) for more information.
 
 ## Contributing
 
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to this project.
+We welcome contributions! Please see [CONTRIBUTING.md](docs/CONTRIBUTING.md) for details on how to contribute to this project.
+
+For information about our Git workflow and branching strategy, see [BRANCHING.md](docs/BRANCHING.md).
+
+## Roadmap
+
+We have an extensive roadmap for future enhancements. See [ROADMAP.md](docs/ROADMAP.md) for details on planned features including:
+
+- **Phase 1 (v0.1.0)**: 20+ new fakers (Address, Date, Company, URL, Username, etc.)
+- **Phase 2 (v0.2.0)**: Advanced anonymization strategies (Masking, Hash Preserve, Shuffle)
+- **Phase 3 (v0.3.0)**: MongoDB and SQLite support
+- **Phase 4 (v0.4.0)**: Enhanced developer experience (CLI improvements, reporting, testing tools)
+- **Phase 5 (v0.5.0)**: Enterprise features (GDPR compliance, audit logging, API integration)
+- **Phase 6 (v0.6.0)**: Performance and scalability improvements
+- **Phase 7 (v0.7.0)**: Security and compliance enhancements
+- **Phase 8 (v0.8.0)**: Advanced features (ML integration, workflow automation)
+
+Check out the [full roadmap](docs/ROADMAP.md) for detailed information about upcoming features, priorities, and timelines.
 
 ## Author
 

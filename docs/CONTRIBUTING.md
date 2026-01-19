@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for considering contributing to Composer Update Helper!
+Thank you for considering contributing to Anonymize Bundle!
 
 ## Maintainer
 
@@ -12,11 +12,11 @@ This project is maintained by [Héctor Franco Aceituno](https://github.com/HecFr
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/nowo-tech/composer-update-helper.git
-   cd composer-update-helper
+   git clone https://github.com/nowo-tech/AnonymizeBundle.git
+   cd AnonymizeBundle
    ```
 
-2. Start the Docker container:
+2. Start the Docker containers:
    ```bash
    make up
    ```
@@ -40,8 +40,8 @@ This project is maintained by [Héctor Franco Aceituno](https://github.com/HecFr
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/nowo-tech/composer-update-helper.git
-   cd composer-update-helper
+   git clone https://github.com/nowo-tech/AnonymizeBundle.git
+   cd AnonymizeBundle
    ```
 
 2. Install dependencies:
@@ -144,21 +144,30 @@ composer cs-fix
 | `make down` | Stop Docker container |
 | `make shell` | Open shell in container |
 | `make install` | Install Composer dependencies |
-| `make test` | Run PHPUnit tests |
-| `make test-coverage` | Run tests with code coverage |
+| `make test` | Run PHPUnit tests (unit tests only) |
+| `make test-coverage` | Run tests with code coverage (unit tests only) |
+| `make test-with-db` | Run tests with databases (integration tests) |
+| `make test-coverage-with-db` | Run tests with coverage and databases |
+| `make test-up` | Start test container with databases |
+| `make test-down` | Stop test container |
+| `make test-shell` | Open shell in test container |
 | `make cs-check` | Check code style (PSR-12) |
 | `make cs-fix` | Fix code style |
-| `make qa` | Run all QA checks |
+| `make qa` | Run all QA checks (cs-check + test) |
 | `make clean` | Remove vendor and cache |
+| `make setup-hooks` | Install git pre-commit hooks |
 
 ## Reporting Issues
 
 When reporting issues, please include:
 - PHP version
-- Composer version
+- Symfony version
+- Doctrine ORM version
+- Database type and version (MySQL, PostgreSQL, etc.)
 - Operating system
 - Steps to reproduce
 - Expected vs actual behavior
+- Relevant entity/attribute configuration (if applicable)
 
 ## Contact
 
