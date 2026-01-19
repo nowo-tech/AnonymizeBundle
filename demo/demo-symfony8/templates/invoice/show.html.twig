@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Invoice #{{ invoice.id }} - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+{% if not hasAnonymizedColumn|default(false) %}
+<div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    <strong>⚠️ Column "anonymized" not found</strong><br>
+    To add the anonymization tracking column, run:<br>
+    <code style="background: #f8f9fa; padding: 5px 10px; border-radius: 3px; display: inline-block; margin-top: 10px;">
+        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+    </code>
+</div>
+{% endif %}
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Invoice Details <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+        <div>
+            <a href="{{ path('invoice_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+            <a href="{{ path('invoice_edit', {connection: connection, id: invoice.id}) }}" class="btn btn-primary">Edit</a>
+        </div>
+    </div>
+
+    <table>
+        <tbody>
+            <tr>
+                <th style="width: 200px;">ID</th>
+                <td>{{ invoice.id }}</td>
+            </tr>
+            <tr>
+                <th>Invoice Number</th>
+                <td>{{ invoice.invoiceNumber }}</td>
+            </tr>
+            <tr>
+                <th>Company Name</th>
+                <td>{{ invoice.companyName }}</td>
+            </tr>
+            <tr>
+                <th>Company Address</th>
+                <td>{{ invoice.companyAddress }}</td>
+            </tr>
+            <tr>
+                <th>Bank Account</th>
+                <td>{{ invoice.bankAccount ?? 'N/A' }}</td>
+            </tr>
+            <tr>
+                <th>Credit Card</th>
+                <td>{{ invoice.creditCard ?? 'N/A' }}</td>
+            </tr>
+            <tr>
+                <th>Amount</th>
+                <td>${{ invoice.amount }}</td>
+            </tr>
+            <tr>
+                <th>Issue Date</th>
+                <td>{{ invoice.issueDate ? invoice.issueDate|date('Y-m-d H:i:s') : 'N/A' }}</td>
+            </tr>
+            <tr>
+                <th>Due Date</th>
+                <td>{{ invoice.dueDate ? invoice.dueDate|date('Y-m-d H:i:s') : 'N/A' }}</td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>{{ invoice.status }}</td>
+            </tr>
+            {% if hasAnonymizedColumn and invoice.anonymized %}
+            <tr>
+                <th>Anonymized</th>
+                <td>
+                    <span style="background: #dc3545; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">Yes</span>
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

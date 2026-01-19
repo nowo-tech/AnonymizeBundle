@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Order #{{ order.id }} - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+{% if not hasAnonymizedColumn|default(false) %}
+<div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    <strong>⚠️ Column "anonymized" not found</strong><br>
+    To add the anonymization tracking column, run:<br>
+    <code style="background: #f8f9fa; padding: 5px 10px; border-radius: 3px; display: inline-block; margin-top: 10px;">
+        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+    </code>
+</div>
+{% endif %}
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Order Details <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+        <div>
+            <a href="{{ path('order_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+            <a href="{{ path('order_edit', {connection: connection, id: order.id}) }}" class="btn btn-primary">Edit</a>
+        </div>
+    </div>
+
+    <table>
+        <tbody>
+            <tr>
+                <th style="width: 200px;">ID</th>
+                <td>{{ order.id }}</td>
+            </tr>
+            <tr>
+                <th>Order Number</th>
+                <td>{{ order.orderNumber ?? 'N/A' }}</td>
+            </tr>
+            <tr>
+                <th>Shipping Address</th>
+                <td>{{ order.shippingAddress }}</td>
+            </tr>
+            <tr>
+                <th>Billing Address</th>
+                <td>{{ order.billingAddress ?? 'N/A' }}</td>
+            </tr>
+            <tr>
+                <th>Total Amount</th>
+                <td>${{ order.totalAmount }}</td>
+            </tr>
+            <tr>
+                <th>Order Date</th>
+                <td>{{ order.orderDate ? order.orderDate|date('Y-m-d H:i:s') : 'N/A' }}</td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>{{ order.status }}</td>
+            </tr>
+            <tr>
+                <th>Customer Email</th>
+                <td>{{ order.customerEmail ?? 'N/A' }}</td>
+            </tr>
+            {% if hasAnonymizedColumn and order.anonymized %}
+            <tr>
+                <th>Anonymized</th>
+                <td>
+                    <span style="background: #dc3545; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">Yes</span>
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

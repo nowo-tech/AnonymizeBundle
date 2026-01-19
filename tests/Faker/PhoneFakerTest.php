@@ -39,4 +39,42 @@ class PhoneFakerTest extends TestCase
         $this->assertIsString($phone1);
         $this->assertIsString($phone2);
     }
+
+    /**
+     * Test that PhoneFaker respects country_code option.
+     */
+    public function testGenerateWithCountryCode(): void
+    {
+        $faker = new PhoneFaker('en_US');
+        $phone = $faker->generate(['country_code' => '+34']);
+
+        $this->assertIsString($phone);
+        $this->assertStringStartsWith('+34', $phone);
+    }
+
+    /**
+     * Test that PhoneFaker respects format option (national).
+     */
+    public function testGenerateWithNationalFormat(): void
+    {
+        $faker = new PhoneFaker('en_US');
+        $phone = $faker->generate(['format' => 'national']);
+
+        $this->assertIsString($phone);
+        $this->assertNotEmpty($phone);
+        // National format should not start with country code
+        $this->assertFalse(str_starts_with($phone, '+'));
+    }
+
+    /**
+     * Test that PhoneFaker respects include_extension option.
+     */
+    public function testGenerateWithExtension(): void
+    {
+        $faker = new PhoneFaker('en_US');
+        $phone = $faker->generate(['include_extension' => true]);
+
+        $this->assertIsString($phone);
+        $this->assertStringContainsString('ext.', $phone);
+    }
 }

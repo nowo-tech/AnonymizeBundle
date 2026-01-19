@@ -13,6 +13,67 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.12
+
+**Release Date**: 2026-01-19
+
+#### What's New
+
+- **New Fakers**: Added 9 new faker types (Phase 1 continued implementation)
+  - `password`: Generate anonymized passwords with length, special chars, numbers, and uppercase options
+  - `ip_address`: Generate anonymized IP addresses (IPv4/IPv6) with version and type (public/private/localhost) options
+  - `mac_address`: Generate anonymized MAC addresses with separator and uppercase options
+  - `uuid`: Generate anonymized UUIDs (v1/v4) with version and format options
+  - `hash`: Generate anonymized hash values (MD5, SHA1, SHA256, SHA512) with algorithm and length options
+  - `coordinate`: Generate anonymized GPS coordinates with format, precision, and bounds options
+  - `color`: Generate anonymized color values (hex, rgb, rgba) with format and alpha options
+  - `boolean`: Generate anonymized boolean values with true_probability option
+  - `numeric`: Generate anonymized numeric values (int/float) with type, min, max, and precision options
+  - All new fakers registered in `FakerType` enum and `FakerFactory`
+  - Total fakers available: 23 (8 original + 15 new)
+
+- **Testing Improvements**:
+  - Comprehensive test coverage: 148 tests, 341 assertions
+  - Code coverage: 45.80% line coverage (414/904 lines), 52.78% class coverage (19/36 classes)
+  - All fakers have dedicated test suites
+
+- **Service Registration Fix**:
+  - Fixed `MaskingFaker` service registration issue
+  - Explicit service definition added to `services.yaml`
+
+#### Breaking Changes
+
+None - This is a backward-compatible feature release.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Verify installation**:
+   ```bash
+   php bin/console list nowo:anonymize
+   ```
+
+4. **Update your entities** (optional):
+   - You can now use the new faker types in your `#[AnonymizeProperty]` attributes
+   - See [README.md](../README.md) for examples of each faker type
+
+#### Notes
+
+- No configuration changes required
+- New fakers are automatically available after update
+- Existing anonymization configurations continue to work unchanged
+- You can start using new faker types immediately in your entities
+- See [ROADMAP.md](ROADMAP.md) for planned future fakers
+
 ### Upgrading to 0.0.11 (Unreleased)
 
 **Release Date**: TBD
@@ -29,13 +90,19 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
   - All new fakers are registered in `FakerType` enum and `FakerFactory`
   - Total fakers available: 14 (8 original + 6 new)
 
-- **Enhanced Demos**: Added 4 new entities and fixtures
+- **Enhanced Demos**: Added 4 new entities with complete CRUD interfaces
   - `Product` entity: Demonstrates name, url, date fakers (10 products)
+    - Complete CRUD: ProductController, ProductType form, templates (index, show, new, edit)
   - `Order` entity: Demonstrates service, address, date, email fakers with patterns (13 orders)
+    - Complete CRUD: OrderController, OrderType form, templates (index, show, new, edit)
   - `Invoice` entity: Demonstrates masking, company, iban, service fakers (8 invoices)
+    - Complete CRUD: InvoiceController, InvoiceType form, templates (index, show, new, edit)
   - `Employee` entity: Demonstrates username, date, company fakers with exclusion patterns (12 employees)
+    - Complete CRUD: EmployeeController, EmployeeType form, templates (index, show, new, edit)
   - All entities include `AnonymizableTrait` for anonymization tracking
   - Comprehensive fixtures with realistic test data
+  - Updated navigation menu with all entities organized by categories
+  - Added anonymization field alerts in all entity list views explaining which fields are anonymized
 
 - **Custom Service Faker Example**: Added example service in demos
   - `CustomReferenceFaker`: Example service implementing `FakerInterface`

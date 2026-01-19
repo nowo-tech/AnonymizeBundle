@@ -41,4 +41,43 @@ class EmailFakerTest extends TestCase
         $this->assertIsString($email1);
         $this->assertIsString($email2);
     }
+
+    /**
+     * Test that EmailFaker respects domain option.
+     */
+    public function testGenerateWithDomain(): void
+    {
+        $faker = new EmailFaker('en_US');
+        $email = $faker->generate(['domain' => 'example.com']);
+
+        $this->assertIsString($email);
+        $this->assertStringEndsWith('@example.com', $email);
+    }
+
+    /**
+     * Test that EmailFaker respects format option (name.surname).
+     */
+    public function testGenerateWithFormat(): void
+    {
+        $faker = new EmailFaker('en_US');
+        $email = $faker->generate(['format' => 'name.surname']);
+
+        $this->assertIsString($email);
+        $this->assertStringContainsString('@', $email);
+        $this->assertMatchesRegularExpression('/^[^\s@]+\.[^\s@]+@[^\s@]+\.[^\s@]+$/', $email);
+    }
+
+    /**
+     * Test that EmailFaker respects local_part_length option.
+     */
+    public function testGenerateWithLocalPartLength(): void
+    {
+        $faker = new EmailFaker('en_US');
+        $email = $faker->generate(['local_part_length' => 10]);
+
+        $this->assertIsString($email);
+        $parts = explode('@', $email);
+        $this->assertCount(2, $parts);
+        $this->assertLessThanOrEqual(10, strlen($parts[0]));
+    }
 }

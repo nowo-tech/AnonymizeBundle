@@ -209,10 +209,24 @@
         <nav>
             <ul>
                 <li><a href="{{ path('home') }}">Home</a></li>
+                <li><strong>Users:</strong></li>
                 <li><a href="{{ path('user_index', {connection: 'default'}) }}">Users (MySQL)</a></li>
                 <li><a href="{{ path('user_index', {connection: 'postgres'}) }}">Users (PostgreSQL)</a></li>
+                <li><strong>Customers:</strong></li>
                 <li><a href="{{ path('customer_index', {connection: 'default'}) }}">Customers (MySQL)</a></li>
                 <li><a href="{{ path('customer_index', {connection: 'postgres'}) }}">Customers (PostgreSQL)</a></li>
+                <li><strong>Products:</strong></li>
+                <li><a href="{{ path('product_index', {connection: 'default'}) }}">Products (MySQL)</a></li>
+                <li><a href="{{ path('product_index', {connection: 'postgres'}) }}">Products (PostgreSQL)</a></li>
+                <li><strong>Orders:</strong></li>
+                <li><a href="{{ path('order_index', {connection: 'default'}) }}">Orders (MySQL)</a></li>
+                <li><a href="{{ path('order_index', {connection: 'postgres'}) }}">Orders (PostgreSQL)</a></li>
+                <li><strong>Invoices:</strong></li>
+                <li><a href="{{ path('invoice_index', {connection: 'default'}) }}">Invoices (MySQL)</a></li>
+                <li><a href="{{ path('invoice_index', {connection: 'postgres'}) }}">Invoices (PostgreSQL)</a></li>
+                <li><strong>Employees:</strong></li>
+                <li><a href="{{ path('employee_index', {connection: 'default'}) }}">Employees (MySQL)</a></li>
+                <li><a href="{{ path('employee_index', {connection: 'postgres'}) }}">Employees (PostgreSQL)</a></li>
             </ul>
         </nav>
 

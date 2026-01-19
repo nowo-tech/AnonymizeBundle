@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Product #{{ product.id }} - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+<div class="card">
+    <h2>Edit Product <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+
+    {{ form_start(form, {'attr': {'class': 'form'}}) }}
+        <div class="form-row">
+            {{ form_label(form.name) }}
+            {{ form_widget(form.name) }}
+            {{ form_errors(form.name) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.description) }}
+            {{ form_widget(form.description) }}
+            {{ form_errors(form.description) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.price) }}
+            {{ form_widget(form.price) }}
+            {{ form_errors(form.price) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.imageUrl) }}
+            {{ form_widget(form.imageUrl) }}
+            {{ form_errors(form.imageUrl) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.status) }}
+            {{ form_widget(form.status) }}
+            {{ form_errors(form.status) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.createdAt) }}
+            {{ form_widget(form.createdAt) }}
+            {{ form_errors(form.createdAt) }}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Update Product</button>
+            <a href="{{ path('product_show', {connection: connection, id: product.id}) }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}

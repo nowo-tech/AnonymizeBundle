@@ -12,6 +12,21 @@
     </code>
 </div>
 {% endif %}
+
+<div class="alert alert-info" style="background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    <strong>ℹ️ Anonymized Fields</strong><br>
+    The following fields in this entity are configured for anonymization:
+    <ul style="margin: 10px 0 0 20px;">
+        <li><strong>email</strong> - Email faker</li>
+        <li><strong>firstName</strong> - Name faker</li>
+        <li><strong>lastName</strong> - Surname faker</li>
+        <li><strong>age</strong> - Age faker (numeric range: 18-100)</li>
+        <li><strong>phone</strong> - Phone faker</li>
+        <li><strong>iban</strong> - IBAN faker (ES country)</li>
+        <li><strong>creditCard</strong> - Credit card faker</li>
+    </ul>
+</div>
+
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2>Users <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>

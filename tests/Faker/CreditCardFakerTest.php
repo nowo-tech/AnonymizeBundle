@@ -41,4 +41,46 @@ class CreditCardFakerTest extends TestCase
         $this->assertIsString($creditCard1);
         $this->assertIsString($creditCard2);
     }
+
+    /**
+     * Test that CreditCardFaker respects type option (visa).
+     */
+    public function testGenerateWithTypeVisa(): void
+    {
+        $faker = new CreditCardFaker('en_US');
+        $creditCard = $faker->generate(['type' => 'visa']);
+
+        $this->assertIsString($creditCard);
+        $this->assertNotEmpty($creditCard);
+        $cleanNumber = preg_replace('/[\s-]/', '', $creditCard);
+        $this->assertStringStartsWith('4', $cleanNumber);
+    }
+
+    /**
+     * Test that CreditCardFaker respects type option (mastercard).
+     */
+    public function testGenerateWithTypeMastercard(): void
+    {
+        $faker = new CreditCardFaker('en_US');
+        $creditCard = $faker->generate(['type' => 'mastercard']);
+
+        $this->assertIsString($creditCard);
+        $this->assertNotEmpty($creditCard);
+        $cleanNumber = preg_replace('/[\s-]/', '', $creditCard);
+        $this->assertMatchesRegularExpression('/^5[1-5]/', $cleanNumber);
+    }
+
+    /**
+     * Test that CreditCardFaker respects formatted option.
+     */
+    public function testGenerateWithFormatted(): void
+    {
+        $faker = new CreditCardFaker('en_US');
+        $creditCard = $faker->generate(['formatted' => true]);
+
+        $this->assertIsString($creditCard);
+        $this->assertNotEmpty($creditCard);
+        // Should contain spaces
+        $this->assertStringContainsString(' ', $creditCard);
+    }
 }

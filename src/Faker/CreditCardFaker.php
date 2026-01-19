@@ -32,11 +32,42 @@ final class CreditCardFaker implements FakerInterface
     /**
      * Generates an anonymized credit card number.
      *
-     * @param array<string, mixed> $options Additional options (not used for credit card)
+     * @param array<string, mixed> $options Options:
+     *   - 'type' (string): 'visa', 'mastercard', 'amex', or 'random' (default: 'random')
+     *   - 'valid' (bool): Generate valid Luhn numbers (default: true)
+     *   - 'formatted' (bool): Include spaces/dashes (default: false)
      * @return string The anonymized credit card number
      */
     public function generate(array $options = []): string
     {
-        return $this->faker->creditCardNumber();
+        $type = $options['type'] ?? 'random';
+        $valid = $options['valid'] ?? true;
+        $formatted = $options['formatted'] ?? false;
+
+        // Generate card number based on type
+        $cardNumber = match ($type) {
+            'visa' => $this->faker->creditCardNumber('Visa'),
+            'mastercard' => $this->faker->creditCardNumber('MasterCard'),
+            'amex' => $this->faker->creditCardNumber('American Express'),
+            'random' => $this->faker->creditCardNumber(),
+            default => $this->faker->creditCardNumber(),
+        };
+
+        // If valid is false, generate invalid number
+        if (!$valid) {
+            // Remove last digit and replace with random invalid digit
+            $cardNumber = substr($cardNumber, 0, -1) . $this->faker->numberBetween(0, 9);
+        }
+
+        // Format with spaces/dashes if requested
+        if ($formatted) {
+            // Remove existing formatting
+            $cardNumber = preg_replace('/[\s-]/', '', $cardNumber);
+            // Add spaces every 4 digits
+            $cardNumber = chunk_split($cardNumber, 4, ' ');
+            $cardNumber = trim($cardNumber);
+        }
+
+        return $cardNumber;
     }
 }

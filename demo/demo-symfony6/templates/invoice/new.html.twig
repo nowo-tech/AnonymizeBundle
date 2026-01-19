@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Invoice - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+<div class="card">
+    <h2>Create New Invoice <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+
+    {{ form_start(form, {'attr': {'class': 'form'}}) }}
+        <div class="form-row">
+            {{ form_label(form.invoiceNumber) }}
+            {{ form_widget(form.invoiceNumber) }}
+            {{ form_errors(form.invoiceNumber) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.companyName) }}
+            {{ form_widget(form.companyName) }}
+            {{ form_errors(form.companyName) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.companyAddress) }}
+            {{ form_widget(form.companyAddress) }}
+            {{ form_errors(form.companyAddress) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.bankAccount) }}
+            {{ form_widget(form.bankAccount) }}
+            {{ form_errors(form.bankAccount) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.creditCard) }}
+            {{ form_widget(form.creditCard) }}
+            {{ form_errors(form.creditCard) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.amount) }}
+            {{ form_widget(form.amount) }}
+            {{ form_errors(form.amount) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.issueDate) }}
+            {{ form_widget(form.issueDate) }}
+            {{ form_errors(form.issueDate) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.dueDate) }}
+            {{ form_widget(form.dueDate) }}
+            {{ form_errors(form.dueDate) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.status) }}
+            {{ form_widget(form.status) }}
+            {{ form_errors(form.status) }}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Create Invoice</button>
+            <a href="{{ path('invoice_index', {connection: connection}) }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}

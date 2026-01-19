@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Products - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+{% if not hasAnonymizedColumn|default(false) %}
+<div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    <strong>⚠️ Column "anonymized" not found</strong><br>
+    To add the anonymization tracking column, run:<br>
+    <code style="background: #f8f9fa; padding: 5px 10px; border-radius: 3px; display: inline-block; margin-top: 10px;">
+        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+    </code>
+</div>
+{% endif %}
+
+<div class="alert alert-info" style="background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    <strong>ℹ️ Anonymized Fields</strong><br>
+    The following fields in this entity are configured for anonymization:
+    <ul style="margin: 10px 0 0 20px;">
+        <li><strong>name</strong> - Name faker</li>
+        <li><strong>description</strong> - Name faker</li>
+        <li><strong>price</strong> - Age faker (numeric range: 10-999)</li>
+        <li><strong>imageUrl</strong> - URL faker</li>
+        <li><strong>createdAt</strong> - Date faker (past dates)</li>
+    </ul>
+</div>
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Products <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+        <a href="{{ path('product_new', {connection: connection}) }}" class="btn btn-primary">Create New Product</a>
+    </div>
+
+    {% if products|length > 0 %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                    <tr>
+                        <td>{{ product.id }}</td>
+                        <td>{{ product.name }}</td>
+                        <td>${{ product.price }}</td>
+                        <td>{{ product.status }}</td>
+                        <td>{{ product.createdAt ? product.createdAt|date('Y-m-d H:i:s') : 'N/A' }}</td>
+                        <td>
+                            <a href="{{ path('product_show', {connection: connection, id: product.id}) }}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Show</a>
+                            <a href="{{ path('product_edit', {connection: connection, id: product.id}) }}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Edit</a>
+                            <form method="post" action="{{ path('product_delete', {connection: connection, id: product.id}) }}" style="display: inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ product.id) }}">
+                                <button type="submit" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="return confirm('Are you sure?')">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No products found. <a href="{{ path('product_new', {connection: connection}) }}">Create the first one</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

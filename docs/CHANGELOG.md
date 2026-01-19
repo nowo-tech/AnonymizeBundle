@@ -7,6 +7,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.13] - 2026-01-19
+
+### Added
+
+- **New Fakers**: Added 6 new faker types (Phase 1 completion - 100%)
+  - `FileFaker`: Generate anonymized file paths and names with extension, directory, and absolute path options
+  - `JsonFaker`: Generate anonymized JSON structures with schema, depth, and max_items options
+  - `TextFaker`: Generate anonymized text content (sentences, paragraphs) with type, min_words, and max_words options
+  - `EnumFaker`: Generate values from a predefined list with values and weighted probability options
+  - `CountryFaker`: Generate anonymized country codes/names with format (code/name/iso2/iso3) and locale options
+  - `LanguageFaker`: Generate anonymized language codes/names with format (code/name) and locale options
+  - All new fakers registered in FakerType enum and FakerFactory
+  - Total fakers available: 29 (8 original + 21 new)
+  - Phase 1 of roadmap: 100% complete (21/21 fakers implemented)
+  - Comprehensive test coverage for all new fakers
+
+### Improved
+
+- **EmailFaker**: Enhanced with new options
+  - `domain`: Custom domain option
+  - `format`: 'name.surname' or 'random' format option
+  - `local_part_length`: Control local part length
+  - Backward compatible with existing usage
+
+- **PhoneFaker**: Enhanced with new options
+  - `country_code`: Specific country code option (e.g., '+34')
+  - `format`: 'international' or 'national' format option
+  - `include_extension`: Include phone extension option
+  - Backward compatible with existing usage
+
+- **CreditCardFaker**: Enhanced with new options
+  - `type`: 'visa', 'mastercard', 'amex', or 'random' option
+  - `valid`: Generate valid Luhn numbers option
+  - `formatted`: Include spaces/dashes in card number option
+  - Backward compatible with existing usage
+
+- **Tests**: Added comprehensive test suites for all enhanced fakers
+  - 187 tests executed
+  - 435 assertions
+  - All tests pass
+
+- **Documentation**: Updated README, CONFIGURATION, ROADMAP, and UPGRADING guides
+  - Phase 1 marked as 100% complete
+  - All new fakers documented
+  - Enhanced faker options documented
+
+## [0.0.12] - 2026-01-19
+
+### Added
+
+- **New Fakers**: Added 9 new faker types (Phase 1 continued implementation)
+  - `PasswordFaker`: Generate anonymized passwords with length, special chars, numbers, and uppercase options
+  - `IpAddressFaker`: Generate anonymized IP addresses (IPv4/IPv6) with version and type (public/private/localhost) options
+  - `MacAddressFaker`: Generate anonymized MAC addresses with separator and uppercase options
+  - `UuidFaker`: Generate anonymized UUIDs (v1/v4) with version and format options
+  - `HashFaker`: Generate anonymized hash values (MD5, SHA1, SHA256, SHA512) with algorithm and length options
+  - `CoordinateFaker`: Generate anonymized GPS coordinates with format, precision, and bounds options
+  - `ColorFaker`: Generate anonymized color values (hex, rgb, rgba) with format and alpha options
+  - `BooleanFaker`: Generate anonymized boolean values with true_probability option
+  - `NumericFaker`: Generate anonymized numeric values (int/float) with type, min, max, and precision options
+  - All new fakers registered in FakerType enum and FakerFactory
+  - Total fakers available: 23 (8 original + 15 new)
+  - Comprehensive test coverage for all new fakers
+
+### Improved
+
+- **Documentation**: Updated README and CONFIGURATION guides with new faker types
+- **Roadmap**: Updated progress tracking (Phase 1: 71% complete - 15/21 fakers)
+- **Tests**: Added complete test suites for all new fakers (148 tests, 341 assertions)
+- **Code Coverage**: 45.80% line coverage (414/904 lines), 52.78% class coverage (19/36 classes)
+- **Service Registration**: Fixed MaskingFaker service registration issue
+
 ## [0.0.11] - 2026-01-19
 
 ### Added
@@ -43,7 +115,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated controllers to use SchemaService for anonymized column detection
   - Updated templates with anonymized column alerts and conditional display
   - Added underscore naming strategy to Doctrine configuration
-  - Updated bundle version to v0.0.10 in all demos
+  - Updated bundle version to v0.0.11 in all demos
+  - Added complete CRUD interfaces for all entities (Product, Order, Invoice, Employee)
+  - Updated navigation menu with all entities organized by categories
+  - Added anonymization field alerts in all entity list views
   - Consistent functionality across all Symfony versions
   - Total entities in demos: 6 (User, Customer, Product, Order, Invoice, Employee)
   - Total fixtures in demos: 6 (UserFixtures, CustomerFixtures, ProductFixtures, OrderFixtures, InvoiceFixtures, EmployeeFixtures)

@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Orders - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+{% if not hasAnonymizedColumn|default(false) %}
+<div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    <strong>⚠️ Column "anonymized" not found</strong><br>
+    To add the anonymization tracking column, run:<br>
+    <code style="background: #f8f9fa; padding: 5px 10px; border-radius: 3px; display: inline-block; margin-top: 10px;">
+        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+    </code>
+</div>
+{% endif %}
+
+<div class="alert alert-info" style="background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    <strong>ℹ️ Anonymized Fields</strong><br>
+    The following fields in this entity are configured for anonymization:
+    <ul style="margin: 10px 0 0 20px;">
+        <li><strong>orderNumber</strong> - Service faker (CustomReferenceFaker)</li>
+        <li><strong>shippingAddress</strong> - Address faker (full format)</li>
+        <li><strong>billingAddress</strong> - Address faker (full format)</li>
+        <li><strong>totalAmount</strong> - Age faker (numeric range: 50-5000)</li>
+        <li><strong>orderDate</strong> - Date faker (past dates)</li>
+        <li><strong>customerEmail</strong> - Email faker</li>
+    </ul>
+    <strong>Note:</strong> This entity uses inclusion patterns (status='completed') and exclusion patterns (id<=5).
+</div>
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Orders <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+        <a href="{{ path('order_new', {connection: connection}) }}" class="btn btn-primary">Create New Order</a>
+    </div>
+
+    {% if orders|length > 0 %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Order Number</th>
+                    <th>Total Amount</th>
+                    <th>Status</th>
+                    <th>Order Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.orderNumber ?? 'N/A' }}</td>
+                        <td>${{ order.totalAmount }}</td>
+                        <td>{{ order.status }}</td>
+                        <td>{{ order.orderDate ? order.orderDate|date('Y-m-d H:i:s') : 'N/A' }}</td>
+                        <td>
+                            <a href="{{ path('order_show', {connection: connection, id: order.id}) }}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Show</a>
+                            <a href="{{ path('order_edit', {connection: connection, id: order.id}) }}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Edit</a>
+                            <form method="post" action="{{ path('order_delete', {connection: connection, id: order.id}) }}" style="display: inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ order.id) }}">
+                                <button type="submit" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="return confirm('Are you sure?')">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No orders found. <a href="{{ path('order_new', {connection: connection}) }}">Create the first one</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

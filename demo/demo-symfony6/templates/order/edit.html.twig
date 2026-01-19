@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Order #{{ order.id }} - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+<div class="card">
+    <h2>Edit Order <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+
+    {{ form_start(form, {'attr': {'class': 'form'}}) }}
+        <div class="form-row">
+            {{ form_label(form.orderNumber) }}
+            {{ form_widget(form.orderNumber) }}
+            {{ form_errors(form.orderNumber) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.shippingAddress) }}
+            {{ form_widget(form.shippingAddress) }}
+            {{ form_errors(form.shippingAddress) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.billingAddress) }}
+            {{ form_widget(form.billingAddress) }}
+            {{ form_errors(form.billingAddress) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.totalAmount) }}
+            {{ form_widget(form.totalAmount) }}
+            {{ form_errors(form.totalAmount) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.orderDate) }}
+            {{ form_widget(form.orderDate) }}
+            {{ form_errors(form.orderDate) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.status) }}
+            {{ form_widget(form.status) }}
+            {{ form_errors(form.status) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.customerEmail) }}
+            {{ form_widget(form.customerEmail) }}
+            {{ form_errors(form.customerEmail) }}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Update Order</button>
+            <a href="{{ path('order_show', {connection: connection, id: order.id}) }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}

@@ -133,6 +133,24 @@ The bundle supports the following faker types:
 - **masking**: Partial masking of sensitive data
   - Options: `preserve_start` (int), `preserve_end` (int), `mask_char` (string), `mask_length` (int)
   - Requires `value` option with the original value to mask
+- **password**: Generates anonymized passwords
+  - Options: `length` (int), `include_special` (bool), `include_numbers` (bool), `include_uppercase` (bool)
+- **ip_address**: Generates anonymized IP addresses
+  - Options: `version` (int, 4 or 6), `type` (string, 'public'/'private'/'localhost')
+- **mac_address**: Generates anonymized MAC addresses
+  - Options: `separator` (string, 'colon'/'dash'/'none'), `uppercase` (bool)
+- **uuid**: Generates anonymized UUIDs
+  - Options: `version` (int, 1 or 4), `format` (string, 'with_dashes'/'without_dashes')
+- **hash**: Generates anonymized hash values
+  - Options: `algorithm` (string, 'md5'/'sha1'/'sha256'/'sha512'), `length` (int|null)
+- **coordinate**: Generates anonymized GPS coordinates
+  - Options: `format` (string, 'array'/'string'/'json'), `precision` (int), `min_lat`, `max_lat`, `min_lng`, `max_lng` (float)
+- **color**: Generates anonymized color values
+  - Options: `format` (string, 'hex'/'rgb'/'rgba'), `alpha` (float, 0.0-1.0)
+- **boolean**: Generates anonymized boolean values
+  - Options: `true_probability` (int, 0-100)
+- **numeric**: Generates anonymized numeric values
+  - Options: `type` (string, 'int'/'float'), `min`, `max` (int|float), `precision` (int, for floats)
 
 ### Custom Fakers
 

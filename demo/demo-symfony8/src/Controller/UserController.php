@@ -36,7 +36,7 @@ class UserController extends AbstractController
             $metadata = $em->getClassMetadata(User::class);
             $tableName = $metadata->getTableName();
             /** @var Connection $dbConnection */
-            $dbConnection = $em->getConnection();
+            $dbConnection = $em->getConnection(); // @phpstan-ignore-line
 
             // Get all columns except anonymized
             $columns = [];

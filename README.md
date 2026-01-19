@@ -12,7 +12,7 @@ Symfony bundle for anonymizing database records using Doctrine attributes and Fa
 
 - ✅ Attribute-based anonymization configuration
 - ✅ Support for multiple Doctrine connections
-- ✅ Multiple faker types (14 total: email, name, surname, age, phone, IBAN, credit card, address, date, username, url, company, masking, custom service)
+- ✅ Multiple faker types (23 total: email, name, surname, age, phone, IBAN, credit card, address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, custom service)
 - ✅ Weight-based anonymization order
 - ✅ Pattern-based inclusion/exclusion filters
 - ✅ Support for MySQL and PostgreSQL (MongoDB coming soon)
@@ -307,6 +307,15 @@ The bundle supports the following faker types:
 - **url**: Generates anonymized URLs (supports `scheme`, `domain`, `path` options)
 - **company**: Generates anonymized company names (supports `type`, `suffix` options)
 - **masking**: Partial masking of sensitive data (supports `preserve_start`, `preserve_end`, `mask_char`, `mask_length` options)
+- **password**: Generates anonymized passwords (supports `length`, `include_special`, `include_numbers`, `include_uppercase` options)
+- **ip_address**: Generates anonymized IP addresses (supports `version` (4/6), `type` (public/private/localhost) options)
+- **mac_address**: Generates anonymized MAC addresses (supports `separator` (colon/dash/none), `uppercase` options)
+- **uuid**: Generates anonymized UUIDs (supports `version` (1/4), `format` (with_dashes/without_dashes) options)
+- **hash**: Generates anonymized hash values (supports `algorithm` (md5/sha1/sha256/sha512), `length` options)
+- **coordinate**: Generates anonymized GPS coordinates (supports `format` (array/string/json), `precision`, `bounds` options)
+- **color**: Generates anonymized color values (supports `format` (hex/rgb/rgba), `alpha` options)
+- **boolean**: Generates anonymized boolean values (supports `true_probability` (0-100) option)
+- **numeric**: Generates anonymized numeric values (supports `type` (int/float), `min`, `max`, `precision` options)
 
 ### Custom Fakers
 
@@ -358,6 +367,14 @@ composer qa
 
 The bundle includes comprehensive tests. All tests are located in the `tests/` directory.
 
+### Test Statistics
+
+- **Total Tests**: 148 tests
+- **Total Assertions**: 341 assertions
+- **Code Coverage**: 45.80% line coverage (414/904 lines)
+- **Class Coverage**: 52.78% (19/36 classes)
+- **Method Coverage**: 62.37% (58/93 methods)
+
 ### Running Tests
 
 ```bash
@@ -370,6 +387,13 @@ composer test-coverage
 # View coverage report
 open coverage/index.html
 ```
+
+### Coverage by Component
+
+- **Fakers**: Excellent coverage (~98% average, most fakers at 100%)
+- **Services**: Good coverage (88-96% for main services)
+- **Commands**: Integration tests required (not unit tested)
+- **Attributes**: No tests needed (definition-only classes)
 
 ## Code Quality
 
@@ -407,8 +431,16 @@ For information about our Git workflow and branching strategy, see [BRANCHING.md
 
 We have an extensive roadmap for future enhancements. See [ROADMAP.md](docs/ROADMAP.md) for details on planned features including:
 
-- **Phase 1 (v0.1.0)**: 20+ new fakers (Address, Date, Company, URL, Username, etc.)
-- **Phase 2 (v0.2.0)**: Advanced anonymization strategies (Masking, Hash Preserve, Shuffle)
+### Current Status (v0.0.12)
+
+- **Phase 1 Progress**: 71% complete (15/21 fakers implemented)
+- **Total Fakers Available**: 23 fakers (8 original + 15 new)
+- **Test Coverage**: 148 tests, 341 assertions, 45.80% line coverage
+
+### Planned Phases
+
+- **Phase 1 (v0.1.0)**: Enhanced fakers (71% complete - 6 remaining: File, Json, Text, Enum, Country, Language)
+- **Phase 2 (v0.2.0)**: Advanced anonymization strategies (Hash Preserve, Shuffle, Relationship Preservation)
 - **Phase 3 (v0.3.0)**: MongoDB and SQLite support
 - **Phase 4 (v0.4.0)**: Enhanced developer experience (CLI improvements, reporting, testing tools)
 - **Phase 5 (v0.5.0)**: Enterprise features (GDPR compliance, audit logging, API integration)

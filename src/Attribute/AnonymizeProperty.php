@@ -19,7 +19,7 @@ use Attribute;
 final class AnonymizeProperty
 {
     /**
-     * @param string $type The faker type: 'email', 'name', 'surname', 'age', 'phone', 'iban', 'credit_card', 'address', 'date', 'username', 'url', 'company', 'masking', or 'service'
+     * @param string $type The faker type: 'email', 'name', 'surname', 'age', 'phone', 'iban', 'credit_card', 'address', 'date', 'username', 'url', 'company', 'masking', 'password', 'ip_address', 'mac_address', 'uuid', 'hash', 'coordinate', 'color', 'boolean', 'numeric', 'file', 'json', 'text', 'enum', 'country', 'language', or 'service'
      * @param int|null $weight The weight for ordering anonymization. Lower weights are processed first. If null, processed last alphabetically
      * @param array<string> $includePatterns Array of patterns to include (e.g., ['id' => '>100']). If empty, all records are included
      * @param array<string> $excludePatterns Array of patterns to exclude (e.g., ['id' => '<=100']). Exclusions take precedence over inclusions

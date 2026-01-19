@@ -2,17 +2,17 @@
 
 This document outlines the planned features, improvements, and enhancements for the Anonymize Bundle.
 
-## Current Status (v0.0.11 - Unreleased)
+## Current Status (v0.0.12 - Released)
 
 ### ✅ Implemented Features
 
-- **Fakers**: email, name, surname, age, phone, IBAN, credit_card, service, **address**, **date**, **username**, **url**, **company**, **masking** (14 total)
+- **Fakers**: email, name, surname, age, phone, IBAN, credit_card, service, **address**, **date**, **username**, **url**, **company**, **masking**, **password**, **ip_address**, **mac_address**, **uuid**, **hash**, **coordinate**, **color**, **boolean**, **numeric** (23 total)
 - **Core Features**: Attribute-based configuration, multiple connections, batch processing, dry-run mode
 - **Tracking**: AnonymizableTrait with `anonymized` column
 - **Patterns**: Inclusion/exclusion pattern matching
 - **Databases**: MySQL, PostgreSQL support
 - **Services**: SchemaService for column detection
-- **Demos**: 6 entities (User, Customer, Product, Order, Invoice, Employee) with comprehensive fixtures
+- **Demos**: 6 entities (User, Customer, Product, Order, Invoice, Employee) with comprehensive fixtures and complete CRUD interfaces
 
 ---
 
@@ -20,7 +20,7 @@ This document outlines the planned features, improvements, and enhancements for 
 
 ### 🎯 Priority: High
 
-### ✅ Completed (v0.0.11)
+### ✅ Completed (v0.0.11 - v0.0.12)
 
 1. ✅ **AddressFaker** - **IMPLEMENTED**
    - Generate street addresses
@@ -60,45 +60,47 @@ This document outlines the planned features, improvements, and enhancements for 
 
 #### New Fakers to Add (Remaining)
 
-7. **PasswordFaker**
+7. ✅ **PasswordFaker** - **IMPLEMENTED**
    - Generate secure passwords (for testing)
    - Options: `length`, `include_special`, `include_numbers`, `include_uppercase`
    - Use cases: Password reset testing, account creation
+   - Status: Available in v0.0.12
 
-7. **PasswordFaker** - **PENDING**
-   - Generate secure passwords (for testing)
-   - Options: `length`, `include_special`, `include_numbers`, `include_uppercase`
-   - Use cases: Password reset testing, account creation
-
-8. **IpAddressFaker** - **PENDING**
+8. ✅ **IpAddressFaker** - **IMPLEMENTED**
    - Generate IP addresses (IPv4/IPv6)
    - Options: `version` (4/6), `type` (public/private/localhost)
    - Use cases: Log IPs, session IPs, API request IPs
+   - Status: Available in v0.0.12
 
-9. **MacAddressFaker** - **PENDING**
+9. ✅ **MacAddressFaker** - **IMPLEMENTED**
    - Generate MAC addresses
    - Options: `separator` (colon/dash/none), `uppercase`
    - Use cases: Device tracking, network logs
+   - Status: Available in v0.0.12
 
-10. **UuidFaker** - **PENDING**
+10. ✅ **UuidFaker** - **IMPLEMENTED**
     - Generate UUIDs (v1, v4)
     - Options: `version` (1/4), `format` (with/without dashes)
     - Use cases: API tokens, unique identifiers
+    - Status: Available in v0.0.12
 
-11. **HashFaker** - **PENDING**
-    - Generate hash values (MD5, SHA1, SHA256)
-    - Options: `algorithm` (md5/sha1/sha256), `length`
+11. ✅ **HashFaker** - **IMPLEMENTED**
+    - Generate hash values (MD5, SHA1, SHA256, SHA512)
+    - Options: `algorithm` (md5/sha1/sha256/sha512), `length`
     - Use cases: Password hashes, token hashes
+    - Status: Available in v0.0.12
 
-12. **CoordinateFaker** - **PENDING**
+12. ✅ **CoordinateFaker** - **IMPLEMENTED**
     - Generate GPS coordinates (latitude/longitude)
-    - Options: `country`, `precision`, `bounds` (min_lat, max_lat, min_lng, max_lng)
+    - Options: `format` (array/string/json), `precision`, `bounds` (min_lat, max_lat, min_lng, max_lng)
     - Use cases: Location data, geolocation tracking
+    - Status: Available in v0.0.12
 
-13. **ColorFaker** - **PENDING**
+13. ✅ **ColorFaker** - **IMPLEMENTED**
     - Generate color values
     - Options: `format` (hex/rgb/rgba), `alpha`
     - Use cases: User preferences, theme colors
+    - Status: Available in v0.0.12
 
 14. **FileFaker** - **PENDING**
     - Generate file paths and names
@@ -115,15 +117,17 @@ This document outlines the planned features, improvements, and enhancements for 
     - Options: `type` (sentence/paragraph), `min_words`, `max_words`
     - Use cases: Comments, descriptions, notes
 
-17. **NumericFaker** - **PENDING**
+17. ✅ **NumericFaker** - **IMPLEMENTED**
     - Generate numeric values (integers, decimals)
     - Options: `type` (int/float), `min`, `max`, `precision` (for floats)
     - Use cases: Prices, quantities, scores, ratings
+    - Status: Available in v0.0.12
 
-18. **BooleanFaker** - **PENDING**
+18. ✅ **BooleanFaker** - **IMPLEMENTED**
     - Generate boolean values
     - Options: `true_probability` (0-100)
     - Use cases: Flags, toggles, status booleans
+    - Status: Available in v0.0.12
 
 19. **EnumFaker** - **PENDING**
     - Generate values from a predefined enum/list
@@ -683,17 +687,18 @@ This document outlines the planned features, improvements, and enhancements for 
 1. ✅ **AddressFaker** - **COMPLETED** (v0.0.11)
 2. ✅ **DateFaker** - **COMPLETED** (v0.0.11)
 3. ✅ **MaskingFaker** - **COMPLETED** (v0.0.11)
-4. **Pre-flight Checks** - Safety critical (Pending)
-5. **Enhanced Email/Phone Fakers** - Improve existing (Pending)
-6. **Progress Bars** - Better UX (Pending)
-7. **Environment Protection** - Enhanced safety (Pending)
-8. **PasswordFaker** - For testing scenarios (Pending)
-9. **IpAddressFaker** - Common in logs (Pending)
+4. ✅ **PasswordFaker** - **COMPLETED** (current development)
+5. ✅ **IpAddressFaker** - **COMPLETED** (current development)
+6. **Pre-flight Checks** - Safety critical (Pending)
+7. **Enhanced Email/Phone Fakers** - Improve existing (Pending)
+8. **Progress Bars** - Better UX (Pending)
+9. **Environment Protection** - Enhanced safety (Pending)
 
 ### ⚡ Medium Priority (Next 4-6 releases)
 
 1. ✅ **UsernameFaker, UrlFaker, CompanyFaker** - **COMPLETED** (v0.0.11)
-2. **Relationship Preservation** (Pending)
+2. ✅ **MacAddressFaker, UuidFaker** - **COMPLETED** (current development)
+3. **Relationship Preservation** (Pending)
 3. **MongoDB Support** (Pending)
 4. **Configuration Files** (Pending)
 5. **Event System** (Pending)
@@ -739,9 +744,14 @@ We welcome community contributions! Areas where help is especially appreciated:
   - ✅ Total fakers: 14 (8 original + 6 new)
   - ✅ Progress: Phase 1 (30% complete), Phase 2 (25% complete - MaskingFaker)
 
+- **v0.0.12** (2026-01-19 - Unreleased): Phase 1 Continued Implementation
+  - ✅ 9 new fakers: Password, IpAddress, MacAddress, Uuid, Hash, Coordinate, Color, Boolean, Numeric
+  - ✅ Total fakers: 23 (8 original + 15 new)
+  - ✅ Progress: Phase 1 (71% complete - 15/21 fakers)
+
 ### Planned Releases
 
-- **v0.1.0** (Q1 2026): Enhanced Fakers (Phase 1) - **In Progress** (6/21 completed, 29%)
+- **v0.1.0** (Q1 2026): Enhanced Fakers (Phase 1) - **In Progress** (15/21 completed, 71%)
 - **v0.2.0** (Q2 2026): Advanced Features (Phase 2) - **Partial** (MaskingFaker completed)
 - **v0.3.0** (Q3 2026): Database Support (Phase 3)
 - **v0.4.0** (Q4 2026): Developer Experience (Phase 4)

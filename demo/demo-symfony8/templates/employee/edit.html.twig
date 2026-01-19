@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Employee #{{ employee.id }} - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+<div class="card">
+    <h2>Edit Employee <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+
+    {{ form_start(form, {'attr': {'class': 'form'}}) }}
+        <div class="form-row">
+            {{ form_label(form.firstName) }}
+            {{ form_widget(form.firstName) }}
+            {{ form_errors(form.firstName) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.lastName) }}
+            {{ form_widget(form.lastName) }}
+            {{ form_errors(form.lastName) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.username) }}
+            {{ form_widget(form.username) }}
+            {{ form_errors(form.username) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.email) }}
+            {{ form_widget(form.email) }}
+            {{ form_errors(form.email) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.phone) }}
+            {{ form_widget(form.phone) }}
+            {{ form_errors(form.phone) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.birthDate) }}
+            {{ form_widget(form.birthDate) }}
+            {{ form_errors(form.birthDate) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.age) }}
+            {{ form_widget(form.age) }}
+            {{ form_errors(form.age) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.department) }}
+            {{ form_widget(form.department) }}
+            {{ form_errors(form.department) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.previousCompany) }}
+            {{ form_widget(form.previousCompany) }}
+            {{ form_errors(form.previousCompany) }}
+        </div>
+
+        <div class="form-row">
+            {{ form_label(form.hireDate) }}
+            {{ form_widget(form.hireDate) }}
+            {{ form_errors(form.hireDate) }}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Update Employee</button>
+            <a href="{{ path('employee_show', {connection: connection, id: employee.id}) }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}

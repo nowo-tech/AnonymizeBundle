@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Product #{{ product.id }} - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+{% if not hasAnonymizedColumn|default(false) %}
+<div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    <strong>⚠️ Column "anonymized" not found</strong><br>
+    To add the anonymization tracking column, run:<br>
+    <code style="background: #f8f9fa; padding: 5px 10px; border-radius: 3px; display: inline-block; margin-top: 10px;">
+        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+    </code>
+</div>
+{% endif %}
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Product Details <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+        <div>
+            <a href="{{ path('product_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+            <a href="{{ path('product_edit', {connection: connection, id: product.id}) }}" class="btn btn-primary">Edit</a>
+        </div>
+    </div>
+
+    <table>
+        <tbody>
+            <tr>
+                <th style="width: 200px;">ID</th>
+                <td>{{ product.id }}</td>
+            </tr>
+            <tr>
+                <th>Name</th>
+                <td>{{ product.name }}</td>
+            </tr>
+            <tr>
+                <th>Description</th>
+                <td>{{ product.description ?? 'N/A' }}</td>
+            </tr>
+            <tr>
+                <th>Price</th>
+                <td>${{ product.price }}</td>
+            </tr>
+            <tr>
+                <th>Image URL</th>
+                <td>
+                    {% if product.imageUrl %}
+                        <a href="{{ product.imageUrl }}" target="_blank">{{ product.imageUrl }}</a>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>{{ product.status }}</td>
+            </tr>
+            <tr>
+                <th>Created At</th>
+                <td>{{ product.createdAt ? product.createdAt|date('Y-m-d H:i:s') : 'N/A' }}</td>
+            </tr>
+            {% if hasAnonymizedColumn and product.anonymized %}
+            <tr>
+                <th>Anonymized</th>
+                <td>
+                    <span style="background: #dc3545; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">Yes</span>
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -12,6 +12,18 @@
     </code>
 </div>
 {% endif %}
+
+<div class="alert alert-info" style="background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    <strong>ℹ️ Anonymized Fields</strong><br>
+    The following fields in this entity are configured for anonymization:
+    <ul style="margin: 10px 0 0 20px;">
+        <li><strong>email</strong> - Email faker (with inclusion pattern: status='active', exclusion: id=1)</li>
+        <li><strong>name</strong> - Name faker</li>
+        <li><strong>referenceCode</strong> - Service faker (CustomReferenceFaker)</li>
+    </ul>
+    <strong>Note:</strong> This entity uses inclusion patterns (status='active') and exclusion patterns (id<=10).
+</div>
+
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2>Customers <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
