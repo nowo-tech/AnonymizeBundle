@@ -255,12 +255,18 @@ jobs:
                 body: releaseBody,
                 draft: false,
                 prerelease: isPrerelease,
+                make_latest: !isPrerelease,  // Mark as latest if not prerelease
                 generate_release_notes: false  // Don't generate auto notes, we have our own changelog
               });
               if (hasChangelog && changelogEntry) {
                 console.log('✅ Created release ' + tagName + ' with complete changelog' + (!isPrerelease ? ' (marked as latest)' : ''));
               } else {
                 console.log('✅ Created release ' + tagName + ' (no changelog available)' + (!isPrerelease ? ' (marked as latest)' : ''));
+              }
+
+              // Verify latest status
+              if (!isPrerelease) {
+                console.log('✅ Release ' + tagName + ' marked as latest (make_latest: true)');
               }
             } catch (error) {
               console.error('❌ Error creating release ' + tagName + ':', error.message);
