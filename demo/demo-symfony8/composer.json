@@ -69,7 +69,6 @@
     },
     "require-dev": {
         "nowo-tech/anonymize-bundle": "v0.0.6",
-        "doctrine/doctrine-fixtures-bundle": "^3.4",
         "symfony/debug-bundle": "^8.0",
         "symfony/web-profiler-bundle": "^8.0"
     }
