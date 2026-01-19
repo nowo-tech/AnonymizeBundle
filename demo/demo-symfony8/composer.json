@@ -68,9 +68,8 @@
         }
     },
     "repositories": [{
-        "name": "local",
-        "type": "path",
-        "url": "/var/www/bundle"
+        "type": "vcs",
+        "url": "https://github.com/nowo-tech/AnonymizeBundle.git"
     }],
     "require-dev": {
         "nowo-tech/anonymize-bundle": "dev-main",
