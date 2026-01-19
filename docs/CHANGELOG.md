@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.8] - 2026-01-19
+
+### Fixed
+
+- **GitHub Release Workflow**: Fixed release creation to mark as latest
+  - Added `make_latest: !isPrerelease` parameter to `createRelease` call
+  - New releases are now automatically marked as latest
+  - Ensures consistency between release creation and update workflows
+
+### Improved
+
+- **Documentation**: Enhanced upgrade guide
+  - Added complete upgrade instructions for v0.0.7
+  - Updated compatibility table with all versions
+  - Improved documentation consistency
+
 ## [0.0.7] - 2026-01-19
 
 ### Added
