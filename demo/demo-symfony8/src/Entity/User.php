@@ -33,11 +33,11 @@ class User
     #[AnonymizeProperty(type: 'email', weight: 1)]
     private ?string $email = null;
 
-    #[ORM\Column(name: 'first_name', length: 255)]
+    #[ORM\Column(length: 255)]
     #[AnonymizeProperty(type: 'name', weight: 2)]
     private ?string $firstName = null;
 
-    #[ORM\Column(name: 'last_name', length: 255)]
+    #[ORM\Column(length: 255)]
     #[AnonymizeProperty(type: 'surname', weight: 3)]
     private ?string $lastName = null;
 
@@ -49,11 +49,11 @@ class User
     #[AnonymizeProperty(type: 'phone', weight: 5)]
     private ?string $phone = null;
 
-    #[ORM\Column(name: 'iban', length: 34, nullable: true)]
+    #[ORM\Column(length: 34, nullable: true)]
     #[AnonymizeProperty(type: 'iban', weight: 6, options: ['country' => 'ES'])]
     private ?string $iban = null;
 
-    #[ORM\Column(name: 'credit_card', length: 19, nullable: true)]
+    #[ORM\Column(length: 19, nullable: true)]
     #[AnonymizeProperty(type: 'credit_card', weight: 7)]
     private ?string $creditCard = null;
 
