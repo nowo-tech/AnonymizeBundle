@@ -69,7 +69,7 @@
     },
     "repositories": [{
         "type": "path",
-        "url": "/var/www/bundle",
+        "url": "/bundle",
         "options": {
             "symlink": true
         }
