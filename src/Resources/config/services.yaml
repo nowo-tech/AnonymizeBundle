@@ -15,14 +15,15 @@ services:
         arguments:
             $locale: '%nowo_anonymize.locale%'
 
-    # Aliases for fakers to enable direct service access
-    Nowo\AnonymizeBundle\Faker\FakerInterface $emailFaker: '@Nowo\AnonymizeBundle\Faker\EmailFaker'
-    Nowo\AnonymizeBundle\Faker\FakerInterface $nameFaker: '@Nowo\AnonymizeBundle\Faker\NameFaker'
-    Nowo\AnonymizeBundle\Faker\FakerInterface $surnameFaker: '@Nowo\AnonymizeBundle\Faker\SurnameFaker'
-    Nowo\AnonymizeBundle\Faker\FakerInterface $ageFaker: '@Nowo\AnonymizeBundle\Faker\AgeFaker'
-    Nowo\AnonymizeBundle\Faker\FakerInterface $phoneFaker: '@Nowo\AnonymizeBundle\Faker\PhoneFaker'
-    Nowo\AnonymizeBundle\Faker\FakerInterface $ibanFaker: '@Nowo\AnonymizeBundle\Faker\IbanFaker'
-    Nowo\AnonymizeBundle\Faker\FakerInterface $creditCardFaker: '@Nowo\AnonymizeBundle\Faker\CreditCardFaker'
+    # Aliases for fakers (defined via #[AsAlias] attribute in classes)
+    # These aliases are automatically created by Symfony from the #[AsAlias] attributes
+    nowo_anonymize.faker.email: '@Nowo\AnonymizeBundle\Faker\EmailFaker'
+    nowo_anonymize.faker.name: '@Nowo\AnonymizeBundle\Faker\NameFaker'
+    nowo_anonymize.faker.surname: '@Nowo\AnonymizeBundle\Faker\SurnameFaker'
+    nowo_anonymize.faker.age: '@Nowo\AnonymizeBundle\Faker\AgeFaker'
+    nowo_anonymize.faker.phone: '@Nowo\AnonymizeBundle\Faker\PhoneFaker'
+    nowo_anonymize.faker.iban: '@Nowo\AnonymizeBundle\Faker\IbanFaker'
+    nowo_anonymize.faker.credit_card: '@Nowo\AnonymizeBundle\Faker\CreditCardFaker'
 
     Nowo\AnonymizeBundle\Service\:
         resource: '../../Service/*'

@@ -6,6 +6,7 @@ namespace Nowo\AnonymizeBundle\Faker;
 
 use Faker\Factory;
 use Faker\Generator as FakerGenerator;
+use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 /**
  * Faker for generating anonymized surnames.
@@ -13,6 +14,7 @@ use Faker\Generator as FakerGenerator;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
+#[AsAlias(id: 'nowo_anonymize.faker.surname')]
 final class SurnameFaker implements FakerInterface
 {
     private FakerGenerator $faker;

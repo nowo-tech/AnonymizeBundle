@@ -50,13 +50,13 @@ final class FakerFactory
         // Try to get from container first (if available)
         if ($this->container !== null) {
             $serviceId = match ($type) {
-                'email' => EmailFaker::class,
-                'name' => NameFaker::class,
-                'surname' => SurnameFaker::class,
-                'age' => AgeFaker::class,
-                'phone' => PhoneFaker::class,
-                'iban' => IbanFaker::class,
-                'credit_card' => CreditCardFaker::class,
+                'email' => 'nowo_anonymize.faker.email',
+                'name' => 'nowo_anonymize.faker.name',
+                'surname' => 'nowo_anonymize.faker.surname',
+                'age' => 'nowo_anonymize.faker.age',
+                'phone' => 'nowo_anonymize.faker.phone',
+                'iban' => 'nowo_anonymize.faker.iban',
+                'credit_card' => 'nowo_anonymize.faker.credit_card',
                 default => null,
             };
 
