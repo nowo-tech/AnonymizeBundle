@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Improved
+
+- **Demo Projects**: Synchronized all demo projects (Symfony 6, 7, 8)
+  - Expanded fixtures: 20 users and 25 customers in all demos
+  - Updated controllers to use SchemaService for anonymized column detection
+  - Updated templates with anonymized column alerts and conditional display
+  - Added underscore naming strategy to Doctrine configuration
+  - Updated bundle version to v0.0.10 in all demos
+  - Consistent functionality across all Symfony versions
+
 ## [0.0.10] - 2026-01-19
 
 ### Fixed
