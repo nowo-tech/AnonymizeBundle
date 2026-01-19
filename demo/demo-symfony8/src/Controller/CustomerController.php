@@ -6,10 +6,9 @@ namespace App\Controller;
 
 use App\Entity\Customer;
 use App\Form\CustomerType;
-use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
+use Nowo\AnonymizeBundle\Service\SchemaService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,14 +18,15 @@ use Symfony\Component\Routing\Attribute\Route;
 class CustomerController extends AbstractController
 {
     public function __construct(
-        private readonly ManagerRegistry $doctrine
+        private readonly ManagerRegistry $doctrine,
+        private readonly SchemaService $schemaService
     ) {}
 
     #[Route('/', name: 'customer_index', methods: ['GET'])]
     public function index(string $connection): Response
     {
         $em = $this->doctrine->getManager($connection);
-        $hasAnonymizedColumn = $this->hasAnonymizedColumn($em, Customer::class);
+        $hasAnonymizedColumn = $this->schemaService->hasAnonymizedColumn($em, Customer::class);
         
         // Use native query if column doesn't exist to avoid SQL errors
         if (!$hasAnonymizedColumn) {
@@ -96,7 +96,7 @@ class CustomerController extends AbstractController
     public function show(string $connection, int $id): Response
     {
         $em = $this->doctrine->getManager($connection);
-        $hasAnonymizedColumn = $this->hasAnonymizedColumn($em, Customer::class);
+        $hasAnonymizedColumn = $this->schemaService->hasAnonymizedColumn($em, Customer::class);
         $customer = $em->getRepository(Customer::class)->find($id);
 
         if (!$customer) {
@@ -156,33 +156,5 @@ class CustomerController extends AbstractController
         }
 
         return $this->redirectToRoute('customer_index', ['connection' => $connection]);
-    }
-
-    /**
-     * Checks if the anonymized column exists in the database table.
-     */
-    private function hasAnonymizedColumn(EntityManagerInterface $em, string $entityClass): bool
-    {
-        try {
-            $metadata = $em->getClassMetadata($entityClass);
-            $tableName = $metadata->getTableName();
-            $connection = $em->getConnection();
-            $schemaManager = $connection->createSchemaManager();
-
-            if (!$schemaManager->tablesExist([$tableName])) {
-                return false;
-            }
-
-            $columns = $schemaManager->listTableColumns($tableName);
-            foreach ($columns as $column) {
-                if ($column->getName() === 'anonymized') {
-                    return true;
-                }
-            }
-
-            return false;
-        } catch (\Exception $e) {
-            return false;
-        }
     }
 }
