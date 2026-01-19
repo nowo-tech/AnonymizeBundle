@@ -154,8 +154,8 @@ final class GenerateAnonymizedColumnCommand extends Command
                     // Generate ALTER TABLE statement
                     $sql = sprintf(
                         'ALTER TABLE %s ADD COLUMN %s BOOLEAN NOT NULL DEFAULT FALSE;',
-                        $connection->quoteIdentifier($tableName),
-                        $connection->quoteIdentifier('anonymized')
+                        $connection->quoteSingleIdentifier($tableName),
+                        $connection->quoteSingleIdentifier('anonymized')
                     );
 
                     $sqlStatements[] = [

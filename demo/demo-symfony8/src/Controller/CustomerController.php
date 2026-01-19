@@ -43,11 +43,11 @@ class CustomerController extends AbstractController
             foreach ($metadata->getFieldNames() as $fieldName) {
                 if ($fieldName !== 'anonymized') {
                     $fieldMapping = $metadata->getFieldMapping($fieldName);
-                    $columns[] = $dbConnection->quoteIdentifier($fieldMapping['columnName'] ?? $fieldName);
+                    $columns[] = $dbConnection->quoteSingleIdentifier($fieldMapping['columnName'] ?? $fieldName);
                 }
             }
 
-            $sql = sprintf('SELECT %s FROM %s', implode(', ', $columns), $dbConnection->quoteIdentifier($tableName));
+            $sql = sprintf('SELECT %s FROM %s', implode(', ', $columns), $dbConnection->quoteSingleIdentifier($tableName));
             $results = $dbConnection->fetchAllAssociative($sql);
 
             // Convert results to entities

@@ -150,7 +150,7 @@ final class AnonymizeService
         $connection = $em->getConnection();
 
         // Get all records
-        $query = sprintf('SELECT * FROM %s', $connection->quoteIdentifier($tableName));
+        $query = sprintf('SELECT * FROM %s', $connection->quoteSingleIdentifier($tableName));
         $records = $connection->fetchAllAssociative($query);
 
         foreach ($records as $record) {
@@ -306,7 +306,7 @@ final class AnonymizeService
             // Convert to string for quote() method
             $where[] = sprintf(
                 '%s = %s',
-                $connection->quoteIdentifier($idColumn),
+                $connection->quoteSingleIdentifier($idColumn),
                 $connection->quote((string) $idValue)
             );
         }
@@ -316,14 +316,14 @@ final class AnonymizeService
             // Convert to string for quote() method
             $set[] = sprintf(
                 '%s = %s',
-                $connection->quoteIdentifier($column),
+                $connection->quoteSingleIdentifier($column),
                 $connection->quote((string) $value)
             );
         }
 
         $query = sprintf(
             'UPDATE %s SET %s WHERE %s',
-            $connection->quoteIdentifier($tableName),
+            $connection->quoteSingleIdentifier($tableName),
             implode(', ', $set),
             implode(' AND ', $where)
         );
