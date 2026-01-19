@@ -48,15 +48,15 @@ final class PasswordFaker implements FakerInterface
 
         // Build character set
         $chars = 'abcdefghijklmnopqrstuvwxyz';
-        
+
         if ($includeUppercase) {
             $chars .= 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         }
-        
+
         if ($includeNumbers) {
             $chars .= '0123456789';
         }
-        
+
         if ($includeSpecial) {
             $chars .= '!@#$%^&*()_+-=[]{}|;:,.<>?';
         }
@@ -64,7 +64,7 @@ final class PasswordFaker implements FakerInterface
         // Generate password
         $password = '';
         $charsLength = strlen($chars);
-        
+
         for ($i = 0; $i < $length; $i++) {
             $password .= $chars[$this->faker->numberBetween(0, $charsLength - 1)];
         }
