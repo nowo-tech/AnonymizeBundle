@@ -302,19 +302,22 @@ final class AnonymizeService
         $where = [];
 
         foreach ($identifier as $idColumn) {
+            $idValue = $record[$idColumn];
+            // Convert to string for quote() method
             $where[] = sprintf(
                 '%s = %s',
                 $connection->quoteIdentifier($idColumn),
-                $connection->quote($record[$idColumn])
+                $connection->quote((string) $idValue)
             );
         }
 
         $set = [];
         foreach ($updates as $column => $value) {
+            // Convert to string for quote() method
             $set[] = sprintf(
                 '%s = %s',
                 $connection->quoteIdentifier($column),
-                $connection->quote($value)
+                $connection->quote((string) $value)
             );
         }
 
