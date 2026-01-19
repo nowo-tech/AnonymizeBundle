@@ -227,9 +227,10 @@ jobs:
                 console.log('✅ Updated release ' + tagName + ' (no changelog available)');
               }
 
-              // Verify latest status
+              // Note: make_latest is not available in REST API for updateRelease
+              // Latest release is determined automatically by GitHub based on tag date
               if (!isPrerelease) {
-                console.log('✅ Release ' + tagName + ' marked as latest (make_latest: true)');
+                console.log('✅ Release ' + tagName + ' updated (will be marked as latest if newest)');
               }
             } catch (error) {
               console.error('❌ Error updating release ' + tagName + ':', error.message);
