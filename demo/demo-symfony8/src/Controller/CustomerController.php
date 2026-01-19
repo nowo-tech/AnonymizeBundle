@@ -28,13 +28,35 @@ class CustomerController extends AbstractController
         $em = $this->doctrine->getManager($connection);
         $hasAnonymizedColumn = $this->hasAnonymizedColumn($em, Customer::class);
         
-        // Use custom query if column doesn't exist to avoid SQL errors
+        // Use native query if column doesn't exist to avoid SQL errors
         if (!$hasAnonymizedColumn) {
-            $customers = $em->createQueryBuilder()
-                ->select('c')
-                ->from(Customer::class, 'c')
-                ->getQuery()
-                ->getResult();
+            $metadata = $em->getClassMetadata(Customer::class);
+            $tableName = $metadata->getTableName();
+            $connection = $em->getConnection();
+            
+            // Get all columns except anonymized
+            $columns = [];
+            foreach ($metadata->getFieldNames() as $fieldName) {
+                if ($fieldName !== 'anonymized') {
+                    $fieldMapping = $metadata->getFieldMapping($fieldName);
+                    $columns[] = $connection->quoteIdentifier($fieldMapping['columnName'] ?? $fieldName);
+                }
+            }
+            
+            $sql = sprintf('SELECT %s FROM %s', implode(', ', $columns), $connection->quoteIdentifier($tableName));
+            $results = $connection->fetchAllAssociative($sql);
+            
+            // Convert results to entities
+            $customers = [];
+            foreach ($results as $row) {
+                $customer = new Customer();
+                foreach ($metadata->getFieldNames() as $fieldName) {
+                    if ($fieldName !== 'anonymized' && isset($row[$metadata->getColumnName($fieldName)])) {
+                        $metadata->setFieldValue($customer, $fieldName, $row[$metadata->getColumnName($fieldName)]);
+                    }
+                }
+                $customers[] = $customer;
+            }
         } else {
             $customers = $em->getRepository(Customer::class)->findAll();
         }

@@ -28,13 +28,35 @@ class UserController extends AbstractController
         $em = $this->doctrine->getManager($connection);
         $hasAnonymizedColumn = $this->hasAnonymizedColumn($em, User::class);
         
-        // Use custom query if column doesn't exist to avoid SQL errors
+        // Use native query if column doesn't exist to avoid SQL errors
         if (!$hasAnonymizedColumn) {
-            $users = $em->createQueryBuilder()
-                ->select('u')
-                ->from(User::class, 'u')
-                ->getQuery()
-                ->getResult();
+            $metadata = $em->getClassMetadata(User::class);
+            $tableName = $metadata->getTableName();
+            $connection = $em->getConnection();
+            
+            // Get all columns except anonymized
+            $columns = [];
+            foreach ($metadata->getFieldNames() as $fieldName) {
+                if ($fieldName !== 'anonymized') {
+                    $fieldMapping = $metadata->getFieldMapping($fieldName);
+                    $columns[] = $connection->quoteIdentifier($fieldMapping['columnName'] ?? $fieldName);
+                }
+            }
+            
+            $sql = sprintf('SELECT %s FROM %s', implode(', ', $columns), $connection->quoteIdentifier($tableName));
+            $results = $connection->fetchAllAssociative($sql);
+            
+            // Convert results to entities
+            $users = [];
+            foreach ($results as $row) {
+                $user = new User();
+                foreach ($metadata->getFieldNames() as $fieldName) {
+                    if ($fieldName !== 'anonymized' && isset($row[$metadata->getColumnName($fieldName)])) {
+                        $metadata->setFieldValue($user, $fieldName, $row[$metadata->getColumnName($fieldName)]);
+                    }
+                }
+                $users[] = $user;
+            }
         } else {
             $users = $em->getRepository(User::class)->findAll();
         }
