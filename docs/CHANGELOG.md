@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.11] - 2026-01-19
+
 ### Added
 
 - **New Fakers**: Added 6 new faker types (Phase 1 implementation)
