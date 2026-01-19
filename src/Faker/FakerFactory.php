@@ -10,6 +10,9 @@ use Psr\Container\ContainerInterface;
 /**
  * Factory for creating faker instances.
  *
+ * This factory uses services from the container when available, falling back
+ * to direct instantiation for service-based fakers or when container is not available.
+ *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
@@ -18,17 +21,20 @@ final class FakerFactory
     /**
      * Creates a new FakerFactory instance.
      *
-     * @param string $locale The locale for Faker generators (default: 'en_US')
-     * @param ContainerInterface|null $container The service container for service-based fakers
+     * @param ContainerInterface|null $container The service container for accessing faker services
+     * @param string $locale The locale for Faker generators (fallback when container is not available)
      */
     public function __construct(
-        private string $locale = 'en_US',
-        private ?ContainerInterface $container = null
+        private ?ContainerInterface $container = null,
+        private string $locale = 'en_US'
     ) {
     }
 
     /**
      * Creates a faker instance for the given type.
+     *
+     * Tries to get the faker from the service container first, then falls back
+     * to direct instantiation if the container is not available.
      *
      * @param FakerType|string $type The faker type
      * @param string|null $serviceName The service name if type is 'service'
@@ -41,6 +47,25 @@ final class FakerFactory
             $type = $type->value;
         }
 
+        // Try to get from container first (if available)
+        if ($this->container !== null) {
+            $serviceId = match ($type) {
+                'email' => EmailFaker::class,
+                'name' => NameFaker::class,
+                'surname' => SurnameFaker::class,
+                'age' => AgeFaker::class,
+                'phone' => PhoneFaker::class,
+                'iban' => IbanFaker::class,
+                'credit_card' => CreditCardFaker::class,
+                default => null,
+            };
+
+            if ($serviceId !== null && $this->container->has($serviceId)) {
+                return $this->container->get($serviceId);
+            }
+        }
+
+        // Fallback to direct instantiation
         return match ($type) {
             'email' => new EmailFaker($this->locale),
             'name' => new NameFaker($this->locale),

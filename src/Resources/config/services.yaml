@@ -12,6 +12,17 @@ services:
         exclude:
             - '../../Faker/FakerInterface.php'
             - '../../Faker/ServiceFaker.php'
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+
+    # Aliases for fakers to enable direct service access
+    Nowo\AnonymizeBundle\Faker\FakerInterface $emailFaker: '@Nowo\AnonymizeBundle\Faker\EmailFaker'
+    Nowo\AnonymizeBundle\Faker\FakerInterface $nameFaker: '@Nowo\AnonymizeBundle\Faker\NameFaker'
+    Nowo\AnonymizeBundle\Faker\FakerInterface $surnameFaker: '@Nowo\AnonymizeBundle\Faker\SurnameFaker'
+    Nowo\AnonymizeBundle\Faker\FakerInterface $ageFaker: '@Nowo\AnonymizeBundle\Faker\AgeFaker'
+    Nowo\AnonymizeBundle\Faker\FakerInterface $phoneFaker: '@Nowo\AnonymizeBundle\Faker\PhoneFaker'
+    Nowo\AnonymizeBundle\Faker\FakerInterface $ibanFaker: '@Nowo\AnonymizeBundle\Faker\IbanFaker'
+    Nowo\AnonymizeBundle\Faker\FakerInterface $creditCardFaker: '@Nowo\AnonymizeBundle\Faker\CreditCardFaker'
 
     Nowo\AnonymizeBundle\Service\:
         resource: '../../Service/*'
