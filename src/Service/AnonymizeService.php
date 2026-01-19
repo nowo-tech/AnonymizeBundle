@@ -204,6 +204,25 @@ final class AnonymizeService
             }
 
             if ($shouldAnonymize && !$dryRun) {
+                // Check if entity uses AnonymizableTrait and add anonymized flag
+                if ($this->usesAnonymizableTrait($reflection)) {
+                    $schemaManager = $connection->createSchemaManager();
+                    if ($schemaManager->tablesExist([$tableName])) {
+                        $columns = $schemaManager->listTableColumns($tableName);
+                        $hasAnonymizedColumn = false;
+                        foreach ($columns as $column) {
+                            if ($column->getName() === 'anonymized') {
+                                $hasAnonymizedColumn = true;
+                                break;
+                            }
+                        }
+
+                        if ($hasAnonymizedColumn) {
+                            $updates['anonymized'] = true;
+                        }
+                    }
+                }
+
                 $this->updateRecord($connection, $tableName, $record, $updates, $metadata);
                 $updated++;
             } elseif ($shouldAnonymize && $dryRun) {
@@ -308,5 +327,35 @@ final class AnonymizeService
         );
 
         $connection->executeStatement($query);
+    }
+
+    /**
+     * Checks if a class uses the AnonymizableTrait.
+     *
+     * @param ReflectionClass $reflection The reflection class
+     * @return bool True if the class uses AnonymizableTrait
+     */
+    private function usesAnonymizableTrait(ReflectionClass $reflection): bool
+    {
+        $traitName = 'Nowo\\AnonymizeBundle\\Trait\\AnonymizableTrait';
+
+        foreach ($reflection->getTraitNames() as $trait) {
+            if ($trait === $traitName) {
+                return true;
+            }
+        }
+
+        // Check parent classes
+        $parent = $reflection->getParentClass();
+        while ($parent !== false) {
+            foreach ($parent->getTraitNames() as $trait) {
+                if ($trait === $traitName) {
+                    return true;
+                }
+            }
+            $parent = $parent->getParentClass();
+        }
+
+        return false;
     }
 }

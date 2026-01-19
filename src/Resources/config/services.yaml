@@ -38,3 +38,9 @@ services:
             $batchSize: '%nowo_anonymize.batch_size%'
         tags:
             - { name: 'console.command' }
+
+    Nowo\AnonymizeBundle\Command\GenerateAnonymizedColumnCommand:
+        arguments:
+            $connections: '%nowo_anonymize.connections%'
+        tags:
+            - { name: 'console.command' }
