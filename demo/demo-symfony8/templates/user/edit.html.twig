@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit User #{{ user.id }} - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+<div class="card">
+    <h2>Edit User <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+
+    {{ form_start(form) }}
+        {{ form_row(form.email) }}
+        {{ form_row(form.firstName) }}
+        {{ form_row(form.lastName) }}
+        {{ form_row(form.age) }}
+        {{ form_row(form.phone) }}
+        {{ form_row(form.iban) }}
+        {{ form_row(form.creditCard) }}
+        {{ form_row(form.status) }}
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Update User</button>
+            <a href="{{ path('user_show', {connection: connection, id: user.id}) }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}

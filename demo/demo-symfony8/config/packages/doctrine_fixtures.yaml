@@ -1,0 +1,8 @@
+doctrine_fixtures:
+    orm:
+        default_connection: default
+        connections:
+            default:
+                entity_manager: default
+            postgres:
+                entity_manager: postgres

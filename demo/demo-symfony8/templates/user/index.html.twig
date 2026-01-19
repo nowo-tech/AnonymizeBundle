@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Users - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Users <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+        <a href="{{ path('user_new', {connection: connection}) }}" class="btn btn-primary">Create New User</a>
+    </div>
+
+    {% if users|length > 0 %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Age</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.firstName }}</td>
+                        <td>{{ user.lastName }}</td>
+                        <td>{{ user.age }}</td>
+                        <td>{{ user.phone ?? '-' }}</td>
+                        <td>{{ user.status }}</td>
+                        <td>
+                            <a href="{{ path('user_show', {connection: connection, id: user.id}) }}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Show</a>
+                            <a href="{{ path('user_edit', {connection: connection, id: user.id}) }}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Edit</a>
+                            <form method="post" action="{{ path('user_delete', {connection: connection, id: user.id}) }}" style="display: inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                                <button type="submit" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="return confirm('Are you sure?')">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No users found. <a href="{{ path('user_new', {connection: connection}) }}">Create the first one</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

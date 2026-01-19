@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Customer - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+<div class="card">
+    <h2>Create New Customer <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+
+    {{ form_start(form) }}
+        {{ form_row(form.email) }}
+        {{ form_row(form.name) }}
+        {{ form_row(form.status) }}
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Create Customer</button>
+            <a href="{{ path('customer_index', {connection: connection}) }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}

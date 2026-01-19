@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Customers - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Customers <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+        <a href="{{ path('customer_new', {connection: connection}) }}" class="btn btn-primary">Create New Customer</a>
+    </div>
+
+    {% if customers|length > 0 %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                    <tr>
+                        <td>{{ customer.id }}</td>
+                        <td>{{ customer.email }}</td>
+                        <td>{{ customer.name }}</td>
+                        <td>{{ customer.status }}</td>
+                        <td>
+                            <a href="{{ path('customer_show', {connection: connection, id: customer.id}) }}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Show</a>
+                            <a href="{{ path('customer_edit', {connection: connection, id: customer.id}) }}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Edit</a>
+                            <form method="post" action="{{ path('customer_delete', {connection: connection, id: customer.id}) }}" style="display: inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ customer.id) }}">
+                                <button type="submit" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="return confirm('Are you sure?')">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No customers found. <a href="{{ path('customer_new', {connection: connection}) }}">Create the first one</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

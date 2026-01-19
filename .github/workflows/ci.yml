@@ -1,0 +1,239 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    name: PHP ${{ matrix.php }} - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        php: ['8.1', '8.2', '8.3', '8.4', '8.5']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: json, pdo, pdo_mysql, pdo_pgsql
+          coverage: xdebug
+          tools: composer:v2
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-php-${{ matrix.php }}-composer-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run tests
+        run: |
+          echo "🧪 Running tests on PHP ${{ matrix.php }}..."
+          composer test
+          if [ $? -ne 0 ]; then
+            echo "❌ ERROR: Some tests failed"
+            exit 1
+          fi
+          echo "✅ All tests passed successfully"
+
+      - name: Validate coverage (PHP 8.2 only)
+        if: matrix.php == '8.2'
+        run: |
+          echo "📊 Generating coverage report..."
+          composer test-coverage
+
+          if [ $? -ne 0 ]; then
+            echo "❌ ERROR: Tests failed while generating coverage report"
+            exit 1
+          fi
+
+          echo "✅ All tests passed, validating coverage..."
+
+          # Validate that coverage exists
+          php -r "
+          if (!file_exists('coverage.xml')) {
+              echo 'ERROR: coverage.xml file was not generated\n';
+              exit(1);
+          }
+
+          \$coverage = simplexml_load_file('coverage.xml');
+          if (\$coverage === false) {
+              echo 'ERROR: Could not read coverage.xml\n';
+              exit(1);
+          }
+
+          \$metrics = \$coverage->project->metrics;
+          \$elements = (float)\$metrics['elements'];
+          \$coveredElements = (float)\$metrics['coveredelements'];
+
+          if (\$elements == 0) {
+              echo 'No elements to cover\n';
+              exit(0);
+          }
+
+          \$percentage = (\$coveredElements / \$elements) * 100;
+
+          echo \"Coverage: \$coveredElements/\$elements (\$percentage%)\n\";
+
+          echo \"✅ Coverage report generated successfully\n\";
+          "
+
+  code-style:
+    name: Code Style
+    runs-on: ubuntu-latest
+    # Only apply fixes automatically on push to main/master, not on PRs
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2, cs2pr
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Fix code style
+        run: composer cs-fix
+
+      - name: Check for changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit changes
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git commit -m "Apply PHP CS Fixer fixes [skip ci]"
+          git push
+
+  code-style-check:
+    name: Code Style Check
+    runs-on: ubuntu-latest
+    # On PRs we only check, we don't apply changes
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2, cs2pr
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Check code style
+        run: composer cs-check
+
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: json, pdo, pdo_mysql, pdo_pgsql
+          coverage: xdebug
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run tests with coverage
+        run: |
+          echo "🧪 Running tests with coverage..."
+          composer test-coverage
+
+          if [ $? -ne 0 ]; then
+            echo "❌ ERROR: Tests failed"
+            exit 1
+          fi
+          echo "✅ All tests passed successfully"
+
+      - name: Validate coverage
+        run: |
+          echo "📊 Validating coverage..."
+
+          # Validate that coverage exists
+          php -r "
+          if (!file_exists('coverage.xml')) {
+              echo 'ERROR: coverage.xml file was not generated\n';
+              exit(1);
+          }
+
+          \$coverage = simplexml_load_file('coverage.xml');
+          if (\$coverage === false) {
+              echo 'ERROR: Could not read coverage.xml\n';
+              exit(1);
+          }
+
+          \$metrics = \$coverage->project->metrics;
+          \$elements = (float)\$metrics['elements'];
+          \$coveredElements = (float)\$metrics['coveredelements'];
+
+          if (\$elements == 0) {
+              echo 'No elements to cover\n';
+              exit(0);
+          }
+
+          \$percentage = (\$coveredElements / \$elements) * 100;
+
+          echo \"Coverage: \$coveredElements/\$elements (\$percentage%)\n\";
+
+          echo \"✅ Coverage report generated successfully\n\";
+          "
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
+
+# Maintainer: Héctor Franco Aceituno (@HecFranco)
+# Organization: nowo-tech (https://github.com/nowo-tech)

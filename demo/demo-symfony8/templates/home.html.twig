@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Home - Anonymize Bundle Demo{% endblock %}
+
+{% block body %}
+<div class="card">
+    <h2>Welcome to the Anonymize Bundle Demo</h2>
+    <p>This demo shows how to use the AnonymizeBundle with multiple database connections.</p>
+</div>
+
+<div class="card">
+    <h3>Available Connections</h3>
+    <ul>
+        <li><strong>default</strong> - MySQL 8.0 (Port 33063)</li>
+        <li><strong>postgres</strong> - PostgreSQL 16 (Port 54323)</li>
+    </ul>
+</div>
+
+<div class="card">
+    <h3>CRUD by Connection</h3>
+    <p>You can manage User and Customer entities in each connection:</p>
+    
+    <h4>Users</h4>
+    <ul>
+        <li><a href="{{ path('user_index', {connection: 'default'}) }}">Users in MySQL</a></li>
+        <li><a href="{{ path('user_index', {connection: 'postgres'}) }}">Users in PostgreSQL</a></li>
+    </ul>
+
+    <h4>Customers</h4>
+    <ul>
+        <li><a href="{{ path('customer_index', {connection: 'default'}) }}">Customers in MySQL</a></li>
+        <li><a href="{{ path('customer_index', {connection: 'postgres'}) }}">Customers in PostgreSQL</a></li>
+    </ul>
+</div>
+
+<div class="card">
+    <h3>Database Interfaces</h3>
+    <ul>
+        <li><a href="http://localhost:8080" target="_blank">phpMyAdmin (MySQL)</a></li>
+        <li><a href="http://localhost:8081" target="_blank">pgAdmin (PostgreSQL)</a></li>
+    </ul>
+</div>
+{% endblock %}

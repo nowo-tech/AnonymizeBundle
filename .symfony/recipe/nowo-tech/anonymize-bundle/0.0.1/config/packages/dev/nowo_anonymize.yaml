@@ -1,0 +1,24 @@
+# Anonymize Bundle Configuration
+# This file was automatically created by Symfony Flex.
+# You can modify it according to your needs.
+#
+# ⚠️ IMPORTANT: This bundle is development-only and should never be used in production.
+
+nowo_anonymize:
+    # Locale for Faker generator (e.g., es_ES, en_US, fr_FR, de_DE)
+    # Default: 'es_ES'
+    locale: 'es_ES'
+
+    # Doctrine connections to process. If empty, all connections will be processed.
+    # Example: ['default', 'secondary']
+    connections: []
+
+    # If true, only show what would be anonymized without making changes.
+    # Useful for testing and previewing changes.
+    # Default: false
+    dry_run: false
+
+    # Number of records to process in each batch.
+    # Larger batch sizes may improve performance but use more memory.
+    # Default: 100
+    batch_size: 100

@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User #{{ user.id }} - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>User Details <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+        <div>
+            <a href="{{ path('user_edit', {connection: connection, id: user.id}) }}" class="btn btn-primary">Edit</a>
+            <a href="{{ path('user_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+
+    <table>
+        <tr>
+            <th>ID</th>
+            <td>{{ user.id }}</td>
+        </tr>
+        <tr>
+            <th>Email</th>
+            <td>{{ user.email }}</td>
+        </tr>
+        <tr>
+            <th>First Name</th>
+            <td>{{ user.firstName }}</td>
+        </tr>
+        <tr>
+            <th>Last Name</th>
+            <td>{{ user.lastName }}</td>
+        </tr>
+        <tr>
+            <th>Age</th>
+            <td>{{ user.age }}</td>
+        </tr>
+        <tr>
+            <th>Phone</th>
+            <td>{{ user.phone ?? '-' }}</td>
+        </tr>
+        <tr>
+            <th>IBAN</th>
+            <td>{{ user.iban ?? '-' }}</td>
+        </tr>
+        <tr>
+            <th>Credit Card</th>
+            <td>{{ user.creditCard ?? '-' }}</td>
+        </tr>
+        <tr>
+            <th>Status</th>
+            <td>{{ user.status }}</td>
+        </tr>
+    </table>
+</div>
+{% endblock %}

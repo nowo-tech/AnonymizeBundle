@@ -1,0 +1,11 @@
+{
+    "bundles": {
+        "Nowo\\AnonymizeBundle\\AnonymizeBundle": ["dev", "test"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "APP_ENV": "dev"
+    }
+}

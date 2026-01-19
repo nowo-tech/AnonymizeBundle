@@ -1,0 +1,25 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: true
+
+    Nowo\AnonymizeBundle\Faker\:
+        resource: '../../Faker/*'
+        exclude:
+            - '../../Faker/ServiceFaker.php'
+            - '../../Faker/FakerInterface.php'
+
+
+    Nowo\AnonymizeBundle\Service\:
+        resource: '../../Service/*'
+
+    # Console Commands
+    Nowo\AnonymizeBundle\Command\AnonymizeCommand:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+            $connections: '%nowo_anonymize.connections%'
+            $dryRun: '%nowo_anonymize.dry_run%'
+            $batchSize: '%nowo_anonymize.batch_size%'
+        tags:
+            - { name: 'console.command' }
