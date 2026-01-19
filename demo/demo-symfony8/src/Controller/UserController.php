@@ -6,7 +6,9 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\UserType;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,11 +26,23 @@ class UserController extends AbstractController
     public function index(string $connection): Response
     {
         $em = $this->doctrine->getManager($connection);
-        $users = $em->getRepository(User::class)->findAll();
+        $hasAnonymizedColumn = $this->hasAnonymizedColumn($em, User::class);
+        
+        // Use custom query if column doesn't exist to avoid SQL errors
+        if (!$hasAnonymizedColumn) {
+            $users = $em->createQueryBuilder()
+                ->select('u')
+                ->from(User::class, 'u')
+                ->getQuery()
+                ->getResult();
+        } else {
+            $users = $em->getRepository(User::class)->findAll();
+        }
 
         return $this->render('user/index.html.twig', [
             'users' => $users,
             'connection' => $connection,
+            'hasAnonymizedColumn' => $hasAnonymizedColumn,
         ]);
     }
 
@@ -60,6 +74,7 @@ class UserController extends AbstractController
     public function show(string $connection, int $id): Response
     {
         $em = $this->doctrine->getManager($connection);
+        $hasAnonymizedColumn = $this->hasAnonymizedColumn($em, User::class);
         $user = $em->getRepository(User::class)->find($id);
 
         if (!$user) {
@@ -69,6 +84,7 @@ class UserController extends AbstractController
         return $this->render('user/show.html.twig', [
             'user' => $user,
             'connection' => $connection,
+            'hasAnonymizedColumn' => $hasAnonymizedColumn,
         ]);
     }
 
@@ -118,5 +134,33 @@ class UserController extends AbstractController
         }
 
         return $this->redirectToRoute('user_index', ['connection' => $connection]);
+    }
+
+    /**
+     * Checks if the anonymized column exists in the database table.
+     */
+    private function hasAnonymizedColumn(EntityManagerInterface $em, string $entityClass): bool
+    {
+        try {
+            $metadata = $em->getClassMetadata($entityClass);
+            $tableName = $metadata->getTableName();
+            $connection = $em->getConnection();
+            $schemaManager = $connection->createSchemaManager();
+
+            if (!$schemaManager->tablesExist([$tableName])) {
+                return false;
+            }
+
+            $columns = $schemaManager->listTableColumns($tableName);
+            foreach ($columns as $column) {
+                if ($column->getName() === 'anonymized') {
+                    return true;
+                }
+            }
+
+            return false;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }

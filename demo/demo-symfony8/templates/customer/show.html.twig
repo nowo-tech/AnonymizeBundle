@@ -29,6 +29,27 @@
             <th>Status</th>
             <td>{{ customer.status }}</td>
         </tr>
+        {% if hasAnonymizedColumn|default(false) %}
+        <tr>
+            <th>Anonymized</th>
+            <td>
+                {% if customer.isAnonymized() %}
+                    <span style="color: #28a745; font-weight: bold;">✓ Yes</span>
+                {% else %}
+                    <span style="color: #6c757d;">✗ No</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endif %}
     </table>
+    {% if not hasAnonymizedColumn|default(false) %}
+    <div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 15px; border-radius: 5px; margin-top: 20px;">
+        <strong>⚠️ Columna "anonymized" no encontrada</strong><br>
+        Para añadir la columna de seguimiento de anonimización, ejecuta:<br>
+        <code style="background: #f8f9fa; padding: 5px 10px; border-radius: 3px; display: inline-block; margin-top: 10px;">
+            php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+        </code>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

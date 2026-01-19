@@ -3,6 +3,15 @@
 {% block title %}Users - {{ connection|upper }}{% endblock %}
 
 {% block body %}
+{% if not hasAnonymizedColumn|default(false) %}
+<div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    <strong>⚠️ Columna "anonymized" no encontrada</strong><br>
+    Para añadir la columna de seguimiento de anonimización, ejecuta:<br>
+    <code style="background: #f8f9fa; padding: 5px 10px; border-radius: 3px; display: inline-block; margin-top: 10px;">
+        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+    </code>
+</div>
+{% endif %}
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2>Users <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
