@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Faker;
 
 use Psr\Container\ContainerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Exclude;
 
 /**
  * Faker for generating anonymized values using a custom service.
@@ -12,9 +13,14 @@ use Psr\Container\ContainerInterface;
  * The service must implement FakerInterface or have a method that returns
  * an anonymized value.
  *
+ * This class is excluded from service auto-registration because it requires
+ * a string parameter ($serviceName) that cannot be autowired. It is created
+ * dynamically by FakerFactory instead.
+ *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
+#[Exclude]
 final class ServiceFaker implements FakerInterface
 {
     /**
