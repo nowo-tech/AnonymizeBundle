@@ -15,6 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated `doctrine/doctrine-bundle` constraint from `^2.8` to `^2.8 || ^3.0`
   - Symfony 8 requires doctrine-bundle 3.x
   - Maintains backward compatibility with Symfony 6/7 (doctrine-bundle 2.x)
+  - Demo projects updated to handle missing `anonymized` column gracefully
+  - Controllers now check column existence before using it to prevent SQL errors
+
+### Fixed
+
+- **Symfony 8 Compatibility**: Fixed doctrine-bundle version constraint
+  - Updated `doctrine/doctrine-bundle` constraint from `^2.8` to `^2.8 || ^3.0`
+  - Symfony 8 requires doctrine-bundle 3.x
+  - Maintains backward compatibility with Symfony 6/7 (doctrine-bundle 2.x)
 
 ## [0.0.5] - 2026-01-19
 

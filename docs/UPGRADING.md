@@ -13,6 +13,71 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.6
+
+**Release Date**: 2026-01-19
+
+#### What's New
+
+- **Symfony 8 Compatibility**: Full support for Symfony 8.0
+  - Updated `doctrine/doctrine-bundle` constraint to support both 2.x and 3.x
+  - Symfony 8 requires doctrine-bundle 3.x, while Symfony 6/7 use 2.x
+  - Bundle now compatible with all Symfony versions (6.0, 7.0, 8.0)
+
+#### Breaking Changes
+
+None - This is a backward-compatible update.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Verify installation**:
+   ```bash
+   php bin/console list nowo:anonymize
+   ```
+
+#### Notes
+
+- If you're using Symfony 8, ensure you have `doctrine/doctrine-bundle` ^3.0 installed
+- Symfony Flex will automatically resolve the correct version
+- No configuration changes required
+
+### Upgrading to 0.0.5
+
+**Release Date**: 2026-01-19
+
+#### What's New
+
+- **Doctrine Bundle Compatibility**: Improved compatibility with Symfony 8
+  - Updated `doctrine/doctrine-bundle` constraint from `^2.15` to `^2.8`
+  - Allows broader compatibility across Symfony 6, 7, and 8
+  - Symfony Flex can now resolve compatible versions automatically
+
+#### Breaking Changes
+
+None - This is a backward-compatible update.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
 ### Upgrading to 0.0.4
 
 **Release Date**: 2026-01-19
@@ -361,9 +426,14 @@ If you encounter issues during upgrade:
 
 ## Version Compatibility
 
-| Bundle Version | Symfony Version | PHP Version | Features |
-|---------------|-----------------|-------------|----------|
-| 1.0.0         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | Attribute-based config, Multiple connections, Multiple faker types, Weight-based order, Pattern matching, Statistics, Dry-run mode, MySQL & PostgreSQL support |
+| Bundle Version | Symfony Version | PHP Version | Doctrine Bundle | Features |
+|---------------|-----------------|-------------|-----------------|----------|
+| 0.0.6         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Full Symfony 8 support, Anonymized column tracking, Multiple faker types, Pattern matching, Statistics |
+| 0.0.5         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 | Improved Symfony 8 compatibility |
+| 0.0.4         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 | Anonymized column tracking |
+| 0.0.3         | 6.0, 7.0        | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 | Comprehensive tests, Faker services, PSR-11 |
+| 0.0.2         | 6.0, 7.0        | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 | Autowiring fixes |
+| 0.0.1         | 6.0, 7.0        | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 | Initial release |
 
 ## Additional Resources
 
