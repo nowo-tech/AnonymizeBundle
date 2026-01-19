@@ -13,6 +13,86 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.9
+
+**Release Date**: 2026-01-19
+
+#### What's New
+
+- **Bug Fixes**: Fixed critical issues in AnonymizeService
+  - Fixed `quote()` method to handle integer values correctly
+  - Resolves errors when anonymizing entities with integer IDs
+  - Improved database compatibility
+
+- **Demo Improvements**: Enhanced demo project
+  - Expanded fixtures with more test data
+  - Better PostgreSQL compatibility
+  - More comprehensive examples
+
+#### Breaking Changes
+
+None - This is a backward-compatible bug fix release.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Verify installation**:
+   ```bash
+   php bin/console list nowo:anonymize
+   ```
+
+#### Notes
+
+- No configuration changes required
+- If you encounter errors with integer IDs, this fix resolves them
+- Demo projects have been updated with more comprehensive test data
+
+### Upgrading to 0.0.8
+
+**Release Date**: 2026-01-19
+
+#### What's New
+
+- **GitHub Release Workflow**: Fixed release creation to mark as latest
+  - Added `make_latest: !isPrerelease` parameter to `createRelease` call
+  - New releases are now automatically marked as latest
+  - Ensures consistency between release creation and update workflows
+
+- **Documentation**: Enhanced upgrade guide
+  - Added complete upgrade instructions for v0.0.7
+  - Updated compatibility table with all versions
+  - Improved documentation consistency
+
+#### Breaking Changes
+
+None - This is a backward-compatible update.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+#### Notes
+
+- No configuration changes required
+- This is primarily a workflow and documentation update
+
 ### Upgrading to 0.0.7
 
 **Release Date**: 2026-01-19
@@ -477,6 +557,8 @@ If you encounter issues during upgrade:
 
 | Bundle Version | Symfony Version | PHP Version | Doctrine Bundle | Features |
 |---------------|-----------------|-------------|-----------------|----------|
+| 0.0.9         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Bug fixes, Improved demo, PostgreSQL compatibility |
+| 0.0.8         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Release workflow fix, Documentation improvements |
 | 0.0.7         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | SchemaService, Improved code organization, Enhanced documentation |
 | 0.0.6         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Full Symfony 8 support, Anonymized column tracking, Multiple faker types, Pattern matching, Statistics |
 | 0.0.5         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 | Improved Symfony 8 compatibility |

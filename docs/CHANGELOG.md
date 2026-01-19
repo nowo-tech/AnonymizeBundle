@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.9] - 2026-01-19
+
+### Fixed
+
+- **AnonymizeService**: Fixed quote() method to handle integer values
+  - Convert values to string before quoting in UPDATE queries
+  - Fixes error when anonymizing entities with integer IDs
+  - Handles both ID columns and update values correctly
+
+- **Demo PostgreSQL Compatibility**: Fixed column name issues
+  - Added explicit column names for PostgreSQL compatibility
+  - Added underscore naming strategy to Doctrine configuration
+  - Ensures consistent column naming across MySQL and PostgreSQL
+
+### Improved
+
+- **Demo Fixtures**: Expanded demo data for better testing
+  - UserFixtures: Increased from 5 to 20 users
+  - CustomerFixtures: Increased from 8 to 25 customers
+  - Added edge cases: null optional fields, age limits (18, 100)
+  - Better demonstration of inclusion/exclusion patterns
+  - More diverse data scenarios for comprehensive testing
+
 ## [0.0.8] - 2026-01-19
 
 ### Fixed
