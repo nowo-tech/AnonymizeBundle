@@ -13,6 +13,117 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.4
+
+**Release Date**: 2026-01-19
+
+#### What's New
+
+- **Anonymized Column Tracking**: New feature to track which records have been anonymized
+  - `AnonymizableTrait`: Trait to add `anonymized` boolean field to entities
+  - `nowo:anonymize:generate-column-migration` command: Generates SQL migrations
+  - Automatic flag setting: Records are automatically marked as anonymized
+
+#### Breaking Changes
+
+None - This is a backward-compatible feature addition.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Add AnonymizableTrait to your entities** (optional):
+   ```php
+   use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
+
+   #[ORM\Entity]
+   #[Anonymize]
+   class User
+   {
+       use AnonymizableTrait;
+       // ... rest of your entity
+   }
+   ```
+
+3. **Generate migration for the `anonymized` column**:
+   ```bash
+   php bin/console nowo:anonymize:generate-column-migration
+   ```
+
+4. **Apply the generated SQL migration** to your database(s)
+
+5. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+6. **Test anonymization** - Records will now be automatically marked:
+   ```bash
+   php bin/console nowo:anonymize:run --dry-run
+   ```
+
+#### New Command: `nowo:anonymize:generate-column-migration`
+
+This command scans all entities using `AnonymizableTrait` and generates SQL migrations to add the `anonymized` column.
+
+**Usage**:
+```bash
+# Generate migrations for all connections
+php bin/console nowo:anonymize:generate-column-migration
+
+# Generate migrations for specific connections
+php bin/console nowo:anonymize:generate-column-migration --connection default
+
+# Output SQL to a file
+php bin/console nowo:anonymize:generate-column-migration --output migrations/add_anonymized_column.sql
+```
+
+**Options**:
+- `--connection, -c`: Process only specific connections (can be used multiple times)
+- `--output, -o`: Output SQL to a file instead of console
+
+#### Using AnonymizableTrait
+
+The `AnonymizableTrait` provides:
+- An `anonymized` boolean field (default: `false`)
+- `isAnonymized()`: Check if a record has been anonymized
+- `setAnonymized(bool)`: Manually set anonymization status
+
+**Example**:
+```php
+use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
+
+#[ORM\Entity]
+#[Anonymize]
+class User
+{
+    use AnonymizableTrait;
+    
+    // ... your properties
+}
+
+// After anonymization, check status:
+$user = $entityManager->find(User::class, 1);
+if ($user->isAnonymized()) {
+    // This record has been anonymized
+}
+```
+
+**Query anonymized records**:
+```sql
+SELECT * FROM users WHERE anonymized = true;
+```
+
+#### Migration Workflow
+
+1. Add `AnonymizableTrait` to your entities
+2. Run `nowo:anonymize:generate-column-migration` to generate SQL
+3. Review and apply the generated SQL to your database(s)
+4. Run anonymization - records will be automatically marked
+
 ### Upgrading to 1.0.0 (Initial Release)
 
 **Release Date**: TBD

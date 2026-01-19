@@ -18,6 +18,7 @@ Symfony bundle for anonymizing database records using Doctrine attributes and Fa
 - ✅ Support for MySQL and PostgreSQL (MongoDB coming soon)
 - ✅ Batch processing for large datasets
 - ✅ Dry-run mode for testing
+- ✅ Anonymization tracking with `AnonymizableTrait` and `anonymized` column
 
 ## Installation
 
@@ -145,6 +146,47 @@ The bundle automatically processes all Doctrine connections. You can also specif
 php bin/console nowo:anonymize:run --connection default --connection secondary
 ```
 
+#### Anonymization Tracking
+
+Track which records have been anonymized using the `AnonymizableTrait`:
+
+```php
+use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
+
+#[ORM\Entity]
+#[Anonymize]
+class User
+{
+    use AnonymizableTrait;
+    // ... your properties
+}
+```
+
+**Generate migration for the `anonymized` column**:
+
+```bash
+php bin/console nowo:anonymize:generate-column-migration
+```
+
+This command will:
+1. Scan all entities using `AnonymizableTrait`
+2. Check if the `anonymized` column already exists
+3. Generate SQL migrations to add the column if missing
+
+**After anonymization**, records are automatically marked with `anonymized = true`. You can query them:
+
+```sql
+SELECT * FROM users WHERE anonymized = true;
+```
+
+Or check programmatically:
+
+```php
+if ($user->isAnonymized()) {
+    // This record has been anonymized
+}
+```
+
 ## Requirements
 
 - PHP >= 8.1, < 8.6
@@ -166,7 +208,9 @@ nowo_anonymize:
 
 See [CONFIGURATION.md](docs/CONFIGURATION.md) for detailed configuration options.
 
-## Command Options
+## Commands
+
+### Anonymize Command
 
 ```bash
 php bin/console nowo:anonymize:run [options]
@@ -178,6 +222,30 @@ Options:
   --locale, -l       Locale for Faker generator (default: en_US)
   --stats-json       Export statistics to JSON file
   --stats-only       Show only statistics summary (suppress detailed output)
+```
+
+### Generate Column Migration Command
+
+Generate SQL migrations to add the `anonymized` column to entities using `AnonymizableTrait`:
+
+```bash
+php bin/console nowo:anonymize:generate-column-migration [options]
+
+Options:
+  --connection, -c    Process only specific connections (can be used multiple times)
+  --output, -o       Output SQL to a file instead of console
+```
+
+**Example**:
+```bash
+# Generate migrations for all connections
+php bin/console nowo:anonymize:generate-column-migration
+
+# Generate migrations for specific connection
+php bin/console nowo:anonymize:generate-column-migration --connection default
+
+# Output to file
+php bin/console nowo:anonymize:generate-column-migration --output migrations/add_anonymized_column.sql
 ```
 
 ## Statistics

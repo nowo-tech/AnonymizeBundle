@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.4] - 2026-01-19
+
+### Added
+
+- **Anonymized Column Tracking**: Added functionality to track anonymization status in database
+  - `AnonymizableTrait`: Trait that adds an `anonymized` boolean field to entities
+  - `nowo:anonymize:generate-column-migration` command: Generates SQL migrations to add the `anonymized` column
+  - `AnonymizeService`: Automatically sets `anonymized = true` when a record is anonymized
+  - Automatic column detection: Checks if the `anonymized` column exists before updating
+  - Demo examples: All demo entities (User, Customer) now use `AnonymizableTrait`
+
+### Changed
+
+- **AnonymizeService**: Enhanced to detect and update `anonymized` column
+  - Checks if entity uses `AnonymizableTrait` before setting the flag
+  - Verifies column existence in database schema before updating
+  - Sets `anonymized = true` automatically during anonymization process
+
 ## [0.0.3] - 2026-01-19
 
 ### Added

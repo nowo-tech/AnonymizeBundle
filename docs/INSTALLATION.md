@@ -62,11 +62,14 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
+use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 
 #[ORM\Entity]
 #[Anonymize]
 class User
 {
+    use AnonymizableTrait; // Optional: Track anonymization status
+    
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -82,7 +85,19 @@ class User
 }
 ```
 
-## Step 5: Run the Command
+> **Note**: The `AnonymizableTrait` is optional but recommended if you want to track which records have been anonymized. See [Anonymization Tracking](#anonymization-tracking) below.
+
+## Step 5: Generate Migration for Anonymized Column (Optional)
+
+If you're using `AnonymizableTrait`, generate a migration to add the `anonymized` column:
+
+```bash
+php bin/console nowo:anonymize:generate-column-migration
+```
+
+This will generate SQL statements to add the `anonymized` boolean column to your tables. Review and apply the generated SQL to your database(s).
+
+## Step 6: Run the Command
 
 Test the installation with a dry-run:
 
@@ -132,6 +147,44 @@ Make sure your entities have the `#[Anonymize]` attribute and at least one prope
 ### Connection Errors
 
 Verify your Doctrine connections are properly configured in `config/packages/doctrine.yaml`.
+
+## Anonymization Tracking
+
+The bundle provides an optional `AnonymizableTrait` that adds an `anonymized` boolean field to track which records have been anonymized.
+
+### Using AnonymizableTrait
+
+1. **Add the trait to your entity**:
+   ```php
+   use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
+
+   #[ORM\Entity]
+   #[Anonymize]
+   class User
+   {
+       use AnonymizableTrait;
+       // ... your properties
+   }
+   ```
+
+2. **Generate the migration**:
+   ```bash
+   php bin/console nowo:anonymize:generate-column-migration
+   ```
+
+3. **Apply the generated SQL** to your database(s)
+
+4. **Run anonymization** - records will be automatically marked:
+   ```bash
+   php bin/console nowo:anonymize:run
+   ```
+
+### Benefits
+
+- **Query anonymized records**: `SELECT * FROM users WHERE anonymized = true;`
+- **Check programmatically**: `if ($user->isAnonymized()) { ... }`
+- **Audit trail**: Know exactly which records have been anonymized
+- **Validation**: Easy to verify anonymization status
 
 ## Next Steps
 
