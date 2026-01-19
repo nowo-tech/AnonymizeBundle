@@ -12,6 +12,7 @@ services:
         resource: '../../Faker/*'
         exclude:
             - '../../Faker/FakerInterface.php'
+            - '../../Faker/ServiceFaker.php'
 
     Nowo\AnonymizeBundle\Service\:
         resource: '../../Service/*'
