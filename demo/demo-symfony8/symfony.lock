@@ -34,6 +34,9 @@
             "src/DataFixtures/AppFixtures.php"
         ]
     },
+    "nowo-tech/anonymize-bundle": {
+        "version": "v0.0.1"
+    },
     "symfony/console": {
         "version": "7.0",
         "recipe": {

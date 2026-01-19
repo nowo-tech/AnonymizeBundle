@@ -69,5 +69,8 @@
             "require": "7.0.*"
         }
     },
-    "repositories": []
+    "repositories": [],
+    "require-dev": {
+        "nowo-tech/anonymize-bundle": "*"
+    }
 }

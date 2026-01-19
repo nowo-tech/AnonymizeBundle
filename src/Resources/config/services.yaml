@@ -4,17 +4,20 @@ services:
         autoconfigure: true
         public: true
 
+    # Alias for ContainerInterface to enable autowiring
+    Symfony\Component\DependencyInjection\ContainerInterface: '@service_container'
+    Psr\Container\ContainerInterface: '@service_container'
+
     Nowo\AnonymizeBundle\Faker\:
         resource: '../../Faker/*'
         exclude:
-            - '../../Faker/ServiceFaker.php'
             - '../../Faker/FakerInterface.php'
-
 
     Nowo\AnonymizeBundle\Service\:
         resource: '../../Service/*'
 
     # Console Commands
+    # Only configure parameters, container is autowired via alias
     Nowo\AnonymizeBundle\Command\AnonymizeCommand:
         arguments:
             $locale: '%nowo_anonymize.locale%'
