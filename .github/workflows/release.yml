@@ -187,13 +187,19 @@ jobs:
           RELEASE_ID: ${{ steps.check-existing.outputs.release_id }}
         with:
           script: |
-            const releaseId = parseInt(process.env.RELEASE_ID);
-            const tagName = process.env.TAG_NAME;
-            const tagMessage = process.env.TAG_MESSAGE || '';
-            const changelogEntry = process.env.CHANGELOG_ENTRY || '';
-            const commits = process.env.COMMITS || '';
+            // Safely get environment variables, handling undefined/null
+            const releaseId = parseInt(process.env.RELEASE_ID || '0');
+            const tagName = String(process.env.TAG_NAME || '').trim();
+            const tagMessage = String(process.env.TAG_MESSAGE || '').trim();
+            const changelogEntry = String(process.env.CHANGELOG_ENTRY || '').trim();
+            const commits = String(process.env.COMMITS || '').trim();
             const hasChangelog = process.env.HAS_CHANGELOG === 'true';
             const hasCommits = process.env.HAS_COMMITS === 'true';
+            
+            if (!tagName) {
+              throw new Error('TAG_NAME is required');
+            }
+            
             const isPrerelease = tagName.includes('-alpha') || tagName.includes('-beta') || tagName.includes('-rc');
 
             // Build release body - include tag message, changelog, and commits
@@ -249,12 +255,18 @@ jobs:
           HAS_COMMITS: ${{ steps.commits.outputs.HAS_COMMITS }}
         with:
           script: |
-            const tagName = process.env.TAG_NAME;
-            const tagMessage = process.env.TAG_MESSAGE || '';
-            const changelogEntry = process.env.CHANGELOG_ENTRY || '';
-            const commits = process.env.COMMITS || '';
+            // Safely get environment variables, handling undefined/null
+            const tagName = String(process.env.TAG_NAME || '').trim();
+            const tagMessage = String(process.env.TAG_MESSAGE || '').trim();
+            const changelogEntry = String(process.env.CHANGELOG_ENTRY || '').trim();
+            const commits = String(process.env.COMMITS || '').trim();
             const hasChangelog = process.env.HAS_CHANGELOG === 'true';
             const hasCommits = process.env.HAS_COMMITS === 'true';
+            
+            if (!tagName) {
+              throw new Error('TAG_NAME is required');
+            }
+            
             const isPrerelease = tagName.includes('-alpha') || tagName.includes('-beta') || tagName.includes('-rc');
 
             // Build release body - include tag message, changelog, and commits
