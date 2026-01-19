@@ -219,8 +219,7 @@ jobs:
                 repo: context.repo.repo,
                 release_id: releaseId,
                 body: releaseBody,
-                prerelease: isPrerelease,
-                make_latest: !isPrerelease  // Mark as latest if not prerelease
+                prerelease: isPrerelease
               });
               if (hasChangelog && changelogEntry) {
                 console.log('✅ Updated release ' + tagName + ' with complete changelog');
