@@ -23,11 +23,25 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0  # Required to get full history and tag message
-          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag_name || github.ref }}
 
       - name: Get tag name
         id: tag
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: |
+          # If triggered by workflow_dispatch, use the input tag name
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            TAG_NAME="${{ github.event.inputs.tag_name }}"
+          else
+            # Otherwise, extract from GITHUB_REF (tag push)
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+          fi
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "Using tag: $TAG_NAME"
+          
+          # Checkout the tag if using workflow_dispatch
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            git fetch --tags --force || true
+            git checkout "$TAG_NAME" || git checkout -b temp-tag-checkout "$TAG_NAME" || true
+          fi
 
       - name: Get tag message
         id: tag_message
