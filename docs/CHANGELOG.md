@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.3] - 2026-01-19
+
+### Added
+
+- **Comprehensive Test Suite**: Added unit tests for all Faker classes and services
+  - Tests for EmailFaker, NameFaker, SurnameFaker, PhoneFaker, IbanFaker, CreditCardFaker
+  - Tests for FakerFactory with all faker types
+  - Tests for ServiceFaker with different service implementations
+  - Comprehensive tests for PatternMatcher with all operators
+  - Total: 51 tests with 119 assertions
+
+- **Faker Services**: Registered all fakers as Symfony services
+  - All fakers are now singleton services with locale injection
+  - Fakers can be injected directly where needed
+  - Better integration with Symfony dependency injection
+
+- **Service Aliases**: Added `#[AsAlias]` attributes to all faker classes
+  - Modern Symfony 6.3+ approach for service aliases
+  - Aliases defined directly in classes
+  - Cleaner services.yaml configuration
+
+- **Demo Projects**: Added WebProfilerBundle to all demo projects
+  - Symfony WebProfilerBundle for development debugging
+  - Available in dev and test environments
+
+### Changed
+
+- **ContainerInterface Usage**: Unified to PSR-11 standard
+  - All services now use `Psr\Container\ContainerInterface`
+  - Removed Symfony-specific ContainerInterface usage
+  - More portable and standard-compliant
+
+- **FakerFactory**: Updated to use services from container
+  - Tries to get fakers from service container first
+  - Falls back to direct instantiation if container is not available
+  - Uses alias IDs defined via `#[AsAlias]` attributes
+
+### Fixed
+
+- **ServiceFaker Autowiring**: Fixed autowiring error for ServiceFaker
+  - Added `#[Exclude]` attribute to prevent automatic service registration
+  - ServiceFaker is created dynamically by FakerFactory
+  - Excluded from services.yaml resource registration
+
 ## [0.0.2] - 2026-01-19
 
 ### Fixed
