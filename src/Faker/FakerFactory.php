@@ -27,8 +27,7 @@ final class FakerFactory
     public function __construct(
         private string $locale = 'en_US',
         private ?ContainerInterface $container = null
-    ) {
-    }
+    ) {}
 
     /**
      * Creates a faker instance for the given type.
