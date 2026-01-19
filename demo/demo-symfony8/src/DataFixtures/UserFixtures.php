@@ -19,20 +19,20 @@ class UserFixtures extends Fixture
             ['email' => 'bob.wilson@example.com', 'firstName' => 'Bob', 'lastName' => 'Wilson', 'age' => 40, 'phone' => '+34655512345', 'iban' => 'ES9121000418450200051334', 'creditCard' => '4532015112830368', 'status' => 'active'],
             ['email' => 'alice.brown@example.com', 'firstName' => 'Alice', 'lastName' => 'Brown', 'age' => 28, 'phone' => '+34611122233', 'iban' => 'ES9121000418450200051335', 'creditCard' => '4532015112830369', 'status' => 'active'],
             ['email' => 'charlie.davis@example.com', 'firstName' => 'Charlie', 'lastName' => 'Davis', 'age' => 35, 'phone' => '+34644455566', 'iban' => 'ES9121000418450200051336', 'creditCard' => '4532015112830370', 'status' => 'active'],
-            
+
             // Inactive users
             ['email' => 'david.miller@example.com', 'firstName' => 'David', 'lastName' => 'Miller', 'age' => 45, 'phone' => '+34677788899', 'iban' => 'ES9121000418450200051337', 'creditCard' => '4532015112830371', 'status' => 'inactive'],
             ['email' => 'emma.jones@example.com', 'firstName' => 'Emma', 'lastName' => 'Jones', 'age' => 22, 'phone' => '+34622233344', 'iban' => 'ES9121000418450200051338', 'creditCard' => '4532015112830372', 'status' => 'inactive'],
-            
+
             // Users with missing optional fields (null values)
             ['email' => 'frank.taylor@example.com', 'firstName' => 'Frank', 'lastName' => 'Taylor', 'age' => 50, 'phone' => null, 'iban' => null, 'creditCard' => null, 'status' => 'active'],
             ['email' => 'grace.anderson@example.com', 'firstName' => 'Grace', 'lastName' => 'Anderson', 'age' => 33, 'phone' => '+34633344455', 'iban' => null, 'creditCard' => '4532015112830373', 'status' => 'active'],
             ['email' => 'henry.thomas@example.com', 'firstName' => 'Henry', 'lastName' => 'Thomas', 'age' => 29, 'phone' => null, 'iban' => 'ES9121000418450200051339', 'creditCard' => null, 'status' => 'active'],
-            
+
             // Edge cases: very young and very old
             ['email' => 'isabella.martinez@example.com', 'firstName' => 'Isabella', 'lastName' => 'Martinez', 'age' => 18, 'phone' => '+34644455566', 'iban' => 'ES9121000418450200051340', 'creditCard' => '4532015112830374', 'status' => 'active'],
             ['email' => 'james.rodriguez@example.com', 'firstName' => 'James', 'lastName' => 'Rodriguez', 'age' => 100, 'phone' => '+34655566677', 'iban' => 'ES9121000418450200051341', 'creditCard' => '4532015112830375', 'status' => 'active'],
-            
+
             // More active users for better testing
             ['email' => 'karen.white@example.com', 'firstName' => 'Karen', 'lastName' => 'White', 'age' => 38, 'phone' => '+34666677788', 'iban' => 'ES9121000418450200051342', 'creditCard' => '4532015112830376', 'status' => 'active'],
             ['email' => 'lucas.harris@example.com', 'firstName' => 'Lucas', 'lastName' => 'Harris', 'age' => 27, 'phone' => '+34677788899', 'iban' => 'ES9121000418450200051343', 'creditCard' => '4532015112830377', 'status' => 'active'],
