@@ -13,6 +13,44 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.10
+
+**Release Date**: 2026-01-19
+
+#### What's New
+
+- **Doctrine DBAL Compatibility**: Fixed deprecation warnings
+  - Replaced deprecated `quoteIdentifier()` with `quoteSingleIdentifier()`
+  - Compatible with both Doctrine DBAL 2.x and 3.x
+  - No functional changes, only deprecation fixes
+
+#### Breaking Changes
+
+None - This is a backward-compatible bug fix release.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Verify installation**:
+   ```bash
+   php bin/console list nowo:anonymize
+   ```
+
+#### Notes
+
+- No configuration changes required
+- This fix resolves deprecation warnings in Doctrine DBAL 3.x
+- All functionality remains the same
+
 ### Upgrading to 0.0.9
 
 **Release Date**: 2026-01-19
@@ -557,6 +595,7 @@ If you encounter issues during upgrade:
 
 | Bundle Version | Symfony Version | PHP Version | Doctrine Bundle | Features |
 |---------------|-----------------|-------------|-----------------|----------|
+| 0.0.10        | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Doctrine DBAL 3.x compatibility, Deprecation fixes |
 | 0.0.9         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Bug fixes, Improved demo, PostgreSQL compatibility |
 | 0.0.8         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Release workflow fix, Documentation improvements |
 | 0.0.7         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | SchemaService, Improved code organization, Enhanced documentation |
