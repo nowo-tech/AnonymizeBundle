@@ -18,8 +18,7 @@ class CustomerController extends AbstractController
 {
     public function __construct(
         private readonly ManagerRegistry $doctrine
-    ) {
-    }
+    ) {}
 
     #[Route('/', name: 'customer_index', methods: ['GET'])]
     public function index(string $connection): Response
@@ -111,7 +110,7 @@ class CustomerController extends AbstractController
             throw $this->createNotFoundException('Customer not found');
         }
 
-        if ($this->isCsrfTokenValid('delete'.$customer->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $customer->getId(), $request->request->get('_token'))) {
             $em->remove($customer);
             $em->flush();
 

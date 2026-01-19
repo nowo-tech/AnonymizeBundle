@@ -28,6 +28,5 @@ final class Anonymize
         public ?string $connection = null,
         public array $includePatterns = [],
         public array $excludePatterns = []
-    ) {
-    }
+    ) {}
 }
