@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.7] - 2026-01-19
+
+### Added
+
+- **SchemaService**: New service for checking database schema information
+  - `hasAnonymizedColumn()` method to check if anonymized column exists
+  - `hasColumn()` generic method to check any column existence
+  - Service is autowired and available for dependency injection
+  - Comprehensive test coverage with 8 test cases
+
+### Changed
+
+- **Demo Controllers**: Refactored to use SchemaService
+  - Removed duplicate `hasAnonymizedColumn()` method from controllers
+  - Controllers now inject SchemaService via dependency injection
+  - Improved code organization and reusability
+
+### Fixed
+
+- **Demo Templates**: All texts translated to English
+  - Alert messages now in English
+  - Consistent language across all demo templates
+
+### Improved
+
+- **Documentation**: Enhanced demo README with anonymized column tracking
+  - Added information about `AnonymizableTrait`
+  - Added instructions for generating migrations
+  - Complete documentation of anonymized column feature
+
 ## [0.0.6] - 2026-01-19
 
 ### Fixed
@@ -17,13 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Maintains backward compatibility with Symfony 6/7 (doctrine-bundle 2.x)
   - Demo projects updated to handle missing `anonymized` column gracefully
   - Controllers now check column existence before using it to prevent SQL errors
-
-### Fixed
-
-- **Symfony 8 Compatibility**: Fixed doctrine-bundle version constraint
-  - Updated `doctrine/doctrine-bundle` constraint from `^2.8` to `^2.8 || ^3.0`
-  - Symfony 8 requires doctrine-bundle 3.x
-  - Maintains backward compatibility with Symfony 6/7 (doctrine-bundle 2.x)
 
 ## [0.0.5] - 2026-01-19
 
