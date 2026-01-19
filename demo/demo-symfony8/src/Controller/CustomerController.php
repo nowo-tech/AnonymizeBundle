@@ -6,7 +6,9 @@ namespace App\Controller;
 
 use App\Entity\Customer;
 use App\Form\CustomerType;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Nowo\AnonymizeBundle\Service\SchemaService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,29 +32,34 @@ class CustomerController extends AbstractController
         
         // Use native query if column doesn't exist to avoid SQL errors
         if (!$hasAnonymizedColumn) {
+            /** @var ClassMetadata $metadata */
             $metadata = $em->getClassMetadata(Customer::class);
             $tableName = $metadata->getTableName();
-            $connection = $em->getConnection();
+            /** @var Connection $dbConnection */
+            $dbConnection = $em->getConnection();
             
             // Get all columns except anonymized
             $columns = [];
             foreach ($metadata->getFieldNames() as $fieldName) {
                 if ($fieldName !== 'anonymized') {
                     $fieldMapping = $metadata->getFieldMapping($fieldName);
-                    $columns[] = $connection->quoteIdentifier($fieldMapping['columnName'] ?? $fieldName);
+                    $columns[] = $dbConnection->quoteIdentifier($fieldMapping['columnName'] ?? $fieldName);
                 }
             }
             
-            $sql = sprintf('SELECT %s FROM %s', implode(', ', $columns), $connection->quoteIdentifier($tableName));
-            $results = $connection->fetchAllAssociative($sql);
+            $sql = sprintf('SELECT %s FROM %s', implode(', ', $columns), $dbConnection->quoteIdentifier($tableName));
+            $results = $dbConnection->fetchAllAssociative($sql);
             
             // Convert results to entities
             $customers = [];
             foreach ($results as $row) {
                 $customer = new Customer();
                 foreach ($metadata->getFieldNames() as $fieldName) {
-                    if ($fieldName !== 'anonymized' && isset($row[$metadata->getColumnName($fieldName)])) {
-                        $metadata->setFieldValue($customer, $fieldName, $row[$metadata->getColumnName($fieldName)]);
+                    if ($fieldName !== 'anonymized') {
+                        $columnName = $metadata->getColumnName($fieldName);
+                        if (isset($row[$columnName])) {
+                            $metadata->setFieldValue($customer, $fieldName, $row[$columnName]);
+                        }
                     }
                 }
                 $customers[] = $customer;
