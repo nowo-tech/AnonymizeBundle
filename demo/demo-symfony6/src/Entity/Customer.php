@@ -7,11 +7,13 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
+use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 
 /**
  * Customer entity demonstrating pattern-based anonymization.
  *
- * This entity shows how to use inclusion/exclusion patterns.
+ * This entity shows how to use inclusion/exclusion patterns
+ * and the AnonymizableTrait for tracking anonymization status.
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
@@ -24,6 +26,7 @@ use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
 )]
 class Customer
 {
+    use AnonymizableTrait;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
