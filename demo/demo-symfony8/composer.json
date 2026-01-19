@@ -71,6 +71,6 @@
     },
     "repositories": [],
     "require-dev": {
-        "nowo-tech/anonymize-bundle": "*"
+        "nowo-tech/anonymize-bundle": "v0.0.3"
     }
 }

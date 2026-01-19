@@ -4,8 +4,7 @@ services:
         autoconfigure: true
         public: true
 
-    # Alias for ContainerInterface to enable autowiring
-    Symfony\Component\DependencyInjection\ContainerInterface: '@service_container'
+    # Alias for ContainerInterface to enable autowiring (PSR-11 standard)
     Psr\Container\ContainerInterface: '@service_container'
 
     Nowo\AnonymizeBundle\Faker\:

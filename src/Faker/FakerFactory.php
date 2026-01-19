@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Faker;
 
 use Nowo\AnonymizeBundle\Enum\FakerType;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Psr\Container\ContainerInterface;
 
 /**
  * Factory for creating faker instances.
