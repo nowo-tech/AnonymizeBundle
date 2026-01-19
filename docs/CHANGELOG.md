@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.2] - 2026-01-19
+
+### Fixed
+
+- **Autowiring Configuration**: Fixed ContainerInterface autowiring issue
+  - Added alias for `Symfony\Component\DependencyInjection\ContainerInterface` to `@service_container`
+  - Added alias for `Psr\Container\ContainerInterface` to `@service_container`
+  - Optimized services configuration to use autowiring whenever possible
+  - Removed manual service configuration in favor of autowiring
+
+### Changed
+
+- **Services Configuration**: Optimized `services.yaml` to maximize autowiring
+  - Simplified service definitions
+  - Removed unnecessary manual configurations
+  - All services now use autowiring by default
+
 ## [0.0.1] - 2026-01-19
 
 ### Added
