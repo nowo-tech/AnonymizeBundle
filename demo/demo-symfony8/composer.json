@@ -67,15 +67,8 @@
             "require": "8.0.*"
         }
     },
-    "repositories": [{
-        "type": "path",
-        "url": "/bundle",
-        "options": {
-            "symlink": true
-        }
-    }],
     "require-dev": {
-        "nowo-tech/anonymize-bundle": "dev-main",
+        "nowo-tech/anonymize-bundle": "v0.0.6",
         "symfony/debug-bundle": "^8.0",
         "symfony/web-profiler-bundle": "^8.0"
     }
