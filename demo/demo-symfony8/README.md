@@ -186,6 +186,7 @@ The `User` entity demonstrates basic bundle usage with different faker types:
 - **phone**: Anonymized with `PhoneFaker` (weight 5)
 - **iban**: Anonymized with `IbanFaker` (weight 6, country ES)
 - **creditCard**: Anonymized with `CreditCardFaker` (weight 7)
+- **anonymized**: Boolean field to track anonymization status (uses `AnonymizableTrait`)
 
 ### Customer Entity
 
@@ -194,6 +195,39 @@ The `Customer` entity demonstrates inclusion/exclusion pattern usage:
 - Only records with `status = 'active'` are anonymized
 - Records with `id <= 10` are excluded
 - The email has additional patterns: only anonymized if `status = 'active'` and `id != 1`
+- **anonymized**: Boolean field to track anonymization status (uses `AnonymizableTrait`)
+
+## Anonymized Column Tracking
+
+Both `User` and `Customer` entities use the `AnonymizableTrait` to track anonymization status. This feature allows you to:
+
+- Track which records have been anonymized
+- Query anonymized records
+- Validate anonymization processes
+
+### Adding the Anonymized Column
+
+To add the `anonymized` column to your entities, use the provided command:
+
+```bash
+# Generate migration for a specific connection
+php bin/console nowo:anonymize:generate-column-migration --connection default
+php bin/console nowo:anonymize:generate-column-migration --connection postgres
+
+# Apply the generated migration
+php bin/console doctrine:migrations:migrate --connection default
+php bin/console doctrine:migrations:migrate --connection postgres
+```
+
+### Using the Column
+
+Once the column is added:
+
+- The bundle automatically sets `anonymized = true` when a record is anonymized
+- The Web CRUD interface displays the anonymization status
+- You can query records by anonymization status
+
+**Note:** The Web CRUD interface will show a warning if the `anonymized` column doesn't exist, with instructions on how to add it.
 
 ## Viewing Results
 
