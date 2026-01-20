@@ -4,7 +4,7 @@ This directory contains complete demos showing how to use the AnonymizeBundle wi
 
 ## Demo Structure
 
-Demos are organized by Symfony version. Each demo includes **multiple database connections** (MySQL and PostgreSQL) with pre-loaded test data, allowing you to test the bundle with different database systems in a single environment.
+Demos are organized by Symfony version. Each demo includes **multiple database connections** (MySQL, PostgreSQL, SQLite, and MongoDB) with pre-loaded test data, allowing you to test the bundle with different database systems in a single environment.
 
 ## Available Demos
 
@@ -16,6 +16,7 @@ Complete demo with Symfony 6.0, MySQL 8.0, and PostgreSQL 16.
 - Symfony 6.0 with all necessary dependencies
 - MySQL 8.0 as default connection
 - PostgreSQL 16 as secondary connection
+- MongoDB 7.0 (infrastructure ready, ODM support coming soon)
 - Docker Compose with all services configured
 - Makefile with useful commands
 - Example fixtures with test data
@@ -39,6 +40,7 @@ Complete demo with Symfony 7.0, MySQL 8.0, and PostgreSQL 16.
 - Symfony 7.0 with all necessary dependencies
 - MySQL 8.0 as default connection
 - PostgreSQL 16 as secondary connection
+- MongoDB 7.0 (infrastructure ready, ODM support coming soon)
 - Docker Compose with all services configured
 - Makefile with useful commands
 - Example fixtures with test data
@@ -62,6 +64,7 @@ Complete demo with Symfony 8.0, MySQL 8.0, and PostgreSQL 16.
 - Symfony 8.0 with all necessary dependencies
 - MySQL 8.0 as default connection
 - PostgreSQL 16 as secondary connection
+- MongoDB 7.0 (infrastructure ready, ODM support coming soon)
 - Docker Compose with all services configured
 - Makefile with useful commands
 - Example fixtures with test data
@@ -83,12 +86,14 @@ All demos share the following features:
 
 ### Multiple Database Connections
 
-Each demo includes two configured connections:
+Each demo includes four database systems:
 
-- **`default`**: MySQL connection (port 33062)
-- **`postgres`**: PostgreSQL connection (port 54322)
+- **`default`**: MySQL connection (port 33061/33062/33063 depending on demo)
+- **`postgres`**: PostgreSQL connection (port 54321/54322/54323 depending on demo)
+- **`sqlite`**: SQLite connection (file-based: `var/data/anonymize_demo.sqlite`)
+- **`mongodb`**: MongoDB connection (port 27016/27017/27018 depending on demo)
 
-Both connections have the same entities and the same test data, allowing you to test the bundle with different database systems.
+MySQL, PostgreSQL, and SQLite connections have the same entities and the same test data, allowing you to test the bundle with different database systems. MongoDB infrastructure is ready with Mongo Express for management, and documents are prepared for when the bundle supports MongoDB ODM.
 
 ### Example Entities
 
@@ -203,20 +208,31 @@ The data should be anonymized according to the attributes defined in the entitie
 | Symfony Version | 6.0 | 7.0 | 8.0 |
 | MySQL | 8.0 | 8.0 | 8.0 |
 | PostgreSQL | 16 | 16 | 16 |
-| MySQL Port | 33062 | 33062 | 33062 |
-| PostgreSQL Port | 54322 | 54322 | 54322 |
+| SQLite | ✅ | ✅ | ✅ |
+| MongoDB | 7.0 | 7.0 | 7.0 |
+| MySQL Port | 33061 | 33062 | 33063 |
+| PostgreSQL Port | 54321 | 54322 | 54323 |
+| MongoDB Port | 27016 | 27017 | 27018 |
+| Mongo Express Port | 8088 | 8087 | 8086 |
 | Docker Compose | ✅ | ✅ | ✅ |
 | Makefile | ✅ | ✅ | ✅ |
 | Fixtures | ✅ | ✅ | ✅ |
 | Multiple connections | ✅ | ✅ | ✅ |
+| SQLite Support | ✅ | ✅ | ✅ |
+| MongoDB Infrastructure | ✅ | ✅ | ✅ |
+| MongoDB CRUD | ✅ | ✅ | ✅ |
 
 All demos are functionally identical in terms of features, only the Symfony version used changes.
 
 ## Important Notes
 
 - **Bundle included**: The bundle is included as a dependency in each demo's `composer.json` and will be installed automatically with `make install`.
-- **Test data**: Fixtures are automatically loaded in both connections (MySQL and PostgreSQL) when running `make setup`.
-- **Multiple anonymization**: You can anonymize both connections at once or select a specific one with `--connection`.
+- **Test data**: Fixtures are automatically loaded in all SQL connections (MySQL, PostgreSQL, SQLite) when running `make setup`.
+- **SQLite**: File-based database at `var/data/anonymize_demo.sqlite`, perfect for local development and testing.
+- **MongoDB**: MongoDB infrastructure is ready with Mongo Express for management. Documents are prepared for when the bundle supports MongoDB ODM.
+- **MongoDB CRUD**: Full CRUD interface available at `/mongodb/user-activity` to view and manage user activities with `anonymized` field tracking.
+- **MongoDB Fixtures**: 30 user activities automatically loaded with `anonymized: false` field.
+- **Multiple anonymization**: You can anonymize all SQL connections at once or select a specific one with `--connection`.
 - **Development environment**: All demos are configured to run in development mode (`APP_ENV=dev`).
 
 ## Requirements

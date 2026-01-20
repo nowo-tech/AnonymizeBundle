@@ -2,18 +2,20 @@
 
 This document outlines the planned features, improvements, and enhancements for the Anonymize Bundle.
 
-## Current Status (v0.0.14 - Released)
+## Current Status (v0.0.15 - Released)
 
 ### ✅ Implemented Features
 
 - **Fakers**: email, name, surname, age, phone, IBAN, credit_card, service, **address**, **date**, **username**, **url**, **company**, **masking**, **password**, **ip_address**, **mac_address**, **uuid**, **hash**, **coordinate**, **color**, **boolean**, **numeric**, **file**, **json**, **text**, **enum**, **country**, **language**, **hash_preserve**, **shuffle**, **constant** (32 total)
 - **Core Features**: Attribute-based configuration, multiple connections, batch processing, dry-run mode, pre-flight checks, progress bars, enhanced environment protection, debug/verbose modes
 - **Tracking**: AnonymizableTrait with `anonymized` column
-- **Patterns**: Inclusion/exclusion pattern matching
-- **Databases**: MySQL, PostgreSQL support
+- **Patterns**: Inclusion/exclusion pattern matching with `|` (OR) operator support
+- **Databases**: MySQL, PostgreSQL, SQLite support
+- **MongoDB Tools**: Command to generate scripts for adding `anonymized` field to MongoDB documents
 - **Services**: SchemaService for column detection
 - **Demos**: 8 entities (User, Customer, Product, Order, Invoice, Employee, SystemLog, EmailSubscription) with comprehensive fixtures and complete CRUD interfaces
 - **Demos Coverage**: 100% faker coverage (all 32 fakers demonstrated)
+- **Demos Databases**: MySQL, PostgreSQL, SQLite, MongoDB (infrastructure ready)
 
 ---
 
@@ -247,19 +249,79 @@ This document outlines the planned features, improvements, and enhancements for 
 
 ### 🎯 Priority: Medium
 
-#### 1. **MongoDB Support**
+### Relational Databases (SQL)
+
+#### 1. **MongoDB Support** (NoSQL - Document)
    - ODM (Object Document Mapper) support
    - Document-level anonymization
    - Embedded document handling
+   - Status: Infrastructure ready in demos, ODM support pending
 
 #### 2. **SQLite Support**
    - Full support for SQLite databases
    - File-based database handling
+   - Lightweight database for development/testing
+   - Use cases: Local development, testing, embedded applications
 
-#### 3. **Database-Specific Optimizations**
+#### 3. **MariaDB Support**
+   - Full compatibility with MySQL (drop-in replacement)
+   - Similar syntax and features to MySQL
+   - Use cases: Open-source alternative to MySQL, high availability setups
+
+#### 4. **Oracle Database Support**
+   - Enterprise-grade database support
+   - Oracle-specific SQL syntax handling
+   - Advanced features: partitioning, materialized views
+   - Use cases: Enterprise applications, large-scale systems
+
+#### 5. **Microsoft SQL Server Support**
+   - SQL Server-specific syntax and features
+   - Support for T-SQL extensions
+   - Integration with Azure SQL
+   - Use cases: Enterprise applications, Windows-based infrastructure
+
+### NoSQL Databases
+
+#### 6. **Redis Support** (Key-Value)
+   - Key-value store anonymization
+   - Support for different data structures (strings, hashes, lists, sets, sorted sets)
+   - Session and cache data anonymization
+   - Use cases: Caching, session storage, real-time analytics
+
+#### 7. **Cassandra Support** (Column-Family)
+   - Distributed NoSQL database support
+   - Column-family data model
+   - Wide-column store anonymization
+   - Use cases: Big Data, IoT, time-series data, high write throughput
+
+#### 8. **CouchDB Support** (Document)
+   - Document database support (alternative to MongoDB)
+   - JSON document anonymization
+   - Multi-master replication support
+   - Use cases: Content management, mobile applications, offline-first apps
+
+### Specialized Databases
+
+#### 9. **Neo4j Support** (Graph)
+   - Graph database anonymization
+   - Node and relationship anonymization
+   - Property anonymization in graph structures
+   - Use cases: Social networks, recommendation engines, fraud detection
+
+#### 10. **Time-Series Database Support**
+   - **InfluxDB**: Time-series data anonymization
+   - **TimescaleDB**: PostgreSQL extension for time-series
+   - Temporal data anonymization
+   - Use cases: IoT, monitoring, metrics, financial data
+
+### Database-Specific Optimizations
+
+#### 11. **Database-Specific Optimizations**
    - Bulk operations for better performance
    - Database-specific SQL optimizations
    - Connection pooling support
+   - Query optimization per database type
+   - Batch processing optimizations
 
 ---
 
@@ -709,17 +771,39 @@ This document outlines the planned features, improvements, and enhancements for 
 1. ✅ **UsernameFaker, UrlFaker, CompanyFaker** - **COMPLETED** (v0.0.11)
 2. ✅ **MacAddressFaker, UuidFaker** - **COMPLETED** (current development)
 3. **Relationship Preservation** (Pending)
-3. **MongoDB Support** (Pending)
-4. **Configuration Files** (Pending)
-5. ✅ **Event System** - **COMPLETED** (v0.0.13)
-6. ✅ **HashPreserveFaker, ShuffleFaker, ConstantFaker** - **COMPLETED** (v0.0.13)
-7. ✅ **PatternMatcher OR Operator** - **COMPLETED** (v0.0.14)
-8. ✅ **Entity-Level Pattern Filtering Fix** - **COMPLETED** (v0.0.14)
-9. ✅ **EmailSubscription Demo Entity** - **COMPLETED** (v0.0.14)
-6. **Symfony Messenger Integration**
-7. **Interactive Mode**
-8. **Enhanced Reporting**
-9. **Security Enhancements**
+4. **MongoDB Support** (Infrastructure ready, ODM support pending)
+5. **SQLite Support** (Pending)
+6. **Configuration Files** (Pending)
+7. ✅ **Event System** - **COMPLETED** (v0.0.13)
+8. ✅ **HashPreserveFaker, ShuffleFaker, ConstantFaker** - **COMPLETED** (v0.0.13)
+9. ✅ **PatternMatcher OR Operator** - **COMPLETED** (v0.0.14)
+10. ✅ **Entity-Level Pattern Filtering Fix** - **COMPLETED** (v0.0.14)
+11. ✅ **EmailSubscription Demo Entity** - **COMPLETED** (v0.0.14)
+12. ✅ **MongoDB Field Migration Command** - **COMPLETED** (v0.0.15)
+12. **Symfony Messenger Integration**
+13. **Interactive Mode**
+14. **Enhanced Reporting**
+15. **Security Enhancements**
+
+### 📊 Database Support Priority
+
+**High Priority (Phase 3.1 - v0.3.1):**
+1. **MongoDB ODM** - Complete ODM support (infrastructure ready in demos)
+2. **SQLite** - Lightweight, easy to implement, common for development/testing
+
+**Medium Priority (Phase 3.2 - v0.3.2):**
+3. **MariaDB** - MySQL-compatible, straightforward implementation
+4. **Redis** - Key-value store, common use case for caching/sessions
+
+**Lower Priority (Phase 3.3 - v0.3.3):**
+5. **Microsoft SQL Server** - Enterprise support, Windows-based infrastructure
+6. **Oracle Database** - Enterprise support, large-scale systems
+7. **Cassandra** - Big Data use cases, distributed systems
+
+**Future Consideration (Phase 3.4+):**
+8. **CouchDB** - Alternative document database to MongoDB
+9. **Neo4j** - Graph database support, relationship-heavy data
+10. **Time-Series Databases** (InfluxDB, TimescaleDB) - Specialized use cases for metrics/IoT
 
 ### 📋 Low Priority (Future releases)
 
@@ -748,6 +832,11 @@ We welcome community contributions! Areas where help is especially appreciated:
 ## Version Timeline
 
 ### Completed Releases
+
+- **v0.0.15** (2026-01-20 - Released): MongoDB field migration command and demo improvements
+  - ✅ MongoDB field migration command (`nowo:anonymize:generate-mongo-field`)
+  - ✅ Enhanced CRUD navigation in all demo projects
+  - ✅ Improved MongoDB fixture scripts
 
 - **v0.0.14** (2026-01-20 - Released): Pattern matching enhancements and bug fixes
   - ✅ PatternMatcher OR operator support for multiple value matching

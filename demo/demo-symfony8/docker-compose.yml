@@ -12,6 +12,8 @@ services:
       - COMPOSER_ALLOW_SUPERUSER=1
       - DATABASE_URL=mysql://${MYSQL_USER:-demo_user}:${MYSQL_PASSWORD:-password}@mysql:3306/${MYSQL_DATABASE:-anonymize_demo}?serverVersion=8.0&charset=utf8mb4
       - DATABASE_URL_POSTGRES=postgresql://${POSTGRES_USER:-demo_user}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-anonymize_demo}?serverVersion=16&charset=utf8
+      - DATABASE_URL_SQLITE=sqlite:///%kernel.project_dir%/var/data/anonymize_demo.sqlite
+      - MONGODB_URL=mongodb://${MONGODB_USER:-demo_user}:${MONGODB_PASSWORD:-password}@mongodb:27017/${MONGODB_DATABASE:-anonymize_demo}?authSource=admin
     command: ["php-fpm", "-F"]
     # Note: depends_on removed to allow entrypoint script to handle database readiness
     # The entrypoint script will wait for databases and load fixtures automatically
@@ -106,6 +108,42 @@ services:
       - anonymize-demo-network
     depends_on:
       postgres:
+        condition: service_healthy
+
+  mongodb:
+    image: mongo:7.0
+    container_name: anonymize-demo-symfony8-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER:-demo_user}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE:-anonymize_demo}
+    volumes:
+      - ./.data/mongodb:/data/db
+    ports:
+      - "27018:27017"
+    networks:
+      - anonymize-demo-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: anonymize-demo-symfony8-mongo-express
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGODB_USER:-demo_user}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGODB_PASSWORD:-password}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGODB_USER:-demo_user}:${MONGODB_PASSWORD:-password}@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USER:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:-admin}
+    ports:
+      - "8086:8081"
+    networks:
+      - anonymize-demo-network
+    depends_on:
+      mongodb:
         condition: service_healthy
 
 ###> doctrine/doctrine-bundle ###

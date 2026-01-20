@@ -6,6 +6,10 @@ doctrine:
                 url: '%env(resolve:DATABASE_URL)%'
             postgres:
                 url: '%env(resolve:DATABASE_URL_POSTGRES)%'
+            sqlite:
+                driver: 'pdo_sqlite'
+                path: '%kernel.project_dir%/var/data/anonymize_demo.sqlite'
+                charset: 'UTF8'
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true
@@ -23,6 +27,16 @@ doctrine:
                 naming_strategy: doctrine.orm.naming_strategy.underscore
             postgres:
                 connection: postgres
+                auto_mapping: false
+                mappings:
+                    App:
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/src/Entity'
+                        prefix: 'App\Entity'
+                        alias: App
+                naming_strategy: doctrine.orm.naming_strategy.underscore
+            sqlite:
+                connection: sqlite
                 auto_mapping: false
                 mappings:
                     App:

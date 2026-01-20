@@ -4,7 +4,7 @@ set -e
 echo "🚀 Starting demo entrypoint script..."
 
 # Fix permissions (from original entrypoint)
-mkdir -p /app/var/cache /app/var/log
+mkdir -p /app/var/cache /app/var/log /app/var/data
 chmod -R 777 /app/var 2>/dev/null || true
 
 # Wait for database to be ready
@@ -115,6 +115,62 @@ main() {
     # Setup PostgreSQL connection
     if [ -n "${DATABASE_URL_POSTGRES}" ]; then
         setup_database postgres postgres || echo "⚠️  Failed to setup postgres connection"
+    fi
+
+    # Setup SQLite connection (file-based, no need to wait)
+    if [ -n "${DATABASE_URL_SQLITE}" ]; then
+        echo ""
+        echo "📦 Setting up SQLite..."
+        
+        # Check if vendor exists
+        if [ ! -d "/app/vendor" ]; then
+            echo "  ⚠️  Warning: vendor directory not found. Skipping SQLite setup."
+            echo "  💡 Run 'composer install' first, then restart the container."
+        else
+            # Ensure data directory exists
+            mkdir -p /app/var/data
+            chmod 777 /app/var/data 2>/dev/null || true
+            
+            # Setup SQLite database
+            setup_database sqlite sqlite || echo "⚠️  Failed to setup sqlite connection"
+        fi
+    fi
+
+    # Setup MongoDB (if configured)
+    if [ -n "${MONGODB_URL}" ]; then
+        echo ""
+        echo "📦 Setting up MongoDB..."
+        
+        # Parse MongoDB URL to get connection details
+        MONGODB_HOST="${MONGODB_HOST:-mongodb}"
+        MONGODB_PORT="${MONGODB_PORT:-27017}"
+        MONGODB_USER="${MONGODB_USER:-demo_user}"
+        MONGODB_PASSWORD="${MONGODB_PASSWORD:-password}"
+        MONGODB_DATABASE="${MONGODB_DATABASE:-anonymize_demo}"
+        
+        # Check if vendor exists
+        if [ ! -d "/app/vendor" ]; then
+            echo "  ⚠️  Warning: vendor directory not found. Skipping MongoDB setup."
+            echo "  💡 Run 'composer install' first, then restart the container."
+        else
+            # MongoDB database is created automatically on first connection
+            # Load fixtures if script exists
+            if [ -f "/app/docker/mongodb/load-fixtures.js" ]; then
+                echo "  Loading MongoDB fixtures..."
+                mongosh --host "$MONGODB_HOST:$MONGODB_PORT" \
+                    -u "$MONGODB_USER" \
+                    -p "$MONGODB_PASSWORD" \
+                    --authenticationDatabase admin \
+                    "$MONGODB_DATABASE" \
+                    < /app/docker/mongodb/load-fixtures.js 2>&1 || {
+                    echo "  ⚠️  Warning: Could not load MongoDB fixtures (may already be loaded or connection issue)"
+                }
+            else
+                echo "  ✅ MongoDB is ready and accessible"
+                echo "  ℹ️  Note: MongoDB fixtures script not found at /app/docker/mongodb/load-fixtures.js"
+            fi
+            echo "  ℹ️  Note: MongoDB ODM configuration will be available when the bundle supports MongoDB"
+        fi
     fi
 
     echo ""

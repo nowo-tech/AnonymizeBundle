@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Activities - MongoDB{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>User Activities <span class="connection-badge mongodb" style="background: #10b981; color: white; padding: 5px 15px; border-radius: 5px; font-size: 14px; font-weight: normal;">MongoDB</span></h2>
+        <a href="{{ path('mongodb_user_activity_new') }}" class="btn btn-primary">Create New Activity</a>
+    </div>
+
+    {% if activities|length > 0 %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User Email</th>
+                    <th>User Name</th>
+                    <th>IP Address</th>
+                    <th>Action</th>
+                    <th>Timestamp</th>
+                    <th>Anonymized</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activity in activities %}
+                    <tr>
+                        <td>{{ activity._id }}</td>
+                        <td>{{ activity.userEmail ?? '-' }}</td>
+                        <td>{{ activity.userName ?? '-' }}</td>
+                        <td>{{ activity.ipAddress ?? '-' }}</td>
+                        <td>{{ activity.action ?? '-' }}</td>
+                        <td>
+                            {% if activity.timestamp %}
+                                {{ activity.timestamp.toDateTime()|date('Y-m-d H:i:s') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if activity.anonymized|default(false) %}
+                                <span style="color: #28a745; font-weight: bold;">✓ Yes</span>
+                            {% else %}
+                                <span style="color: #6c757d;">✗ No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ path('mongodb_user_activity_show', {id: activity._id}) }}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Show</a>
+                            <a href="{{ path('mongodb_user_activity_edit', {id: activity._id}) }}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Edit</a>
+                            <form method="post" action="{{ path('mongodb_user_activity_delete', {id: activity._id}) }}" style="display: inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ activity._id) }}">
+                                <button type="submit" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="return confirm('Are you sure?')">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No activities found. <a href="{{ path('mongodb_user_activity_new') }}">Create the first one</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

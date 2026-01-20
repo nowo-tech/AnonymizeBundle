@@ -15,7 +15,7 @@ Symfony bundle for anonymizing database records using Doctrine attributes and Fa
 - ✅ Multiple faker types (32 total: email, name, surname, age, phone, IBAN, credit card, address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language, hash_preserve, shuffle, constant, custom service)
 - ✅ Weight-based anonymization order
 - ✅ Pattern-based inclusion/exclusion filters
-- ✅ Support for MySQL and PostgreSQL (MongoDB coming soon)
+- ✅ Support for MySQL and PostgreSQL (MongoDB infrastructure ready in demos, ODM support coming soon)
 - ✅ Batch processing for large datasets
 - ✅ Dry-run mode for testing
 - ✅ Anonymization tracking with `AnonymizableTrait` and `anonymized` column
@@ -96,11 +96,14 @@ See [CONFIGURATION.md](docs/CONFIGURATION.md) for detailed configuration options
 
 ## Commands
 
-The bundle provides three console commands:
+The bundle provides four console commands:
 
-- **`nowo:anonymize:run`** - Main anonymization command
-- **`nowo:anonymize:generate-column-migration`** - Generate SQL migrations for `anonymized` column
+- **`nowo:anonymize:run`** - Main anonymization command (supports MySQL, PostgreSQL, SQLite)
+- **`nowo:anonymize:generate-column-migration`** - Generate SQL migrations for `anonymized` column (MySQL, PostgreSQL, SQLite)
+- **`nowo:anonymize:generate-mongo-field`** - Generate MongoDB script to add `anonymized` field to documents
 - **`nowo:anonymize:info`** - Display information about anonymizers
+
+> **Note**: MongoDB ODM support is planned for future releases. The `nowo:anonymize:run` command currently only processes Doctrine ORM connections. However, you can use `nowo:anonymize:generate-mongo-field` to prepare MongoDB documents with the `anonymized` field.
 
 See [COMMANDS.md](docs/COMMANDS.md) for detailed command documentation and examples.
 
@@ -143,12 +146,13 @@ For information about our Git workflow and branching strategy, see [BRANCHING.md
 
 We have an extensive roadmap for future enhancements. See [ROADMAP.md](docs/ROADMAP.md) for details on planned features including:
 
-### Current Status (v0.0.14)
+### Current Status (v0.0.15)
 
 - **Phase 1 Progress**: 100% complete (all 21 fakers implemented)
 - **Total Fakers Available**: 32 fakers (all fakers from Phase 1 + Phase 2 data preservation fakers)
 - **Test Coverage**: 216 tests, 512 assertions, 45.80% line coverage
 - **Pattern Matching**: Enhanced with `|` (OR) operator support for multiple value matching
+- **MongoDB Support**: Command to generate scripts for adding `anonymized` field to MongoDB documents
 
 ### Planned Phases
 

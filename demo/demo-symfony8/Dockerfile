@@ -9,10 +9,11 @@ RUN apk add --no-cache \
     mysql-client \
     postgresql-client \
     postgresql-dev \
+    mongodb-tools \
     $PHPIZE_DEPS
 
 # Install PHP extensions
-RUN docker-php-ext-install -j$(nproc) zip pdo pdo_mysql pdo_pgsql
+RUN docker-php-ext-install -j$(nproc) zip pdo pdo_mysql pdo_pgsql pdo_sqlite
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

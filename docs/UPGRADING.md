@@ -13,6 +13,52 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.15
+
+**Release Date**: TBD
+
+#### What's New
+
+- **MongoDB Field Migration Command**: New command `nowo:anonymize:generate-mongo-field` to generate JavaScript scripts for adding `anonymized` field to MongoDB documents
+  - Supports automatic detection of MongoDB document classes with `--scan-documents`
+  - Supports manual collection specification with `--collection` option
+  - Generates mongosh-compatible scripts
+  - Complements the existing SQL migration command
+
+- **Demo Enhancements**: Improved CRUD navigation in all demo projects
+  - All entity CRUDs now accessible from home page
+  - Better organization of links by entity type
+  - Enhanced MongoDB fixture scripts
+
+#### Breaking Changes
+
+None - This is a backward-compatible feature release.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Optional: Generate MongoDB scripts** (if using MongoDB):
+   ```bash
+   php bin/console nowo:anonymize:generate-mongo-field --scan-documents
+   ```
+
+#### Migration Notes
+
+- The new MongoDB command is optional and only needed if you're preparing MongoDB documents for future anonymization
+- No database schema changes required
+- No configuration changes required
+
+---
+
 ### Upgrading to 0.0.14
 
 **Release Date**: 2026-01-20

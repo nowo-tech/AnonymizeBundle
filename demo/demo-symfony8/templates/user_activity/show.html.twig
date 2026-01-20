@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Activity #{{ activity._id }} - MongoDB{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>User Activity Details <span class="connection-badge mongodb" style="background: #10b981; color: white; padding: 5px 15px; border-radius: 5px; font-size: 14px; font-weight: normal;">MongoDB</span></h2>
+        <div>
+            <a href="{{ path('mongodb_user_activity_edit', {id: activity._id}) }}" class="btn btn-primary">Edit</a>
+            <a href="{{ path('mongodb_user_activity_index') }}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+
+    <table>
+        <tr>
+            <th>ID</th>
+            <td>{{ activity._id }}</td>
+        </tr>
+        <tr>
+            <th>User Email</th>
+            <td>{{ activity.userEmail ?? '-' }}</td>
+        </tr>
+        <tr>
+            <th>User Name</th>
+            <td>{{ activity.userName ?? '-' }}</td>
+        </tr>
+        <tr>
+            <th>IP Address</th>
+            <td>{{ activity.ipAddress ?? '-' }}</td>
+        </tr>
+        <tr>
+            <th>Action</th>
+            <td>{{ activity.action ?? '-' }}</td>
+        </tr>
+        <tr>
+            <th>Timestamp</th>
+            <td>
+                {% if activity.timestamp %}
+                    {{ activity.timestamp.toDateTime()|date('Y-m-d H:i:s') }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Metadata</th>
+            <td>
+                {% if activity.metadata %}
+                    <pre style="background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto;">{{ activity.metadata|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Anonymized</th>
+            <td>
+                {% if activity.anonymized|default(false) %}
+                    <span style="color: #28a745; font-weight: bold;">✓ Yes</span>
+                {% else %}
+                    <span style="color: #6c757d;">✗ No</span>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+</div>
+{% endblock %}

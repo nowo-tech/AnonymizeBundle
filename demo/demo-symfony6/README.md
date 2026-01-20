@@ -1,14 +1,17 @@
 # Anonymize Bundle Demo - Symfony 6
 
-This demo shows how to use the AnonymizeBundle with Symfony 6.0, including multiple database connections (MySQL and PostgreSQL).
+This demo shows how to use the AnonymizeBundle with Symfony 6.0, including multiple database connections (MySQL, PostgreSQL, SQLite, and MongoDB).
 
 ## Features
 
 - **Symfony 6.0** with all necessary dependencies
 - **MySQL 8.0** as default connection
 - **PostgreSQL 16** as secondary connection
-- **phpMyAdmin** to view and manage MySQL (port 8080)
-- **pgAdmin** to view and manage PostgreSQL (port 8081)
+- **SQLite** as file-based connection
+- **MongoDB 7.0** (infrastructure ready, ODM support coming soon)
+- **phpMyAdmin** to view and manage MySQL (port 8082)
+- **pgAdmin** to view and manage PostgreSQL (port 8083)
+- **Mongo Express** to view and manage MongoDB (port 8088)
 - **Web CRUD** complete interface to manage Users and Customers in each connection
 - **Docker Compose** with all services configured
 - **Makefile** with useful commands for development
@@ -28,7 +31,7 @@ This demo shows how to use the AnonymizeBundle with Symfony 6.0, including multi
 make up
 ```
 
-This will automatically create the `.env` file if it doesn't exist and start all containers (PHP, MySQL, PostgreSQL, phpMyAdmin, pgAdmin).
+This will automatically create the `.env` file if it doesn't exist and start all containers (PHP, MySQL, PostgreSQL, MongoDB, phpMyAdmin, pgAdmin, Mongo Express).
 
 ### 2. Setup the demo
 
@@ -38,9 +41,10 @@ make setup
 
 This command:
 - Installs Composer dependencies
-- Creates databases (MySQL and PostgreSQL)
-- Creates schemas in both databases
+- Creates databases (MySQL, PostgreSQL, SQLite)
+- Creates schemas in all SQL databases
 - Loads test data (fixtures) using DoctrineFixturesBundle
+- Loads MongoDB fixtures (30 user activities)
 
 ### 3. Access Web CRUD
 
@@ -62,12 +66,14 @@ make anonymize
 
 ## Connection Structure
 
-This demo includes two database connections:
+This demo includes four database systems:
 
-- **`default`**: MySQL connection (port 33062)
-- **`postgres`**: PostgreSQL connection (port 54322)
+- **`default`**: MySQL connection (port 33061)
+- **`postgres`**: PostgreSQL connection (port 54321)
+- **`sqlite`**: SQLite connection (file-based: `var/data/anonymize_demo.sqlite`)
+- **`mongodb`**: MongoDB connection (port 27016) - Infrastructure ready, ODM support coming soon
 
-Both connections have the same entities (`User` and `Customer`) and the same test data.
+MySQL, PostgreSQL, and SQLite connections have the same entities (`User` and `Customer`) and the same test data. MongoDB infrastructure is ready with Mongo Express for management, and a sample document (`UserActivity`) is prepared for when the bundle supports MongoDB ODM.
 
 ## Web CRUD
 
@@ -78,8 +84,11 @@ The demo includes a complete CRUD accessible from the browser to manage entities
 - **Home**: `/` - Main page with links to all sections
 - **Users MySQL**: `/default/user` - Users CRUD in MySQL
 - **Users PostgreSQL**: `/postgres/user` - Users CRUD in PostgreSQL
+- **Users SQLite**: `/sqlite/user` - Users CRUD in SQLite
 - **Customers MySQL**: `/default/customer` - Customers CRUD in MySQL
 - **Customers PostgreSQL**: `/postgres/customer` - Customers CRUD in PostgreSQL
+- **Customers SQLite**: `/sqlite/customer` - Customers CRUD in SQLite
+- **User Activities MongoDB**: `/mongodb/user-activity` - User Activities CRUD in MongoDB
 
 ### CRUD Features
 
@@ -95,7 +104,7 @@ Each page clearly shows which connection you're working with via a color badge.
 
 ### phpMyAdmin (MySQL)
 
-Access phpMyAdmin at: **http://localhost:8080**
+Access phpMyAdmin at: **http://localhost:8082**
 
 **Credentials:**
 - Username: `demo_user` (or the value of `MYSQL_USER`)
@@ -109,7 +118,25 @@ phpMyAdmin automatically connects to the MySQL database. You can:
 
 ### pgAdmin (PostgreSQL)
 
-Access pgAdmin at: **http://localhost:8081**
+Access pgAdmin at: **http://localhost:8083**
+
+### Mongo Express (MongoDB)
+
+Access Mongo Express at: **http://localhost:8088**
+
+**Access credentials:**
+- Username: `admin` (or the value of `MONGO_EXPRESS_USER`)
+- Password: `admin` (or the value of `MONGO_EXPRESS_PASSWORD`)
+
+Mongo Express automatically connects to the MongoDB database. You can:
+- View collections
+- Browse documents
+- Query data
+- Manage indexes
+
+**Note**: MongoDB ODM support is coming soon. Currently, MongoDB infrastructure is ready and a sample document (`UserActivity`) is prepared in `src/Document/UserActivity.php` for when the bundle supports MongoDB ODM.
+
+The `UserActivity` document includes an `anonymized` field (similar to `AnonymizableTrait` in ORM entities) to track anonymization status. The CRUD interface displays this status for each document.
 
 **Access credentials:**
 - Email: `admin@example.com` (or the value of `PGADMIN_EMAIL`)
@@ -269,6 +296,8 @@ APP_ENV=dev
 APP_SECRET=your-secret-key-change-this-in-production
 DATABASE_URL=mysql://demo_user:password@mysql:3306/anonymize_demo?serverVersion=8.0&charset=utf8mb4
 DATABASE_URL_POSTGRES=postgresql://demo_user:password@postgres:5432/anonymize_demo?serverVersion=16&charset=utf8
+DATABASE_URL_SQLITE=sqlite:///%kernel.project_dir%/var/data/anonymize_demo.sqlite
+MONGODB_URL=mongodb://demo_user:password@mongodb:27017/anonymize_demo?authSource=admin
 MYSQL_ROOT_PASSWORD=password
 MYSQL_DATABASE=anonymize_demo
 MYSQL_USER=demo_user
@@ -276,6 +305,11 @@ MYSQL_PASSWORD=password
 POSTGRES_USER=demo_user
 POSTGRES_PASSWORD=password
 POSTGRES_DB=anonymize_demo
+MONGODB_USER=demo_user
+MONGODB_PASSWORD=password
+MONGODB_DATABASE=anonymize_demo
+MONGO_EXPRESS_USER=admin
+MONGO_EXPRESS_PASSWORD=admin
 ```
 
 ### Bundle Configuration
@@ -305,5 +339,8 @@ make setup
 ## Notes
 
 - The bundle is included as a dependency and will be installed automatically with `make install`.
-- Test data is automatically loaded in both connections (MySQL and PostgreSQL).
-- You can anonymize both connections at once or select a specific one with `--connection`.
+- Test data is automatically loaded in all SQL connections (MySQL, PostgreSQL, SQLite).
+- MongoDB infrastructure is ready with Mongo Express for management. A sample document (`UserActivity`) is prepared in `src/Document/UserActivity.php` for when the bundle supports MongoDB ODM.
+- MongoDB fixtures are automatically loaded (30 user activities) with `anonymized: false` field.
+- MongoDB CRUD is available at `/mongodb/user-activity` to view and manage user activities.
+- You can anonymize all SQL connections at once or select a specific one with `--connection`.

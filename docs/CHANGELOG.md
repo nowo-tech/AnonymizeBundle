@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.15] - 2026-01-20
+
+### Added
+
+- **MongoDB Field Migration Command**: New command to generate MongoDB scripts for adding `anonymized` field
+  - `nowo:anonymize:generate-mongo-field`: Generate JavaScript scripts (compatible with mongosh) to add `anonymized` field
+  - Supports `--scan-documents` to automatically detect MongoDB document classes with `#[Anonymize]` attribute
+  - Supports `--collection` option to manually specify collection names
+  - Supports `--database` option to specify target database
+  - Generates scripts that use `updateMany()` to add `anonymized: false` to existing documents
+  - Output can be saved to file with `--output` option
+  - Complements the existing SQL migration command (`nowo:anonymize:generate-column-migration`)
+  - Documented in `docs/COMMANDS.md` and `README.md`
+
+### Improved
+
+- **Demo: Enhanced CRUD Navigation**: Updated home page in all demo projects to show all available CRUDs
+  - Added links for Product, Order, Invoice, Employee entities across all SQL connections (MySQL, PostgreSQL, SQLite)
+  - All CRUD interfaces now accessible from home page
+  - Better organization of CRUD links by entity type
+  - Applied to all demo projects (Symfony 6, 7, 8)
+
+- **Demo: MongoDB Scripts**: Improved MongoDB fixture scripts
+  - Updated scripts to use current database connection (already connected via mongosh)
+  - Better comments explaining script usage
+  - Applied to all demo projects (Symfony 6, 7, 8)
+
 ## [0.0.14] - 2026-01-20
 
 ### Added
@@ -22,6 +49,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Demonstrates conditional anonymization based on status
   - Includes ~50 fixture records covering all pattern combinations
   - Examples of all pattern types: domain matching, status-based conditions, date conditions
+  - Applied to all demo projects (Symfony 6, 7, 8)
+
+- **Demo: MongoDB Infrastructure**: Added MongoDB support to all demo projects
+  - MongoDB 7.0 service added to docker-compose.yml in all demos
+  - Mongo Express added for MongoDB management (ports: 8088/8087/8086)
+  - MongoDB connection variables (MONGODB_URL) configured
+  - Entrypoint scripts updated to wait for MongoDB readiness
+  - Sample document (`UserActivity`) prepared for when bundle supports MongoDB ODM
+  - Dockerfiles updated with mongodb-tools
+  - Healthchecks configured for MongoDB
+  - MongoDB fixtures script (`load-fixtures.js`) loads 30 user activities automatically
+  - MongoDB CRUD interface (`/mongodb/user-activity`) for viewing and managing documents
+  - `anonymized` field added to MongoDB documents (similar to `AnonymizableTrait` in ORM entities)
+  - Applied to all demo projects (Symfony 6, 7, 8)
+
+- **Demo: SQLite Support**: Added SQLite database support to all demo projects
+  - SQLite connection configured in doctrine.yaml
+  - File-based database at `var/data/anonymize_demo.sqlite`
+  - pdo_sqlite extension added to Dockerfiles
+  - Automatic setup in entrypoint scripts
+  - Same entities and fixtures as MySQL/PostgreSQL
   - Applied to all demo projects (Symfony 6, 7, 8)
 
 ### Fixed

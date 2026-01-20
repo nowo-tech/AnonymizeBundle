@@ -61,3 +61,7 @@ services:
             $connections: '%nowo_anonymize.connections%'
         tags:
             - { name: 'console.command' }
+
+    Nowo\AnonymizeBundle\Command\GenerateMongoAnonymizedFieldCommand:
+        tags:
+            - { name: 'console.command' }

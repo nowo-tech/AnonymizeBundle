@@ -83,11 +83,14 @@ final class AnonymizeCommand extends Command
                       <info>php %command.full_name%</info>
 
                     This command will:
-                      1. Scan all Doctrine connections for entities with the #[Anonymize] attribute
+                      1. Scan all Doctrine ORM connections for entities with the #[Anonymize] attribute
                       2. Process properties marked with #[AnonymizeProperty] attribute
                       3. Anonymize values using Faker generators
                       4. Respect weight ordering (lower weights first, then alphabetical)
                       5. Apply inclusion/exclusion patterns
+
+                    Note: Currently supports Doctrine ORM (MySQL, PostgreSQL, SQLite).
+                          MongoDB ODM support is planned for future releases.
 
                     Options:
                       --connection, -c    Process only specific connections (can be used multiple times)
@@ -177,6 +180,13 @@ final class AnonymizeCommand extends Command
         // Get all entity manager names (not connection names)
         $allManagers = $doctrine->getManagerNames();
         $managersToProcess = empty($connections) ? array_keys($allManagers) : array_intersect(array_keys($allManagers), $connections);
+
+        // Check if MongoDB connection is requested but not supported yet
+        $requestedConnections = empty($connections) ? [] : $connections;
+        if (!empty($requestedConnections) && in_array('mongodb', $requestedConnections, true)) {
+            $io->warning('MongoDB ODM support is not yet available. The command currently only supports Doctrine ORM (MySQL, PostgreSQL, SQLite).');
+            $io->note('MongoDB ODM support is planned for future releases. For now, you can use Mongo Express to view MongoDB data.');
+        }
 
         if (empty($managersToProcess)) {
             $io->error('No entity managers found to process.');
