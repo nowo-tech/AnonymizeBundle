@@ -117,6 +117,76 @@ Command-line options take precedence over configuration file values.
 
 The bundle provides three console commands. See [COMMANDS.md](COMMANDS.md) for detailed command documentation, options, and examples.
 
+## Pattern Matching
+
+The bundle supports **two-level pattern matching** for fine-grained control over anonymization:
+
+### Entity-Level Patterns
+
+Defined in the `#[Anonymize]` attribute, these patterns determine if a **record** is a candidate for anonymization.
+
+**Syntax**:
+```php
+#[Anonymize(
+    includePatterns: ['column' => 'pattern'],
+    excludePatterns: ['column' => 'pattern']
+)]
+```
+
+**Behavior**:
+- If patterns match → Record is a candidate (properties are evaluated)
+- If patterns don't match → **Entire record is skipped** (nothing is anonymized)
+- If no patterns defined → All records are candidates
+
+### Property-Level Patterns
+
+Defined in the `#[AnonymizeProperty]` attribute, these patterns determine if a **property** should be anonymized.
+
+**Syntax**:
+```php
+#[AnonymizeProperty(
+    type: 'email',
+    includePatterns: ['column' => 'pattern'],
+    excludePatterns: ['column' => 'pattern']
+)]
+```
+
+**Behavior**:
+- Only evaluated when the record is already a candidate (entity patterns matched)
+- If patterns match → Property is anonymized
+- If patterns don't match → Property is skipped (left unchanged)
+- If no patterns defined → Property is anonymized (when record is candidate)
+
+### Pattern Combination Logic
+
+The anonymization decision follows this flow:
+
+```
+1. Check entity-level patterns
+   ├─ NO match → Skip entire record (nothing anonymized)
+   └─ YES match → Continue to step 2
+
+2. For each property with #[AnonymizeProperty]:
+   ├─ Check property-level patterns
+   │  ├─ NO match → Skip this property (leave unchanged)
+   │  └─ YES match → Anonymize this property
+   └─ If no patterns → Anonymize this property
+```
+
+**Key Points**:
+- Entity patterns act as a **gate**: if they don't match, nothing happens
+- Property patterns act as a **filter**: they determine which properties are anonymized
+- Both must match (when defined) for anonymization to occur
+- Exclusions take precedence over inclusions at both levels
+
+### Pattern Operators
+
+- **Comparison**: `>`, `>=`, `<`, `<=`, `=`, `!=`, `<>`
+- **SQL LIKE**: `%` wildcard (e.g., `'%@example.com'`)
+- **OR Operator**: `|` for multiple values (e.g., `'active|inactive'`)
+
+See [USAGE.md](USAGE.md) for detailed examples and use cases.
+
 ## Event System
 
 The bundle provides a comprehensive event system for extensibility. You can listen to events to customize the anonymization process.

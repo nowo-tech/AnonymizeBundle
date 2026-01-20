@@ -56,7 +56,30 @@ php bin/console nowo:anonymize:run
 
 ### Pattern-based Filtering
 
-You can specify which records to anonymize using inclusion/exclusion patterns:
+The bundle supports **two levels of pattern matching** that work together:
+
+1. **Entity-level patterns** (`#[Anonymize]`): Determine if a **record** is a candidate for anonymization
+2. **Property-level patterns** (`#[AnonymizeProperty]`): Determine if a **property** should be anonymized (only when the record is already a candidate)
+
+#### How Pattern Combination Works
+
+The anonymization process follows this logic:
+
+1. **First**: Check if the record matches entity-level patterns
+   - If **NO** → Skip the entire record (nothing is anonymized)
+   - If **YES** → Continue to step 2
+
+2. **Then**: For each property with `#[AnonymizeProperty]`, check if it matches property-level patterns
+   - If **YES** → Anonymize the property
+   - If **NO** → Skip the property (leave it unchanged)
+
+**Important**: A property is only anonymized when **BOTH** conditions are met:
+- The record matches entity-level patterns (if defined)
+- The property matches its own patterns (if defined)
+
+#### Examples
+
+**Example 1: Entity-level filtering only**
 
 ```php
 #[ORM\Entity]
@@ -67,12 +90,162 @@ You can specify which records to anonymize using inclusion/exclusion patterns:
 class User
 {
     #[ORM\Column(length: 255)]
+    #[AnonymizeProperty(type: 'email')]  // No property-level patterns
+    private ?string $email = null;
+    
+    #[ORM\Column(length: 255)]
+    #[AnonymizeProperty(type: 'name')]   // No property-level patterns
+    private ?string $firstName = null;
+}
+```
+
+**Result**:
+- Records with `status='active'` AND `id>100` → **Both** `email` and `firstName` are anonymized
+- Records with `status!='active'` OR `id<=100` → **Nothing** is anonymized (entire record skipped)
+
+**Example 2: Property-level filtering only**
+
+```php
+#[ORM\Entity]
+#[Anonymize]  // No entity-level patterns (all records are candidates)
+class User
+{
+    #[ORM\Column(length: 255)]
     #[AnonymizeProperty(
         type: 'email',
-        includePatterns: ['role' => 'admin'],
-        excludePatterns: ['id' => '=1']
+        includePatterns: ['role' => 'admin']  // Only admins
     )]
     private ?string $email = null;
+    
+    #[ORM\Column(length: 255)]
+    #[AnonymizeProperty(
+        type: 'name',
+        includePatterns: ['status' => 'active']  // Only active users
+    )]
+    private ?string $firstName = null;
+}
+```
+
+**Result**:
+- All records are candidates (no entity-level filter)
+- Records with `role='admin'` → `email` is anonymized, `firstName` depends on `status`
+- Records with `status='active'` → `firstName` is anonymized, `email` depends on `role`
+- Records with `role='admin'` AND `status='active'` → **Both** are anonymized
+
+**Example 3: Combined entity and property patterns**
+
+```php
+#[ORM\Entity]
+#[Anonymize(
+    includePatterns: ['status' => 'active'],  // Only active users
+    excludePatterns: ['id' => '<=100']        // Exclude first 100 records
+)]
+class User
+{
+    #[ORM\Column(length: 255)]
+    #[AnonymizeProperty(
+        type: 'email',
+        includePatterns: ['role' => 'admin']  // Only admins
+    )]
+    private ?string $email = null;
+    
+    #[ORM\Column(length: 255)]
+    #[AnonymizeProperty(
+        type: 'name',
+        includePatterns: ['department' => 'IT']  // Only IT department
+    )]
+    private ?string $firstName = null;
+}
+```
+
+**Result** (all conditions must be met):
+
+| Record Conditions | Entity Match? | email Anonymized? | firstName Anonymized? |
+|------------------|---------------|-------------------|----------------------|
+| `status='active'`, `id>100`, `role='admin'`, `department='IT'` | ✅ YES | ✅ YES | ✅ YES |
+| `status='active'`, `id>100`, `role='admin'`, `department='Sales'` | ✅ YES | ✅ YES | ❌ NO |
+| `status='active'`, `id>100`, `role='user'`, `department='IT'` | ✅ YES | ❌ NO | ✅ YES |
+| `status='active'`, `id>100`, `role='user'`, `department='Sales'` | ✅ YES | ❌ NO | ❌ NO |
+| `status='inactive'`, `id>100`, `role='admin'`, `department='IT'` | ❌ NO | ❌ NO | ❌ NO |
+| `status='active'`, `id=50`, `role='admin'`, `department='IT'` | ❌ NO | ❌ NO | ❌ NO |
+
+**Example 4: Complex scenario with OR operator**
+
+```php
+#[ORM\Entity]
+#[Anonymize(
+    includePatterns: ['status' => 'inactive|unsubscribed']  // Multiple statuses
+)]
+class EmailSubscription
+{
+    #[ORM\Column(length: 255)]
+    #[AnonymizeProperty(
+        type: 'email',
+        includePatterns: ['email' => '%@test-domain.com|%@example.com']  // Multiple domains
+    )]
+    private ?string $email = null;
+    
+    #[ORM\Column(length: 255, nullable: true)]
+    #[AnonymizeProperty(
+        type: 'email',
+        includePatterns: ['status' => 'unsubscribed']  // Only if unsubscribed
+    )]
+    private ?string $backupEmail = null;
+}
+```
+
+**Result**:
+- Records with `status='inactive'` OR `status='unsubscribed'` → Entity-level match
+  - If `email` contains `@test-domain.com` OR `@example.com` → `email` is anonymized
+  - If `status='unsubscribed'` → `backupEmail` is anonymized
+  - If `status='inactive'` → `backupEmail` is NOT anonymized (doesn't match property pattern)
+
+#### Pattern Matching Rules Summary
+
+1. **Entity-level patterns** (`#[Anonymize]`):
+   - If **empty** → All records are candidates
+   - If **defined** → Only matching records are candidates
+   - **Exclusions take precedence** over inclusions
+
+2. **Property-level patterns** (`#[AnonymizeProperty]`):
+   - If **empty** → Property is anonymized (when record is candidate)
+   - If **defined** → Property is anonymized only when patterns match
+   - **Exclusions take precedence** over inclusions
+
+3. **Combination logic**:
+   - Record must match entity patterns **AND** property must match its patterns
+   - If entity patterns don't match → **Nothing** is anonymized
+   - If entity patterns match but property patterns don't → **Only that property** is skipped
+
+#### Common Use Cases
+
+**Use Case 1: Anonymize all properties for specific records**
+```php
+#[Anonymize(includePatterns: ['status' => 'archived'])]
+class User
+{
+    #[AnonymizeProperty(type: 'email')]    // No patterns = always anonymized when record matches
+    #[AnonymizeProperty(type: 'name')]      // No patterns = always anonymized when record matches
+}
+```
+
+**Use Case 2: Anonymize specific properties for all records**
+```php
+#[Anonymize]  // No patterns = all records are candidates
+class User
+{
+    #[AnonymizeProperty(type: 'email', includePatterns: ['role' => 'admin'])]  // Only admins
+    #[AnonymizeProperty(type: 'name')]  // All users
+}
+```
+
+**Use Case 3: Conditional anonymization based on multiple criteria**
+```php
+#[Anonymize(includePatterns: ['status' => 'inactive|archived'])]
+class User
+{
+    #[AnonymizeProperty(type: 'email', includePatterns: ['email' => '%@old-domain.com'])]  // Old domain emails
+    #[AnonymizeProperty(type: 'phone', includePatterns: ['country' => 'US|CA'])]  // US/Canada phones
 }
 ```
 
