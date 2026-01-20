@@ -188,20 +188,20 @@ This document outlines the planned features, improvements, and enhancements for 
   - Use cases: Email masking, phone masking, credit card masking
   - Status: Available in v0.0.11, early implementation from Phase 2
 
-- ✅ **HashPreserveFaker**: Hash original value (deterministic anonymization) - **IMPLEMENTED** (Unreleased)
+- ✅ **HashPreserveFaker**: Hash original value (deterministic anonymization) - **IMPLEMENTED** (v0.0.13)
   - Options: `algorithm` (md5/sha1/sha256/sha512), `salt`, `preserve_format`, `length`
   - Use cases: When you need to maintain referential integrity
-  - Status: Available in Unreleased
+  - Status: Available in v0.0.13
 
-- ✅ **ShuffleFaker**: Shuffle values within a column (maintains distribution) - **IMPLEMENTED** (Unreleased)
+- ✅ **ShuffleFaker**: Shuffle values within a column (maintains distribution) - **IMPLEMENTED** (v0.0.13)
   - Options: `values` (required), `seed` (for reproducibility), `exclude`
   - Use cases: When statistical properties must be preserved
-  - Status: Available in Unreleased
+  - Status: Available in v0.0.13
 
-- ✅ **ConstantFaker**: Replace with constant value - **IMPLEMENTED** (Unreleased)
+- ✅ **ConstantFaker**: Replace with constant value - **IMPLEMENTED** (v0.0.13)
   - Options: `value` (required, can be any type including null)
   - Use cases: Null out sensitive data or replace with fixed values
-  - Status: Available in Unreleased
+  - Status: Available in v0.0.13
 
 #### 2. **Relationship Preservation**
 
@@ -757,6 +757,19 @@ We welcome community contributions! Areas where help is especially appreciated:
   - ✅ Total fakers: 14 (8 original + 6 new)
   - ✅ Progress: Phase 1 (30% complete), Phase 2 (25% complete - MaskingFaker)
 
+- **v0.0.14** (2026-01-20 - Released): Pattern matching enhancements and bug fixes
+  - ✅ PatternMatcher OR operator support for multiple value matching
+  - ✅ Entity-level pattern filtering fix
+  - ✅ EmailSubscription demo entity with comprehensive pattern examples
+  - ✅ Comprehensive fixtures (~50 records) covering all pattern combinations
+  - ✅ Service registration improvements using attributes
+
+- **v0.0.13** (2026-01-19 - Released): Phase 1 complete + Enhanced features
+  - ✅ All Phase 1 fakers implemented (32 total)
+  - ✅ Pre-flight checks, progress bars, environment protection
+  - ✅ Debug/verbose modes, info command, event system
+  - ✅ SystemLog entity with 100% faker coverage
+
 - **v0.0.12** (2026-01-19 - Released): Phase 1 Complete + Enhanced Fakers
   - ✅ All Phase 1 fakers implemented: File, Json, Text, Enum, Country, Language
   - ✅ Enhanced existing fakers: Email, Phone, Credit Card, IBAN, Age, Name, Surname
@@ -785,6 +798,6 @@ We welcome community contributions! Areas where help is especially appreciated:
 
 ---
 
-**Last Updated**: 2026-01-19  
+**Last Updated**: 2026-01-20  
 **Maintainer**: Héctor Franco Aceituno (@HecFranco)  
 **Organization**: nowo-tech (https://github.com/nowo-tech)
