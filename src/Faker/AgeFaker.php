@@ -53,16 +53,16 @@ final class AgeFaker implements FakerInterface
             // Generate two independent uniform random numbers (avoid 0 and 1)
             $u1 = max(0.0001, min(0.9999, $this->faker->randomFloat(10, 0.0001, 0.9999)));
             $u2 = $this->faker->randomFloat(10, 0, 1);
-            
+
             // Box-Muller transform to get normal distribution
             $z0 = sqrt(-2 * log($u1)) * cos(2 * M_PI * $u2);
-            
+
             // Apply mean and standard deviation
             $age = (int) round($mean + $z0 * $stdDev);
-            
+
             // Clamp to min/max bounds
             $age = max($min, min($max, $age));
-            
+
             return $age;
         }
 

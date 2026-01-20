@@ -447,9 +447,10 @@ final class AnonymizeCommand extends Command
             }
 
             if ($debug) {
-                $io->writeln(sprintf('<comment>[DEBUG]</comment> Entity processing completed: %d processed, %d updated, %d skipped', 
-                    $stats['processed'], 
-                    $stats['updated'], 
+                $io->writeln(sprintf(
+                    '<comment>[DEBUG]</comment> Entity processing completed: %d processed, %d updated, %d skipped',
+                    $stats['processed'],
+                    $stats['updated'],
                     $stats['processed'] - $stats['updated']
                 ));
             }

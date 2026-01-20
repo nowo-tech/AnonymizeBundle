@@ -52,7 +52,7 @@ final class UsernameFaker implements FakerInterface
         $prefixLength = strlen($prefix);
         $suffixLength = strlen($suffix);
         $availableLength = $maxLength - $prefixLength - $suffixLength;
-        
+
         // Ensure available length is at least min_length
         if ($availableLength < $minLength) {
             $availableLength = $minLength;
@@ -81,7 +81,7 @@ final class UsernameFaker implements FakerInterface
         if (strlen($username) > $maxLength) {
             $username = substr($username, 0, $maxLength);
         }
-        
+
         // Ensure minimum length (pad if necessary)
         if (strlen($username) < $minLength) {
             $username = str_pad($username, $minLength, $this->faker->randomLetter());

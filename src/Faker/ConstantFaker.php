@@ -23,9 +23,7 @@ final class ConstantFaker implements FakerInterface
     /**
      * Creates a new ConstantFaker instance.
      */
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     /**
      * Generates a constant value.

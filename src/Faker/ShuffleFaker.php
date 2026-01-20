@@ -23,9 +23,7 @@ final class ShuffleFaker implements FakerInterface
     /**
      * Creates a new ShuffleFaker instance.
      */
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     /**
      * Generates a shuffled value from a pool of existing values.
