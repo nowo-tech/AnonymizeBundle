@@ -43,7 +43,7 @@ class OrderFixtures extends Fixture implements DependentFixtureInterface
             $order->setOrderDate($orderData['orderDate']);
             $order->setStatus($orderData['status']);
             $order->setCustomerEmail($orderData['customerEmail']);
-            
+
             // Set type relationship if reference exists
             if (isset($orderData['type'])) {
                 try {

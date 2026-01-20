@@ -55,7 +55,7 @@ final class PatternMatcher
         foreach ($patterns as $field => $pattern) {
             // Support for relationship patterns (e.g., 'type.name')
             $value = $this->getNestedValue($record, $field);
-            
+
             if ($value === null && !isset($record[$field])) {
                 return false;
             }
