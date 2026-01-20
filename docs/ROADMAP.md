@@ -12,7 +12,7 @@ This document outlines the planned features, improvements, and enhancements for 
 - **Patterns**: Inclusion/exclusion pattern matching
 - **Databases**: MySQL, PostgreSQL support
 - **Services**: SchemaService for column detection
-- **Demos**: 7 entities (User, Customer, Product, Order, Invoice, Employee, SystemLog) with comprehensive fixtures and complete CRUD interfaces
+- **Demos**: 8 entities (User, Customer, Product, Order, Invoice, Employee, SystemLog, EmailSubscription) with comprehensive fixtures and complete CRUD interfaces
 - **Demos Coverage**: 100% faker coverage (all 32 fakers demonstrated)
 
 ---
