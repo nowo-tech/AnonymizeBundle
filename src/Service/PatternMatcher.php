@@ -91,12 +91,38 @@ final class PatternMatcher
                     return false;
                 }
             } else {
-                // Exact match or contains
+                // Exact match, contains, or multiple values with | (OR)
                 if (is_string($value) && is_string($pattern)) {
                     if (str_contains($pattern, '%')) {
                         // SQL LIKE pattern
                         $regex = '/^' . str_replace(['%', '_'], ['.*', '.'], preg_quote($pattern, '/')) . '$/i';
                         if (!preg_match($regex, $value)) {
+                            return false;
+                        }
+                    } elseif (str_contains($pattern, '|')) {
+                        // Multiple values with OR operator (e.g., 'value1|value2|value3')
+                        $options = explode('|', $pattern);
+                        $matched = false;
+                        foreach ($options as $option) {
+                            $option = trim($option);
+                            if (str_contains($option, '%')) {
+                                // SQL LIKE pattern within OR
+                                $regex = '/^' . str_replace(['%', '_'], ['.*', '.'], preg_quote($option, '/')) . '$/i';
+                                if (preg_match($regex, $value)) {
+                                    $matched = true;
+                                    break;
+                                }
+                            } elseif (str_contains($value, $option)) {
+                                // Contains check (useful for email domains)
+                                $matched = true;
+                                break;
+                            } elseif ($value === $option) {
+                                // Exact match
+                                $matched = true;
+                                break;
+                            }
+                        }
+                        if (!$matched) {
                             return false;
                         }
                     } elseif ($value !== $pattern) {
