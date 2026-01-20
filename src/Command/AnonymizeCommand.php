@@ -39,45 +39,45 @@ use Psr\Container\ContainerInterface;
     name: 'nowo:anonymize:run',
     description: 'Anonymize database records using Doctrine attributes',
     help: <<<'HELP'
-The <info>%command.name%</info> command anonymizes database records based on Doctrine attributes.
+        The <info>%command.name%</info> command anonymizes database records based on Doctrine attributes.
 
-  <info>php %command.full_name%</info>
+          <info>php %command.full_name%</info>
 
-This command will:
-  1. Scan all Doctrine ORM connections for entities with the #[Anonymize] attribute
-  2. Process properties marked with #[AnonymizeProperty] attribute
-  3. Anonymize values using Faker generators
-  4. Respect weight ordering (lower weights first, then alphabetical)
-  5. Apply inclusion/exclusion patterns
+        This command will:
+          1. Scan all Doctrine ORM connections for entities with the #[Anonymize] attribute
+          2. Process properties marked with #[AnonymizeProperty] attribute
+          3. Anonymize values using Faker generators
+          4. Respect weight ordering (lower weights first, then alphabetical)
+          5. Apply inclusion/exclusion patterns
 
-Note: Currently supports Doctrine ORM (MySQL, PostgreSQL, SQLite).
-      MongoDB ODM support is planned for future releases.
+        Note: Currently supports Doctrine ORM (MySQL, PostgreSQL, SQLite).
+              MongoDB ODM support is planned for future releases.
 
-Options:
-  --connection, -c    Process only specific connections (can be used multiple times)
-  --dry-run          Show what would be anonymized without making changes
-  --batch-size, -b   Number of records to process in each batch (default: 100)
-  --locale, -l       Locale for Faker generator (default: en_US)
-  --stats-json       Export statistics to JSON file (relative paths use configured stats_output_dir)
-  --stats-csv         Export statistics to CSV file (relative paths use configured stats_output_dir)
-  --stats-only       Show only statistics summary (suppress detailed output)
-  --no-progress      Disable progress bar display
-  --verbose, -v      Increase verbosity of messages (Symfony standard option)
-  --debug            Enable debug mode (shows detailed information)
-  --interactive, -i  Enable interactive mode with step-by-step confirmations
+        Options:
+          --connection, -c    Process only specific connections (can be used multiple times)
+          --dry-run          Show what would be anonymized without making changes
+          --batch-size, -b   Number of records to process in each batch (default: 100)
+          --locale, -l       Locale for Faker generator (default: en_US)
+          --stats-json       Export statistics to JSON file (relative paths use configured stats_output_dir)
+          --stats-csv         Export statistics to CSV file (relative paths use configured stats_output_dir)
+          --stats-only       Show only statistics summary (suppress detailed output)
+          --no-progress      Disable progress bar display
+          --verbose, -v      Increase verbosity of messages (Symfony standard option)
+          --debug            Enable debug mode (shows detailed information)
+          --interactive, -i  Enable interactive mode with step-by-step confirmations
 
-Examples:
-  <info>php %command.full_name%</info>
-  <info>php %command.full_name% --dry-run</info>
-  <info>php %command.full_name% --connection default --connection secondary</info>
-  <info>php %command.full_name% --batch-size 50 --locale en_US</info>
-  <info>php %command.full_name% --stats-json stats.json</info>
-  <info>php %command.full_name% --stats-csv stats.csv</info>
-  <info>php %command.full_name% --stats-only</info>
-  <info>php %command.full_name% --verbose</info>
-  <info>php %command.full_name% --debug</info>
-  <info>php %command.full_name% --interactive</info>
-HELP
+        Examples:
+          <info>php %command.full_name%</info>
+          <info>php %command.full_name% --dry-run</info>
+          <info>php %command.full_name% --connection default --connection secondary</info>
+          <info>php %command.full_name% --batch-size 50 --locale en_US</info>
+          <info>php %command.full_name% --stats-json stats.json</info>
+          <info>php %command.full_name% --stats-csv stats.csv</info>
+          <info>php %command.full_name% --stats-only</info>
+          <info>php %command.full_name% --verbose</info>
+          <info>php %command.full_name% --debug</info>
+          <info>php %command.full_name% --interactive</info>
+        HELP
 )]
 final class AnonymizeCommand extends Command
 {
@@ -134,7 +134,7 @@ final class AnonymizeCommand extends Command
         // Enhanced environment protection checks
         // Get parameter bag - try different ways depending on Symfony version
         $parameterBag = null;
-        
+
         // Try to get parameter_bag service
         if ($this->container->has('parameter_bag')) {
             try {
@@ -143,14 +143,15 @@ final class AnonymizeCommand extends Command
                 // parameter_bag not available
             }
         }
-        
+
         // Fallback: create a wrapper that accesses parameters via kernel
         if ($parameterBag === null) {
             $container = $this->container;
             // Create a simple parameter bag wrapper
-            $parameterBag = new class($container) implements ParameterBagInterface {
+            $parameterBag = new class ($container) implements ParameterBagInterface {
                 public function __construct(private ContainerInterface $container) {}
-                public function get(string $name): array|bool|string|int|float|\UnitEnum|null { 
+                public function get(string $name): array|bool|string|int|float|\UnitEnum|null
+                {
                     // Access kernel container's parameter bag via reflection
                     if ($this->container->has('kernel')) {
                         $kernel = $this->container->get('kernel');
@@ -186,7 +187,8 @@ final class AnonymizeCommand extends Command
                     }
                     throw new \InvalidArgumentException(sprintf('Parameter "%s" not found', $name));
                 }
-                public function has(string $name): bool { 
+                public function has(string $name): bool
+                {
                     try {
                         $this->get($name);
                         return true;
@@ -196,17 +198,29 @@ final class AnonymizeCommand extends Command
                 }
                 public function set(string $name, array|bool|string|int|float|\UnitEnum|null $value): void {}
                 public function remove(string $name): void {}
-                public function all(): array { return []; }
+                public function all(): array
+                {
+                    return [];
+                }
                 public function replace(array $parameters): void {}
                 public function add(array $parameters): void {}
                 public function clear(): void {}
                 public function resolve(): void {}
-                public function resolveValue(mixed $value): mixed { return $value; }
-                public function escapeValue(mixed $value): mixed { return $value; }
-                public function unescapeValue(mixed $value): mixed { return $value; }
+                public function resolveValue(mixed $value): mixed
+                {
+                    return $value;
+                }
+                public function escapeValue(mixed $value): mixed
+                {
+                    return $value;
+                }
+                public function unescapeValue(mixed $value): mixed
+                {
+                    return $value;
+                }
             };
         }
-        
+
         $environmentProtection = new EnvironmentProtectionService($parameterBag);
 
         $protectionErrors = $environmentProtection->performChecks();
@@ -285,10 +299,10 @@ final class AnonymizeCommand extends Command
         $statsOnly = $input->getOption('stats-only');
         $statsJson = $input->getOption('stats-json');
         $statsCsv = $input->getOption('stats-csv');
-        
+
         // Get stats output directory from configuration
         $statsOutputDir = $this->getParameter('nowo_anonymize.stats_output_dir', '%kernel.project_dir%/var/stats');
-        
+
         // Resolve kernel.project_dir if present
         if (str_contains($statsOutputDir, '%kernel.project_dir%')) {
             if ($this->container->has('kernel')) {
@@ -297,20 +311,20 @@ final class AnonymizeCommand extends Command
                 $statsOutputDir = str_replace('%kernel.project_dir%', $projectDir, $statsOutputDir);
             }
         }
-        
+
         // Process stats file paths - if relative, use configured output directory
         if ($statsJson !== null && !str_starts_with($statsJson, '/') && !str_contains($statsJson, '\\')) {
             // Relative path - prepend output directory
             if (!is_dir($statsOutputDir)) {
-                mkdir($statsOutputDir, 0755, true);
+                mkdir($statsOutputDir, 0o755, true);
             }
             $statsJson = rtrim($statsOutputDir, '/') . '/' . $statsJson;
         }
-        
+
         if ($statsCsv !== null && !str_starts_with($statsCsv, '/') && !str_contains($statsCsv, '\\')) {
             // Relative path - prepend output directory
             if (!is_dir($statsOutputDir)) {
-                mkdir($statsOutputDir, 0755, true);
+                mkdir($statsOutputDir, 0o755, true);
             }
             $statsCsv = rtrim($statsOutputDir, '/') . '/' . $statsCsv;
         }
@@ -404,7 +418,7 @@ final class AnonymizeCommand extends Command
                     $historyDir = str_replace('%kernel.project_dir%', $projectDir, $historyDir);
                 }
             }
-            
+
             $historyService = new \Nowo\AnonymizeBundle\Service\AnonymizationHistoryService($historyDir);
             $metadata = [
                 'command' => 'nowo:anonymize:run',
@@ -507,7 +521,7 @@ final class AnonymizeCommand extends Command
                 // Get property count for summary
                 $propertyCount = count($entityData['properties'] ?? []);
                 $io->writeln(sprintf('Entity: <info>%s</info> (table: <comment>%s</comment>, properties: <info>%d</info>)', $className, $metadata->getTableName(), $propertyCount));
-                
+
                 if ($verbose && isset($entityData['properties'])) {
                     $io->writeln('  Properties to anonymize:');
                     foreach ($entityData['properties'] as $propName => $propData) {
@@ -713,13 +727,13 @@ final class AnonymizeCommand extends Command
             ['Duration', $summary['duration_formatted']],
             ['Average per Second', (string) $summary['average_per_second']],
         ];
-        
+
         // Add success rate if we have processed records
         if ($summary['total_processed'] > 0) {
             $successRate = round(($summary['total_updated'] / $summary['total_processed']) * 100, 2);
             $summaryRows[] = ['Success Rate', sprintf('%.2f%%', $successRate)];
         }
-        
+
         $io->table(['Metric', 'Value'], $summaryRows);
 
         // Display entity details
@@ -731,7 +745,7 @@ final class AnonymizeCommand extends Command
                 $successRate = $entityData['processed'] > 0
                     ? round(($entityData['updated'] / $entityData['processed']) * 100, 2) . '%'
                     : 'N/A';
-                
+
                 $rows[] = [
                     $entityData['entity'],
                     $entityData['connection'],

@@ -22,30 +22,30 @@ use Symfony\Component\Console\Style\SymfonyStyle;
     name: 'nowo:anonymize:history',
     description: 'View and manage anonymization history',
     help: <<<'HELP'
-The <info>%command.name%</info> command allows you to view and manage anonymization history.
+        The <info>%command.name%</info> command allows you to view and manage anonymization history.
 
-This command provides:
-  1. List all anonymization runs
-  2. View details of a specific run
-  3. Compare two runs
-  4. Cleanup old runs
+        This command provides:
+          1. List all anonymization runs
+          2. View details of a specific run
+          3. Compare two runs
+          4. Cleanup old runs
 
-Examples:
-  <info>php %command.full_name%</info>
-  List all anonymization runs
+        Examples:
+          <info>php %command.full_name%</info>
+          List all anonymization runs
 
-  <info>php %command.full_name% --limit 10</info>
-  List the last 10 runs
+          <info>php %command.full_name% --limit 10</info>
+          List the last 10 runs
 
-  <info>php %command.full_name% --run-id abc123</info>
-  View details of a specific run
+          <info>php %command.full_name% --run-id abc123</info>
+          View details of a specific run
 
-  <info>php %command.full_name% --compare abc123 def456</info>
-  Compare two runs
+          <info>php %command.full_name% --compare abc123 def456</info>
+          Compare two runs
 
-  <info>php %command.full_name% --cleanup --days 30</info>
-  Delete runs older than 30 days
-HELP
+          <info>php %command.full_name% --cleanup --days 30</info>
+          Delete runs older than 30 days
+        HELP
 )]
 final class AnonymizationHistoryCommand extends Command
 {
@@ -64,7 +64,7 @@ final class AnonymizationHistoryCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        
+
         // Get history directory from parameter
         $historyDir = $this->getHistoryDir();
         $historyService = new AnonymizationHistoryService($historyDir);
@@ -74,7 +74,7 @@ final class AnonymizationHistoryCommand extends Command
             $days = (int) ($input->getOption('days') ?? 30);
             $deleted = $historyService->cleanup($days);
             $io->success(sprintf('Cleaned up %d old run(s) (kept runs from last %d days)', $deleted, $days));
-            
+
             return Command::SUCCESS;
         }
 
@@ -83,25 +83,25 @@ final class AnonymizationHistoryCommand extends Command
             $runIds = explode(',', $input->getOption('compare'));
             if (count($runIds) !== 2) {
                 $io->error('Comparison requires exactly 2 run IDs (comma-separated)');
-                
+
                 return Command::FAILURE;
             }
-            
+
             $comparison = $historyService->compareRuns(trim($runIds[0]), trim($runIds[1]));
             if ($comparison === null) {
                 $io->error('One or both runs not found');
-                
+
                 return Command::FAILURE;
             }
-            
+
             if ($input->getOption('json')) {
                 $output->writeln(json_encode($comparison, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-                
+
                 return Command::SUCCESS;
             }
-            
+
             $this->displayComparison($io, $comparison);
-            
+
             return Command::SUCCESS;
         }
 
@@ -110,18 +110,18 @@ final class AnonymizationHistoryCommand extends Command
             $run = $historyService->getRun($input->getOption('run-id'));
             if ($run === null) {
                 $io->error(sprintf('Run with ID "%s" not found', $input->getOption('run-id')));
-                
+
                 return Command::FAILURE;
             }
-            
+
             if ($input->getOption('json')) {
                 $output->writeln(json_encode($run, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-                
+
                 return Command::SUCCESS;
             }
-            
+
             $this->displayRun($io, $run);
-            
+
             return Command::SUCCESS;
         }
 
@@ -129,21 +129,21 @@ final class AnonymizationHistoryCommand extends Command
         $limit = $input->getOption('limit') !== null ? (int) $input->getOption('limit') : null;
         $connection = $input->getOption('connection');
         $runs = $historyService->getRuns($limit, $connection);
-        
+
         if (empty($runs)) {
             $io->info('No anonymization runs found in history.');
-            
+
             return Command::SUCCESS;
         }
-        
+
         if ($input->getOption('json')) {
             $output->writeln(json_encode($runs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            
+
             return Command::SUCCESS;
         }
-        
+
         $this->displayRunsList($io, $runs);
-        
+
         return Command::SUCCESS;
     }
 
@@ -156,7 +156,7 @@ final class AnonymizationHistoryCommand extends Command
     private function displayRunsList(SymfonyStyle $io, array $runs): void
     {
         $io->title('Anonymization History');
-        
+
         $rows = [];
         foreach ($runs as $run) {
             $global = $run['statistics']['global'] ?? [];
@@ -169,12 +169,12 @@ final class AnonymizationHistoryCommand extends Command
                 $this->formatDuration($global['duration'] ?? 0),
             ];
         }
-        
+
         $io->table(
             ['Run ID', 'Date/Time', 'Entities', 'Processed', 'Updated', 'Duration'],
             $rows
         );
-        
+
         $io->note(sprintf('Use --run-id <id> to view details of a specific run'));
     }
 
@@ -187,7 +187,7 @@ final class AnonymizationHistoryCommand extends Command
     private function displayRun(SymfonyStyle $io, array $run): void
     {
         $io->title(sprintf('Anonymization Run: %s', substr($run['id'] ?? 'unknown', 0, 12)));
-        
+
         $io->section('Run Information');
         $io->table(
             ['Property', 'Value'],
@@ -199,7 +199,7 @@ final class AnonymizationHistoryCommand extends Command
                 ['Symfony Version', $run['metadata']['symfony_version'] ?? 'N/A'],
             ]
         );
-        
+
         $global = $run['statistics']['global'] ?? [];
         $io->section('Global Statistics');
         $io->table(
@@ -214,7 +214,7 @@ final class AnonymizationHistoryCommand extends Command
                 ['End Time', isset($global['end_time']) ? date('Y-m-d H:i:s', (int) $global['end_time']) : 'N/A'],
             ]
         );
-        
+
         $entities = $run['statistics']['entities'] ?? [];
         if (!empty($entities)) {
             $io->section('Entity Statistics');
@@ -223,7 +223,7 @@ final class AnonymizationHistoryCommand extends Command
                 $successRate = $entityData['processed'] > 0
                     ? round(($entityData['updated'] / $entityData['processed']) * 100, 2) . '%'
                     : 'N/A';
-                
+
                 $entityRows[] = [
                     $entityData['entity'] ?? 'N/A',
                     $entityData['connection'] ?? 'N/A',
@@ -233,7 +233,7 @@ final class AnonymizationHistoryCommand extends Command
                     $successRate,
                 ];
             }
-            
+
             $io->table(
                 ['Entity', 'Connection', 'Processed', 'Updated', 'Skipped', 'Success Rate'],
                 $entityRows
@@ -250,7 +250,7 @@ final class AnonymizationHistoryCommand extends Command
     private function displayComparison(SymfonyStyle $io, array $comparison): void
     {
         $io->title('Run Comparison');
-        
+
         $io->section('Run Information');
         $io->table(
             ['Property', 'Run 1', 'Run 2'],
@@ -259,7 +259,7 @@ final class AnonymizationHistoryCommand extends Command
                 ['Date/Time', $comparison['run1']['datetime'] ?? 'N/A', $comparison['run2']['datetime'] ?? 'N/A'],
             ]
         );
-        
+
         $global = $comparison['global'] ?? [];
         $io->section('Global Statistics Comparison');
         $globalRows = [];
@@ -273,12 +273,12 @@ final class AnonymizationHistoryCommand extends Command
                 $diffFormatted,
             ];
         }
-        
+
         $io->table(
             ['Metric', 'Run 1', 'Run 2', 'Difference'],
             $globalRows
         );
-        
+
         $entities = $comparison['entities'] ?? [];
         if (!empty($entities)) {
             $io->section('Entity Statistics Comparison');
@@ -295,7 +295,7 @@ final class AnonymizationHistoryCommand extends Command
                     (string) ($entityData['updated']['diff'] ?? 0),
                 ];
             }
-            
+
             $io->table(
                 ['Entity', 'Connection', 'Processed (R1)', 'Processed (R2)', 'Diff', 'Updated (R1)', 'Updated (R2)', 'Diff'],
                 $entityRows
@@ -311,14 +311,14 @@ final class AnonymizationHistoryCommand extends Command
         if ($seconds < 1) {
             return sprintf('%.2f ms', $seconds * 1000);
         }
-        
+
         if ($seconds < 60) {
             return sprintf('%.2f s', $seconds);
         }
-        
+
         $minutes = floor($seconds / 60);
         $remainingSeconds = $seconds % 60;
-        
+
         return sprintf('%d m %.2f s', $minutes, $remainingSeconds);
     }
 
@@ -329,7 +329,7 @@ final class AnonymizationHistoryCommand extends Command
     {
         // Try to get from environment or use default
         $historyDir = $_ENV['NOWO_ANONYMIZE_HISTORY_DIR'] ?? '%kernel.project_dir%/var/anonymize_history';
-        
+
         // If running in Symfony context, resolve kernel.project_dir
         if (str_contains($historyDir, '%kernel.project_dir%')) {
             if (file_exists(__DIR__ . '/../../../../var')) {
@@ -341,7 +341,7 @@ final class AnonymizationHistoryCommand extends Command
                 $historyDir = str_replace('%kernel.project_dir%', getcwd() ?: '.', $historyDir);
             }
         }
-        
+
         return $historyDir;
     }
 }

@@ -41,7 +41,7 @@ final class AnonymizeExtension extends Extension
         $container->setParameter('nowo_anonymize.batch_size', $config['batch_size'] ?? 100);
         $container->setParameter('nowo_anonymize.stats_output_dir', $config['stats_output_dir'] ?? '%kernel.project_dir%/var/stats');
         $container->setParameter('nowo_anonymize.history_dir', $config['history_dir'] ?? '%kernel.project_dir%/var/anonymize_history');
-        
+
         // Export configuration
         $exportConfig = $config['export'] ?? [];
         $container->setParameter('nowo_anonymize.export.enabled', $exportConfig['enabled'] ?? false);
