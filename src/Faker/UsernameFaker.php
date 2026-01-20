@@ -48,24 +48,43 @@ final class UsernameFaker implements FakerInterface
         $suffix = $options['suffix'] ?? '';
         $includeNumbers = $options['include_numbers'] ?? true;
 
+        // Calculate available length for base username (accounting for prefix and suffix)
+        $prefixLength = strlen($prefix);
+        $suffixLength = strlen($suffix);
+        $availableLength = $maxLength - $prefixLength - $suffixLength;
+        
+        // Ensure available length is at least min_length
+        if ($availableLength < $minLength) {
+            $availableLength = $minLength;
+        }
+
         // Generate base username
         $base = $this->faker->userName();
 
-        // Adjust length
-        $targetLength = $this->faker->numberBetween($minLength, $maxLength);
+        // Adjust length to fit within available space
+        $targetLength = $this->faker->numberBetween($minLength, min($availableLength, strlen($base)));
         $base = substr($base, 0, $targetLength);
 
-        // Add numbers if needed
+        // Add numbers if needed and there's space
         if ($includeNumbers && $this->faker->boolean(70)) {
-            $base .= (string) $this->faker->numberBetween(0, 999);
+            $remainingLength = $availableLength - strlen($base);
+            if ($remainingLength > 0) {
+                $maxNumber = min(999, (int) pow(10, $remainingLength) - 1);
+                $base .= (string) $this->faker->numberBetween(0, $maxNumber);
+            }
         }
 
         // Apply prefix and suffix
         $username = $prefix . $base . $suffix;
 
-        // Ensure it doesn't exceed max_length
+        // Final length check and adjustment
         if (strlen($username) > $maxLength) {
             $username = substr($username, 0, $maxLength);
+        }
+        
+        // Ensure minimum length (pad if necessary)
+        if (strlen($username) < $minLength) {
+            $username = str_pad($username, $minLength, $this->faker->randomLetter());
         }
 
         return $username;

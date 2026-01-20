@@ -21,7 +21,7 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  * Features:
  * - Attribute-based anonymization configuration
  * - Support for multiple Doctrine connections
- * - Multiple faker types (29 total: email, name, surname, age, phone, IBAN, credit card, address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language, custom service)
+ * - Multiple faker types (32 total: email, name, surname, age, phone, IBAN, credit card, address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language, hash_preserve, shuffle, constant, custom service)
  * - Weight-based anonymization order
  * - Pattern-based inclusion/exclusion filters
  * - Support for MySQL, PostgreSQL (MongoDB coming soon)

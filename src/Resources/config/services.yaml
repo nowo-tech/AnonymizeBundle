@@ -13,46 +13,30 @@ services:
             - '../../Faker/FakerInterface.php'
             - '../../Faker/ServiceFaker.php'
             - '../../Faker/MaskingFaker.php'
+            - '../../Faker/HashPreserveFaker.php'
+            - '../../Faker/ShuffleFaker.php'
+            - '../../Faker/ConstantFaker.php'
         arguments:
             $locale: '%nowo_anonymize.locale%'
 
-    # Aliases for fakers (defined via #[AsAlias] attribute in classes)
-    # These aliases are automatically created by Symfony from the #[AsAlias] attributes
-    nowo_anonymize.faker.email: '@Nowo\AnonymizeBundle\Faker\EmailFaker'
-    nowo_anonymize.faker.name: '@Nowo\AnonymizeBundle\Faker\NameFaker'
-    nowo_anonymize.faker.surname: '@Nowo\AnonymizeBundle\Faker\SurnameFaker'
-    nowo_anonymize.faker.age: '@Nowo\AnonymizeBundle\Faker\AgeFaker'
-    nowo_anonymize.faker.phone: '@Nowo\AnonymizeBundle\Faker\PhoneFaker'
-    nowo_anonymize.faker.iban: '@Nowo\AnonymizeBundle\Faker\IbanFaker'
-    nowo_anonymize.faker.credit_card: '@Nowo\AnonymizeBundle\Faker\CreditCardFaker'
-    nowo_anonymize.faker.address: '@Nowo\AnonymizeBundle\Faker\AddressFaker'
-    nowo_anonymize.faker.date: '@Nowo\AnonymizeBundle\Faker\DateFaker'
-    nowo_anonymize.faker.username: '@Nowo\AnonymizeBundle\Faker\UsernameFaker'
-    nowo_anonymize.faker.url: '@Nowo\AnonymizeBundle\Faker\UrlFaker'
-    nowo_anonymize.faker.company: '@Nowo\AnonymizeBundle\Faker\CompanyFaker'
-    # MaskingFaker doesn't need locale, so register it explicitly
-    Nowo\AnonymizeBundle\Faker\MaskingFaker:
-        public: true
+    # Fakers that don't need locale parameter are excluded from autowiring
+    # They use #[Autoconfigure(public: true)] in their classes to be public
+    # Their aliases are created automatically from the #[AsAlias] attributes
+    Nowo\AnonymizeBundle\Faker\MaskingFaker: ~
+    Nowo\AnonymizeBundle\Faker\HashPreserveFaker: ~
+    Nowo\AnonymizeBundle\Faker\ShuffleFaker: ~
+    Nowo\AnonymizeBundle\Faker\ConstantFaker: ~
 
-    nowo_anonymize.faker.masking: '@Nowo\AnonymizeBundle\Faker\MaskingFaker'
-    nowo_anonymize.faker.password: '@Nowo\AnonymizeBundle\Faker\PasswordFaker'
-    nowo_anonymize.faker.ip_address: '@Nowo\AnonymizeBundle\Faker\IpAddressFaker'
-    nowo_anonymize.faker.mac_address: '@Nowo\AnonymizeBundle\Faker\MacAddressFaker'
-    nowo_anonymize.faker.uuid: '@Nowo\AnonymizeBundle\Faker\UuidFaker'
-    nowo_anonymize.faker.hash: '@Nowo\AnonymizeBundle\Faker\HashFaker'
-    nowo_anonymize.faker.coordinate: '@Nowo\AnonymizeBundle\Faker\CoordinateFaker'
-    nowo_anonymize.faker.color: '@Nowo\AnonymizeBundle\Faker\ColorFaker'
-    nowo_anonymize.faker.boolean: '@Nowo\AnonymizeBundle\Faker\BooleanFaker'
-    nowo_anonymize.faker.numeric: '@Nowo\AnonymizeBundle\Faker\NumericFaker'
-    nowo_anonymize.faker.file: '@Nowo\AnonymizeBundle\Faker\FileFaker'
-    nowo_anonymize.faker.json: '@Nowo\AnonymizeBundle\Faker\JsonFaker'
-    nowo_anonymize.faker.text: '@Nowo\AnonymizeBundle\Faker\TextFaker'
-    nowo_anonymize.faker.enum: '@Nowo\AnonymizeBundle\Faker\EnumFaker'
-    nowo_anonymize.faker.country: '@Nowo\AnonymizeBundle\Faker\CountryFaker'
-    nowo_anonymize.faker.language: '@Nowo\AnonymizeBundle\Faker\LanguageFaker'
+    # Note: All faker aliases (nowo_anonymize.faker.*) are automatically created
+    # from the #[AsAlias] attributes in each faker class when autoconfigure: true
 
     Nowo\AnonymizeBundle\Service\:
         resource: '../../Service/*'
+
+    # AnonymizeService with optional EventDispatcher
+    Nowo\AnonymizeBundle\Service\AnonymizeService:
+        arguments:
+            $eventDispatcher: '@?event_dispatcher'
 
     # Console Commands
     # Only configure parameters, container is autowired via alias
@@ -67,6 +51,13 @@ services:
 
     Nowo\AnonymizeBundle\Command\GenerateAnonymizedColumnCommand:
         arguments:
+            $connections: '%nowo_anonymize.connections%'
+        tags:
+            - { name: 'console.command' }
+
+    Nowo\AnonymizeBundle\Command\AnonymizeInfoCommand:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
             $connections: '%nowo_anonymize.connections%'
         tags:
             - { name: 'console.command' }

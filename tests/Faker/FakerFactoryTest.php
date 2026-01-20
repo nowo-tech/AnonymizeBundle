@@ -351,6 +351,39 @@ class FakerFactoryTest extends TestCase
     }
 
     /**
+     * Test that FakerFactory creates hash preserve faker.
+     */
+    public function testCreateHashPreserveFaker(): void
+    {
+        $factory = new FakerFactory('en_US');
+        $faker = $factory->create('hash_preserve');
+
+        $this->assertInstanceOf(FakerInterface::class, $faker);
+    }
+
+    /**
+     * Test that FakerFactory creates shuffle faker.
+     */
+    public function testCreateShuffleFaker(): void
+    {
+        $factory = new FakerFactory('en_US');
+        $faker = $factory->create('shuffle');
+
+        $this->assertInstanceOf(FakerInterface::class, $faker);
+    }
+
+    /**
+     * Test that FakerFactory creates constant faker.
+     */
+    public function testCreateConstantFaker(): void
+    {
+        $factory = new FakerFactory('en_US');
+        $faker = $factory->create('constant');
+
+        $this->assertInstanceOf(FakerInterface::class, $faker);
+    }
+
+    /**
      * Test that FakerFactory creates service faker with container.
      */
     public function testCreateServiceFaker(): void

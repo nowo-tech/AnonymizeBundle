@@ -2,17 +2,18 @@
 
 This document outlines the planned features, improvements, and enhancements for the Anonymize Bundle.
 
-## Current Status (v0.0.12 - Released)
+## Current Status (v0.0.13 - Released)
 
 ### ✅ Implemented Features
 
-- **Fakers**: email, name, surname, age, phone, IBAN, credit_card, service, **address**, **date**, **username**, **url**, **company**, **masking**, **password**, **ip_address**, **mac_address**, **uuid**, **hash**, **coordinate**, **color**, **boolean**, **numeric** (23 total)
-- **Core Features**: Attribute-based configuration, multiple connections, batch processing, dry-run mode
+- **Fakers**: email, name, surname, age, phone, IBAN, credit_card, service, **address**, **date**, **username**, **url**, **company**, **masking**, **password**, **ip_address**, **mac_address**, **uuid**, **hash**, **coordinate**, **color**, **boolean**, **numeric**, **file**, **json**, **text**, **enum**, **country**, **language**, **hash_preserve**, **shuffle**, **constant** (32 total)
+- **Core Features**: Attribute-based configuration, multiple connections, batch processing, dry-run mode, pre-flight checks, progress bars, enhanced environment protection, debug/verbose modes
 - **Tracking**: AnonymizableTrait with `anonymized` column
 - **Patterns**: Inclusion/exclusion pattern matching
 - **Databases**: MySQL, PostgreSQL support
 - **Services**: SchemaService for column detection
-- **Demos**: 6 entities (User, Customer, Product, Order, Invoice, Employee) with comprehensive fixtures and complete CRUD interfaces
+- **Demos**: 7 entities (User, Customer, Product, Order, Invoice, Employee, SystemLog) with comprehensive fixtures and complete CRUD interfaces
+- **Demos Coverage**: 100% faker coverage (all 32 fakers demonstrated)
 
 ---
 
@@ -187,17 +188,20 @@ This document outlines the planned features, improvements, and enhancements for 
   - Use cases: Email masking, phone masking, credit card masking
   - Status: Available in v0.0.11, early implementation from Phase 2
 
-- **HashPreserveFaker**: Hash original value (deterministic anonymization)
-  - Options: `algorithm`, `salt`, `preserve_format`
+- ✅ **HashPreserveFaker**: Hash original value (deterministic anonymization) - **IMPLEMENTED** (Unreleased)
+  - Options: `algorithm` (md5/sha1/sha256/sha512), `salt`, `preserve_format`, `length`
   - Use cases: When you need to maintain referential integrity
+  - Status: Available in Unreleased
 
-- **ShuffleFaker**: Shuffle values within a column (maintains distribution)
-  - Options: `seed` (for reproducibility)
+- ✅ **ShuffleFaker**: Shuffle values within a column (maintains distribution) - **IMPLEMENTED** (Unreleased)
+  - Options: `values` (required), `seed` (for reproducibility), `exclude`
   - Use cases: When statistical properties must be preserved
+  - Status: Available in Unreleased
 
-- **ConstantFaker**: Replace with constant value
-  - Options: `value`
-  - Use cases: Null out sensitive data
+- ✅ **ConstantFaker**: Replace with constant value - **IMPLEMENTED** (Unreleased)
+  - Options: `value` (required, can be any type including null)
+  - Use cases: Null out sensitive data or replace with fixed values
+  - Status: Available in Unreleased
 
 #### 2. **Relationship Preservation**
 
@@ -283,10 +287,11 @@ This document outlines the planned features, improvements, and enhancements for 
   - Use cases: Testing anonymization strategies
   - Transaction-based rollback support
 
-- **Environment Protection**: Enhanced production safety
-  - Additional environment checks in all commands
-  - Configuration file validation (prevent prod config)
-  - Runtime environment detection improvements
+- ✅ **Environment Protection**: Enhanced production safety - **IMPLEMENTED** (Unreleased)
+  - ✅ Additional environment checks in all commands
+  - ✅ Configuration file validation (prevent prod config)
+  - ✅ Runtime environment detection improvements
+  - ✅ Bundle registration validation in bundles.php
 
 #### 2. **CLI Improvements**
 
@@ -295,14 +300,17 @@ This document outlines the planned features, improvements, and enhancements for 
   - Interactive pattern builder
   - Guided entity selection
 
-- **Progress Bars**: Visual progress indicators
-  - Real-time progress bars for batch processing
-  - Estimated time remaining
-  - Per-entity progress tracking
-  - Multi-connection progress display
+- ✅ **Progress Bars**: Visual progress indicators - **IMPLEMENTED** (Unreleased)
+  - ✅ Real-time progress bars for batch processing
+  - ✅ Estimated time remaining
+  - ✅ Per-entity progress tracking
+  - ✅ Option `--no-progress` to disable
 
-- **Verbose Modes**: Enhanced output options
-  - Multiple verbosity levels (quiet, normal, verbose, debug)
+- ✅ **Verbose Modes**: Enhanced output options - **IMPLEMENTED** (Unreleased)
+  - ✅ Multiple verbosity levels (normal, verbose, debug)
+  - ✅ `--verbose, -v` option
+  - ✅ `--debug` option
+  - ✅ Detailed information in debug mode
   - Color-coded output
   - Structured output formats (table, JSON, YAML)
 
@@ -427,14 +435,15 @@ This document outlines the planned features, improvements, and enhancements for 
 
 #### 2. **Integration and Extensibility**
 
-- **Event System**: Symfony events for extensibility
-  - `BeforeAnonymizeEvent`
-  - `AfterAnonymizeEvent`
-  - `AnonymizePropertyEvent`
-  - `BeforeEntityAnonymizeEvent`
-  - `AfterEntityAnonymizeEvent`
-  - Custom event listeners
-  - Event subscribers support
+- ✅ **Event System**: Symfony events for extensibility - **IMPLEMENTED** (Unreleased)
+  - ✅ `BeforeAnonymizeEvent` - Dispatched before anonymization starts
+  - ✅ `AfterAnonymizeEvent` - Dispatched after anonymization completes
+  - ✅ `AnonymizePropertyEvent` - Dispatched before anonymizing each property (allows modification/skipping)
+  - ✅ `BeforeEntityAnonymizeEvent` - Dispatched before processing each entity
+  - ✅ `AfterEntityAnonymizeEvent` - Dispatched after processing each entity
+  - ✅ Custom event listeners support
+  - ✅ Event subscribers support
+  - ✅ EventDispatcher is optional (works without it)
 
 - **Plugin System**: Third-party faker plugins
   - Plugin registry
@@ -687,12 +696,13 @@ This document outlines the planned features, improvements, and enhancements for 
 1. ✅ **AddressFaker** - **COMPLETED** (v0.0.11)
 2. ✅ **DateFaker** - **COMPLETED** (v0.0.11)
 3. ✅ **MaskingFaker** - **COMPLETED** (v0.0.11)
-4. ✅ **PasswordFaker** - **COMPLETED** (current development)
-5. ✅ **IpAddressFaker** - **COMPLETED** (current development)
-6. **Pre-flight Checks** - Safety critical (Pending)
-7. **Enhanced Email/Phone Fakers** - Improve existing (Pending)
-8. **Progress Bars** - Better UX (Pending)
-9. **Environment Protection** - Enhanced safety (Pending)
+4. ✅ **PasswordFaker** - **COMPLETED** (v0.0.12)
+5. ✅ **IpAddressFaker** - **COMPLETED** (v0.0.12)
+6. ✅ **Pre-flight Checks** - **COMPLETED** (Unreleased)
+7. ✅ **Enhanced Email/Phone/CreditCard Fakers** - **COMPLETED** (v0.0.12)
+8. ✅ **Progress Bars** - **COMPLETED** (Unreleased)
+9. ✅ **Environment Protection** - **COMPLETED** (Unreleased)
+10. ✅ **Debug and Verbose Modes** - **COMPLETED** (Unreleased)
 
 ### ⚡ Medium Priority (Next 4-6 releases)
 
@@ -701,8 +711,8 @@ This document outlines the planned features, improvements, and enhancements for 
 3. **Relationship Preservation** (Pending)
 3. **MongoDB Support** (Pending)
 4. **Configuration Files** (Pending)
-5. **Event System** (Pending)
-6. **HashPreserveFaker, ShuffleFaker, ConstantFaker** (Pending)
+5. ✅ **Event System** - **COMPLETED** (Unreleased)
+6. ✅ **HashPreserveFaker, ShuffleFaker, ConstantFaker** - **COMPLETED** (Unreleased)
 6. **Symfony Messenger Integration**
 7. **Interactive Mode**
 8. **Enhanced Reporting**
@@ -744,14 +754,15 @@ We welcome community contributions! Areas where help is especially appreciated:
   - ✅ Total fakers: 14 (8 original + 6 new)
   - ✅ Progress: Phase 1 (30% complete), Phase 2 (25% complete - MaskingFaker)
 
-- **v0.0.12** (2026-01-19 - Unreleased): Phase 1 Continued Implementation
-  - ✅ 9 new fakers: Password, IpAddress, MacAddress, Uuid, Hash, Coordinate, Color, Boolean, Numeric
-  - ✅ Total fakers: 23 (8 original + 15 new)
-  - ✅ Progress: Phase 1 (71% complete - 15/21 fakers)
+- **v0.0.12** (2026-01-19 - Released): Phase 1 Complete + Enhanced Fakers
+  - ✅ All Phase 1 fakers implemented: File, Json, Text, Enum, Country, Language
+  - ✅ Enhanced existing fakers: Email, Phone, Credit Card, IBAN, Age, Name, Surname
+  - ✅ Total fakers: 32 (all Phase 1 + Phase 2 data preservation fakers)
+  - ✅ Progress: Phase 1 (100% complete - all 21 fakers)
 
 ### Planned Releases
 
-- **v0.1.0** (Q1 2026): Enhanced Fakers (Phase 1) - **In Progress** (15/21 completed, 71%)
+- **v0.1.0** (Q1 2026): Enhanced Fakers (Phase 1) - **Completed** (all 21 fakers implemented, 100%)
 - **v0.2.0** (Q2 2026): Advanced Features (Phase 2) - **Partial** (MaskingFaker completed)
 - **v0.3.0** (Q3 2026): Database Support (Phase 3)
 - **v0.4.0** (Q4 2026): Developer Experience (Phase 4)

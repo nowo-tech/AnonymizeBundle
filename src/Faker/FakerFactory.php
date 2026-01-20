@@ -77,6 +77,9 @@ final class FakerFactory
                 'enum' => 'nowo_anonymize.faker.enum',
                 'country' => 'nowo_anonymize.faker.country',
                 'language' => 'nowo_anonymize.faker.language',
+                'hash_preserve' => 'nowo_anonymize.faker.hash_preserve',
+                'shuffle' => 'nowo_anonymize.faker.shuffle',
+                'constant' => 'nowo_anonymize.faker.constant',
                 default => null,
             };
 
@@ -115,6 +118,9 @@ final class FakerFactory
             'enum' => new EnumFaker($this->locale),
             'country' => new CountryFaker($this->locale),
             'language' => new LanguageFaker($this->locale),
+            'hash_preserve' => new HashPreserveFaker(),
+            'shuffle' => new ShuffleFaker(),
+            'constant' => new ConstantFaker(),
             'service' => new ServiceFaker($this->container, $serviceName ?? ''),
             default => throw new \InvalidArgumentException(sprintf('Unsupported faker type: %s', $type)),
         };

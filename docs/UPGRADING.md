@@ -33,7 +33,7 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
   - Total fakers available: 23 (8 original + 15 new)
 
 - **Testing Improvements**:
-  - Comprehensive test coverage: 148 tests, 341 assertions
+  - Comprehensive test coverage: 216 tests, 512 assertions
   - Code coverage: 45.80% line coverage (414/904 lines), 52.78% class coverage (19/36 classes)
   - All fakers have dedicated test suites
 
@@ -74,7 +74,7 @@ None - This is a backward-compatible feature release.
 - You can start using new faker types immediately in your entities
 - See [ROADMAP.md](ROADMAP.md) for planned future fakers
 
-### Upgrading to 0.0.11 (Unreleased)
+### Upgrading to 0.0.11
 
 **Release Date**: TBD
 

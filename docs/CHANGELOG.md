@@ -11,13 +11,138 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **New Fakers**: Added 6 new faker types (Phase 1 completion - 100%)
-  - `FileFaker`: Generate anonymized file paths and names with extension, directory, and absolute path options
-  - `JsonFaker`: Generate anonymized JSON structures with schema, depth, and max_items options
-  - `TextFaker`: Generate anonymized text content (sentences, paragraphs) with type, min_words, and max_words options
-  - `EnumFaker`: Generate values from a predefined list with values and weighted probability options
-  - `CountryFaker`: Generate anonymized country codes/names with format (code/name/iso2/iso3) and locale options
-  - `LanguageFaker`: Generate anonymized language codes/names with format (code/name) and locale options
+- **Enhanced Existing Fakers**: Improved IbanFaker, AgeFaker, NameFaker, and SurnameFaker
+  - `IbanFaker`: Added `valid` and `formatted` options
+  - `AgeFaker`: Added `distribution` (uniform/normal), `mean`, and `std_dev` options
+  - `NameFaker`: Added `gender` (male/female/random) and `locale_specific` options
+  - `SurnameFaker`: Added `gender` and `locale_specific` options for API consistency
+  - All improvements backward compatible
+
+- **New Fakers**: Added 3 new faker types (Phase 2 - Data Preservation Strategies)
+  - `HashPreserveFaker`: Deterministic anonymization using hash functions
+    - Maintains referential integrity (same input → same output)
+    - Options: `algorithm` (md5/sha1/sha256/sha512), `salt`, `preserve_format`, `length`
+    - Use cases: When you need to maintain referential integrity
+  - `ShuffleFaker`: Shuffle values within a column while maintaining distribution
+    - Preserves statistical properties
+    - Options: `values` (required), `seed` (for reproducibility), `exclude`
+    - Use cases: When statistical properties must be preserved
+  - `ConstantFaker`: Replace with constant value
+    - Options: `value` (required, can be any type including null)
+    - Use cases: Null out sensitive data or replace with fixed values
+  - All new fakers registered in FakerType enum and FakerFactory
+  - Total fakers available: 32 (29 from v0.0.12 + 3 new)
+  - Comprehensive test coverage for all new fakers
+
+- **Pre-flight Checks**: Comprehensive validation before anonymization execution
+  - Database connectivity validation
+  - Entity existence validation
+  - Column existence validation
+  - Faker type and options validation
+  - Pattern validation (include/exclude)
+  - Clear error messages for all validation failures
+  - Integrated in `AnonymizeCommand` before processing
+  - New `PreFlightCheckService` for centralized validation
+
+- **Progress Bars**: Visual progress indicators for anonymization process
+  - Real-time progress bars using Symfony Console ProgressBar
+  - Shows percentage, elapsed time, and estimated time
+  - Displays current status message
+  - Updates every 1% of progress
+  - Option `--no-progress` to disable progress bars
+  - Compatible with `--stats-only` mode
+  - Progress callback system in `AnonymizeService`
+
+- **Enhanced Environment Protection**: Improved safety checks
+  - New `EnvironmentProtectionService` for comprehensive environment validation
+  - Validates environment (dev/test only)
+  - Validates debug mode
+  - Validates configuration files (detects production config)
+  - Validates bundle registration in `bundles.php`
+  - Clear error messages with actionable guidance
+  - Integrated in both `AnonymizeCommand` and `GenerateAnonymizedColumnCommand`
+
+- **Debug and Verbose Modes**: Enhanced output options
+  - `--verbose, -v`: Increase verbosity of messages
+  - `--debug`: Enable debug mode with detailed information
+  - Shows detailed entity information in verbose mode
+  - Shows property details, patterns, and options in debug mode
+  - Shows pre-flight check information
+  - Shows total records per table
+  - Shows property statistics after processing
+  - Compatible with Symfony Console verbosity system
+
+- **Info Command**: New command to display anonymizer information
+  - `nowo:anonymize:info`: Display information about anonymizers
+  - Shows location of each anonymizer (entity and property)
+  - Shows configuration (faker type, options, patterns)
+  - Shows execution order (based on weight)
+  - Shows statistics about how many records will be anonymized
+  - Options: `--connection`, `--locale`
+
+- **Event System**: Symfony events for extensibility
+  - `BeforeAnonymizeEvent`: Dispatched before anonymization starts
+  - `AfterAnonymizeEvent`: Dispatched after anonymization completes
+  - `BeforeEntityAnonymizeEvent`: Dispatched before processing each entity
+  - `AfterEntityAnonymizeEvent`: Dispatched after processing each entity
+  - `AnonymizePropertyEvent`: Dispatched before anonymizing each property
+  - Allows listeners to modify anonymized values or skip anonymization
+  - Supports event listeners and subscribers
+  - EventDispatcher is optional (works without it)
+
+- **Demo Coverage**: Complete faker examples in all demos
+  - New `SystemLog` entity demonstrating all remaining fakers
+  - Demonstrates: password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language, hash_preserve, shuffle, constant
+  - All 32 fakers now have examples in demos (100% coverage)
+  - Updated in all demo projects (Symfony 6, 7, 8)
+
+### Improved
+
+- **Services Configuration**: Optimized `services.yaml` for better maintainability
+  - Removed 32 redundant explicit alias definitions
+  - Aliases now created automatically from `#[AsAlias]` attributes
+  - Fakers without locale parameter use `#[Autoconfigure(public: true)]` attribute
+  - Reduced YAML from 89 to 52 lines (35% reduction)
+  - More declarative configuration in PHP classes
+
+- **Demo Templates**: Enhanced conditional display of anonymized column
+  - Column `anonymized` now displayed conditionally in all list views
+  - Only shown when column exists in database (checked via `SchemaService`)
+  - Visual indicators: ✓ Yes (green) for anonymized, ✗ No (gray) for not anonymized
+  - Updated in all 18 templates across Symfony 6, 7, and 8 demos
+  - Prevents errors when column doesn't exist
+
+- **Code Quality**: Improved service registration
+  - Fakers use `#[Autoconfigure(public: true)]` instead of YAML configuration
+  - Configuration moved from YAML to PHP attributes (more maintainable)
+  - Consistent pattern across all fakers
+
+- **Command Options**: Enhanced command-line interface
+  - Better error messages and warnings
+  - More informative output in verbose/debug modes
+  - Improved user experience with progress indicators
+
+- **Safety**: Enhanced protection against accidental production execution
+  - Multiple layers of environment validation
+  - Configuration file validation
+  - Clear warnings and error messages
+
+- **Developer Experience**: Better debugging and monitoring
+  - Detailed information in debug mode
+  - Progress tracking for long-running operations
+  - Comprehensive validation feedback
+
+- **Tests**: Enhanced test coverage for improved fakers
+  - 216 tests, 512 assertions - All passing
+  - Comprehensive tests for all enhanced faker options
+
+## [0.0.12] - 2026-01-19
+
+### Added
+
+- **New Fakers**: Added 15 new faker types (Phase 1 completion - 100%)
+  - **Phase 1 continued (9 fakers)**: `PasswordFaker`, `IpAddressFaker`, `MacAddressFaker`, `UuidFaker`, `HashFaker`, `CoordinateFaker`, `ColorFaker`, `BooleanFaker`, `NumericFaker`
+  - **Phase 1 final (6 fakers)**: `FileFaker`, `JsonFaker`, `TextFaker`, `EnumFaker`, `CountryFaker`, `LanguageFaker`
   - All new fakers registered in FakerType enum and FakerFactory
   - Total fakers available: 29 (8 original + 21 new)
   - Phase 1 of roadmap: 100% complete (21/21 fakers implemented)
@@ -43,7 +168,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `formatted`: Include spaces/dashes in card number option
   - Backward compatible with existing usage
 
-- **Tests**: Added comprehensive test suites for all enhanced fakers
+- **Tests**: Added comprehensive test suites for all new and enhanced fakers
   - 187 tests executed
   - 435 assertions
   - All tests pass
@@ -53,30 +178,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - All new fakers documented
   - Enhanced faker options documented
 
-## [0.0.12] - 2026-01-19
-
-### Added
-
-- **New Fakers**: Added 9 new faker types (Phase 1 continued implementation)
-  - `PasswordFaker`: Generate anonymized passwords with length, special chars, numbers, and uppercase options
-  - `IpAddressFaker`: Generate anonymized IP addresses (IPv4/IPv6) with version and type (public/private/localhost) options
-  - `MacAddressFaker`: Generate anonymized MAC addresses with separator and uppercase options
-  - `UuidFaker`: Generate anonymized UUIDs (v1/v4) with version and format options
-  - `HashFaker`: Generate anonymized hash values (MD5, SHA1, SHA256, SHA512) with algorithm and length options
-  - `CoordinateFaker`: Generate anonymized GPS coordinates with format, precision, and bounds options
-  - `ColorFaker`: Generate anonymized color values (hex, rgb, rgba) with format and alpha options
-  - `BooleanFaker`: Generate anonymized boolean values with true_probability option
-  - `NumericFaker`: Generate anonymized numeric values (int/float) with type, min, max, and precision options
-  - All new fakers registered in FakerType enum and FakerFactory
-  - Total fakers available: 23 (8 original + 15 new)
-  - Comprehensive test coverage for all new fakers
-
-### Improved
-
-- **Documentation**: Updated README and CONFIGURATION guides with new faker types
-- **Roadmap**: Updated progress tracking (Phase 1: 71% complete - 15/21 fakers)
-- **Tests**: Added complete test suites for all new fakers (148 tests, 341 assertions)
-- **Code Coverage**: 45.80% line coverage (414/904 lines), 52.78% class coverage (19/36 classes)
 - **Service Registration**: Fixed MaskingFaker service registration issue
 
 ## [0.0.11] - 2026-01-19

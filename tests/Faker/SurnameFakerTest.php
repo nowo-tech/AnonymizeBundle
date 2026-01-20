@@ -39,4 +39,16 @@ class SurnameFakerTest extends TestCase
         $this->assertIsString($surname1);
         $this->assertIsString($surname2);
     }
+
+    /**
+     * Test that SurnameFaker respects gender option (for API consistency).
+     */
+    public function testGenerateWithGender(): void
+    {
+        $faker = new SurnameFaker('en_US');
+        $surname = $faker->generate(['gender' => 'male']);
+
+        $this->assertIsString($surname);
+        $this->assertNotEmpty($surname);
+    }
 }

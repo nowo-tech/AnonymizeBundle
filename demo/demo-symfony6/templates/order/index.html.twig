@@ -42,6 +42,9 @@
                     <th>Total Amount</th>
                     <th>Status</th>
                     <th>Order Date</th>
+                    {% if hasAnonymizedColumn|default(false) %}
+                    <th>Anonymized</th>
+                    {% endif %}
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -53,6 +56,15 @@
                         <td>${{ order.totalAmount }}</td>
                         <td>{{ order.status }}</td>
                         <td>{{ order.orderDate ? order.orderDate|date('Y-m-d H:i:s') : 'N/A' }}</td>
+                        {% if hasAnonymizedColumn|default(false) %}
+                        <td>
+                            {% if order.anonymized|default(false) %}
+                                <span style="color: #28a745; font-weight: bold;">✓ Yes</span>
+                            {% else %}
+                                <span style="color: #6c757d;">✗ No</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
                         <td>
                             <a href="{{ path('order_show', {connection: connection, id: order.id}) }}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Show</a>
                             <a href="{{ path('order_edit', {connection: connection, id: order.id}) }}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Edit</a>

@@ -53,4 +53,46 @@ class IbanFakerTest extends TestCase
         $this->assertIsString($iban1);
         $this->assertIsString($iban2);
     }
+
+    /**
+     * Test that IbanFaker respects formatted option.
+     */
+    public function testGenerateWithFormatted(): void
+    {
+        $faker = new IbanFaker('en_US');
+        $iban = $faker->generate(['formatted' => true]);
+
+        $this->assertIsString($iban);
+        $this->assertStringContainsString(' ', $iban);
+        $this->assertStringStartsWith('ES', $iban);
+    }
+
+    /**
+     * Test that IbanFaker respects formatted false option.
+     */
+    public function testGenerateWithoutFormatted(): void
+    {
+        $faker = new IbanFaker('en_US');
+        $iban = $faker->generate(['formatted' => false]);
+
+        $this->assertIsString($iban);
+        $this->assertStringNotContainsString(' ', $iban);
+        $this->assertStringStartsWith('ES', $iban);
+    }
+
+    /**
+     * Test that IbanFaker generates valid IBANs.
+     */
+    public function testGenerateValid(): void
+    {
+        $faker = new IbanFaker('en_US');
+        $iban = $faker->generate(['valid' => true]);
+
+        $this->assertIsString($iban);
+        $this->assertNotEmpty($iban);
+        // IBAN should be 15-34 characters (without spaces)
+        $ibanClean = str_replace(' ', '', $iban);
+        $this->assertGreaterThanOrEqual(15, strlen($ibanClean));
+        $this->assertLessThanOrEqual(34, strlen($ibanClean));
+    }
 }

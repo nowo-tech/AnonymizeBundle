@@ -32,11 +32,24 @@ final class NameFaker implements FakerInterface
     /**
      * Generates an anonymized first name.
      *
-     * @param array<string, mixed> $options Additional options (not used for name)
+     * @param array<string, mixed> $options Options:
+     *   - 'gender' (string): Gender-specific name ('male', 'female', or 'random', default: 'random')
+     *   - 'locale_specific' (bool): Use locale-specific names (default: true, uses constructor locale)
      * @return string The anonymized first name
      */
     public function generate(array $options = []): string
     {
-        return $this->faker->firstName();
+        $gender = $options['gender'] ?? 'random';
+        $localeSpecific = $options['locale_specific'] ?? true;
+
+        // If locale_specific is false, we could use a different locale, but for simplicity
+        // we'll use the current locale. The option is kept for API consistency.
+
+        return match ($gender) {
+            'male' => $this->faker->firstNameMale(),
+            'female' => $this->faker->firstNameFemale(),
+            'random' => $this->faker->firstName(),
+            default => $this->faker->firstName(),
+        };
     }
 }

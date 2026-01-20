@@ -8,10 +8,16 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
+use Nowo\AnonymizeBundle\Event\AfterEntityAnonymizeEvent;
+use Nowo\AnonymizeBundle\Event\AfterAnonymizeEvent;
+use Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent;
+use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
+use Nowo\AnonymizeBundle\Event\BeforeEntityAnonymizeEvent;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use ReflectionClass;
 use ReflectionProperty;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Service for anonymizing database records.
@@ -31,10 +37,12 @@ final class AnonymizeService
      *
      * @param FakerFactory $fakerFactory The faker factory for creating faker instances
      * @param PatternMatcher $patternMatcher The pattern matcher for inclusion/exclusion patterns
+     * @param EventDispatcherInterface|null $eventDispatcher Optional event dispatcher for extensibility
      */
     public function __construct(
         private FakerFactory $fakerFactory,
-        private PatternMatcher $patternMatcher
+        private PatternMatcher $patternMatcher,
+        private ?EventDispatcherInterface $eventDispatcher = null
     ) {}
 
     /**
@@ -132,6 +140,7 @@ final class AnonymizeService
      * @param int $batchSize The batch size for processing
      * @param bool $dryRun If true, only show what would be anonymized
      * @param AnonymizeStatistics|null $statistics Optional statistics collector
+     * @param callable|null $progressCallback Optional progress callback (current, total, message)
      * @return array{processed: int, updated: int, propertyStats: array<string, int>} Statistics about the anonymization
      */
     public function anonymizeEntity(
@@ -141,7 +150,8 @@ final class AnonymizeService
         array $properties,
         int $batchSize = 100,
         bool $dryRun = false,
-        ?AnonymizeStatistics $statistics = null
+        ?AnonymizeStatistics $statistics = null,
+        ?callable $progressCallback = null
     ): array {
         $processed = 0;
         $updated = 0;
@@ -152,8 +162,13 @@ final class AnonymizeService
         // Get all records
         $query = sprintf('SELECT * FROM %s', $connection->quoteSingleIdentifier($tableName));
         $records = $connection->fetchAllAssociative($query);
+        $totalRecords = count($records);
 
-        foreach ($records as $record) {
+        if ($progressCallback !== null && $totalRecords > 0) {
+            $progressCallback(0, $totalRecords, sprintf('Starting anonymization of %d records', $totalRecords));
+        }
+
+        foreach ($records as $index => $record) {
             $processed++;
             $shouldAnonymize = false;
             $updates = [];
@@ -192,6 +207,29 @@ final class AnonymizeService
                 // Convert value based on field type
                 $anonymizedValue = $this->convertValue($anonymizedValue, $metadata, $propertyName);
 
+                // Dispatch AnonymizePropertyEvent to allow listeners to modify or skip anonymization
+                if ($this->eventDispatcher !== null) {
+                    $event = new AnonymizePropertyEvent(
+                        $em,
+                        $metadata,
+                        $property,
+                        $columnName,
+                        $record[$columnName] ?? null,
+                        $anonymizedValue,
+                        $record,
+                        $dryRun
+                    );
+                    $this->eventDispatcher->dispatch($event);
+
+                    // Check if listener requested to skip anonymization
+                    if ($event->shouldSkipAnonymization()) {
+                        continue;
+                    }
+
+                    // Use the potentially modified anonymized value
+                    $anonymizedValue = $event->getAnonymizedValue();
+                }
+
                 $updates[$columnName] = $anonymizedValue;
                 $shouldAnonymize = true;
 
@@ -227,6 +265,25 @@ final class AnonymizeService
             } elseif ($shouldAnonymize && $dryRun) {
                 $updated++;
             }
+
+            // Update progress
+            if ($progressCallback !== null && ($index + 1) % max(1, (int) ($totalRecords / 100)) === 0 || $index + 1 === $totalRecords) {
+                $progressCallback($index + 1, $totalRecords, sprintf('Processed %d/%d records (%d updated)', $index + 1, $totalRecords, $updated));
+            }
+        }
+
+        // Dispatch AfterEntityAnonymizeEvent
+        if ($this->eventDispatcher !== null) {
+            $event = new AfterEntityAnonymizeEvent(
+                $em,
+                $metadata,
+                $reflection,
+                $processed,
+                $updated,
+                $propertyStats,
+                $dryRun
+            );
+            $this->eventDispatcher->dispatch($event);
         }
 
         return [

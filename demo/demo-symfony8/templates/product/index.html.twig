@@ -40,6 +40,9 @@
                     <th>Price</th>
                     <th>Status</th>
                     <th>Created At</th>
+                    {% if hasAnonymizedColumn|default(false) %}
+                    <th>Anonymized</th>
+                    {% endif %}
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -51,6 +54,15 @@
                         <td>${{ product.price }}</td>
                         <td>{{ product.status }}</td>
                         <td>{{ product.createdAt ? product.createdAt|date('Y-m-d H:i:s') : 'N/A' }}</td>
+                        {% if hasAnonymizedColumn|default(false) %}
+                        <td>
+                            {% if product.anonymized|default(false) %}
+                                <span style="color: #28a745; font-weight: bold;">✓ Yes</span>
+                            {% else %}
+                                <span style="color: #6c757d;">✗ No</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
                         <td>
                             <a href="{{ path('product_show', {connection: connection, id: product.id}) }}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Show</a>
                             <a href="{{ path('product_edit', {connection: connection, id: product.id}) }}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Edit</a>

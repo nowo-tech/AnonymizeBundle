@@ -36,8 +36,11 @@ class UsernameFakerTest extends TestCase
         $username = $faker->generate(['min_length' => 8, 'max_length' => 12]);
 
         $this->assertIsString($username);
-        $this->assertGreaterThanOrEqual(8, strlen($username));
-        $this->assertLessThanOrEqual(12, strlen($username));
+        $this->assertNotEmpty($username);
+        // Note: Due to prefix/suffix and number inclusion, actual length may vary
+        // We check that it's within reasonable bounds (at least min_length, at most max_length)
+        $this->assertGreaterThanOrEqual(8, strlen($username), sprintf('Username "%s" length %d is less than min_length 8', $username, strlen($username)));
+        $this->assertLessThanOrEqual(12, strlen($username), sprintf('Username "%s" length %d is greater than max_length 12', $username, strlen($username)));
     }
 
     /**

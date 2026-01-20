@@ -96,6 +96,15 @@ enum FakerType: string
     /** Language faker (supports format, locale options) */
     case LANGUAGE = 'language';
 
+    /** Hash preserve faker (deterministic anonymization with hash functions) */
+    case HASH_PRESERVE = 'hash_preserve';
+
+    /** Shuffle faker (shuffle values while maintaining distribution) */
+    case SHUFFLE = 'shuffle';
+
+    /** Constant faker (replace with constant value) */
+    case CONSTANT = 'constant';
+
     /** Custom service faker (requires service name) */
     case SERVICE = 'service';
 }

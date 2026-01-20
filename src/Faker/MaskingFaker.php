@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Faker;
 
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 /**
  * Faker for partial masking of sensitive data.
@@ -16,6 +17,7 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
  * @copyright 2025 Nowo.tech
  */
 #[AsAlias(id: 'nowo_anonymize.faker.masking')]
+#[Autoconfigure(public: true)]
 final class MaskingFaker implements FakerInterface
 {
     /**

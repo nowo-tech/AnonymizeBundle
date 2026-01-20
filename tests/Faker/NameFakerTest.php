@@ -39,4 +39,40 @@ class NameFakerTest extends TestCase
         $this->assertIsString($name1);
         $this->assertIsString($name2);
     }
+
+    /**
+     * Test that NameFaker respects gender option (male).
+     */
+    public function testGenerateWithGenderMale(): void
+    {
+        $faker = new NameFaker('en_US');
+        $name = $faker->generate(['gender' => 'male']);
+
+        $this->assertIsString($name);
+        $this->assertNotEmpty($name);
+    }
+
+    /**
+     * Test that NameFaker respects gender option (female).
+     */
+    public function testGenerateWithGenderFemale(): void
+    {
+        $faker = new NameFaker('en_US');
+        $name = $faker->generate(['gender' => 'female']);
+
+        $this->assertIsString($name);
+        $this->assertNotEmpty($name);
+    }
+
+    /**
+     * Test that NameFaker respects gender option (random).
+     */
+    public function testGenerateWithGenderRandom(): void
+    {
+        $faker = new NameFaker('en_US');
+        $name = $faker->generate(['gender' => 'random']);
+
+        $this->assertIsString($name);
+        $this->assertNotEmpty($name);
+    }
 }

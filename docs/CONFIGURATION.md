@@ -100,60 +100,158 @@ php bin/console nowo:anonymize:run --dry-run
 
 # Override batch size
 php bin/console nowo:anonymize:run --batch-size 50
+
+# Disable progress bar
+php bin/console nowo:anonymize:run --no-progress
+
+# Enable verbose mode
+php bin/console nowo:anonymize:run --verbose
+
+# Enable debug mode
+php bin/console nowo:anonymize:run --debug
 ```
 
 Command-line options take precedence over configuration file values.
 
+## Available Commands
+
+The bundle provides three console commands. See [COMMANDS.md](COMMANDS.md) for detailed command documentation, options, and examples.
+
+## Event System
+
+The bundle provides a comprehensive event system for extensibility. You can listen to events to customize the anonymization process.
+
+### Available Events
+
+#### BeforeAnonymizeEvent
+
+Dispatched once before anonymization starts, before any entities are processed.
+
+**Properties**:
+- `getEntityManager()`: Returns the EntityManagerInterface
+- `getEntityClasses()`: Returns array of entity class names to be anonymized
+- `setEntityClasses(array $entityClasses)`: Modify which entities will be processed
+- `isDryRun()`: Returns whether this is a dry run
+
+#### AfterAnonymizeEvent
+
+Dispatched once after anonymization completes, after all entities have been processed.
+
+**Properties**:
+- `getEntityManager()`: Returns the EntityManagerInterface
+- `getEntityClasses()`: Returns array of entity class names that were anonymized
+- `getTotalProcessed()`: Returns total number of records processed
+- `getTotalUpdated()`: Returns total number of records updated
+- `isDryRun()`: Returns whether this was a dry run
+
+#### BeforeEntityAnonymizeEvent
+
+Dispatched once per entity class before processing its records.
+
+**Properties**:
+- `getEntityManager()`: Returns the EntityManagerInterface
+- `getMetadata()`: Returns the ClassMetadata
+- `getReflection()`: Returns the ReflectionClass
+- `getEntityClass()`: Returns the entity class name
+- `getTotalRecords()`: Returns total number of records for this entity
+- `isDryRun()`: Returns whether this is a dry run
+
+#### AfterEntityAnonymizeEvent
+
+Dispatched once per entity class after processing its records.
+
+**Properties**:
+- `getEntityManager()`: Returns the EntityManagerInterface
+- `getMetadata()`: Returns the ClassMetadata
+- `getReflection()`: Returns the ReflectionClass
+- `getEntityClass()`: Returns the entity class name
+- `getProcessed()`: Returns number of records processed
+- `getUpdated()`: Returns number of records updated
+- `getPropertyStats()`: Returns statistics per property (property name => count)
+- `isDryRun()`: Returns whether this was a dry run
+
+#### AnonymizePropertyEvent
+
+Dispatched before anonymizing each property, allowing listeners to modify the anonymized value or skip anonymization.
+
+**Properties**:
+- `getEntityManager()`: Returns the EntityManagerInterface
+- `getMetadata()`: Returns the ClassMetadata
+- `getProperty()`: Returns the ReflectionProperty
+- `getPropertyName()`: Returns the property name
+- `getColumnName()`: Returns the database column name
+- `getOriginalValue()`: Returns the original value before anonymization
+- `getAnonymizedValue()`: Returns the anonymized value
+- `setAnonymizedValue(mixed $value)`: Modify the anonymized value
+- `shouldSkipAnonymization()`: Returns whether anonymization should be skipped
+- `setSkipAnonymization(bool $skip)`: Skip anonymization for this property
+- `getRecord()`: Returns the full database record
+- `isDryRun()`: Returns whether this is a dry run
+
+### Example: Event Listener
+
+```php
+// src/EventListener/AnonymizeListener.php
+namespace App\EventListener;
+
+use Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+
+#[AsEventListener(event: AnonymizePropertyEvent::class)]
+class AnonymizeListener
+{
+    public function onAnonymizeProperty(AnonymizePropertyEvent $event): void
+    {
+        // Modify the anonymized value
+        if ($event->getPropertyName() === 'email') {
+            $event->setAnonymizedValue('custom@example.com');
+        }
+
+        // Or skip anonymization for specific conditions
+        if ($event->getRecord()['status'] === 'inactive') {
+            $event->setSkipAnonymization(true);
+        }
+    }
+}
+```
+
+### Example: Event Subscriber
+
+```php
+// src/EventSubscriber/AnonymizeSubscriber.php
+namespace App\EventSubscriber;
+
+use Nowo\AnonymizeBundle\Event\AfterAnonymizeEvent;
+use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+class AnonymizeSubscriber implements EventSubscriberInterface
+{
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            BeforeAnonymizeEvent::class => 'onBeforeAnonymize',
+            AfterAnonymizeEvent::class => 'onAfterAnonymize',
+        ];
+    }
+
+    public function onBeforeAnonymize(BeforeAnonymizeEvent $event): void
+    {
+        // Log or modify entity classes before anonymization
+        $entityClasses = $event->getEntityClasses();
+        // ...
+    }
+
+    public function onAfterAnonymize(AfterAnonymizeEvent $event): void
+    {
+        // Log statistics or perform cleanup after anonymization
+        $totalProcessed = $event->getTotalProcessed();
+        $totalUpdated = $event->getTotalUpdated();
+        // ...
+    }
+}
+```
+
 ## Available Faker Types
 
-The bundle supports the following faker types:
-
-### Basic Fakers
-
-- **email**: Generates anonymized email addresses
-- **name**: Generates anonymized first names
-- **surname**: Generates anonymized surnames
-- **age**: Generates anonymized ages (supports `min` and `max` options)
-- **phone**: Generates anonymized phone numbers
-- **iban**: Generates anonymized IBAN numbers (supports `country` option)
-- **credit_card**: Generates anonymized credit card numbers
-
-### Advanced Fakers
-
-- **address**: Generates anonymized street addresses
-  - Options: `country` (string), `include_postal_code` (bool), `format` ('full'/'short')
-- **date**: Generates anonymized dates
-  - Options: `min_date`, `max_date`, `format`, `type` ('past'/'future'/'between')
-- **username**: Generates anonymized usernames
-  - Options: `min_length`, `max_length`, `prefix`, `suffix`, `include_numbers`
-- **url**: Generates anonymized URLs
-  - Options: `scheme` ('http'/'https'), `domain`, `path` (bool)
-- **company**: Generates anonymized company names
-  - Options: `type` ('corporation'/'llc'/'inc'), `suffix` (string)
-- **masking**: Partial masking of sensitive data
-  - Options: `preserve_start` (int), `preserve_end` (int), `mask_char` (string), `mask_length` (int)
-  - Requires `value` option with the original value to mask
-- **password**: Generates anonymized passwords
-  - Options: `length` (int), `include_special` (bool), `include_numbers` (bool), `include_uppercase` (bool)
-- **ip_address**: Generates anonymized IP addresses
-  - Options: `version` (int, 4 or 6), `type` (string, 'public'/'private'/'localhost')
-- **mac_address**: Generates anonymized MAC addresses
-  - Options: `separator` (string, 'colon'/'dash'/'none'), `uppercase` (bool)
-- **uuid**: Generates anonymized UUIDs
-  - Options: `version` (int, 1 or 4), `format` (string, 'with_dashes'/'without_dashes')
-- **hash**: Generates anonymized hash values
-  - Options: `algorithm` (string, 'md5'/'sha1'/'sha256'/'sha512'), `length` (int|null)
-- **coordinate**: Generates anonymized GPS coordinates
-  - Options: `format` (string, 'array'/'string'/'json'), `precision` (int), `min_lat`, `max_lat`, `min_lng`, `max_lng` (float)
-- **color**: Generates anonymized color values
-  - Options: `format` (string, 'hex'/'rgb'/'rgba'), `alpha` (float, 0.0-1.0)
-- **boolean**: Generates anonymized boolean values
-  - Options: `true_probability` (int, 0-100)
-- **numeric**: Generates anonymized numeric values
-  - Options: `type` (string, 'int'/'float'), `min`, `max` (int|float), `precision` (int, for floats)
-
-### Custom Fakers
-
-- **service**: Uses a custom service for anonymization
-  - Requires `service` option with the service name
-  - Service must implement `FakerInterface` or have a `generate()` method
+The bundle supports 32 different faker types with various configuration options. See [FAKERS.md](FAKERS.md) for the complete list with detailed descriptions and configuration options for each faker type.

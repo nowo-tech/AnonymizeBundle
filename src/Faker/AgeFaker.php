@@ -32,14 +32,41 @@ final class AgeFaker implements FakerInterface
     /**
      * Generates an anonymized age.
      *
-     * @param array<string, mixed> $options Options: 'min' (default: 18), 'max' (default: 100)
+     * @param array<string, mixed> $options Options:
+     *   - 'min' (int): Minimum age (default: 18)
+     *   - 'max' (int): Maximum age (default: 100)
+     *   - 'distribution' (string): Distribution type ('uniform' or 'normal', default: 'uniform')
+     *   - 'mean' (float): Mean age for normal distribution (default: 40)
+     *   - 'std_dev' (float): Standard deviation for normal distribution (default: 15)
      * @return int The anonymized age
      */
     public function generate(array $options = []): int
     {
-        $min = $options['min'] ?? 18;
-        $max = $options['max'] ?? 100;
+        $min = (int) ($options['min'] ?? 18);
+        $max = (int) ($options['max'] ?? 100);
+        $distribution = $options['distribution'] ?? 'uniform';
+        $mean = (float) ($options['mean'] ?? 40);
+        $stdDev = (float) ($options['std_dev'] ?? 15);
 
-        return $this->faker->numberBetween((int) $min, (int) $max);
+        if ($distribution === 'normal') {
+            // Generate age using normal distribution (Box-Muller transform)
+            // Generate two independent uniform random numbers (avoid 0 and 1)
+            $u1 = max(0.0001, min(0.9999, $this->faker->randomFloat(10, 0.0001, 0.9999)));
+            $u2 = $this->faker->randomFloat(10, 0, 1);
+            
+            // Box-Muller transform to get normal distribution
+            $z0 = sqrt(-2 * log($u1)) * cos(2 * M_PI * $u2);
+            
+            // Apply mean and standard deviation
+            $age = (int) round($mean + $z0 * $stdDev);
+            
+            // Clamp to min/max bounds
+            $age = max($min, min($max, $age));
+            
+            return $age;
+        }
+
+        // Uniform distribution (default)
+        return $this->faker->numberBetween($min, $max);
     }
 }

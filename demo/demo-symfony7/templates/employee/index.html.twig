@@ -46,6 +46,9 @@
                     <th>Email</th>
                     <th>Department</th>
                     <th>Age</th>
+                    {% if hasAnonymizedColumn|default(false) %}
+                    <th>Anonymized</th>
+                    {% endif %}
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -58,6 +61,15 @@
                         <td>{{ employee.email }}</td>
                         <td>{{ employee.department }}</td>
                         <td>{{ employee.age }}</td>
+                        {% if hasAnonymizedColumn|default(false) %}
+                        <td>
+                            {% if employee.anonymized|default(false) %}
+                                <span style="color: #28a745; font-weight: bold;">✓ Yes</span>
+                            {% else %}
+                                <span style="color: #6c757d;">✗ No</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
                         <td>
                             <a href="{{ path('employee_show', {connection: connection, id: employee.id}) }}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Show</a>
                             <a href="{{ path('employee_edit', {connection: connection, id: employee.id}) }}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Edit</a>
