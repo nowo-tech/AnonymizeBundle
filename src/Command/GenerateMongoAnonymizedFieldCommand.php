@@ -132,7 +132,7 @@ final class GenerateMongoAnonymizedFieldCommand extends Command
         if ($scanDocuments) {
             $io->section('Scanning document classes...');
             $foundCollections = $this->scanDocumentClasses($documentPath);
-            
+
             if (!empty($foundCollections)) {
                 $collections = array_merge($collections, $foundCollections);
                 $collections = array_unique($collections);
@@ -175,7 +175,7 @@ final class GenerateMongoAnonymizedFieldCommand extends Command
     private function scanDocumentClasses(?string $documentPath): array
     {
         $collections = [];
-        
+
         // Try to determine project root
         $projectRoot = $this->getProjectRoot();
         if ($projectRoot === null) {
@@ -262,31 +262,31 @@ final class GenerateMongoAnonymizedFieldCommand extends Command
     private function generateMongoScript(string $database, array $collections): string
     {
         $script = <<<'JS'
-// MongoDB Script to Add Anonymized Field
-// Generated: {DATE}
-// Database: {DATABASE}
-// Collections: {COLLECTIONS}
+            // MongoDB Script to Add Anonymized Field
+            // Generated: {DATE}
+            // Database: {DATABASE}
+            // Collections: {COLLECTIONS}
 
-// Switch to the target database
-use('{DATABASE}');
+            // Switch to the target database
+            use('{DATABASE}');
 
-// Process each collection
-{COLLECTION_SCRIPTS}
+            // Process each collection
+            {COLLECTION_SCRIPTS}
 
-print('✅ Anonymized field migration completed successfully!');
-JS;
+            print('✅ Anonymized field migration completed successfully!');
+            JS;
 
         $collectionScripts = [];
         foreach ($collections as $collection) {
             $collectionScripts[] = <<<JS
-// Add anonymized field to collection: {$collection}
-print('Processing collection: {$collection}...');
-const result{$collection} = db.{$collection}.updateMany(
-    { anonymized: { \$exists: false } },
-    { \$set: { anonymized: false } }
-);
-print(`  ✓ Updated \${result{$collection}.modifiedCount} document(s) in {$collection}`);
-JS;
+                // Add anonymized field to collection: {$collection}
+                print('Processing collection: {$collection}...');
+                const result{$collection} = db.{$collection}.updateMany(
+                    { anonymized: { \$exists: false } },
+                    { \$set: { anonymized: false } }
+                );
+                print(`  ✓ Updated \${result{$collection}.modifiedCount} document(s) in {$collection}`);
+                JS;
         }
 
         $script = str_replace('{DATE}', date('Y-m-d H:i:s'), $script);

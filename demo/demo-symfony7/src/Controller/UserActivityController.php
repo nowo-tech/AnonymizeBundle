@@ -96,7 +96,7 @@ class UserActivityController extends AbstractController
         }
 
         $collection = $this->getCollection();
-        
+
         if (!$collection) {
             $mongodbUrl = $_ENV['MONGODB_URL'] ?? getenv('MONGODB_URL');
             $errorMsg = 'MongoDB connection not available.';
@@ -136,7 +136,7 @@ class UserActivityController extends AbstractController
     {
         if ($request->isMethod('POST')) {
             $collection = $this->getCollection();
-            
+
             if (!$collection) {
                 $this->addFlash('error', 'MongoDB connection not available.');
                 return $this->redirectToRoute('mongodb_user_activity_index');
@@ -175,14 +175,14 @@ class UserActivityController extends AbstractController
     public function show(string $id): Response
     {
         $collection = $this->getCollection();
-        
+
         if (!$collection) {
             throw $this->createNotFoundException('MongoDB connection not available');
         }
 
         try {
             $activity = $collection->findOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
-            
+
             if (!$activity) {
                 throw $this->createNotFoundException('User activity not found');
             }
@@ -200,14 +200,14 @@ class UserActivityController extends AbstractController
     public function edit(Request $request, string $id): Response
     {
         $collection = $this->getCollection();
-        
+
         if (!$collection) {
             throw $this->createNotFoundException('MongoDB connection not available');
         }
 
         try {
             $activity = $collection->findOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
-            
+
             if (!$activity) {
                 throw $this->createNotFoundException('User activity not found');
             }
@@ -250,7 +250,7 @@ class UserActivityController extends AbstractController
     public function delete(Request $request, string $id): Response
     {
         $collection = $this->getCollection();
-        
+
         if (!$collection) {
             throw $this->createNotFoundException('MongoDB connection not available');
         }
@@ -258,7 +258,7 @@ class UserActivityController extends AbstractController
         if ($this->isCsrfTokenValid('delete' . $id, $request->request->get('_token'))) {
             try {
                 $result = $collection->deleteOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
-                
+
                 if ($result->getDeletedCount() > 0) {
                     $this->addFlash('success', 'User activity deleted successfully!');
                 } else {
