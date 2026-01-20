@@ -66,7 +66,7 @@ final class UuidFaker implements FakerInterface
         // Generate time-based UUID v1
         // Format: time_low-time_mid-time_high_and_version-clock_seq_and_reserved-clock_seq_node
         // For simplicity, we'll use Faker's uuid but could implement proper v1 generation
-        
+
         // For now, use v4 but could be enhanced to generate proper v1 UUIDs
         return $this->faker->uuid();
     }
