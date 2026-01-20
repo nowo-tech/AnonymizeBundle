@@ -13,6 +13,44 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.18
+
+**Release Date**: 2026-01-20
+
+#### What's Fixed
+
+- **Symfony 6.0 Compatibility**: All commands now fully compatible with Symfony 6.0, 6.1, 7.0, and 8.0
+  - Command help text moved from `#[AsCommand]` attribute to `setHelp()` method
+  - No breaking changes, only internal improvements for compatibility
+
+- **DatabaseExportService**: Fixed autowiring configuration issue
+  - Service now correctly configured with all required parameters
+  - No action required, fix is automatic
+
+- **Test Improvements**: Fixed flaky tests and PHP warnings
+  - Improved test robustness for Faker randomness
+  - Fixed overflow warnings in UsernameFaker
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **No configuration changes required**: This is a bugfix release with no breaking changes
+
+#### Notes
+
+- This release is fully backward compatible
+- All existing functionality remains unchanged
+- Improved compatibility with Symfony 6.0
+
 ### Upgrading to 0.0.17
 
 **Release Date**: 2026-01-20

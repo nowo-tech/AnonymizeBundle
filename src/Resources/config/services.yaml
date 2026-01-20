@@ -32,6 +32,8 @@ services:
 
     Nowo\AnonymizeBundle\Service\:
         resource: '../../Service/*'
+        exclude:
+            - '../../Service/DatabaseExportService.php'
 
     # AnonymizeService with optional EventDispatcher
     # EventDispatcher is optional and defaults to null in the constructor
@@ -43,7 +45,7 @@ services:
         arguments:
             $historyDir: '%nowo_anonymize.history_dir%'
 
-    # DatabaseExportService
+    # DatabaseExportService - must be configured explicitly due to string/bool parameters
     Nowo\AnonymizeBundle\Service\DatabaseExportService:
         arguments:
             $outputDir: '%nowo_anonymize.export.output_dir%'

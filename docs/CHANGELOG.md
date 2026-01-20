@@ -11,6 +11,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - TBD
 
+## [0.0.18] - 2026-01-20
+
+### Fixed
+
+- **Symfony 6.0 Compatibility**: Fixed compatibility issue with Symfony 6.0
+  - Moved command help text from `#[AsCommand]` attribute parameter to `setHelp()` method in `configure()`
+  - The `help` parameter in `#[AsCommand]` is only available from Symfony 6.1+
+  - All commands now use `setHelp()` for maximum compatibility (Symfony 6.0, 6.1, 7.0, 8.0)
+  - Affected commands: `AnonymizeCommand`, `AnonymizationHistoryCommand`, `ExportDatabaseCommand`, `AnonymizeInfoCommand`, `GenerateAnonymizedColumnCommand`, `GenerateMongoAnonymizedFieldCommand`
+
+- **DatabaseExportService Configuration**: Fixed autowiring issue for `DatabaseExportService`
+  - Service now explicitly configured in `services.yaml` with all required parameters
+  - Excluded from automatic autowiring to prevent parameter resolution issues
+  - All parameters (`outputDir`, `filenamePattern`, `compression`, `autoGitignore`) now correctly resolved from bundle configuration
+
+- **UsernameFaker Overflow Warning**: Fixed PHP warning for float-to-int conversion
+  - Limited `remainingLength` to maximum 9 to prevent overflow when calculating `pow(10, n)`
+  - Prevents warning: "The float ... is not representable as an int, cast occurred"
+  - `pow(10, 9) = 1,000,000,000` is safe for int representation in PHP
+
+- **TextFakerTest Flaky Test**: Improved test robustness for Faker randomness
+  - Test now runs 10 iterations to account for Faker's random word generation
+  - More lenient assertions that handle Faker's occasional generation of fewer words than requested
+  - Test verifies minimum word count across iterations rather than single assertion
+
 ## [0.0.17] - 2026-01-20
 
 ### Added
