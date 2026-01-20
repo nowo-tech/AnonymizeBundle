@@ -48,22 +48,23 @@ final class ExportDatabaseCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setHelp(<<<'HELP'
-The <info>%command.name%</info> command exports databases to files.
+            ->setHelp(
+                <<<'HELP'
+                    The <info>%command.name%</info> command exports databases to files.
 
-This command will:
-  1. Export databases from configured Doctrine ORM connections (MySQL, PostgreSQL, SQLite)
-  2. Export MongoDB databases (detected from MONGODB_URL environment variable)
-  3. Apply optional compression (gzip, bzip2, zip)
-  4. Automatically update .gitignore to exclude export directory
-  5. Support all database types: MySQL, PostgreSQL, SQLite, and MongoDB
+                    This command will:
+                      1. Export databases from configured Doctrine ORM connections (MySQL, PostgreSQL, SQLite)
+                      2. Export MongoDB databases (detected from MONGODB_URL environment variable)
+                      3. Apply optional compression (gzip, bzip2, zip)
+                      4. Automatically update .gitignore to exclude export directory
+                      5. Support all database types: MySQL, PostgreSQL, SQLite, and MongoDB
 
-Examples:
-  <info>php %command.full_name%</info>
-  <info>php %command.full_name% --connection default</info>
-  <info>php %command.full_name% --compression zip --output-dir /tmp/exports</info>
-  <info>php %command.full_name% --connection mysql --connection postgres</info>
-HELP
+                    Examples:
+                      <info>php %command.full_name%</info>
+                      <info>php %command.full_name% --connection default</info>
+                      <info>php %command.full_name% --compression zip --output-dir /tmp/exports</info>
+                      <info>php %command.full_name% --connection mysql --connection postgres</info>
+                    HELP
             )
             ->addOption('connection', 'c', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Specific connections to export (default: all)')
             ->addOption('output-dir', 'o', InputOption::VALUE_OPTIONAL, 'Output directory for exports')
@@ -116,7 +117,7 @@ HELP
 
         // Get default values from configuration if not provided
         $parameterBag = $this->getParameterBag();
-        
+
         if ($outputDir === null) {
             $outputDir = $parameterBag->has('nowo_anonymize.export.output_dir')
                 ? $parameterBag->get('nowo_anonymize.export.output_dir')
