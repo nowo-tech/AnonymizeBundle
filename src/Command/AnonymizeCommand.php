@@ -404,7 +404,8 @@ final class AnonymizeCommand extends Command
                 $batchSize,
                 $dryRun,
                 $statistics,
-                $progressCallback
+                $progressCallback,
+                $attribute // Pass entity-level Anonymize attribute for filtering
             );
 
             // Finish progress bar

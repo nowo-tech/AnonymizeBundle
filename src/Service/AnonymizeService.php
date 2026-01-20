@@ -141,6 +141,7 @@ final class AnonymizeService
      * @param bool $dryRun If true, only show what would be anonymized
      * @param AnonymizeStatistics|null $statistics Optional statistics collector
      * @param callable|null $progressCallback Optional progress callback (current, total, message)
+     * @param Anonymize|null $entityAttribute Optional entity-level Anonymize attribute for filtering records
      * @return array{processed: int, updated: int, propertyStats: array<string, int>} Statistics about the anonymization
      */
     public function anonymizeEntity(
@@ -151,7 +152,8 @@ final class AnonymizeService
         int $batchSize = 100,
         bool $dryRun = false,
         ?AnonymizeStatistics $statistics = null,
-        ?callable $progressCallback = null
+        ?callable $progressCallback = null,
+        ?Anonymize $entityAttribute = null
     ): array {
         $processed = 0;
         $updated = 0;
@@ -170,6 +172,15 @@ final class AnonymizeService
 
         foreach ($records as $index => $record) {
             $processed++;
+            
+            // Check entity-level inclusion/exclusion patterns first
+            if ($entityAttribute !== null) {
+                if (!$this->patternMatcher->matches($record, $entityAttribute->includePatterns, $entityAttribute->excludePatterns)) {
+                    // Skip this record if it doesn't match entity-level patterns
+                    continue;
+                }
+            }
+            
             $shouldAnonymize = false;
             $updates = [];
 
