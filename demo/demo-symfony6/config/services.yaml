@@ -8,7 +8,3 @@ services:
         exclude:
             - '../src/Entity/'
             - '../src/Kernel.php'
-
-    # Explicitly register CustomReferenceFaker service for anonymization
-    App\Service\CustomReferenceFaker:
-        public: true

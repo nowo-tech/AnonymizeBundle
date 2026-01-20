@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 /**
  * Custom faker service for generating anonymized reference codes.
@@ -15,6 +16,7 @@ use Nowo\AnonymizeBundle\Faker\FakerInterface;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
+#[Autoconfigure(public: true)]
 final class CustomReferenceFaker implements FakerInterface
 {
     /**
