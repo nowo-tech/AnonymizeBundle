@@ -43,7 +43,7 @@ class UserActivityFixtures extends Fixture
         // MongoDB fixtures are loaded via shell script (load-fixtures.js) in entrypoint.sh
         // This method is kept for compatibility with DoctrineFixturesBundle
         // but the actual loading happens via mongosh script
-        
+
         // TODO: When MongoDB ODM is configured, update this to use DocumentManager:
         // $activities = $this->getSampleActivities();
         // foreach ($activities as $activityData) {
