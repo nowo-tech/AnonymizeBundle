@@ -68,46 +68,47 @@ final class AnonymizeCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setHelp(<<<'HELP'
-The <info>%command.name%</info> command anonymizes database records based on Doctrine attributes.
+            ->setHelp(
+                <<<'HELP'
+                    The <info>%command.name%</info> command anonymizes database records based on Doctrine attributes.
 
-  <info>php %command.full_name%</info>
+                      <info>php %command.full_name%</info>
 
-This command will:
-  1. Scan all Doctrine ORM connections for entities with the #[Anonymize] attribute
-  2. Process properties marked with #[AnonymizeProperty] attribute
-  3. Anonymize values using Faker generators
-  4. Respect weight ordering (lower weights first, then alphabetical)
-  5. Apply inclusion/exclusion patterns
+                    This command will:
+                      1. Scan all Doctrine ORM connections for entities with the #[Anonymize] attribute
+                      2. Process properties marked with #[AnonymizeProperty] attribute
+                      3. Anonymize values using Faker generators
+                      4. Respect weight ordering (lower weights first, then alphabetical)
+                      5. Apply inclusion/exclusion patterns
 
-Note: Currently supports Doctrine ORM (MySQL, PostgreSQL, SQLite).
-      MongoDB ODM support is planned for future releases.
+                    Note: Currently supports Doctrine ORM (MySQL, PostgreSQL, SQLite).
+                          MongoDB ODM support is planned for future releases.
 
-Options:
-  --connection, -c    Process only specific connections (can be used multiple times)
-  --dry-run          Show what would be anonymized without making changes
-  --batch-size, -b   Number of records to process in each batch (default: 100)
-  --locale, -l       Locale for Faker generator (default: en_US)
-  --stats-json       Export statistics to JSON file (relative paths use configured stats_output_dir)
-  --stats-csv         Export statistics to CSV file (relative paths use configured stats_output_dir)
-  --stats-only       Show only statistics summary (suppress detailed output)
-  --no-progress      Disable progress bar display
-  --verbose, -v      Increase verbosity of messages (Symfony standard option)
-  --debug            Enable debug mode (shows detailed information)
-  --interactive, -i  Enable interactive mode with step-by-step confirmations
+                    Options:
+                      --connection, -c    Process only specific connections (can be used multiple times)
+                      --dry-run          Show what would be anonymized without making changes
+                      --batch-size, -b   Number of records to process in each batch (default: 100)
+                      --locale, -l       Locale for Faker generator (default: en_US)
+                      --stats-json       Export statistics to JSON file (relative paths use configured stats_output_dir)
+                      --stats-csv         Export statistics to CSV file (relative paths use configured stats_output_dir)
+                      --stats-only       Show only statistics summary (suppress detailed output)
+                      --no-progress      Disable progress bar display
+                      --verbose, -v      Increase verbosity of messages (Symfony standard option)
+                      --debug            Enable debug mode (shows detailed information)
+                      --interactive, -i  Enable interactive mode with step-by-step confirmations
 
-Examples:
-  <info>php %command.full_name%</info>
-  <info>php %command.full_name% --dry-run</info>
-  <info>php %command.full_name% --connection default --connection secondary</info>
-  <info>php %command.full_name% --batch-size 50 --locale en_US</info>
-  <info>php %command.full_name% --stats-json stats.json</info>
-  <info>php %command.full_name% --stats-csv stats.csv</info>
-  <info>php %command.full_name% --stats-only</info>
-  <info>php %command.full_name% --verbose</info>
-  <info>php %command.full_name% --debug</info>
-  <info>php %command.full_name% --interactive</info>
-HELP
+                    Examples:
+                      <info>php %command.full_name%</info>
+                      <info>php %command.full_name% --dry-run</info>
+                      <info>php %command.full_name% --connection default --connection secondary</info>
+                      <info>php %command.full_name% --batch-size 50 --locale en_US</info>
+                      <info>php %command.full_name% --stats-json stats.json</info>
+                      <info>php %command.full_name% --stats-csv stats.csv</info>
+                      <info>php %command.full_name% --stats-only</info>
+                      <info>php %command.full_name% --verbose</info>
+                      <info>php %command.full_name% --debug</info>
+                      <info>php %command.full_name% --interactive</info>
+                    HELP
             )
             ->addOption('connection', 'c', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Specific connections to process (default: all)')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Show what would be anonymized without making changes')
