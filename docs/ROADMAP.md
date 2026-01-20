@@ -749,7 +749,26 @@ We welcome community contributions! Areas where help is especially appreciated:
 
 ### Completed Releases
 
-- **v0.0.11** (2026-01-19 - Unreleased): Phase 1 Partial Implementation
+- **v0.0.14** (2026-01-20 - Released): Pattern matching enhancements and bug fixes
+  - ✅ PatternMatcher OR operator support for multiple value matching
+  - ✅ Entity-level pattern filtering fix
+  - ✅ EmailSubscription demo entity with comprehensive pattern examples
+  - ✅ Comprehensive fixtures (~50 records) covering all pattern combinations
+  - ✅ Service registration improvements using attributes
+
+- **v0.0.13** (2026-01-19 - Released): Phase 1 complete + Enhanced features
+  - ✅ All Phase 1 fakers implemented (32 total)
+  - ✅ Pre-flight checks, progress bars, environment protection
+  - ✅ Debug/verbose modes, info command, event system
+  - ✅ SystemLog entity with 100% faker coverage
+
+- **v0.0.12** (2026-01-19 - Released): Phase 1 Complete + Enhanced Fakers
+  - ✅ All Phase 1 fakers implemented: File, Json, Text, Enum, Country, Language
+  - ✅ Enhanced existing fakers: Email, Phone, Credit Card, IBAN, Age, Name, Surname
+  - ✅ Total fakers: 32 (all Phase 1 + Phase 2 data preservation fakers)
+  - ✅ Progress: Phase 1 (100% complete - all 21 fakers)
+
+- **v0.0.11** (2026-01-19 - Released): Phase 1 Partial Implementation
   - ✅ 6 new fakers: Address, Date, Username, URL, Company, Masking
   - ✅ Enhanced demos with 4 new entities (Product, Order, Invoice, Employee)
   - ✅ Comprehensive fixtures for all entities
