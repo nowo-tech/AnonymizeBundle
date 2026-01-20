@@ -36,7 +36,7 @@ services:
     # AnonymizeService with optional EventDispatcher
     Nowo\AnonymizeBundle\Service\AnonymizeService:
         arguments:
-            $eventDispatcher: '@?event_dispatcher'
+            $eventDispatcher: '@?Symfony\Contracts\EventDispatcher\EventDispatcherInterface'
 
     # Console Commands
     # Only configure parameters, container is autowired via alias
