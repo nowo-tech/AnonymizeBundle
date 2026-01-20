@@ -178,7 +178,7 @@ final class AnonymizeStatistics
     public function toCsv(): string
     {
         $lines = [];
-        
+
         // Global statistics header
         $lines[] = 'Section,Key,Value';
         $lines[] = 'Global,Total Entities,' . $this->globalStats['total_entities'];
@@ -193,7 +193,7 @@ final class AnonymizeStatistics
         $lines[] = 'Global,Success Rate (%),' . ($this->globalStats['total_processed'] > 0
             ? round(($this->globalStats['total_updated'] / $this->globalStats['total_processed']) * 100, 2)
             : 0);
-        
+
         // Entity statistics
         $lines[] = '';
         $lines[] = 'Entity,Connection,Processed,Updated,Skipped,Success Rate (%)';
@@ -201,7 +201,7 @@ final class AnonymizeStatistics
             $successRate = $entityData['processed'] > 0
                 ? round(($entityData['updated'] / $entityData['processed']) * 100, 2)
                 : 0;
-            
+
             $lines[] = sprintf(
                 '%s,%s,%d,%d,%d,%.2f',
                 $entityData['entity'],
@@ -212,7 +212,7 @@ final class AnonymizeStatistics
                 $successRate
             );
         }
-        
+
         // Property statistics
         if (!empty($this->entityStats)) {
             $lines[] = '';
@@ -221,7 +221,7 @@ final class AnonymizeStatistics
                 if (empty($entityData['properties'])) {
                     continue;
                 }
-                
+
                 foreach ($entityData['properties'] as $property => $count) {
                     $lines[] = sprintf(
                         '%s,%s,%s,%d',
@@ -233,7 +233,7 @@ final class AnonymizeStatistics
                 }
             }
         }
-        
+
         return implode("\n", $lines);
     }
 

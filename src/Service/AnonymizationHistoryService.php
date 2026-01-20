@@ -36,7 +36,7 @@ final class AnonymizationHistoryService
     {
         // Ensure history directory exists
         if (!is_dir($this->historyDir)) {
-            $this->filesystem->mkdir($this->historyDir, 0755);
+            $this->filesystem->mkdir($this->historyDir, 0o755);
         }
 
         // Create history entry

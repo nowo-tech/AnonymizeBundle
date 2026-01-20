@@ -54,7 +54,7 @@ final class DatabaseExportService
 
         // Ensure output directory exists
         if (!is_dir($this->outputDir)) {
-            mkdir($this->outputDir, 0755, true);
+            mkdir($this->outputDir, 0o755, true);
         }
 
         // Export based on driver
@@ -109,7 +109,7 @@ final class DatabaseExportService
 
         // Ensure output directory exists
         if (!is_dir($this->outputDir)) {
-            mkdir($this->outputDir, 0755, true);
+            mkdir($this->outputDir, 0o755, true);
         }
 
         // Export MongoDB

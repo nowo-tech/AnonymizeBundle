@@ -160,15 +160,15 @@ HELP
         // Get Doctrine registry
         $doctrine = $this->container->get(SymfonyService::DOCTRINE);
         $allManagers = $doctrine->getManagerNames();
-        
+
         // Check for MongoDB connection from environment
         $mongodbUrl = $_ENV['MONGODB_URL'] ?? getenv('MONGODB_URL');
         $hasMongoRequested = !empty($connections) && in_array('mongodb', $connections, true);
         $shouldIncludeMongo = (empty($connections) && $mongodbUrl) || $hasMongoRequested;
-        
+
         // Build list of managers to process
         $managersToProcess = empty($connections) ? array_keys($allManagers) : array_intersect(array_keys($allManagers), $connections);
-        
+
         // Add MongoDB if it should be included but isn't in the managers list
         if ($shouldIncludeMongo && !in_array('mongodb', $managersToProcess, true)) {
             $managersToProcess[] = 'mongodb';
@@ -213,10 +213,10 @@ HELP
                 // Handle MongoDB separately (not a Doctrine ORM EntityManager)
                 if ($managerName === 'mongodb') {
                     $io->writeln(sprintf('Exporting <info>%s</info> (mongodb)...', $managerName));
-                    
+
                     // Try to get MongoDB connection info from environment
                     $mongodbUrl = $_ENV['MONGODB_URL'] ?? getenv('MONGODB_URL');
-                    
+
                     if ($mongodbUrl) {
                         // Parse MongoDB URL
                         $parsedUrl = parse_url(str_replace('mongodb://', 'http://', $mongodbUrl));
@@ -224,7 +224,7 @@ HELP
                         $port = $parsedUrl['port'] ?? 27017;
                         $databaseName = trim($parsedUrl['path'] ?? 'anonymize_demo', '/');
                         $databaseName = explode('?', $databaseName)[0]; // Remove query params
-                        
+
                         $exportedFile = $exportService->exportMongoDB($managerName, $databaseName, $host, $port);
                     } else {
                         // Try to get from Doctrine connection if available
@@ -313,9 +313,10 @@ HELP
 
         // Fallback: create a wrapper that accesses parameters via kernel
         $container = $this->container;
-        return new class($container) implements ParameterBagInterface {
+        return new class ($container) implements ParameterBagInterface {
             public function __construct(private ContainerInterface $container) {}
-            public function get(string $name): array|bool|string|int|float|\UnitEnum|null {
+            public function get(string $name): array|bool|string|int|float|\UnitEnum|null
+            {
                 if ($this->container->has('kernel')) {
                     $kernel = $this->container->get('kernel');
                     $reflection = new \ReflectionClass($kernel);
@@ -338,7 +339,8 @@ HELP
                 }
                 throw new \InvalidArgumentException(sprintf('Parameter "%s" not found', $name));
             }
-            public function has(string $name): bool {
+            public function has(string $name): bool
+            {
                 try {
                     $this->get($name);
                     return true;
@@ -348,14 +350,26 @@ HELP
             }
             public function set(string $name, array|bool|string|int|float|\UnitEnum|null $value): void {}
             public function remove(string $name): void {}
-            public function all(): array { return []; }
+            public function all(): array
+            {
+                return [];
+            }
             public function replace(array $parameters): void {}
             public function add(array $parameters): void {}
             public function clear(): void {}
             public function resolve(): void {}
-            public function resolveValue(mixed $value): mixed { return $value; }
-            public function escapeValue(mixed $value): mixed { return $value; }
-            public function unescapeValue(mixed $value): mixed { return $value; }
+            public function resolveValue(mixed $value): mixed
+            {
+                return $value;
+            }
+            public function escapeValue(mixed $value): mixed
+            {
+                return $value;
+            }
+            public function unescapeValue(mixed $value): mixed
+            {
+                return $value;
+            }
         };
     }
 

@@ -122,7 +122,7 @@ jobs:
               // Get tag message using git
               let tagMessage = '';
               try {
-                const gitCommand = 'git tag -l --format="%(contents)" ' + tag;
+                const gitCommand = `git tag -l --format='%(contents)' ${tag}`;
                 tagMessage = execSync(gitCommand, { encoding: 'utf-8' }).trim();
               } catch (e) {
                 tagMessage = 'Release ' + tag;
@@ -235,7 +235,7 @@ jobs:
                   release_id: release.id,
                   body: releaseBody,
                   prerelease: isPrerelease,
-                  make_latest: shouldBeLatest  # Explicitly mark as latest if it's the newest
+                  make_latest: shouldBeLatest  // Explicitly mark as latest if it's the newest
                 });
                 console.log('✅ Updated release for ' + tag + ' with changelog' + (shouldBeLatest ? ' (marked as latest)' : ''));
               }

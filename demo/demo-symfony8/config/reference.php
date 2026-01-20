@@ -919,6 +919,16 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     connections?: list<scalar|null|Param>,
  *     dry_run?: bool|Param, // If true, only show what would be anonymized without making changes // Default: false
  *     batch_size?: int|Param, // Number of records to process in each batch // Default: 100
+ *     stats_output_dir?: scalar|null|Param, // Directory where statistics exports will be saved (JSON/CSV) // Default: "%kernel.project_dir%/var/stats"
+ *     history_dir?: scalar|null|Param, // Directory where anonymization history will be stored // Default: "%kernel.project_dir%/var/anonymize_history"
+ *     export?: bool|array{ // Database export configuration
+ *         enabled?: bool|Param, // Default: false
+ *         output_dir?: scalar|null|Param, // Directory where database exports will be saved // Default: "%kernel.project_dir%/var/exports"
+ *         filename_pattern?: scalar|null|Param, // Filename pattern for exports. Available placeholders: {connection}, {database}, {date}, {time}, {format} // Default: "{connection}_{database}_{date}_{time}.{format}"
+ *         compression?: "none"|"gzip"|"bzip2"|"zip"|Param, // Compression format: none, gzip, bzip2, zip // Default: "gzip"
+ *         connections?: list<scalar|null|Param>,
+ *         auto_gitignore?: bool|Param, // Automatically create/update .gitignore to exclude export directory // Default: true
+ *     },
  * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,

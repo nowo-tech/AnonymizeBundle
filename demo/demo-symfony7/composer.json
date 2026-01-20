@@ -72,7 +72,7 @@
     },
     "repositories": [],
     "require-dev": {
-        "nowo-tech/anonymize-bundle": "v0.0.16",
+        "nowo-tech/anonymize-bundle": "v0.0.18",
         "symfony/debug-bundle": "^7.0",
         "symfony/web-profiler-bundle": "^7.0"
     }

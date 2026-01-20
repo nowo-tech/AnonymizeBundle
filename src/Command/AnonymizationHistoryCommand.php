@@ -27,6 +27,32 @@ final class AnonymizationHistoryCommand extends Command
     protected function configure(): void
     {
         $this
+            ->setHelp(<<<'HELP'
+The <info>%command.name%</info> command allows you to view and manage anonymization history.
+
+This command provides:
+  1. List all anonymization runs
+  2. View details of a specific run
+  3. Compare two runs
+  4. Cleanup old runs
+
+Examples:
+  <info>php %command.full_name%</info>
+  List all anonymization runs
+
+  <info>php %command.full_name% --limit 10</info>
+  List the last 10 runs
+
+  <info>php %command.full_name% --run-id abc123</info>
+  View details of a specific run
+
+  <info>php %command.full_name% --compare abc123 def456</info>
+  Compare two runs
+
+  <info>php %command.full_name% --cleanup --days 30</info>
+  Delete runs older than 30 days
+HELP
+            )
             ->addOption('limit', 'l', InputOption::VALUE_OPTIONAL, 'Limit number of runs to display', null)
             ->addOption('connection', 'c', InputOption::VALUE_OPTIONAL, 'Filter by connection name', null)
             ->addOption('run-id', null, InputOption::VALUE_OPTIONAL, 'View details of a specific run', null)
