@@ -287,7 +287,7 @@ This document outlines the planned features, improvements, and enhancements for 
   - Use cases: Testing anonymization strategies
   - Transaction-based rollback support
 
-- ✅ **Environment Protection**: Enhanced production safety - **IMPLEMENTED** (Unreleased)
+- ✅ **Environment Protection**: Enhanced production safety - **IMPLEMENTED** (v0.0.13)
   - ✅ Additional environment checks in all commands
   - ✅ Configuration file validation (prevent prod config)
   - ✅ Runtime environment detection improvements
@@ -300,13 +300,13 @@ This document outlines the planned features, improvements, and enhancements for 
   - Interactive pattern builder
   - Guided entity selection
 
-- ✅ **Progress Bars**: Visual progress indicators - **IMPLEMENTED** (Unreleased)
+- ✅ **Progress Bars**: Visual progress indicators - **IMPLEMENTED** (v0.0.13)
   - ✅ Real-time progress bars for batch processing
   - ✅ Estimated time remaining
   - ✅ Per-entity progress tracking
   - ✅ Option `--no-progress` to disable
 
-- ✅ **Verbose Modes**: Enhanced output options - **IMPLEMENTED** (Unreleased)
+- ✅ **Verbose Modes**: Enhanced output options - **IMPLEMENTED** (v0.0.13)
   - ✅ Multiple verbosity levels (normal, verbose, debug)
   - ✅ `--verbose, -v` option
   - ✅ `--debug` option
@@ -435,7 +435,7 @@ This document outlines the planned features, improvements, and enhancements for 
 
 #### 2. **Integration and Extensibility**
 
-- ✅ **Event System**: Symfony events for extensibility - **IMPLEMENTED** (Unreleased)
+- ✅ **Event System**: Symfony events for extensibility - **IMPLEMENTED** (v0.0.13)
   - ✅ `BeforeAnonymizeEvent` - Dispatched before anonymization starts
   - ✅ `AfterAnonymizeEvent` - Dispatched after anonymization completes
   - ✅ `AnonymizePropertyEvent` - Dispatched before anonymizing each property (allows modification/skipping)
@@ -698,11 +698,11 @@ This document outlines the planned features, improvements, and enhancements for 
 3. ✅ **MaskingFaker** - **COMPLETED** (v0.0.11)
 4. ✅ **PasswordFaker** - **COMPLETED** (v0.0.12)
 5. ✅ **IpAddressFaker** - **COMPLETED** (v0.0.12)
-6. ✅ **Pre-flight Checks** - **COMPLETED** (Unreleased)
+6. ✅ **Pre-flight Checks** - **COMPLETED** (v0.0.13)
 7. ✅ **Enhanced Email/Phone/CreditCard Fakers** - **COMPLETED** (v0.0.12)
-8. ✅ **Progress Bars** - **COMPLETED** (Unreleased)
-9. ✅ **Environment Protection** - **COMPLETED** (Unreleased)
-10. ✅ **Debug and Verbose Modes** - **COMPLETED** (Unreleased)
+8. ✅ **Progress Bars** - **COMPLETED** (v0.0.13)
+9. ✅ **Environment Protection** - **COMPLETED** (v0.0.13)
+10. ✅ **Debug and Verbose Modes** - **COMPLETED** (v0.0.13)
 
 ### ⚡ Medium Priority (Next 4-6 releases)
 
@@ -711,8 +711,11 @@ This document outlines the planned features, improvements, and enhancements for 
 3. **Relationship Preservation** (Pending)
 3. **MongoDB Support** (Pending)
 4. **Configuration Files** (Pending)
-5. ✅ **Event System** - **COMPLETED** (Unreleased)
-6. ✅ **HashPreserveFaker, ShuffleFaker, ConstantFaker** - **COMPLETED** (Unreleased)
+5. ✅ **Event System** - **COMPLETED** (v0.0.13)
+6. ✅ **HashPreserveFaker, ShuffleFaker, ConstantFaker** - **COMPLETED** (v0.0.13)
+7. ✅ **PatternMatcher OR Operator** - **COMPLETED** (v0.0.14)
+8. ✅ **Entity-Level Pattern Filtering Fix** - **COMPLETED** (v0.0.14)
+9. ✅ **EmailSubscription Demo Entity** - **COMPLETED** (v0.0.14)
 6. **Symfony Messenger Integration**
 7. **Interactive Mode**
 8. **Enhanced Reporting**
