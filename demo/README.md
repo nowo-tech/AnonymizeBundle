@@ -212,7 +212,7 @@ The data should be anonymized according to the attributes defined in the entitie
 | MongoDB | 7.0 | 7.0 | 7.0 |
 | MySQL Port | 33061 | 33062 | 33063 |
 | PostgreSQL Port | 54321 | 54322 | 54323 |
-| MongoDB Port | 27016 | 27017 | 27018 |
+| MongoDB Port | 27016 | 27019 | 27018 |
 | Mongo Express Port | 8088 | 8087 | 8086 |
 | Docker Compose | ✅ | ✅ | ✅ |
 | Makefile | ✅ | ✅ | ✅ |

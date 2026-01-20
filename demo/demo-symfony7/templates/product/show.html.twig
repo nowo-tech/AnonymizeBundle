@@ -4,69 +4,63 @@
 
 {% block body %}
 {% if not hasAnonymizedColumn|default(false) %}
-<div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+<div class="alert alert-warning" role="alert">
     <strong>⚠️ Column "anonymized" not found</strong><br>
     To add the anonymization tracking column, run:<br>
-    <code style="background: #f8f9fa; padding: 5px 10px; border-radius: 3px; display: inline-block; margin-top: 10px;">
+    <code class="d-inline-block mt-2 p-2 bg-light rounded">
         php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
     </code>
 </div>
 {% endif %}
 
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2>Product Details <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
-        <div>
-            <a href="{{ path('product_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Product Details <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+        <div class="btn-group">
             <a href="{{ path('product_edit', {connection: connection, id: product.id}) }}" class="btn btn-primary">Edit</a>
+            <a href="{{ path('product_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
         </div>
     </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">{{ product.id }}</dd>
 
-    <table>
-        <tbody>
-            <tr>
-                <th style="width: 200px;">ID</th>
-                <td>{{ product.id }}</td>
-            </tr>
-            <tr>
-                <th>Name</th>
-                <td>{{ product.name }}</td>
-            </tr>
-            <tr>
-                <th>Description</th>
-                <td>{{ product.description ?? 'N/A' }}</td>
-            </tr>
-            <tr>
-                <th>Price</th>
-                <td>${{ product.price }}</td>
-            </tr>
-            <tr>
-                <th>Image URL</th>
-                <td>
-                    {% if product.imageUrl %}
-                        <a href="{{ product.imageUrl }}" target="_blank">{{ product.imageUrl }}</a>
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <th>Status</th>
-                <td>{{ product.status }}</td>
-            </tr>
-            <tr>
-                <th>Created At</th>
-                <td>{{ product.createdAt ? product.createdAt|date('Y-m-d H:i:s') : 'N/A' }}</td>
-            </tr>
-            {% if hasAnonymizedColumn and product.anonymized %}
-            <tr>
-                <th>Anonymized</th>
-                <td>
-                    <span style="background: #dc3545; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">Yes</span>
-                </td>
-            </tr>
+            <dt class="col-sm-3">Name</dt>
+            <dd class="col-sm-9">{{ product.name }}</dd>
+
+            <dt class="col-sm-3">Description</dt>
+            <dd class="col-sm-9">{{ product.description ?? '-' }}</dd>
+
+            <dt class="col-sm-3">Price</dt>
+            <dd class="col-sm-9">${{ product.price }}</dd>
+
+            <dt class="col-sm-3">Image URL</dt>
+            <dd class="col-sm-9">
+                {% if product.imageUrl %}
+                    <a href="{{ product.imageUrl }}" target="_blank" rel="noopener noreferrer">{{ product.imageUrl }}</a>
+                {% else %}
+                    -
+                {% endif %}
+            </dd>
+
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9"><span class="badge bg-secondary">{{ product.status }}</span></dd>
+
+            <dt class="col-sm-3">Created At</dt>
+            <dd class="col-sm-9">{{ product.createdAt ? product.createdAt|date('Y-m-d H:i:s') : '-' }}</dd>
+
+            {% if hasAnonymizedColumn|default(false) %}
+            <dt class="col-sm-3">Anonymized</dt>
+            <dd class="col-sm-9">
+                {% if product.anonymized|default(false) %}
+                    <span class="badge bg-success">✓ Yes</span>
+                {% else %}
+                    <span class="badge bg-secondary">✗ No</span>
+                {% endif %}
+            </dd>
             {% endif %}
-        </tbody>
-    </table>
+        </dl>
+    </div>
 </div>
 {% endblock %}

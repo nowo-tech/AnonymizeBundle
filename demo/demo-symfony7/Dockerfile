@@ -9,11 +9,20 @@ RUN apk add --no-cache \
     mysql-client \
     postgresql-client \
     postgresql-dev \
+    sqlite-dev \
     mongodb-tools \
     $PHPIZE_DEPS
 
 # Install PHP extensions
 RUN docker-php-ext-install -j$(nproc) zip pdo pdo_mysql pdo_pgsql pdo_sqlite
+
+# Install MongoDB PHP extension
+RUN apk add --no-cache --virtual .mongodb-build-deps \
+    openssl-dev \
+    curl-dev \
+    && pecl install mongodb \
+    && docker-php-ext-enable mongodb \
+    && apk del .mongodb-build-deps
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

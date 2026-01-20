@@ -3,81 +3,124 @@
 {% block title %}Home - Anonymize Bundle Demo{% endblock %}
 
 {% block body %}
-<div class="card">
-    <h2>Welcome to the Anonymize Bundle Demo</h2>
-    <p>This demo shows how to use the AnonymizeBundle with multiple database connections.</p>
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h2 class="mb-0">Welcome to the Anonymize Bundle Demo</h2>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">This demo shows how to use the AnonymizeBundle with multiple database connections.</p>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="card">
-    <h3>Available Connections</h3>
-    <ul>
-        <li><strong>default</strong> - MySQL 8.0 (Port 33063)</li>
-        <li><strong>postgres</strong> - PostgreSQL 16 (Port 54323)</li>
-        <li><strong>sqlite</strong> - SQLite (File-based)</li>
-        <li><strong>mongodb</strong> - MongoDB 7.0 (Port 27018)</li>
-    </ul>
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h3 class="mb-0">Available Connections</h3>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2"><strong>default</strong> - MySQL 8.0 (Port 33063)</li>
+                    <li class="mb-2"><strong>postgres</strong> - PostgreSQL 16 (Port 54323)</li>
+                    <li class="mb-2"><strong>sqlite</strong> - SQLite (File-based)</li>
+                    <li class="mb-0"><strong>mongodb</strong> - MongoDB 7.0 (Port 27018)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h3 class="mb-0">Database Interfaces</h3>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2"><a href="http://localhost:8084" target="_blank" class="text-decoration-none">phpMyAdmin (MySQL)</a></li>
+                    <li class="mb-2"><a href="http://localhost:8085" target="_blank" class="text-decoration-none">pgAdmin (PostgreSQL)</a></li>
+                    <li class="mb-0"><a href="http://localhost:8086" target="_blank" class="text-decoration-none">Mongo Express (MongoDB)</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="card">
-    <h3>CRUD by Connection</h3>
-    <p>You can manage entities in each connection:</p>
-    
-    <h4>Users (MySQL, PostgreSQL, SQLite)</h4>
-    <ul>
-        <li><a href="{{ path('user_index', {connection: 'default'}) }}">Users in MySQL</a></li>
-        <li><a href="{{ path('user_index', {connection: 'postgres'}) }}">Users in PostgreSQL</a></li>
-        <li><a href="{{ path('user_index', {connection: 'sqlite'}) }}">Users in SQLite</a></li>
-    </ul>
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h3 class="mb-0">CRUD by Connection</h3>
+            </div>
+            <div class="card-body">
+                <p>You can manage entities in each connection:</p>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h5>Users</h5>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ path('user_index', {connection: 'default'}) }}" class="text-decoration-none">Users in MySQL</a></li>
+                            <li><a href="{{ path('user_index', {connection: 'postgres'}) }}" class="text-decoration-none">Users in PostgreSQL</a></li>
+                            <li><a href="{{ path('user_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Users in SQLite</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h5>Customers</h5>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ path('customer_index', {connection: 'default'}) }}" class="text-decoration-none">Customers in MySQL</a></li>
+                            <li><a href="{{ path('customer_index', {connection: 'postgres'}) }}" class="text-decoration-none">Customers in PostgreSQL</a></li>
+                            <li><a href="{{ path('customer_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Customers in SQLite</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h5>Products</h5>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ path('product_index', {connection: 'default'}) }}" class="text-decoration-none">Products in MySQL</a></li>
+                            <li><a href="{{ path('product_index', {connection: 'postgres'}) }}" class="text-decoration-none">Products in PostgreSQL</a></li>
+                            <li><a href="{{ path('product_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Products in SQLite</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h5>Orders</h5>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ path('order_index', {connection: 'default'}) }}" class="text-decoration-none">Orders in MySQL</a></li>
+                            <li><a href="{{ path('order_index', {connection: 'postgres'}) }}" class="text-decoration-none">Orders in PostgreSQL</a></li>
+                            <li><a href="{{ path('order_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Orders in SQLite</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h5>Invoices</h5>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ path('invoice_index', {connection: 'default'}) }}" class="text-decoration-none">Invoices in MySQL</a></li>
+                            <li><a href="{{ path('invoice_index', {connection: 'postgres'}) }}" class="text-decoration-none">Invoices in PostgreSQL</a></li>
+                            <li><a href="{{ path('invoice_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Invoices in SQLite</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h5>Employees</h5>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ path('employee_index', {connection: 'default'}) }}" class="text-decoration-none">Employees in MySQL</a></li>
+                            <li><a href="{{ path('employee_index', {connection: 'postgres'}) }}" class="text-decoration-none">Employees in PostgreSQL</a></li>
+                            <li><a href="{{ path('employee_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Employees in SQLite</a></li>
+                        </ul>
+                    </div>
+                </div>
 
-    <h4>Customers (MySQL, PostgreSQL, SQLite)</h4>
-    <ul>
-        <li><a href="{{ path('customer_index', {connection: 'default'}) }}">Customers in MySQL</a></li>
-        <li><a href="{{ path('customer_index', {connection: 'postgres'}) }}">Customers in PostgreSQL</a></li>
-        <li><a href="{{ path('customer_index', {connection: 'sqlite'}) }}">Customers in SQLite</a></li>
-    </ul>
-
-    <h4>Products (MySQL, PostgreSQL, SQLite)</h4>
-    <ul>
-        <li><a href="{{ path('product_index', {connection: 'default'}) }}">Products in MySQL</a></li>
-        <li><a href="{{ path('product_index', {connection: 'postgres'}) }}">Products in PostgreSQL</a></li>
-        <li><a href="{{ path('product_index', {connection: 'sqlite'}) }}">Products in SQLite</a></li>
-    </ul>
-
-    <h4>Orders (MySQL, PostgreSQL, SQLite)</h4>
-    <ul>
-        <li><a href="{{ path('order_index', {connection: 'default'}) }}">Orders in MySQL</a></li>
-        <li><a href="{{ path('order_index', {connection: 'postgres'}) }}">Orders in PostgreSQL</a></li>
-        <li><a href="{{ path('order_index', {connection: 'sqlite'}) }}">Orders in SQLite</a></li>
-    </ul>
-
-    <h4>Invoices (MySQL, PostgreSQL, SQLite)</h4>
-    <ul>
-        <li><a href="{{ path('invoice_index', {connection: 'default'}) }}">Invoices in MySQL</a></li>
-        <li><a href="{{ path('invoice_index', {connection: 'postgres'}) }}">Invoices in PostgreSQL</a></li>
-        <li><a href="{{ path('invoice_index', {connection: 'sqlite'}) }}">Invoices in SQLite</a></li>
-    </ul>
-
-    <h4>Employees (MySQL, PostgreSQL, SQLite)</h4>
-    <ul>
-        <li><a href="{{ path('employee_index', {connection: 'default'}) }}">Employees in MySQL</a></li>
-        <li><a href="{{ path('employee_index', {connection: 'postgres'}) }}">Employees in PostgreSQL</a></li>
-        <li><a href="{{ path('employee_index', {connection: 'sqlite'}) }}">Employees in SQLite</a></li>
-    </ul>
-
-    <h4>User Activities (MongoDB)</h4>
-    <ul>
-        <li><a href="{{ path('mongodb_user_activity_index') }}">User Activities in MongoDB</a></li>
-    </ul>
-    
-    <p><em>Note: EmailSubscription and SystemLog entities exist but don't have CRUD interfaces yet.</em></p>
-</div>
-
-<div class="card">
-    <h3>Database Interfaces</h3>
-    <ul>
-        <li><a href="http://localhost:8084" target="_blank">phpMyAdmin (MySQL)</a></li>
-        <li><a href="http://localhost:8085" target="_blank">pgAdmin (PostgreSQL)</a></li>
-        <li><a href="http://localhost:8086" target="_blank">Mongo Express (MongoDB)</a></li>
-    </ul>
+                <div class="mt-3">
+                    <h5>User Activities (MongoDB)</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><a href="{{ path('mongodb_user_activity_index') }}" class="text-decoration-none">User Activities in MongoDB</a></li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-info mt-4 mb-0">
+                    <em>Note: EmailSubscription and SystemLog entities exist but don't have CRUD interfaces yet.</em>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

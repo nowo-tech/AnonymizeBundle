@@ -4,67 +4,65 @@
 
 {% block body %}
 {% if not hasAnonymizedColumn|default(false) %}
-<div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+<div class="alert alert-warning" role="alert">
     <strong>⚠️ Column "anonymized" not found</strong><br>
     To add the anonymization tracking column, run:<br>
-    <code style="background: #f8f9fa; padding: 5px 10px; border-radius: 3px; display: inline-block; margin-top: 10px;">
+    <code class="d-inline-block mt-2 p-2 bg-light rounded">
         php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
     </code>
 </div>
 {% endif %}
 
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2>Order Details <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
-        <div>
-            <a href="{{ path('order_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Order Details <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+        <div class="btn-group">
             <a href="{{ path('order_edit', {connection: connection, id: order.id}) }}" class="btn btn-primary">Edit</a>
+            <a href="{{ path('order_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
         </div>
     </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">{{ order.id }}</dd>
 
-    <table>
-        <tbody>
-            <tr>
-                <th style="width: 200px;">ID</th>
-                <td>{{ order.id }}</td>
-            </tr>
-            <tr>
-                <th>Order Number</th>
-                <td>{{ order.orderNumber ?? 'N/A' }}</td>
-            </tr>
-            <tr>
-                <th>Shipping Address</th>
-                <td>{{ order.shippingAddress }}</td>
-            </tr>
-            <tr>
-                <th>Billing Address</th>
-                <td>{{ order.billingAddress ?? 'N/A' }}</td>
-            </tr>
-            <tr>
-                <th>Total Amount</th>
-                <td>${{ order.totalAmount }}</td>
-            </tr>
-            <tr>
-                <th>Order Date</th>
-                <td>{{ order.orderDate ? order.orderDate|date('Y-m-d H:i:s') : 'N/A' }}</td>
-            </tr>
-            <tr>
-                <th>Status</th>
-                <td>{{ order.status }}</td>
-            </tr>
-            <tr>
-                <th>Customer Email</th>
-                <td>{{ order.customerEmail ?? 'N/A' }}</td>
-            </tr>
-            {% if hasAnonymizedColumn and order.anonymized %}
-            <tr>
-                <th>Anonymized</th>
-                <td>
-                    <span style="background: #dc3545; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">Yes</span>
-                </td>
-            </tr>
+            <dt class="col-sm-3">Order Number</dt>
+            <dd class="col-sm-9">{{ order.orderNumber ?? '-' }}</dd>
+
+            <dt class="col-sm-3">Shipping Address</dt>
+            <dd class="col-sm-9">{{ order.shippingAddress }}</dd>
+
+            <dt class="col-sm-3">Billing Address</dt>
+            <dd class="col-sm-9">{{ order.billingAddress ?? '-' }}</dd>
+
+            <dt class="col-sm-3">Total Amount</dt>
+            <dd class="col-sm-9">${{ order.totalAmount }}</dd>
+
+            <dt class="col-sm-3">Order Date</dt>
+            <dd class="col-sm-9">{{ order.orderDate ? order.orderDate|date('Y-m-d H:i:s') : '-' }}</dd>
+
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9"><span class="badge bg-secondary">{{ order.status }}</span></dd>
+
+            <dt class="col-sm-3">Customer Email</dt>
+            <dd class="col-sm-9">{{ order.customerEmail ?? '-' }}</dd>
+
+            {% if order.type %}
+            <dt class="col-sm-3">Type</dt>
+            <dd class="col-sm-9">{{ order.type.name ?? '-' }}</dd>
             {% endif %}
-        </tbody>
-    </table>
+
+            {% if hasAnonymizedColumn|default(false) %}
+            <dt class="col-sm-3">Anonymized</dt>
+            <dd class="col-sm-9">
+                {% if order.anonymized|default(false) %}
+                    <span class="badge bg-success">✓ Yes</span>
+                {% else %}
+                    <span class="badge bg-secondary">✗ No</span>
+                {% endif %}
+            </dd>
+            {% endif %}
+        </dl>
+    </div>
 </div>
 {% endblock %}

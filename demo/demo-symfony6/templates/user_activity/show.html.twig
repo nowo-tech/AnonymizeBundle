@@ -3,66 +3,70 @@
 {% block title %}User Activity #{{ activity._id }} - MongoDB{% endblock %}
 
 {% block body %}
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2>User Activity Details <span class="connection-badge mongodb" style="background: #10b981; color: white; padding: 5px 15px; border-radius: 5px; font-size: 14px; font-weight: normal;">MongoDB</span></h2>
-        <div>
+<div class="alert alert-info" role="alert">
+    <strong>ℹ️ Anonymized Fields</strong><br>
+    The following fields in this document are configured for anonymization:
+    <ul class="mb-0 mt-2">
+        <li><strong>userEmail</strong> - Email faker</li>
+        <li><strong>userName</strong> - Name faker</li>
+        <li><strong>ipAddress</strong> - IP address faker</li>
+        <li><strong>timestamp</strong> - Date faker (past dates, range: -1 year to now)</li>
+        <li><strong>metadata</strong> - Name faker (for metadata fields)</li>
+    </ul>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">User Activity Details <span class="badge bg-success connection-badge">MongoDB</span></h2>
+        <div class="btn-group">
             <a href="{{ path('mongodb_user_activity_edit', {id: activity._id}) }}" class="btn btn-primary">Edit</a>
             <a href="{{ path('mongodb_user_activity_index') }}" class="btn btn-secondary">Back to List</a>
         </div>
     </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">{{ activity._id }}</dd>
 
-    <table>
-        <tr>
-            <th>ID</th>
-            <td>{{ activity._id }}</td>
-        </tr>
-        <tr>
-            <th>User Email</th>
-            <td>{{ activity.userEmail ?? '-' }}</td>
-        </tr>
-        <tr>
-            <th>User Name</th>
-            <td>{{ activity.userName ?? '-' }}</td>
-        </tr>
-        <tr>
-            <th>IP Address</th>
-            <td>{{ activity.ipAddress ?? '-' }}</td>
-        </tr>
-        <tr>
-            <th>Action</th>
-            <td>{{ activity.action ?? '-' }}</td>
-        </tr>
-        <tr>
-            <th>Timestamp</th>
-            <td>
+            <dt class="col-sm-3">User Email</dt>
+            <dd class="col-sm-9">{{ activity.userEmail ?? '-' }}</dd>
+
+            <dt class="col-sm-3">User Name</dt>
+            <dd class="col-sm-9">{{ activity.userName ?? '-' }}</dd>
+
+            <dt class="col-sm-3">IP Address</dt>
+            <dd class="col-sm-9">{{ activity.ipAddress ?? '-' }}</dd>
+
+            <dt class="col-sm-3">Action</dt>
+            <dd class="col-sm-9"><span class="badge bg-info">{{ activity.action ?? '-' }}</span></dd>
+
+            <dt class="col-sm-3">Timestamp</dt>
+            <dd class="col-sm-9">
                 {% if activity.timestamp %}
                     {{ activity.timestamp.toDateTime()|date('Y-m-d H:i:s') }}
                 {% else %}
                     -
                 {% endif %}
-            </td>
-        </tr>
-        <tr>
-            <th>Metadata</th>
-            <td>
+            </dd>
+
+            <dt class="col-sm-3">Metadata</dt>
+            <dd class="col-sm-9">
                 {% if activity.metadata %}
-                    <pre style="background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto;">{{ activity.metadata|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+                    <pre class="bg-light p-3 rounded"><code>{{ activity.metadata|json_encode(constant('JSON_PRETTY_PRINT')) }}</code></pre>
                 {% else %}
                     -
                 {% endif %}
-            </td>
-        </tr>
-        <tr>
-            <th>Anonymized</th>
-            <td>
+            </dd>
+
+            <dt class="col-sm-3">Anonymized</dt>
+            <dd class="col-sm-9">
                 {% if activity.anonymized|default(false) %}
-                    <span style="color: #28a745; font-weight: bold;">✓ Yes</span>
+                    <span class="badge bg-success">✓ Yes</span>
                 {% else %}
-                    <span style="color: #6c757d;">✗ No</span>
+                    <span class="badge bg-secondary">✗ No</span>
                 {% endif %}
-            </td>
-        </tr>
-    </table>
+            </dd>
+        </dl>
+    </div>
 </div>
 {% endblock %}

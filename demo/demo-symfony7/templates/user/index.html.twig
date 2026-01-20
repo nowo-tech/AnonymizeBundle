@@ -4,19 +4,19 @@
 
 {% block body %}
 {% if not hasAnonymizedColumn|default(false) %}
-<div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+<div class="alert alert-warning" role="alert">
     <strong>⚠️ Column "anonymized" not found</strong><br>
     To add the anonymization tracking column, run:<br>
-    <code style="background: #f8f9fa; padding: 5px 10px; border-radius: 3px; display: inline-block; margin-top: 10px;">
+    <code class="d-inline-block mt-2 p-2 bg-light rounded">
         php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
     </code>
 </div>
 {% endif %}
 
-<div class="alert alert-info" style="background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+<div class="alert alert-info" role="alert">
     <strong>ℹ️ Anonymized Fields</strong><br>
     The following fields in this entity are configured for anonymization:
-    <ul style="margin: 10px 0 0 20px;">
+    <ul class="mb-0 mt-2">
         <li><strong>email</strong> - Email faker</li>
         <li><strong>firstName</strong> - Name faker</li>
         <li><strong>lastName</strong> - Surname faker</li>
@@ -27,62 +27,67 @@
     </ul>
 </div>
 
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2>Users <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Users <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
         <a href="{{ path('user_new', {connection: connection}) }}" class="btn btn-primary">Create New User</a>
     </div>
-
-    {% if users|length > 0 %}
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Email</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Age</th>
-                    <th>Phone</th>
-                    <th>Status</th>
-                    {% if hasAnonymizedColumn|default(false) %}
-                    <th>Anonymized</th>
-                    {% endif %}
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in users %}
-                    <tr>
-                        <td>{{ user.id }}</td>
-                        <td>{{ user.email }}</td>
-                        <td>{{ user.firstName }}</td>
-                        <td>{{ user.lastName }}</td>
-                        <td>{{ user.age }}</td>
-                        <td>{{ user.phone ?? '-' }}</td>
-                        <td>{{ user.status }}</td>
-                        {% if hasAnonymizedColumn|default(false) %}
-                        <td>
-                            {% if user.anonymized|default(false) %}
-                                <span style="color: #28a745; font-weight: bold;">✓ Yes</span>
-                            {% else %}
-                                <span style="color: #6c757d;">✗ No</span>
+    <div class="card-body">
+        {% if users|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Email</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Age</th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            {% if hasAnonymizedColumn|default(false) %}
+                            <th>Anonymized</th>
                             {% endif %}
-                        </td>
-                        {% endif %}
-                        <td>
-                            <a href="{{ path('user_show', {connection: connection, id: user.id}) }}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Show</a>
-                            <a href="{{ path('user_edit', {connection: connection, id: user.id}) }}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Edit</a>
-                            <form method="post" action="{{ path('user_delete', {connection: connection, id: user.id}) }}" style="display: inline;">
-                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
-                                <button type="submit" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="return confirm('Are you sure?')">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No users found. <a href="{{ path('user_new', {connection: connection}) }}">Create the first one</a>.</p>
-    {% endif %}
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                            <tr>
+                                <td>{{ user.id }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.firstName }}</td>
+                                <td>{{ user.lastName }}</td>
+                                <td>{{ user.age }}</td>
+                                <td>{{ user.phone ?? '-' }}</td>
+                                <td><span class="badge bg-secondary">{{ user.status }}</span></td>
+                                {% if hasAnonymizedColumn|default(false) %}
+                                <td>
+                                    {% if user.anonymized|default(false) %}
+                                        <span class="badge bg-success">✓ Yes</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">✗ No</span>
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ path('user_show', {connection: connection, id: user.id}) }}" class="btn btn-sm btn-outline-secondary">Show</a>
+                                        <a href="{{ path('user_edit', {connection: connection, id: user.id}) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                        <form method="post" action="{{ path('user_delete', {connection: connection, id: user.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure?')">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">No users found. <a href="{{ path('user_new', {connection: connection}) }}">Create the first one</a>.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

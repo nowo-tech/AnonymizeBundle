@@ -161,8 +161,25 @@ final class AnonymizeService
         $tableName = $metadata->getTableName();
         $connection = $em->getConnection();
 
-        // Get all records
-        $query = sprintf('SELECT * FROM %s', $connection->quoteSingleIdentifier($tableName));
+        // Detect relationships in patterns and build query with JOINs
+        $allPatterns = [];
+        if ($entityAttribute !== null) {
+            $allPatterns = array_merge(
+                array_keys($entityAttribute->includePatterns),
+                array_keys($entityAttribute->excludePatterns)
+            );
+        }
+        foreach ($properties as $propertyData) {
+            $attr = $propertyData['attribute'];
+            $allPatterns = array_merge(
+                $allPatterns,
+                array_keys($attr->includePatterns),
+                array_keys($attr->excludePatterns)
+            );
+        }
+
+        // Build query with JOINs for relationships
+        $query = $this->buildQueryWithRelationships($em, $metadata, $tableName, $allPatterns);
         $records = $connection->fetchAllAssociative($query);
         $totalRecords = count($records);
 
@@ -427,5 +444,122 @@ final class AnonymizeService
         }
 
         return false;
+    }
+
+    /**
+     * Builds a SQL query with JOINs for relationships referenced in patterns.
+     *
+     * @param EntityManagerInterface $em The entity manager
+     * @param ClassMetadata $metadata The entity metadata
+     * @param string $tableName The main table name
+     * @param array<string> $patternFields Array of pattern field names (e.g., ['id', 'type.name', 'status'])
+     * @return string The SQL query with JOINs
+     */
+    private function buildQueryWithRelationships(
+        EntityManagerInterface $em,
+        ClassMetadata $metadata,
+        string $tableName,
+        array $patternFields
+    ): string {
+        $connection = $em->getConnection();
+        $mainTableAlias = 't0';
+        $joins = [];
+        $selectFields = [$connection->quoteSingleIdentifier($mainTableAlias) . '.*'];
+        $joinCounter = 1;
+
+        // Detect relationship patterns (fields with dots, e.g., 'type.name')
+        foreach ($patternFields as $patternField) {
+            if (!str_contains($patternField, '.')) {
+                continue; // Not a relationship pattern
+            }
+
+            $parts = explode('.', $patternField, 2);
+            $associationName = $parts[0];
+            $relatedField = $parts[1];
+
+            // Check if association exists
+            if (!$metadata->hasAssociation($associationName)) {
+                continue; // Skip if association doesn't exist
+            }
+
+            $associationMapping = $metadata->getAssociationMapping($associationName);
+            $targetEntity = $associationMapping['targetEntity'];
+            $targetMetadata = $em->getClassMetadata($targetEntity);
+            $targetTable = $targetMetadata->getTableName();
+            $alias = 't' . $joinCounter;
+
+            // Get join columns
+            $joinColumns = $associationMapping['joinColumns'] ?? [];
+            if (empty($joinColumns)) {
+                // ManyToOne or OneToOne - use source column
+                $sourceColumn = $metadata->getSingleAssociationJoinColumnName($associationName);
+                // Get target ID column name
+                $targetIdField = $targetMetadata->getSingleIdentifierFieldName();
+                $targetIdMapping = $targetMetadata->getFieldMapping($targetIdField);
+                $targetColumn = $targetIdMapping['columnName'] ?? 'id';
+            } else {
+                $joinColumn = $joinColumns[0];
+                $sourceColumn = $joinColumn['name'] ?? $associationName . '_id';
+                $targetColumn = $joinColumn['referencedColumnName'] ?? 'id';
+            }
+
+            // Check if join already exists
+            $joinKey = $associationName;
+            if (!isset($joins[$joinKey])) {
+                $joins[$joinKey] = [
+                    'table' => $targetTable,
+                    'alias' => $alias,
+                    'sourceColumn' => $sourceColumn,
+                    'targetColumn' => $targetColumn,
+                    'counter' => $joinCounter,
+                ];
+
+                // Add related field to SELECT if it exists in target metadata
+                if ($targetMetadata->hasField($relatedField)) {
+                    $relatedFieldMapping = $targetMetadata->getFieldMapping($relatedField);
+                    $relatedColumnName = $relatedFieldMapping['columnName'] ?? $relatedField;
+                    $selectFields[] = sprintf(
+                        '%s.%s AS %s',
+                        $connection->quoteSingleIdentifier($alias),
+                        $connection->quoteSingleIdentifier($relatedColumnName),
+                        $connection->quoteSingleIdentifier($patternField)
+                    );
+                }
+
+                $joinCounter++;
+            }
+        }
+
+        // Build SELECT clause
+        $selectClause = implode(', ', $selectFields);
+
+        // Build FROM clause
+        $fromClause = sprintf(
+            '%s AS %s',
+            $connection->quoteSingleIdentifier($tableName),
+            $connection->quoteSingleIdentifier($mainTableAlias)
+        );
+
+        // Build JOIN clauses
+        $joinClauses = [];
+        foreach ($joins as $join) {
+            $joinClauses[] = sprintf(
+                'LEFT JOIN %s AS %s ON %s.%s = %s.%s',
+                $connection->quoteSingleIdentifier($join['table']),
+                $connection->quoteSingleIdentifier($join['alias']),
+                $connection->quoteSingleIdentifier($mainTableAlias),
+                $connection->quoteSingleIdentifier($join['sourceColumn']),
+                $connection->quoteSingleIdentifier($join['alias']),
+                $connection->quoteSingleIdentifier($join['targetColumn'])
+            );
+        }
+
+        // Build final query
+        $query = sprintf('SELECT %s FROM %s', $selectClause, $fromClause);
+        if (!empty($joinClauses)) {
+            $query .= ' ' . implode(' ', $joinClauses);
+        }
+
+        return $query;
     }
 }

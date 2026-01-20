@@ -53,11 +53,12 @@ final class PatternMatcher
     private function matchesPatterns(array $record, array $patterns): bool
     {
         foreach ($patterns as $field => $pattern) {
-            if (!isset($record[$field])) {
+            // Support for relationship patterns (e.g., 'type.name')
+            $value = $this->getNestedValue($record, $field);
+            
+            if ($value === null && !isset($record[$field])) {
                 return false;
             }
-
-            $value = $record[$field];
 
             // Handle comparison operators
             if (str_starts_with($pattern, '>=')) {
@@ -135,5 +136,39 @@ final class PatternMatcher
         }
 
         return true;
+    }
+
+    /**
+     * Gets a nested value from a record, supporting dot notation for relationships.
+     *
+     * @param array<string, mixed> $record The record to get value from
+     * @param string $field The field name, optionally with dot notation (e.g., 'type.name')
+     * @return mixed The value or null if not found
+     */
+    private function getNestedValue(array $record, string $field): mixed
+    {
+        // Direct field access (e.g., 'id', 'status')
+        if (isset($record[$field])) {
+            return $record[$field];
+        }
+
+        // Relationship field access (e.g., 'type.name')
+        if (str_contains($field, '.')) {
+            $parts = explode('.', $field, 2);
+            $associationName = $parts[0];
+            $relatedField = $parts[1];
+
+            // Check if we have the relationship field directly (from JOIN)
+            if (isset($record[$field])) {
+                return $record[$field];
+            }
+
+            // Try to get from nested structure (if entity was loaded with relationship)
+            if (isset($record[$associationName]) && is_array($record[$associationName])) {
+                return $record[$associationName][$relatedField] ?? null;
+            }
+        }
+
+        return null;
     }
 }

@@ -4,75 +4,66 @@
 
 {% block body %}
 {% if not hasAnonymizedColumn|default(false) %}
-<div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+<div class="alert alert-warning" role="alert">
     <strong>⚠️ Column "anonymized" not found</strong><br>
     To add the anonymization tracking column, run:<br>
-    <code style="background: #f8f9fa; padding: 5px 10px; border-radius: 3px; display: inline-block; margin-top: 10px;">
+    <code class="d-inline-block mt-2 p-2 bg-light rounded">
         php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
     </code>
 </div>
 {% endif %}
 
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2>Invoice Details <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
-        <div>
-            <a href="{{ path('invoice_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Invoice Details <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+        <div class="btn-group">
             <a href="{{ path('invoice_edit', {connection: connection, id: invoice.id}) }}" class="btn btn-primary">Edit</a>
+            <a href="{{ path('invoice_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
         </div>
     </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">{{ invoice.id }}</dd>
 
-    <table>
-        <tbody>
-            <tr>
-                <th style="width: 200px;">ID</th>
-                <td>{{ invoice.id }}</td>
-            </tr>
-            <tr>
-                <th>Invoice Number</th>
-                <td>{{ invoice.invoiceNumber }}</td>
-            </tr>
-            <tr>
-                <th>Company Name</th>
-                <td>{{ invoice.companyName }}</td>
-            </tr>
-            <tr>
-                <th>Company Address</th>
-                <td>{{ invoice.companyAddress }}</td>
-            </tr>
-            <tr>
-                <th>Bank Account</th>
-                <td>{{ invoice.bankAccount ?? 'N/A' }}</td>
-            </tr>
-            <tr>
-                <th>Credit Card</th>
-                <td>{{ invoice.creditCard ?? 'N/A' }}</td>
-            </tr>
-            <tr>
-                <th>Amount</th>
-                <td>${{ invoice.amount }}</td>
-            </tr>
-            <tr>
-                <th>Issue Date</th>
-                <td>{{ invoice.issueDate ? invoice.issueDate|date('Y-m-d H:i:s') : 'N/A' }}</td>
-            </tr>
-            <tr>
-                <th>Due Date</th>
-                <td>{{ invoice.dueDate ? invoice.dueDate|date('Y-m-d H:i:s') : 'N/A' }}</td>
-            </tr>
-            <tr>
-                <th>Status</th>
-                <td>{{ invoice.status }}</td>
-            </tr>
-            {% if hasAnonymizedColumn and invoice.anonymized %}
-            <tr>
-                <th>Anonymized</th>
-                <td>
-                    <span style="background: #dc3545; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">Yes</span>
-                </td>
-            </tr>
+            <dt class="col-sm-3">Invoice Number</dt>
+            <dd class="col-sm-9">{{ invoice.invoiceNumber }}</dd>
+
+            <dt class="col-sm-3">Company Name</dt>
+            <dd class="col-sm-9">{{ invoice.companyName }}</dd>
+
+            <dt class="col-sm-3">Company Address</dt>
+            <dd class="col-sm-9">{{ invoice.companyAddress }}</dd>
+
+            <dt class="col-sm-3">Bank Account</dt>
+            <dd class="col-sm-9">{{ invoice.bankAccount ?? '-' }}</dd>
+
+            <dt class="col-sm-3">Credit Card</dt>
+            <dd class="col-sm-9">{{ invoice.creditCard ?? '-' }}</dd>
+
+            <dt class="col-sm-3">Amount</dt>
+            <dd class="col-sm-9">${{ invoice.amount }}</dd>
+
+            <dt class="col-sm-3">Issue Date</dt>
+            <dd class="col-sm-9">{{ invoice.issueDate ? invoice.issueDate|date('Y-m-d H:i:s') : '-' }}</dd>
+
+            <dt class="col-sm-3">Due Date</dt>
+            <dd class="col-sm-9">{{ invoice.dueDate ? invoice.dueDate|date('Y-m-d H:i:s') : '-' }}</dd>
+
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9"><span class="badge bg-secondary">{{ invoice.status }}</span></dd>
+
+            {% if hasAnonymizedColumn|default(false) %}
+            <dt class="col-sm-3">Anonymized</dt>
+            <dd class="col-sm-9">
+                {% if invoice.anonymized|default(false) %}
+                    <span class="badge bg-success">✓ Yes</span>
+                {% else %}
+                    <span class="badge bg-secondary">✗ No</span>
+                {% endif %}
+            </dd>
             {% endif %}
-        </tbody>
-    </table>
+        </dl>
+    </div>
 </div>
 {% endblock %}

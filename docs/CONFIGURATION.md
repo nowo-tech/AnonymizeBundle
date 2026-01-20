@@ -184,6 +184,35 @@ The anonymization decision follows this flow:
 - **Comparison**: `>`, `>=`, `<`, `<=`, `=`, `!=`, `<>`
 - **SQL LIKE**: `%` wildcard (e.g., `'%@example.com'`)
 - **OR Operator**: `|` for multiple values (e.g., `'active|inactive'`)
+- **Relationship Access**: Dot notation for related entities (e.g., `'type.name'`, `'customer.status'`)
+
+### Relationship Patterns
+
+Patterns can reference fields from related entities using dot notation:
+
+```php
+#[Anonymize(includePatterns: ['type.name' => '%HR'])]
+class Order
+{
+    #[ORM\ManyToOne]
+    private ?Type $type = null;
+}
+```
+
+The bundle automatically:
+- Detects relationship patterns (fields containing `.`)
+- Builds SQL queries with `LEFT JOIN` clauses
+- Accesses related entity fields for pattern matching
+
+**Supported relationship types:**
+- `ManyToOne` (most common)
+- `OneToOne`
+- `OneToMany` (via inverse side)
+
+**Limitations:**
+- Only direct relationships are supported (one level: `type.name`)
+- Nested relationships (e.g., `order.customer.address.city`) may work but are not fully tested
+- The association must exist in Doctrine metadata
 
 See [USAGE.md](USAGE.md) for detailed examples and use cases.
 

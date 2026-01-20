@@ -17,7 +17,12 @@ class UserActivityController extends AbstractController
 {
     private function getMongoClient()
     {
-        // Check if MongoDB extension or library is available
+        // Check if MongoDB PHP extension is loaded
+        if (!extension_loaded('mongodb')) {
+            return null;
+        }
+
+        // Check if MongoDB\Client class exists (from mongodb/mongodb package)
         if (!class_exists('\MongoDB\Client') && !class_exists('MongoDB\Client')) {
             return null;
         }
@@ -64,13 +69,47 @@ class UserActivityController extends AbstractController
     #[Route('/', name: 'mongodb_user_activity_index', methods: ['GET'])]
     public function index(): Response
     {
-        $collection = $this->getCollection();
-        
-        if (!$collection) {
-            $this->addFlash('error', 'MongoDB connection not available. Please check MONGODB_URL environment variable.');
+        // Check if MongoDB extension is available
+        if (!extension_loaded('mongodb')) {
+            $errorMsg = 'MongoDB PHP extension is not loaded. ';
+            $errorMsg .= 'The extension should be installed in the Dockerfile. ';
+            $errorMsg .= 'Please rebuild the container: docker-compose build --no-cache php';
+            $this->addFlash('error', $errorMsg);
             return $this->render('user_activity/index.html.twig', [
                 'activities' => [],
                 'connection' => 'mongodb',
+                'error' => $errorMsg,
+            ]);
+        }
+
+        // Check if MongoDB\Client class exists
+        if (!class_exists('\MongoDB\Client') && !class_exists('MongoDB\Client')) {
+            $errorMsg = 'MongoDB\Client class not found. ';
+            $errorMsg .= 'The mongodb/mongodb package should be in composer.json. ';
+            $errorMsg .= 'Please run: docker-compose exec php composer install';
+            $this->addFlash('error', $errorMsg);
+            return $this->render('user_activity/index.html.twig', [
+                'activities' => [],
+                'connection' => 'mongodb',
+                'error' => $errorMsg,
+            ]);
+        }
+
+        $collection = $this->getCollection();
+        
+        if (!$collection) {
+            $mongodbUrl = $_ENV['MONGODB_URL'] ?? getenv('MONGODB_URL');
+            $errorMsg = 'MongoDB connection not available.';
+            if (!$mongodbUrl) {
+                $errorMsg .= ' MONGODB_URL environment variable is not set.';
+            } else {
+                $errorMsg .= ' Please check MONGODB_URL and MongoDB service.';
+            }
+            $this->addFlash('error', $errorMsg);
+            return $this->render('user_activity/index.html.twig', [
+                'activities' => [],
+                'connection' => 'mongodb',
+                'error' => $errorMsg,
             ]);
         }
 
@@ -88,6 +127,7 @@ class UserActivityController extends AbstractController
         return $this->render('user_activity/index.html.twig', [
             'activities' => $activitiesArray,
             'connection' => 'mongodb',
+            'hasAnonymizedColumn' => true,
         ]);
     }
 

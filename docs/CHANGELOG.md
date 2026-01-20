@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.16] - 2026-01-20
+
+### Added
+
+- **Relationship Patterns Support**: Patterns can now reference related entities using dot notation
+  - Support for relationship patterns in `includePatterns` and `excludePatterns` (e.g., `'type.name' => '%HR'`)
+  - Automatic SQL JOIN construction for relationship patterns
+  - Works with all pattern operators: comparison (`>`, `<`, `=`, etc.), SQL LIKE (`%`), and OR (`|`)
+  - Supports `ManyToOne` and `OneToOne` relationships
+  - Example: `#[Anonymize(includePatterns: ['type.name' => '%HR', 'status' => 'completed'])]`
+  - The bundle automatically detects relationship patterns and builds appropriate SQL queries with LEFT JOINs
+  - PatternMatcher updated to access nested relationship values
+  - Documented in `docs/USAGE.md` and `docs/CONFIGURATION.md`
+
+- **Demo: Type Entity and Relationship Example**: New example demonstrating relationship patterns
+  - Created `Type` entity (id, name, description) in all demo projects
+  - Added `ManyToOne` relationship from `Order` to `Type`
+  - Updated `Order` entity with relationship pattern example: `['type.name' => '%HR']`
+  - Created `TypeFixtures` with 7 types (HR, HR Management, Sales, IT, Marketing, Finance, Operations)
+  - Updated `OrderFixtures` to include type relationships
+  - Applied to all demo projects (Symfony 6, 7, 8)
+
+### Improved
+
+- **Demo: MongoDB CRUD Navigation**: Enhanced menu navigation in all demo projects
+  - Added MongoDB section to sidebar menu in `base.html.twig`
+  - "User Activities (MongoDB)" link now visible in navigation menu
+  - Better integration of MongoDB CRUD with other entity CRUDs
+  - Applied to all demo projects (Symfony 6, 7, 8)
+
 ## [0.0.15] - 2026-01-20
 
 ### Added

@@ -6,6 +6,7 @@
     "require": {
         "php": ">=8.4,<8.6",
         "doctrine/orm": "^2.13 || ^3.0",
+        "mongodb/mongodb": "^2.1",
         "symfony/asset": "^8.0",
         "symfony/console": "^8.0",
         "symfony/dotenv": "^8.0",
@@ -69,7 +70,7 @@
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "*",
-        "nowo-tech/anonymize-bundle": "v0.0.12",
+        "nowo-tech/anonymize-bundle": "v0.0.15",
         "symfony/debug-bundle": "^8.0",
         "symfony/web-profiler-bundle": "^8.0"
     }

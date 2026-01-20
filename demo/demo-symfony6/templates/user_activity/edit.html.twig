@@ -3,66 +3,69 @@
 {% block title %}Edit User Activity #{{ activity._id }} - MongoDB{% endblock %}
 
 {% block body %}
-<div class="card">
-    <h2>Edit User Activity <span class="connection-badge mongodb" style="background: #10b981; color: white; padding: 5px 15px; border-radius: 5px; font-size: 14px; font-weight: normal;">MongoDB</span></h2>
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h2 class="mb-0">Edit User Activity <span class="badge bg-success connection-badge">MongoDB</span></h2>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{{ path('mongodb_user_activity_edit', {id: activity._id}) }}">
+            <div class="mb-3">
+                <label for="userEmail" class="form-label">User Email <span class="text-danger">*</span></label>
+                <input type="email" class="form-control" id="userEmail" name="userEmail" value="{{ activity.userEmail ?? '' }}" required>
+            </div>
 
-    <form method="post" action="{{ path('mongodb_user_activity_edit', {id: activity._id}) }}">
-        <div style="margin-bottom: 15px;">
-            <label for="userEmail" style="display: block; margin-bottom: 5px; font-weight: bold;">User Email:</label>
-            <input type="email" id="userEmail" name="userEmail" value="{{ activity.userEmail ?? '' }}" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
+            <div class="mb-3">
+                <label for="userName" class="form-label">User Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="userName" name="userName" value="{{ activity.userName ?? '' }}" required>
+            </div>
 
-        <div style="margin-bottom: 15px;">
-            <label for="userName" style="display: block; margin-bottom: 5px; font-weight: bold;">User Name:</label>
-            <input type="text" id="userName" name="userName" value="{{ activity.userName ?? '' }}" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
+            <div class="mb-3">
+                <label for="ipAddress" class="form-label">IP Address <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="ipAddress" name="ipAddress" value="{{ activity.ipAddress ?? '' }}" required>
+            </div>
 
-        <div style="margin-bottom: 15px;">
-            <label for="ipAddress" style="display: block; margin-bottom: 5px; font-weight: bold;">IP Address:</label>
-            <input type="text" id="ipAddress" name="ipAddress" value="{{ activity.ipAddress ?? '' }}" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
+            <div class="mb-3">
+                <label for="action" class="form-label">Action <span class="text-danger">*</span></label>
+                <select class="form-select" id="action" name="action" required>
+                    <option value="">Select an action</option>
+                    <option value="login" {% if activity.action == 'login' %}selected{% endif %}>Login</option>
+                    <option value="logout" {% if activity.action == 'logout' %}selected{% endif %}>Logout</option>
+                    <option value="view_page" {% if activity.action == 'view_page' %}selected{% endif %}>View Page</option>
+                    <option value="update_profile" {% if activity.action == 'update_profile' %}selected{% endif %}>Update Profile</option>
+                    <option value="create_order" {% if activity.action == 'create_order' %}selected{% endif %}>Create Order</option>
+                    <option value="cancel_order" {% if activity.action == 'cancel_order' %}selected{% endif %}>Cancel Order</option>
+                    <option value="add_to_cart" {% if activity.action == 'add_to_cart' %}selected{% endif %}>Add to Cart</option>
+                    <option value="remove_from_cart" {% if activity.action == 'remove_from_cart' %}selected{% endif %}>Remove from Cart</option>
+                </select>
+            </div>
 
-        <div style="margin-bottom: 15px;">
-            <label for="action" style="display: block; margin-bottom: 5px; font-weight: bold;">Action:</label>
-            <select id="action" name="action" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                <option value="">Select an action</option>
-                <option value="login" {% if activity.action == 'login' %}selected{% endif %}>Login</option>
-                <option value="logout" {% if activity.action == 'logout' %}selected{% endif %}>Logout</option>
-                <option value="view_page" {% if activity.action == 'view_page' %}selected{% endif %}>View Page</option>
-                <option value="update_profile" {% if activity.action == 'update_profile' %}selected{% endif %}>Update Profile</option>
-                <option value="create_order" {% if activity.action == 'create_order' %}selected{% endif %}>Create Order</option>
-                <option value="cancel_order" {% if activity.action == 'cancel_order' %}selected{% endif %}>Cancel Order</option>
-                <option value="add_to_cart" {% if activity.action == 'add_to_cart' %}selected{% endif %}>Add to Cart</option>
-                <option value="remove_from_cart" {% if activity.action == 'remove_from_cart' %}selected{% endif %}>Remove from Cart</option>
-            </select>
-        </div>
+            <div class="mb-3">
+                <label for="timestamp" class="form-label">Timestamp <span class="text-danger">*</span></label>
+                <input type="datetime-local" class="form-control" id="timestamp" name="timestamp" 
+                       value="{% if activity.timestamp %}{{ activity.timestamp.toDateTime()|date("Y-m-d\\TH:i") }}{% else %}{{ "now"|date("Y-m-d\\TH:i") }}{% endif %}" 
+                       required>
+            </div>
 
-        <div style="margin-bottom: 15px;">
-            <label for="timestamp" style="display: block; margin-bottom: 5px; font-weight: bold;">Timestamp:</label>
-            <input type="datetime-local" id="timestamp" name="timestamp" 
-                   value="{% if activity.timestamp %}{{ activity.timestamp.toDateTime()|date("Y-m-d\\TH:i") }}{% else %}{{ "now"|date("Y-m-d\\TH:i") }}{% endif %}" 
-                   required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
+            <div class="mb-3">
+                <label for="userAgent" class="form-label">User Agent</label>
+                <input type="text" class="form-control" id="userAgent" name="userAgent" value="{{ activity.metadata.userAgent ?? '' }}">
+            </div>
 
-        <div style="margin-bottom: 15px;">
-            <label for="userAgent" style="display: block; margin-bottom: 5px; font-weight: bold;">User Agent:</label>
-            <input type="text" id="userAgent" name="userAgent" value="{{ activity.metadata.userAgent ?? '' }}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
+            <div class="mb-3">
+                <label for="sessionId" class="form-label">Session ID</label>
+                <input type="text" class="form-control" id="sessionId" name="sessionId" value="{{ activity.metadata.sessionId ?? '' }}">
+            </div>
 
-        <div style="margin-bottom: 15px;">
-            <label for="sessionId" style="display: block; margin-bottom: 5px; font-weight: bold;">Session ID:</label>
-            <input type="text" id="sessionId" name="sessionId" value="{{ activity.metadata.sessionId ?? '' }}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
+            <div class="mb-3">
+                <label for="referrer" class="form-label">Referrer</label>
+                <input type="url" class="form-control" id="referrer" name="referrer" value="{{ activity.metadata.referrer ?? '' }}">
+            </div>
 
-        <div style="margin-bottom: 15px;">
-            <label for="referrer" style="display: block; margin-bottom: 5px; font-weight: bold;">Referrer:</label>
-            <input type="url" id="referrer" name="referrer" value="{{ activity.metadata.referrer ?? '' }}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
-
-        <div style="margin-top: 20px;">
-            <button type="submit" class="btn btn-primary">Update Activity</button>
-            <a href="{{ path('mongodb_user_activity_show', {id: activity._id}) }}" class="btn btn-secondary">Cancel</a>
-        </div>
-    </form>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Update Activity</button>
+                <a href="{{ path('mongodb_user_activity_show', {id: activity._id}) }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

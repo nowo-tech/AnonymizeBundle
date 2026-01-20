@@ -63,23 +63,126 @@ setup_database() {
         return 0
     fi
 
+    # Check if init backup exists for this connection (shared location)
+    INIT_BACKUP=""
+    case "$connection" in
+        default)
+            if [ -f "/app/../docker/init/mysql/init.sql" ] && [ -s "/app/../docker/init/mysql/init.sql" ]; then
+                INIT_BACKUP="/app/../docker/init/mysql/init.sql"
+            elif [ -f "/app/docker/init/mysql/init.sql" ] && [ -s "/app/docker/init/mysql/init.sql" ]; then
+                INIT_BACKUP="/app/docker/init/mysql/init.sql"
+            fi
+            ;;
+        postgres)
+            if [ -f "/app/../docker/init/postgres/init.sql" ] && [ -s "/app/../docker/init/postgres/init.sql" ]; then
+                INIT_BACKUP="/app/../docker/init/postgres/init.sql"
+            elif [ -f "/app/docker/init/postgres/init.sql" ] && [ -s "/app/docker/init/postgres/init.sql" ]; then
+                INIT_BACKUP="/app/docker/init/postgres/init.sql"
+            fi
+            ;;
+        sqlite)
+            if [ -f "/app/../docker/init/sqlite/init.sqlite" ] && [ -s "/app/../docker/init/sqlite/init.sqlite" ]; then
+                INIT_BACKUP="/app/../docker/init/sqlite/init.sqlite"
+            elif [ -f "/app/docker/init/sqlite/init.sqlite" ] && [ -s "/app/docker/init/sqlite/init.sqlite" ]; then
+                INIT_BACKUP="/app/docker/init/sqlite/init.sqlite"
+            fi
+            ;;
+    esac
+
     # Create database if not exists
     echo "  Creating database (if not exists)..."
     php bin/console doctrine:database:create --if-not-exists --no-interaction --connection="$connection" 2>&1 || {
         echo "  ⚠️  Warning: Could not create database (may already exist or connection issue)"
     }
 
-    # Update schema
-    echo "  Updating schema..."
-    php bin/console doctrine:schema:update --force --no-interaction --em="$em" 2>&1 || {
-        echo "  ⚠️  Warning: Could not update schema (may already be up to date)"
+    # Clear cache
+    echo "  Clearing cache..."
+    php bin/console cache:clear --no-interaction 2>&1 || {
+        echo "  ⚠️  Warning: Could not clear cache"
     }
 
-    # Load fixtures
-    echo "  Loading fixtures..."
-    php bin/console doctrine:fixtures:load --no-interaction --em="$em" 2>&1 || {
-        echo "  ⚠️  Warning: Could not load fixtures (may already be loaded or schema issue)"
-    }
+    # If init backup exists, restore it instead of loading fixtures
+    if [ -n "$INIT_BACKUP" ]; then
+        echo "  Found init backup, restoring database..."
+        case "$connection" in
+            default)
+                # MySQL: Check if database is empty, if so, restore from backup
+                RECORD_COUNT=$(php bin/console dbal:run-sql "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = DATABASE()" --connection="$connection" 2>/dev/null | grep -E "^[0-9]" | head -1 || echo "0")
+                if [ "$RECORD_COUNT" = "0" ] || [ -z "$RECORD_COUNT" ]; then
+                    echo "  Database appears empty, restoring from backup..."
+                    mysql -h mysql -u demo_user -ppassword anonymize_demo < "$INIT_BACKUP" 2>&1 || {
+                        echo "  ⚠️  Warning: Could not restore from backup, falling back to fixtures"
+                        INIT_BACKUP=""
+                    }
+                else
+                    echo "  Database already has data, skipping backup restore"
+                    INIT_BACKUP=""
+                fi
+                ;;
+            postgres)
+                # PostgreSQL: Check if database is empty, if so, restore from backup
+                RECORD_COUNT=$(PGPASSWORD=password psql -h postgres -U demo_user -d anonymize_demo -tAc "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public'" 2>/dev/null || echo "0")
+                if [ "$RECORD_COUNT" = "0" ] || [ -z "$RECORD_COUNT" ]; then
+                    echo "  Database appears empty, restoring from backup..."
+                    PGPASSWORD=password psql -h postgres -U demo_user -d anonymize_demo < "$INIT_BACKUP" 2>&1 || {
+                        echo "  ⚠️  Warning: Could not restore from backup, falling back to fixtures"
+                        INIT_BACKUP=""
+                    }
+                else
+                    echo "  Database already has data, skipping backup restore"
+                    INIT_BACKUP=""
+                fi
+                ;;
+            sqlite)
+                # SQLite: Copy backup file if database doesn't exist or is empty
+                SQLITE_DB="/app/var/data/anonymize_demo.sqlite"
+                if [ ! -f "$SQLITE_DB" ] || [ ! -s "$SQLITE_DB" ]; then
+                    echo "  Database doesn't exist or is empty, copying backup..."
+                    mkdir -p /app/var/data
+                    cp "$INIT_BACKUP" "$SQLITE_DB" 2>&1 || {
+                        echo "  ⚠️  Warning: Could not copy backup, falling back to fixtures"
+                        INIT_BACKUP=""
+                    }
+                else
+                    echo "  Database already exists, skipping backup copy"
+                    INIT_BACKUP=""
+                fi
+                ;;
+        esac
+    fi
+
+    # If no backup was restored, proceed with normal setup
+    if [ -z "$INIT_BACKUP" ]; then
+        # Update schema
+        echo "  Updating schema..."
+        php bin/console doctrine:schema:update --force --no-interaction --em="$em" 2>&1 || {
+            echo "  ⚠️  Warning: Could not update schema (may already be up to date)"
+        }
+
+        # Load fixtures (purge existing data first)
+        echo "  Loading fixtures (purging existing data)..."
+        # For MySQL, we need to handle foreign keys differently
+        if [ "$connection" = "default" ]; then
+            # Use regular purge (delete) instead of truncate to avoid foreign key issues
+            php bin/console doctrine:fixtures:load --no-interaction --em="$em" 2>&1 || {
+                echo "  ⚠️  Warning: Could not load fixtures (may already be loaded or schema issue)"
+            }
+        else
+            # For PostgreSQL and SQLite, we can use truncate
+            php bin/console doctrine:fixtures:load --no-interaction --purge-with-truncate --em="$em" 2>&1 || {
+                echo "  ⚠️  Warning: Could not load fixtures, trying without truncate..."
+                php bin/console doctrine:fixtures:load --no-interaction --em="$em" 2>&1 || {
+                    echo "  ⚠️  Warning: Could not load fixtures (may already be loaded or schema issue)"
+                }
+            }
+        fi
+    else
+        # Backup was restored, just update schema if needed
+        echo "  Updating schema (if needed)..."
+        php bin/console doctrine:schema:update --force --no-interaction --em="$em" 2>&1 || {
+            echo "  ⚠️  Warning: Could not update schema (may already be up to date)"
+        }
+    fi
 
     echo "  ✅ Database setup complete for $connection"
 }
@@ -155,19 +258,28 @@ main() {
         else
             # MongoDB database is created automatically on first connection
             # Load fixtures if script exists
-            if [ -f "/app/docker/mongodb/load-fixtures.js" ]; then
+            FIXTURE_SCRIPT="/app/docker/mongodb/load-fixtures.js"
+            if [ -f "$FIXTURE_SCRIPT" ]; then
                 echo "  Loading MongoDB fixtures..."
-                mongosh --host "$MONGODB_HOST:$MONGODB_PORT" \
-                    -u "$MONGODB_USER" \
-                    -p "$MONGODB_PASSWORD" \
-                    --authenticationDatabase admin \
-                    "$MONGODB_DATABASE" \
-                    < /app/docker/mongodb/load-fixtures.js 2>&1 || {
-                    echo "  ⚠️  Warning: Could not load MongoDB fixtures (may already be loaded or connection issue)"
-                }
+                # Use docker exec to run mongosh from the MongoDB container
+                # The script is mounted as a volume, so we can pipe it to mongosh
+                # Try to detect MongoDB container name automatically
+                DETECTED_MONGODB_CONTAINER=$(docker ps --format '{{.Names}}' | grep -E "anonymize-demo.*mongodb" | head -1)
+                if [ -n "$DETECTED_MONGODB_CONTAINER" ]; then
+                    cat "$FIXTURE_SCRIPT" | docker exec -i "$DETECTED_MONGODB_CONTAINER" mongosh "$MONGODB_DATABASE" \
+                        -u "$MONGODB_USER" \
+                        -p "$MONGODB_PASSWORD" \
+                        --authenticationDatabase admin 2>&1 || {
+                        echo "  ⚠️  Warning: Could not load MongoDB fixtures (may already be loaded or connection issue)"
+                    }
+                else
+                    echo "  ⚠️  Warning: MongoDB container not found, skipping fixture load"
+                    echo "  💡 You can manually load fixtures by running:"
+                    echo "     cat $FIXTURE_SCRIPT | docker-compose exec -T mongodb mongosh anonymize_demo -u $MONGODB_USER -p $MONGODB_PASSWORD --authenticationDatabase admin"
+                fi
             else
                 echo "  ✅ MongoDB is ready and accessible"
-                echo "  ℹ️  Note: MongoDB fixtures script not found at /app/docker/mongodb/load-fixtures.js"
+                echo "  ℹ️  Note: MongoDB fixtures script not found at $FIXTURE_SCRIPT"
             fi
             echo "  ℹ️  Note: MongoDB ODM configuration will be available when the bundle supports MongoDB"
         fi

@@ -259,6 +259,57 @@ Properties with lower weights are anonymized first. Properties without weights a
 #[AnonymizeProperty(type: 'phone')]                 // Processed last (no weight)
 ```
 
+### Relationship Patterns
+
+You can use patterns that reference related entities using dot notation (e.g., `type.name`, `category.code`):
+
+```php
+#[ORM\Entity]
+#[Anonymize(
+    // Anonymize orders where the related Type entity's name contains 'HR'
+    includePatterns: ['type.name' => '%HR', 'status' => 'completed']
+)]
+class Order
+{
+    #[ORM\ManyToOne]
+    private ?Type $type = null;
+    
+    #[ORM\Column(length: 50)]
+    private ?string $status = null;
+    
+    #[AnonymizeProperty(type: 'email')]
+    private ?string $customerEmail = null;
+}
+```
+
+**How it works:**
+- The bundle automatically detects relationship patterns (fields with dots)
+- It builds SQL queries with `LEFT JOIN` clauses to access related entity fields
+- Patterns work with all comparison operators and SQL LIKE patterns
+- Multiple relationship levels are supported (e.g., `order.customer.address.city`)
+
+**Example with multiple relationships:**
+```php
+#[Anonymize(includePatterns: [
+    'type.name' => '%HR',           // Type name contains 'HR'
+    'customer.status' => 'active',   // Customer is active
+    'status' => 'completed'          // Order is completed
+])]
+class Order
+{
+    #[ORM\ManyToOne]
+    private ?Type $type = null;
+    
+    #[ORM\ManyToOne]
+    private ?Customer $customer = null;
+    
+    #[ORM\Column(length: 50)]
+    private ?string $status = null;
+}
+```
+
+**Note:** Relationship patterns require that the association exists in Doctrine metadata. The bundle will skip patterns for non-existent associations.
+
 ### Custom Service Faker
 
 You can use a custom service for anonymization:

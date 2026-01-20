@@ -4,79 +4,69 @@
 
 {% block body %}
 {% if not hasAnonymizedColumn|default(false) %}
-<div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+<div class="alert alert-warning" role="alert">
     <strong>⚠️ Column "anonymized" not found</strong><br>
     To add the anonymization tracking column, run:<br>
-    <code style="background: #f8f9fa; padding: 5px 10px; border-radius: 3px; display: inline-block; margin-top: 10px;">
+    <code class="d-inline-block mt-2 p-2 bg-light rounded">
         php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
     </code>
 </div>
 {% endif %}
 
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2>Employee Details <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
-        <div>
-            <a href="{{ path('employee_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Employee Details <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+        <div class="btn-group">
             <a href="{{ path('employee_edit', {connection: connection, id: employee.id}) }}" class="btn btn-primary">Edit</a>
+            <a href="{{ path('employee_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
         </div>
     </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">{{ employee.id }}</dd>
 
-    <table>
-        <tbody>
-            <tr>
-                <th style="width: 200px;">ID</th>
-                <td>{{ employee.id }}</td>
-            </tr>
-            <tr>
-                <th>First Name</th>
-                <td>{{ employee.firstName }}</td>
-            </tr>
-            <tr>
-                <th>Last Name</th>
-                <td>{{ employee.lastName }}</td>
-            </tr>
-            <tr>
-                <th>Username</th>
-                <td>{{ employee.username }}</td>
-            </tr>
-            <tr>
-                <th>Email</th>
-                <td>{{ employee.email }}</td>
-            </tr>
-            <tr>
-                <th>Phone</th>
-                <td>{{ employee.phone ?? 'N/A' }}</td>
-            </tr>
-            <tr>
-                <th>Birth Date</th>
-                <td>{{ employee.birthDate ? employee.birthDate|date('Y-m-d') : 'N/A' }}</td>
-            </tr>
-            <tr>
-                <th>Age</th>
-                <td>{{ employee.age }}</td>
-            </tr>
-            <tr>
-                <th>Department</th>
-                <td>{{ employee.department }}</td>
-            </tr>
-            <tr>
-                <th>Previous Company</th>
-                <td>{{ employee.previousCompany ?? 'N/A' }}</td>
-            </tr>
-            <tr>
-                <th>Hire Date</th>
-                <td>{{ employee.hireDate ? employee.hireDate|date('Y-m-d H:i:s') : 'N/A' }}</td>
-            </tr>
-            {% if hasAnonymizedColumn and employee.anonymized %}
-            <tr>
-                <th>Anonymized</th>
-                <td>
-                    <span style="background: #dc3545; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">Yes</span>
-                </td>
-            </tr>
+            <dt class="col-sm-3">First Name</dt>
+            <dd class="col-sm-9">{{ employee.firstName }}</dd>
+
+            <dt class="col-sm-3">Last Name</dt>
+            <dd class="col-sm-9">{{ employee.lastName }}</dd>
+
+            <dt class="col-sm-3">Username</dt>
+            <dd class="col-sm-9">{{ employee.username }}</dd>
+
+            <dt class="col-sm-3">Email</dt>
+            <dd class="col-sm-9">{{ employee.email }}</dd>
+
+            <dt class="col-sm-3">Phone</dt>
+            <dd class="col-sm-9">{{ employee.phone ?? '-' }}</dd>
+
+            <dt class="col-sm-3">Birth Date</dt>
+            <dd class="col-sm-9">{{ employee.birthDate ? employee.birthDate|date('Y-m-d') : '-' }}</dd>
+
+            <dt class="col-sm-3">Age</dt>
+            <dd class="col-sm-9">{{ employee.age }}</dd>
+
+            <dt class="col-sm-3">Department</dt>
+            <dd class="col-sm-9"><span class="badge bg-secondary">{{ employee.department }}</span></dd>
+
+            <dt class="col-sm-3">Previous Company</dt>
+            <dd class="col-sm-9">{{ employee.previousCompany ?? '-' }}</dd>
+
+            <dt class="col-sm-3">Hire Date</dt>
+            <dd class="col-sm-9">{{ employee.hireDate ? employee.hireDate|date('Y-m-d H:i:s') : '-' }}</dd>
+
+            {% if hasAnonymizedColumn|default(false) %}
+            <dt class="col-sm-3">Anonymized</dt>
+            <dd class="col-sm-9">
+                {% if employee.anonymized|default(false) %}
+                    <span class="badge bg-success">✓ Yes</span>
+                {% else %}
+                    <span class="badge bg-secondary">✗ No</span>
+                {% endif %}
+            </dd>
             {% endif %}
-        </tbody>
-    </table>
+        </dl>
+    </div>
 </div>
 {% endblock %}

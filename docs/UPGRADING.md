@@ -13,9 +13,62 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.16
+
+**Release Date**: 2026-01-20
+
+#### What's New
+
+- **Relationship Patterns Support**: You can now use patterns that reference related entities
+  - Use dot notation to access related entity fields (e.g., `'type.name'`, `'customer.status'`)
+  - The bundle automatically builds SQL JOINs to access related entity data
+  - Works with all pattern operators: comparison, SQL LIKE, and OR operator
+  - Example: `#[Anonymize(includePatterns: ['type.name' => '%HR', 'status' => 'completed'])]`
+  - Only anonymizes records where the related entity's field matches the pattern
+
+- **Demo Enhancements**: New Type entity example demonstrating relationship patterns
+  - Type entity with relationship to Order
+  - Comprehensive fixtures showing relationship pattern usage
+  - MongoDB CRUD now visible in navigation menu
+
+#### Breaking Changes
+
+None - This is a backward-compatible feature release.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Optional: Use relationship patterns** (if you have related entities):
+   ```php
+   #[Anonymize(includePatterns: ['type.name' => '%HR'])]
+   class Order
+   {
+       #[ORM\ManyToOne]
+       private ?Type $type = null;
+   }
+   ```
+
+#### Migration Notes
+
+- Relationship patterns are optional - existing patterns continue to work
+- No database schema changes required
+- No configuration changes required
+- Relationship patterns require that the association exists in Doctrine metadata
+
+---
+
 ### Upgrading to 0.0.15
 
-**Release Date**: TBD
+**Release Date**: 2026-01-20
 
 #### What's New
 

@@ -4,101 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Anonymize Bundle Demo{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f5f5;
-            color: #333;
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-        .layout-wrapper {
-            display: flex;
-            min-height: 100vh;
-        }
-        header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .burger-menu {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 5px 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.3s;
-        }
-        .burger-menu:hover {
-            transform: scale(1.1);
-        }
-        .burger-menu.active {
-            transform: rotate(90deg);
-        }
-        header h1 {
-            margin: 0;
-            font-size: 20px;
-            flex: 1;
+            padding-top: 56px;
         }
         aside {
             position: fixed;
+            top: 56px;
             left: 0;
-            top: 60px;
             width: 280px;
-            height: calc(100vh - 60px);
+            height: calc(100vh - 56px);
             background: white;
             box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
-            z-index: 999;
+            z-index: 1030;
             overflow-y: auto;
+            padding: 0;
+        }
+        .sidebar-nav {
             padding: 20px 0;
         }
-        aside.active {
-            transform: translateX(0);
-        }
-        .overlay {
-            position: fixed;
-            top: 60px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s, visibility 0.3s;
-            z-index: 998;
-        }
-        .overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        aside nav ul {
-            list-style: none;
-        }
-        aside nav ul li {
-            margin: 0;
-        }
-        aside nav ul li strong {
+        .sidebar-nav .nav-link {
+            padding: 10px 20px 10px 35px;
+            border-left: 3px solid transparent;
+            transition: all 0.3s;
+            color: #333;
+            text-decoration: none;
             display: block;
+        }
+        .sidebar-nav .nav-link:hover {
+            background: #f8f9fa;
+            border-left-color: #667eea;
+            color: #667eea;
+        }
+        .sidebar-nav .nav-link.active {
+            background: #f0f4ff;
+            border-left-color: #667eea;
+            color: #667eea;
+            font-weight: 600;
+        }
+        .sidebar-nav .nav-section {
             padding: 15px 20px 8px;
             color: #667eea;
             font-size: 12px;
@@ -106,276 +51,146 @@
             letter-spacing: 1px;
             font-weight: 600;
         }
-        aside nav a {
-            display: block;
-            color: #333;
-            text-decoration: none;
-            padding: 10px 20px 10px 35px;
-            transition: all 0.3s;
-            border-left: 3px solid transparent;
-        }
-        aside nav a:hover {
-            background: #f8f9fa;
-            border-left-color: #667eea;
-            color: #667eea;
-        }
-        aside nav a.active {
-            background: #f0f4ff;
-            border-left-color: #667eea;
-            color: #667eea;
-            font-weight: 600;
+        .connection-badge {
+            font-size: 0.75rem;
         }
         main {
-            flex: 1;
-            margin-top: 60px;
-            padding: 20px;
+            margin-left: 280px;
+            padding-left: 20px;
+            padding-right: 20px;
             transition: margin-left 0.3s;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .connection-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        .connection-badge.default {
-            background: #4CAF50;
-            color: white;
-        }
-        .connection-badge.postgres {
-            background: #2196F3;
-            color: white;
-        }
-        .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-        }
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        .btn-primary:hover {
-            background: #5568d3;
-        }
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-        .btn-danger:hover {
-            background: #c82333;
-        }
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-        table {
-            width: 100%;
-            background: white;
-            border-collapse: collapse;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
-        }
-        tr:hover {
-            background: #f8f9fa;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        .form-row {
-            margin-bottom: 20px;
-        }
-        .form-row label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-        .form-row input[type="text"],
-        .form-row input[type="email"],
-        .form-row input[type="number"],
-        .form-row select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        .form-row .form-control {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        .form-row .form-errors {
-            color: #dc3545;
-            font-size: 12px;
-            margin-top: 5px;
-        }
-        .form-row .form-errors ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-        .form-actions {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        @media (min-width: 768px) {
+        /* Mobile: Sidebar oculto, se abre con botón */
+        @media (max-width: 767px) {
             aside {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            aside.show {
                 transform: translateX(0);
             }
             main {
-                margin-left: 280px;
+                margin-left: 0;
+                padding-left: 15px;
+                padding-right: 15px;
             }
-            .burger-menu {
-                display: none;
+            .sidebar-overlay {
+                position: fixed;
+                top: 56px;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 1029;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.3s, visibility 0.3s;
             }
-            .overlay {
-                display: none;
+            .sidebar-overlay.show {
+                opacity: 1;
+                visibility: visible;
             }
         }
     </style>
     {% block stylesheets %}{% endblock %}
 </head>
 <body>
-    <div class="layout-wrapper">
-        <header>
-            <button class="burger-menu" id="burgerMenu" aria-label="Toggle menu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;">
+        <div class="container-fluid">
+            <button class="btn btn-link text-white d-md-none" type="button" id="sidebarToggle" aria-label="Toggle menu">
                 ☰
             </button>
-            <h1>Anonymize Bundle Demo - CRUD</h1>
-        </header>
+            <a class="navbar-brand" href="{{ path('home') }}">Anonymize Bundle Demo - CRUD</a>
+        </div>
+    </nav>
 
-        <div class="overlay" id="overlay"></div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-        <aside id="sidebar">
-            <nav>
-                <ul>
-                    <li><a href="{{ path('home') }}">Home</a></li>
-                    <li><strong>Users</strong></li>
-                    <li><a href="{{ path('user_index', {connection: 'default'}) }}">Users (MySQL)</a></li>
-                    <li><a href="{{ path('user_index', {connection: 'postgres'}) }}">Users (PostgreSQL)</a></li>
-                    <li><strong>Customers</strong></li>
-                    <li><a href="{{ path('customer_index', {connection: 'default'}) }}">Customers (MySQL)</a></li>
-                    <li><a href="{{ path('customer_index', {connection: 'postgres'}) }}">Customers (PostgreSQL)</a></li>
-                    <li><strong>Products</strong></li>
-                    <li><a href="{{ path('product_index', {connection: 'default'}) }}">Products (MySQL)</a></li>
-                    <li><a href="{{ path('product_index', {connection: 'postgres'}) }}">Products (PostgreSQL)</a></li>
-                    <li><strong>Orders</strong></li>
-                    <li><a href="{{ path('order_index', {connection: 'default'}) }}">Orders (MySQL)</a></li>
-                    <li><a href="{{ path('order_index', {connection: 'postgres'}) }}">Orders (PostgreSQL)</a></li>
-                    <li><strong>Invoices</strong></li>
-                    <li><a href="{{ path('invoice_index', {connection: 'default'}) }}">Invoices (MySQL)</a></li>
-                    <li><a href="{{ path('invoice_index', {connection: 'postgres'}) }}">Invoices (PostgreSQL)</a></li>
-                    <li><strong>Employees</strong></li>
-                    <li><a href="{{ path('employee_index', {connection: 'default'}) }}">Employees (MySQL)</a></li>
-                    <li><a href="{{ path('employee_index', {connection: 'postgres'}) }}">Employees (PostgreSQL)</a></li>
-                </ul>
-            </nav>
-        </aside>
+    <aside id="sidebar">
+        <nav class="sidebar-nav">
+            <ul class="list-unstyled mb-0">
+                <li><a class="nav-link" href="{{ path('home') }}">Home</a></li>
+                <li><div class="nav-section">Users</div></li>
+                <li><a class="nav-link" href="{{ path('user_index', {connection: 'default'}) }}">Users (MySQL)</a></li>
+                <li><a class="nav-link" href="{{ path('user_index', {connection: 'postgres'}) }}">Users (PostgreSQL)</a></li>
+                <li><div class="nav-section">Customers</div></li>
+                <li><a class="nav-link" href="{{ path('customer_index', {connection: 'default'}) }}">Customers (MySQL)</a></li>
+                <li><a class="nav-link" href="{{ path('customer_index', {connection: 'postgres'}) }}">Customers (PostgreSQL)</a></li>
+                <li><div class="nav-section">Products</div></li>
+                <li><a class="nav-link" href="{{ path('product_index', {connection: 'default'}) }}">Products (MySQL)</a></li>
+                <li><a class="nav-link" href="{{ path('product_index', {connection: 'postgres'}) }}">Products (PostgreSQL)</a></li>
+                <li><div class="nav-section">Orders</div></li>
+                <li><a class="nav-link" href="{{ path('order_index', {connection: 'default'}) }}">Orders (MySQL)</a></li>
+                <li><a class="nav-link" href="{{ path('order_index', {connection: 'postgres'}) }}">Orders (PostgreSQL)</a></li>
+                <li><div class="nav-section">Invoices</div></li>
+                <li><a class="nav-link" href="{{ path('invoice_index', {connection: 'default'}) }}">Invoices (MySQL)</a></li>
+                <li><a class="nav-link" href="{{ path('invoice_index', {connection: 'postgres'}) }}">Invoices (PostgreSQL)</a></li>
+                <li><div class="nav-section">Employees</div></li>
+                <li><a class="nav-link" href="{{ path('employee_index', {connection: 'default'}) }}">Employees (MySQL)</a></li>
+                <li><a class="nav-link" href="{{ path('employee_index', {connection: 'postgres'}) }}">Employees (PostgreSQL)</a></li>
+                <li><div class="nav-section">MongoDB</div></li>
+                <li><a class="nav-link" href="{{ path('mongodb_user_activity_index') }}">User Activities (MongoDB)</a></li>
+            </ul>
+        </nav>
+    </aside>
 
-        <main>
-            <div class="container">
-                {% for message in app.flashes('success') %}
-                    <div class="alert alert-success">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-
-                {% block body %}{% endblock %}
+    <main class="py-4">
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-        </main>
-    </div>
+        {% endfor %}
+
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
+        {% block body %}{% endblock %}
+    </main>
 
     <script>
-        const burgerMenu = document.getElementById('burgerMenu');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-
-        function toggleSidebar() {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-            burgerMenu.classList.toggle('active');
-        }
-
-        burgerMenu.addEventListener('click', toggleSidebar);
-        overlay.addEventListener('click', toggleSidebar);
-
-        // Close sidebar when clicking on a link (mobile only)
-        if (window.innerWidth < 768) {
-            const navLinks = sidebar.querySelectorAll('nav a');
-            navLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    sidebar.classList.remove('active');
-                    overlay.classList.remove('active');
-                    burgerMenu.classList.remove('active');
-                });
-            });
-        }
-
         // Mark active link
         const currentPath = window.location.pathname;
-        const navLinks = sidebar.querySelectorAll('nav a');
+        const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
         navLinks.forEach(link => {
             if (link.getAttribute('href') === currentPath || currentPath.startsWith(link.getAttribute('href'))) {
                 link.classList.add('active');
             }
         });
+
+        // Sidebar toggle para mobile
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('show');
+            sidebarOverlay.classList.toggle('show');
+        }
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', toggleSidebar);
+        }
+
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', toggleSidebar);
+        }
+
+        // Cerrar sidebar al hacer clic en un link (solo en mobile)
+        if (window.innerWidth < 768) {
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                });
+            });
+        }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     {% block javascripts %}{% endblock %}
 </body>
 </html>

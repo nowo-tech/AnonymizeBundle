@@ -2,18 +2,18 @@
 
 This document outlines the planned features, improvements, and enhancements for the Anonymize Bundle.
 
-## Current Status (v0.0.15 - Released)
+## Current Status (v0.0.16 - Released)
 
 ### ✅ Implemented Features
 
 - **Fakers**: email, name, surname, age, phone, IBAN, credit_card, service, **address**, **date**, **username**, **url**, **company**, **masking**, **password**, **ip_address**, **mac_address**, **uuid**, **hash**, **coordinate**, **color**, **boolean**, **numeric**, **file**, **json**, **text**, **enum**, **country**, **language**, **hash_preserve**, **shuffle**, **constant** (32 total)
 - **Core Features**: Attribute-based configuration, multiple connections, batch processing, dry-run mode, pre-flight checks, progress bars, enhanced environment protection, debug/verbose modes
 - **Tracking**: AnonymizableTrait with `anonymized` column
-- **Patterns**: Inclusion/exclusion pattern matching with `|` (OR) operator support
+- **Patterns**: Inclusion/exclusion pattern matching with `|` (OR) operator support and relationship patterns (e.g., `'type.name' => '%HR'`)
 - **Databases**: MySQL, PostgreSQL, SQLite support
 - **MongoDB Tools**: Command to generate scripts for adding `anonymized` field to MongoDB documents
 - **Services**: SchemaService for column detection
-- **Demos**: 8 entities (User, Customer, Product, Order, Invoice, Employee, SystemLog, EmailSubscription) with comprehensive fixtures and complete CRUD interfaces
+- **Demos**: 9 entities (User, Customer, Product, Order, Invoice, Employee, SystemLog, EmailSubscription, Type) with comprehensive fixtures and complete CRUD interfaces
 - **Demos Coverage**: 100% faker coverage (all 32 fakers demonstrated)
 - **Demos Databases**: MySQL, PostgreSQL, SQLite, MongoDB (infrastructure ready)
 
@@ -780,7 +780,8 @@ This document outlines the planned features, improvements, and enhancements for 
 10. ✅ **Entity-Level Pattern Filtering Fix** - **COMPLETED** (v0.0.14)
 11. ✅ **EmailSubscription Demo Entity** - **COMPLETED** (v0.0.14)
 12. ✅ **MongoDB Field Migration Command** - **COMPLETED** (v0.0.15)
-12. **Symfony Messenger Integration**
+13. ✅ **Relationship Patterns Support** - **COMPLETED** (v0.0.16)
+14. **Symfony Messenger Integration**
 13. **Interactive Mode**
 14. **Enhanced Reporting**
 15. **Security Enhancements**
@@ -832,6 +833,12 @@ We welcome community contributions! Areas where help is especially appreciated:
 ## Version Timeline
 
 ### Completed Releases
+
+- **v0.0.16** (2026-01-20 - Released): Relationship patterns support and demo enhancements
+  - ✅ Relationship patterns support with dot notation (e.g., `'type.name' => '%HR'`)
+  - ✅ Automatic SQL JOIN construction for relationship patterns
+  - ✅ Type entity and relationship example in all demo projects
+  - ✅ Enhanced MongoDB CRUD navigation in all demo projects
 
 - **v0.0.15** (2026-01-20 - Released): MongoDB field migration command and demo improvements
   - ✅ MongoDB field migration command (`nowo:anonymize:generate-mongo-field`)

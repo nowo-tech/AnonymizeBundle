@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Type;
 use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
@@ -18,7 +19,8 @@ use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 #[ORM\Entity]
 #[ORM\Table(name: 'orders')]
 #[Anonymize(
-    includePatterns: ['status' => 'completed'],
+    // Example: Anonymize orders where type.name contains 'HR' (e.g., 'HR%', '%HR%', '%HR')
+    includePatterns: ['type.name' => '%HR', 'status' => 'completed'],
     excludePatterns: ['id' => '<=5']
 )]
 class Order
@@ -61,6 +63,10 @@ class Order
     #[ORM\Column(length: 255, nullable: true)]
     #[AnonymizeProperty(type: 'email', weight: 6)]
     private ?string $customerEmail = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Type $type = null;
 
     public function getId(): ?int
     {
@@ -147,6 +153,18 @@ class Order
     public function setCustomerEmail(?string $customerEmail): static
     {
         $this->customerEmail = $customerEmail;
+
+        return $this;
+    }
+
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): static
+    {
+        $this->type = $type;
 
         return $this;
     }

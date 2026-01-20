@@ -3,62 +3,93 @@
 {% block title %}User Activities - MongoDB{% endblock %}
 
 {% block body %}
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2>User Activities <span class="connection-badge mongodb" style="background: #10b981; color: white; padding: 5px 15px; border-radius: 5px; font-size: 14px; font-weight: normal;">MongoDB</span></h2>
+<div class="alert alert-info" role="alert">
+    <strong>ℹ️ Anonymized Fields</strong><br>
+    The following fields in this document are configured for anonymization:
+    <ul class="mb-0 mt-2">
+        <li><strong>userEmail</strong> - Email faker</li>
+        <li><strong>userName</strong> - Name faker</li>
+        <li><strong>ipAddress</strong> - IP address faker</li>
+        <li><strong>timestamp</strong> - Date faker (past dates, range: -1 year to now)</li>
+        <li><strong>metadata</strong> - Name faker (for metadata fields)</li>
+    </ul>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">User Activities <span class="badge bg-success connection-badge">MongoDB</span></h2>
         <a href="{{ path('mongodb_user_activity_new') }}" class="btn btn-primary">Create New Activity</a>
     </div>
+    <div class="card-body">
+        {% if error is defined and error %}
+            <div class="alert alert-danger" role="alert">
+                <strong>⚠️ Error:</strong> {{ error }}
+                <hr>
+                <strong>To fix this:</strong>
+                <ul class="mb-0 mt-2">
+                    <li>Make sure MongoDB service is running: <code>docker-compose ps mongodb</code></li>
+                    <li>Check MONGODB_URL environment variable is set in docker-compose.yml</li>
+                    <li>Rebuild containers: <code>docker-compose build --no-cache php</code></li>
+                    <li>Install dependencies: <code>docker-compose exec php composer install</code></li>
+                </ul>
+            </div>
+        {% endif %}
 
-    {% if activities|length > 0 %}
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>User Email</th>
-                    <th>User Name</th>
-                    <th>IP Address</th>
-                    <th>Action</th>
-                    <th>Timestamp</th>
-                    <th>Anonymized</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for activity in activities %}
-                    <tr>
-                        <td>{{ activity._id }}</td>
-                        <td>{{ activity.userEmail ?? '-' }}</td>
-                        <td>{{ activity.userName ?? '-' }}</td>
-                        <td>{{ activity.ipAddress ?? '-' }}</td>
-                        <td>{{ activity.action ?? '-' }}</td>
-                        <td>
-                            {% if activity.timestamp %}
-                                {{ activity.timestamp.toDateTime()|date('Y-m-d H:i:s') }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if activity.anonymized|default(false) %}
-                                <span style="color: #28a745; font-weight: bold;">✓ Yes</span>
-                            {% else %}
-                                <span style="color: #6c757d;">✗ No</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="{{ path('mongodb_user_activity_show', {id: activity._id}) }}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Show</a>
-                            <a href="{{ path('mongodb_user_activity_edit', {id: activity._id}) }}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Edit</a>
-                            <form method="post" action="{{ path('mongodb_user_activity_delete', {id: activity._id}) }}" style="display: inline;">
-                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ activity._id) }}">
-                                <button type="submit" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="return confirm('Are you sure?')">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No activities found. <a href="{{ path('mongodb_user_activity_new') }}">Create the first one</a>.</p>
-    {% endif %}
+        {% if activities|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>User Email</th>
+                            <th>User Name</th>
+                            <th>IP Address</th>
+                            <th>Action</th>
+                            <th>Timestamp</th>
+                            <th>Anonymized</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in activities %}
+                            <tr>
+                                <td>{{ activity._id }}</td>
+                                <td>{{ activity.userEmail ?? '-' }}</td>
+                                <td>{{ activity.userName ?? '-' }}</td>
+                                <td>{{ activity.ipAddress ?? '-' }}</td>
+                                <td><span class="badge bg-info">{{ activity.action ?? '-' }}</span></td>
+                                <td>
+                                    {% if activity.timestamp %}
+                                        {{ activity.timestamp.toDateTime()|date('Y-m-d H:i:s') }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if activity.anonymized|default(false) %}
+                                        <span class="badge bg-success">✓ Yes</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">✗ No</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ path('mongodb_user_activity_show', {id: activity._id}) }}" class="btn btn-sm btn-outline-secondary">Show</a>
+                                        <a href="{{ path('mongodb_user_activity_edit', {id: activity._id}) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                        <form method="post" action="{{ path('mongodb_user_activity_delete', {id: activity._id}) }}" class="d-inline" onsubmit="return confirm('Are you sure?')">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ activity._id) }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">No activities found. <a href="{{ path('mongodb_user_activity_new') }}">Create the first one</a>.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
