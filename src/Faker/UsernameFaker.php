@@ -69,7 +69,9 @@ final class UsernameFaker implements FakerInterface
         if ($includeNumbers && $this->faker->boolean(70)) {
             $remainingLength = $availableLength - strlen($base);
             if ($remainingLength > 0) {
-                $maxNumber = min(999, (int) pow(10, $remainingLength) - 1);
+                // Limit remainingLength to prevent overflow (max safe value for pow(10, n) as int)
+                $safeLength = min($remainingLength, 9); // pow(10, 9) = 1,000,000,000 (safe for int)
+                $maxNumber = min(999, (int) pow(10, $safeLength) - 1);
                 $base .= (string) $this->faker->numberBetween(0, $maxNumber);
             }
         }

@@ -37,8 +37,38 @@ use Psr\Container\ContainerInterface;
  */
 #[AsCommand(
     name: 'nowo:anonymize:run',
-    description: 'Anonymize database records using Doctrine attributes',
-    help: <<<'HELP'
+    description: 'Anonymize database records using Doctrine attributes'
+)]
+final class AnonymizeCommand extends Command
+{
+    private const PREFIX_COMMAND = 'nowo:anonymize:';
+
+    /**
+     * Creates a new AnonymizeCommand instance.
+     *
+     * @param ContainerInterface $container The service container
+     * @param string $locale The default locale for Faker generator (default: 'en_US')
+     * @param array<string> $connections The default connections to process (empty = all)
+     * @param bool $dryRun The default dry-run mode (default: false)
+     * @param int $batchSize The default batch size for processing records (default: 100)
+     */
+    public function __construct(
+        private ContainerInterface $container,
+        private string $locale = 'en_US',
+        private array $connections = [],
+        private bool $dryRun = false,
+        private int $batchSize = 100
+    ) {
+        parent::__construct();
+    }
+
+    /**
+     * Configures the command options.
+     */
+    protected function configure(): void
+    {
+        $this
+            ->setHelp(<<<'HELP'
 The <info>%command.name%</info> command anonymizes database records based on Doctrine attributes.
 
   <info>php %command.full_name%</info>
@@ -78,36 +108,7 @@ Examples:
   <info>php %command.full_name% --debug</info>
   <info>php %command.full_name% --interactive</info>
 HELP
-)]
-final class AnonymizeCommand extends Command
-{
-    private const PREFIX_COMMAND = 'nowo:anonymize:';
-
-    /**
-     * Creates a new AnonymizeCommand instance.
-     *
-     * @param ContainerInterface $container The service container
-     * @param string $locale The default locale for Faker generator (default: 'en_US')
-     * @param array<string> $connections The default connections to process (empty = all)
-     * @param bool $dryRun The default dry-run mode (default: false)
-     * @param int $batchSize The default batch size for processing records (default: 100)
-     */
-    public function __construct(
-        private ContainerInterface $container,
-        private string $locale = 'en_US',
-        private array $connections = [],
-        private bool $dryRun = false,
-        private int $batchSize = 100
-    ) {
-        parent::__construct();
-    }
-
-    /**
-     * Configures the command options.
-     */
-    protected function configure(): void
-    {
-        $this
+            )
             ->addOption('connection', 'c', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Specific connections to process (default: all)')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Show what would be anonymized without making changes')
             ->addOption('batch-size', 'b', InputOption::VALUE_OPTIONAL, 'Batch size for processing records', $this->batchSize)

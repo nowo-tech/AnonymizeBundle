@@ -26,8 +26,28 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 #[AsCommand(
     name: 'nowo:anonymize:generate-mongo-field',
-    description: 'Generate MongoDB script to add anonymized field to anonymizable documents',
-    help: <<<'HELP'
+    description: 'Generate MongoDB script to add anonymized field to anonymizable documents'
+)]
+final class GenerateMongoAnonymizedFieldCommand extends Command
+{
+    /**
+     * Creates a new GenerateMongoAnonymizedFieldCommand instance.
+     *
+     * @param ContainerInterface $container The service container
+     */
+    public function __construct(
+        private ContainerInterface $container
+    ) {
+        parent::__construct();
+    }
+
+    /**
+     * Configures the command.
+     */
+    protected function configure(): void
+    {
+        $this
+            ->setHelp(<<<'HELP'
 The <info>%command.name%</info> command generates JavaScript scripts (compatible with mongosh)
 to add the <comment>anonymized</comment> boolean field to all documents in MongoDB collections.
 
@@ -56,26 +76,7 @@ Or:
 
 <info>mongosh "mongodb://localhost:27017/anonymize_demo" < migration.js</info>
 HELP
-)]
-final class GenerateMongoAnonymizedFieldCommand extends Command
-{
-    /**
-     * Creates a new GenerateMongoAnonymizedFieldCommand instance.
-     *
-     * @param ContainerInterface $container The service container
-     */
-    public function __construct(
-        private ContainerInterface $container
-    ) {
-        parent::__construct();
-    }
-
-    /**
-     * Configures the command.
-     */
-    protected function configure(): void
-    {
-        $this
+            )
             ->addOption(
                 'database',
                 'd',

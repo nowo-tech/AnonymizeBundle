@@ -28,25 +28,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 #[AsCommand(
     name: 'nowo:anonymize:generate-column-migration',
-    description: 'Generate migration SQL to add anonymized column to anonymizable entities',
-    help: <<<'HELP'
-The <info>%command.name%</info> command generates SQL ALTER TABLE statements to add
-the <comment>anonymized</comment> boolean column to all tables that have entities marked
-with the <comment>#[Anonymize]</comment> attribute.
-
-This command checks if entities use the <comment>AnonymizableTrait</comment> and generates
-migrations only for those entities.
-
-<info>php %command.full_name%</info>
-
-To generate migrations for a specific connection:
-
-<info>php %command.full_name% --connection=default</info>
-
-To save the output to a file:
-
-<info>php %command.full_name% --output=migration.sql</info>
-HELP
+    description: 'Generate migration SQL to add anonymized column to anonymizable entities'
 )]
 final class GenerateAnonymizedColumnCommand extends Command
 {

@@ -27,23 +27,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
  */
 #[AsCommand(
     name: 'nowo:anonymize:export-db',
-    description: 'Export databases to files with optional compression',
-    help: <<<'HELP'
-The <info>%command.name%</info> command exports databases to files.
-
-This command will:
-  1. Export databases from configured Doctrine ORM connections (MySQL, PostgreSQL, SQLite)
-  2. Export MongoDB databases (detected from MONGODB_URL environment variable)
-  3. Apply optional compression (gzip, bzip2, zip)
-  4. Automatically update .gitignore to exclude export directory
-  5. Support all database types: MySQL, PostgreSQL, SQLite, and MongoDB
-
-Examples:
-  <info>php %command.full_name%</info>
-  <info>php %command.full_name% --connection default</info>
-  <info>php %command.full_name% --compression zip --output-dir /tmp/exports</info>
-  <info>php %command.full_name% --connection mysql --connection postgres</info>
-HELP
+    description: 'Export databases to files with optional compression'
 )]
 final class ExportDatabaseCommand extends Command
 {
@@ -64,6 +48,23 @@ final class ExportDatabaseCommand extends Command
     protected function configure(): void
     {
         $this
+            ->setHelp(<<<'HELP'
+The <info>%command.name%</info> command exports databases to files.
+
+This command will:
+  1. Export databases from configured Doctrine ORM connections (MySQL, PostgreSQL, SQLite)
+  2. Export MongoDB databases (detected from MONGODB_URL environment variable)
+  3. Apply optional compression (gzip, bzip2, zip)
+  4. Automatically update .gitignore to exclude export directory
+  5. Support all database types: MySQL, PostgreSQL, SQLite, and MongoDB
+
+Examples:
+  <info>php %command.full_name%</info>
+  <info>php %command.full_name% --connection default</info>
+  <info>php %command.full_name% --compression zip --output-dir /tmp/exports</info>
+  <info>php %command.full_name% --connection mysql --connection postgres</info>
+HELP
+            )
             ->addOption('connection', 'c', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Specific connections to export (default: all)')
             ->addOption('output-dir', 'o', InputOption::VALUE_OPTIONAL, 'Output directory for exports')
             ->addOption('filename-pattern', null, InputOption::VALUE_OPTIONAL, 'Filename pattern for exports')
@@ -114,27 +115,29 @@ final class ExportDatabaseCommand extends Command
         $connections = $input->getOption('connection');
 
         // Get default values from configuration if not provided
+        $parameterBag = $this->getParameterBag();
+        
         if ($outputDir === null) {
-            $outputDir = $this->container->hasParameter('nowo_anonymize.export.output_dir')
-                ? $this->container->getParameter('nowo_anonymize.export.output_dir')
+            $outputDir = $parameterBag->has('nowo_anonymize.export.output_dir')
+                ? $parameterBag->get('nowo_anonymize.export.output_dir')
                 : '%kernel.project_dir%/var/exports';
         }
 
         if ($filenamePattern === null) {
-            $filenamePattern = $this->container->hasParameter('nowo_anonymize.export.filename_pattern')
-                ? $this->container->getParameter('nowo_anonymize.export.filename_pattern')
+            $filenamePattern = $parameterBag->has('nowo_anonymize.export.filename_pattern')
+                ? $parameterBag->get('nowo_anonymize.export.filename_pattern')
                 : '{connection}_{database}_{date}_{time}.{format}';
         }
 
         if ($compression === null) {
-            $compression = $this->container->hasParameter('nowo_anonymize.export.compression')
-                ? $this->container->getParameter('nowo_anonymize.export.compression')
+            $compression = $parameterBag->has('nowo_anonymize.export.compression')
+                ? $parameterBag->get('nowo_anonymize.export.compression')
                 : 'gzip';
         }
 
         $autoGitignore = !$noGitignore && (
-            $this->container->hasParameter('nowo_anonymize.export.auto_gitignore')
-                ? $this->container->getParameter('nowo_anonymize.export.auto_gitignore')
+            $parameterBag->has('nowo_anonymize.export.auto_gitignore')
+                ? $parameterBag->get('nowo_anonymize.export.auto_gitignore')
                 : true
         );
 

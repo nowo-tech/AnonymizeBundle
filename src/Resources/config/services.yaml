@@ -43,6 +43,14 @@ services:
         arguments:
             $historyDir: '%nowo_anonymize.history_dir%'
 
+    # DatabaseExportService
+    Nowo\AnonymizeBundle\Service\DatabaseExportService:
+        arguments:
+            $outputDir: '%nowo_anonymize.export.output_dir%'
+            $filenamePattern: '%nowo_anonymize.export.filename_pattern%'
+            $compression: '%nowo_anonymize.export.compression%'
+            $autoGitignore: '%nowo_anonymize.export.auto_gitignore%'
+
     # Console Commands
     # Only configure parameters, container is autowired via alias
     Nowo\AnonymizeBundle\Command\AnonymizeCommand:
