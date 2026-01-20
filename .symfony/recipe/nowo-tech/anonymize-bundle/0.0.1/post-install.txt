@@ -14,8 +14,20 @@ To use the bundle:
 3. Run: php bin/console nowo:anonymize:run --dry-run (to preview)
 4. Run: php bin/console nowo:anonymize:run (to anonymize)
 
+Available commands:
+- nowo:anonymize:run - Anonymize database records
+- nowo:anonymize:export-db - Export databases to files
+- nowo:anonymize:info - Display information about anonymizers
+- nowo:anonymize:generate-column-migration - Generate SQL migrations
+- nowo:anonymize:generate-mongo-field - Generate MongoDB scripts
+
 You can customize the configuration in config/packages/dev/nowo_anonymize.yaml.
 The bundle works with default values if you delete the config file.
+
+New features:
+- Export statistics to JSON/CSV (--stats-json, --stats-csv)
+- Export databases with compression (nowo:anonymize:export-db)
+- Interactive mode for step-by-step confirmations (--interactive)
 
 For more information, see:
 - README.md: https://github.com/nowo-tech/anonymize-bundle

@@ -171,6 +171,73 @@ final class AnonymizeStatistics
     }
 
     /**
+     * Get statistics as CSV.
+     *
+     * @return string CSV encoded statistics
+     */
+    public function toCsv(): string
+    {
+        $lines = [];
+        
+        // Global statistics header
+        $lines[] = 'Section,Key,Value';
+        $lines[] = 'Global,Total Entities,' . $this->globalStats['total_entities'];
+        $lines[] = 'Global,Total Processed,' . $this->globalStats['total_processed'];
+        $lines[] = 'Global,Total Updated,' . $this->globalStats['total_updated'];
+        $lines[] = 'Global,Total Skipped,' . $this->globalStats['total_skipped'];
+        $lines[] = 'Global,Duration (seconds),' . round($this->globalStats['duration'], 2);
+        $lines[] = 'Global,Duration (formatted),' . $this->formatDuration($this->globalStats['duration']);
+        $lines[] = 'Global,Average per Second,' . ($this->globalStats['duration'] > 0
+            ? round($this->globalStats['total_processed'] / $this->globalStats['duration'], 2)
+            : 0);
+        $lines[] = 'Global,Success Rate (%),' . ($this->globalStats['total_processed'] > 0
+            ? round(($this->globalStats['total_updated'] / $this->globalStats['total_processed']) * 100, 2)
+            : 0);
+        
+        // Entity statistics
+        $lines[] = '';
+        $lines[] = 'Entity,Connection,Processed,Updated,Skipped,Success Rate (%)';
+        foreach ($this->entityStats as $entityData) {
+            $successRate = $entityData['processed'] > 0
+                ? round(($entityData['updated'] / $entityData['processed']) * 100, 2)
+                : 0;
+            
+            $lines[] = sprintf(
+                '%s,%s,%d,%d,%d,%.2f',
+                $entityData['entity'],
+                $entityData['connection'],
+                $entityData['processed'],
+                $entityData['updated'],
+                $entityData['skipped'],
+                $successRate
+            );
+        }
+        
+        // Property statistics
+        if (!empty($this->entityStats)) {
+            $lines[] = '';
+            $lines[] = 'Entity,Connection,Property,Anonymized Count';
+            foreach ($this->entityStats as $entityData) {
+                if (empty($entityData['properties'])) {
+                    continue;
+                }
+                
+                foreach ($entityData['properties'] as $property => $count) {
+                    $lines[] = sprintf(
+                        '%s,%s,%s,%d',
+                        $entityData['entity'],
+                        $entityData['connection'],
+                        $property,
+                        $count
+                    );
+                }
+            }
+        }
+        
+        return implode("\n", $lines);
+    }
+
+    /**
      * Get statistics summary.
      *
      * @return array<string, mixed> Summary statistics

@@ -39,6 +39,17 @@ final class AnonymizeExtension extends Extension
         $container->setParameter('nowo_anonymize.connections', $config['connections'] ?? []);
         $container->setParameter('nowo_anonymize.dry_run', $config['dry_run'] ?? false);
         $container->setParameter('nowo_anonymize.batch_size', $config['batch_size'] ?? 100);
+        $container->setParameter('nowo_anonymize.stats_output_dir', $config['stats_output_dir'] ?? '%kernel.project_dir%/var/stats');
+        $container->setParameter('nowo_anonymize.history_dir', $config['history_dir'] ?? '%kernel.project_dir%/var/anonymize_history');
+        
+        // Export configuration
+        $exportConfig = $config['export'] ?? [];
+        $container->setParameter('nowo_anonymize.export.enabled', $exportConfig['enabled'] ?? false);
+        $container->setParameter('nowo_anonymize.export.output_dir', $exportConfig['output_dir'] ?? '%kernel.project_dir%/var/exports');
+        $container->setParameter('nowo_anonymize.export.filename_pattern', $exportConfig['filename_pattern'] ?? '{connection}_{database}_{date}_{time}.{format}');
+        $container->setParameter('nowo_anonymize.export.compression', $exportConfig['compression'] ?? 'gzip');
+        $container->setParameter('nowo_anonymize.export.connections', $exportConfig['connections'] ?? []);
+        $container->setParameter('nowo_anonymize.export.auto_gitignore', $exportConfig['auto_gitignore'] ?? true);
     }
 
     /**

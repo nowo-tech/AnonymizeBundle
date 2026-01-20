@@ -7,6 +7,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- TBD
+
+## [0.0.17] - 2026-01-20
+
+### Added
+
+- **Interactive Mode**: Step-by-step confirmation prompts for anonymization
+  - New `--interactive` or `-i` option for the `nowo:anonymize:run` command
+  - Summary display before starting anonymization
+  - Confirmation prompts for each entity manager
+  - Confirmation prompts for each entity before processing
+  - Shows entity details (table name, property count) in interactive mode
+  - Verbose mode shows property details (faker types) in interactive prompts
+  - Allows selective processing of entity managers and entities
+  - Improves safety and user control during anonymization
+
+- **Enhanced Reporting**: Improved statistics and export capabilities
+  - New `--stats-csv` option to export statistics to CSV format
+  - Success rate calculation and display (global and per-entity)
+  - Enhanced statistics tables with success rate column
+  - CSV export includes: global statistics, entity statistics, and property statistics
+  - Improved statistics display with more detailed metrics
+  - CSV format suitable for spreadsheet analysis and reporting
+  - Configurable output directory for statistics via `stats_output_dir` configuration
+  - Relative file paths automatically use configured output directory
+  - Absolute paths are used as-is for maximum flexibility
+
+- **Database Export Command**: Export databases to files with optional compression
+  - New `nowo:anonymize:export-db` command for exporting databases
+  - Supports MySQL (mysqldump), PostgreSQL (pg_dump), SQLite (file copy), and MongoDB (mongodump)
+  - Configurable output directory and filename patterns with placeholders
+  - Compression support: gzip, bzip2, zip (auto-detects available tools)
+  - Automatic `.gitignore` management to exclude export directory
+  - Selective export: export specific connections or all connections
+  - Configurable via bundle configuration (`nowo_anonymize.export.*`)
+  - Filename pattern placeholders: `{connection}`, `{database}`, `{date}`, `{time}`, `{format}`
+  - Command-line options for overriding configuration
+  - Detailed export summary with file sizes and success/failure counts
+
+- **Configuration Enhancements**:
+  - New `stats_output_dir` configuration option for statistics export directory
+  - New `export` configuration section for database export settings
+  - All command help text moved to `#[AsCommand]` attributes for better organization
+  - Symfony Flex recipe updated with all new configuration options
+
+- **Anonymization History**: Track and manage anonymization runs
+  - New `nowo:anonymize:history` command to view and manage anonymization history
+  - Automatic saving of anonymization run metadata after each execution
+  - List all anonymization runs with filtering options (limit, connection)
+  - View detailed information about specific runs
+  - Compare two anonymization runs side-by-side
+  - Cleanup old runs to manage storage
+  - History stored in JSON format with index file for quick access
+  - Configurable history directory via `history_dir` configuration option
+  - Includes metadata: environment, PHP version, Symfony version, command options
+  - Comparison shows differences in entities processed, updated, and duration
+
 ## [0.0.16] - 2026-01-20
 
 ### Added

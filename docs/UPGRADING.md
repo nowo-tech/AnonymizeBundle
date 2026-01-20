@@ -13,6 +13,115 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.17
+
+**Release Date**: 2026-01-20
+
+#### What's New
+
+- **Enhanced Reporting**: Improved statistics and export capabilities
+  - New `--stats-csv` option to export statistics to CSV format
+  - Success rate calculation and display (global and per-entity)
+  - Enhanced statistics tables with success rate column
+  - Configurable output directory for statistics via `stats_output_dir` configuration
+  - Relative file paths in `--stats-json` and `--stats-csv` automatically use configured output directory
+  - Absolute paths are used as-is for maximum flexibility
+
+- **Database Export Command**: Export databases to files with optional compression
+  - New `nowo:anonymize:export-db` command for exporting databases
+  - Supports MySQL (mysqldump), PostgreSQL (pg_dump), SQLite (file copy), and MongoDB (mongodump)
+  - Configurable output directory and filename patterns with placeholders
+  - Compression support: gzip, bzip2, zip (auto-detects available tools)
+  - Automatic `.gitignore` management to exclude export directory
+  - Selective export: export specific connections or all connections
+  - Configurable via bundle configuration (`nowo_anonymize.export.*`)
+  - Filename pattern placeholders: `{connection}`, `{database}`, `{date}`, `{time}`, `{format}`
+
+- **Anonymization History**: Track and manage anonymization runs
+  - New `nowo:anonymize:history` command to view and manage anonymization history
+  - Automatic saving of anonymization run metadata after each execution
+  - List all anonymization runs with filtering options (limit, connection)
+  - View detailed information about specific runs
+  - Compare two anonymization runs side-by-side
+  - Cleanup old runs to manage storage
+  - History stored in JSON format with index file for quick access
+  - Configurable history directory via `history_dir` configuration option
+
+- **Configuration Enhancements**:
+  - New `stats_output_dir` configuration option (default: `%kernel.project_dir%/var/stats`)
+  - New `history_dir` configuration option (default: `%kernel.project_dir%/var/anonymize_history`)
+  - New `export` configuration section for database export settings
+  - All command help text moved to `#[AsCommand]` attributes
+
+#### Breaking Changes
+
+None - This is a backward-compatible feature release.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Optional: Update configuration** (if you want to customize statistics, history, or export settings):
+   ```yaml
+   # config/packages/dev/nowo_anonymize.yaml
+   nowo_anonymize:
+       # Directory for statistics exports (JSON/CSV)
+       stats_output_dir: '%kernel.project_dir%/var/stats'
+       
+       # Directory for anonymization history
+       history_dir: '%kernel.project_dir%/var/anonymize_history'
+       
+       # Database export configuration
+       export:
+           enabled: false  # Set to true to enable
+           output_dir: '%kernel.project_dir%/var/exports'
+           filename_pattern: '{connection}_{database}_{date}_{time}.{format}'
+           compression: gzip
+           connections: []
+           auto_gitignore: true
+   ```
+
+4. **Optional: Use new features**:
+   ```bash
+   # Export statistics to CSV
+   php bin/console nowo:anonymize:run --stats-csv stats.csv
+   
+   # View anonymization history
+   php bin/console nowo:anonymize:history
+   
+   # View details of a specific run
+   php bin/console nowo:anonymize:history --run-id abc123def456
+   
+   # Compare two runs
+   php bin/console nowo:anonymize:history --compare abc123,def456
+   
+   # Export databases
+   php bin/console nowo:anonymize:export-db
+   
+   # Export with custom settings
+   php bin/console nowo:anonymize:export-db --compression zip --output-dir /tmp/exports
+   ```
+
+#### Migration Notes
+
+- The new configuration options are optional - defaults work out of the box
+- If you don't specify `stats_output_dir`, statistics will be saved in `var/stats/` by default
+- If you don't specify `history_dir`, history will be saved in `var/anonymize_history/` by default
+- Anonymization history is automatically saved after each run - no action required
+- Database export is disabled by default (`export.enabled: false`) - enable it in config if needed
+- No database schema changes required
+- Existing anonymization functionality remains unchanged
+
+---
+
 ### Upgrading to 0.0.16
 
 **Release Date**: 2026-01-20

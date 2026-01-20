@@ -26,7 +26,36 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 #[AsCommand(
     name: 'nowo:anonymize:generate-mongo-field',
-    description: 'Generate MongoDB script to add anonymized field to anonymizable documents'
+    description: 'Generate MongoDB script to add anonymized field to anonymizable documents',
+    help: <<<'HELP'
+The <info>%command.name%</info> command generates JavaScript scripts (compatible with mongosh)
+to add the <comment>anonymized</comment> boolean field to all documents in MongoDB collections.
+
+<info>⚠️  Note:</info> MongoDB ODM support is planned for future releases. This command currently
+works by scanning PHP document classes or accepting manual collection names.
+
+<info>Examples:</info>
+
+Generate script for specific collections:
+
+<info>php %command.full_name% --collection=user_activities --collection=users</info>
+
+Scan document classes automatically:
+
+<info>php %command.full_name% --scan-documents</info>
+
+Specify database and save to file:
+
+<info>php %command.full_name% --database=myapp --collection=user_activities --output=migration.js</info>
+
+Execute the generated script:
+
+<info>mongosh < mongodb_url > migration.js</info>
+
+Or:
+
+<info>mongosh "mongodb://localhost:27017/anonymize_demo" < migration.js</info>
+HELP
 )]
 final class GenerateMongoAnonymizedFieldCommand extends Command
 {
@@ -76,37 +105,6 @@ final class GenerateMongoAnonymizedFieldCommand extends Command
                 'o',
                 InputOption::VALUE_OPTIONAL,
                 'Output file path for the MongoDB script (default: prints to console)'
-            )
-            ->setHelp(
-                <<<'HELP'
-                    The <info>%command.name%</info> command generates JavaScript scripts (compatible with mongosh)
-                    to add the <comment>anonymized</comment> boolean field to all documents in MongoDB collections.
-
-                    <info>⚠️  Note:</info> MongoDB ODM support is planned for future releases. This command currently
-                    works by scanning PHP document classes or accepting manual collection names.
-
-                    <info>Examples:</info>
-
-                    Generate script for specific collections:
-
-                    <info>php %command.full_name% --collection=user_activities --collection=users</info>
-
-                    Scan document classes automatically:
-
-                    <info>php %command.full_name% --scan-documents</info>
-
-                    Specify database and save to file:
-
-                    <info>php %command.full_name% --database=myapp --collection=user_activities --output=migration.js</info>
-
-                    Execute the generated script:
-
-                    <info>mongosh < mongodb_url > migration.js</info>
-
-                    Or:
-
-                    <info>mongosh "mongodb://localhost:27017/anonymize_demo" < migration.js</info>
-                    HELP
             );
     }
 

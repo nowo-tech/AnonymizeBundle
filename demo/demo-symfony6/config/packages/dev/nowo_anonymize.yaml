@@ -28,11 +28,6 @@ nowo_anonymize:
     # Default: '%kernel.project_dir%/var/stats'
     stats_output_dir: '%kernel.project_dir%/var/stats'
 
-    # Directory where anonymization history will be stored.
-    # Each anonymization run is automatically saved with metadata and statistics.
-    # Default: '%kernel.project_dir%/var/anonymize_history'
-    history_dir: '%kernel.project_dir%/var/anonymize_history'
-
     # Database export configuration
     export:
         enabled: false  # Set to true to enable database export functionality

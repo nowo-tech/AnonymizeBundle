@@ -4,9 +4,22 @@
 
 > ⭐ **Found this project useful?** Give it a star on GitHub! It helps us maintain and improve the project.
 
-Symfony bundle for anonymizing database records using Doctrine attributes and Faker generators.
+**Symfony bundle for database anonymization, test data generation, and GDPR compliance.** Anonymize database records using Doctrine attributes and Faker generators. Perfect for development environments, testing, data masking, and privacy compliance.
 
-> ⚠️ **Important**: This bundle is **development-only** and should **never** be installed or used in production environments.
+## What is this?
+
+This bundle helps you **anonymize sensitive data** in your Symfony applications for:
+- 🧪 **Test data generation** - Create realistic anonymized test datasets
+- 🔒 **GDPR compliance** - Anonymize personal data for development/testing
+- 🎭 **Data masking** - Replace sensitive information with fake but realistic data
+- 🚀 **Development safety** - Work with anonymized data instead of real user data
+- 📊 **Database anonymization** - Anonymize entire databases or specific entities
+
+> ⚠️ **Important**: This bundle is **development-only** and should **never** be installed or used in production environments. The bundle includes built-in protection to prevent execution in production.
+
+## Quick Search Terms
+
+Looking for: **database anonymization**, **test data generator**, **GDPR compliance**, **data masking**, **Symfony anonymize**, **Doctrine anonymization**, **Faker bundle**, **privacy tools**, **PII anonymization**, **data privacy**, **test fixtures**, **development tools**? You've found the right bundle!
 
 ## Features
 
@@ -23,6 +36,10 @@ Symfony bundle for anonymizing database records using Doctrine attributes and Fa
 - ✅ Progress bars: Visual progress indicators with real-time updates
 - ✅ Enhanced environment protection: Multiple safety layers
 - ✅ Debug and verbose modes: Detailed output for debugging
+- ✅ Interactive mode: Step-by-step confirmations for safer anonymization
+- ✅ Enhanced reporting: Export statistics to JSON/CSV with success rates
+- ✅ Database export: Export databases to files with optional compression
+- ✅ Configurable output directories: Customize where statistics and exports are saved
 
 ## Installation
 
@@ -96,9 +113,11 @@ See [CONFIGURATION.md](docs/CONFIGURATION.md) for detailed configuration options
 
 ## Commands
 
-The bundle provides four console commands:
+The bundle provides six console commands:
 
 - **`nowo:anonymize:run`** - Main anonymization command (supports MySQL, PostgreSQL, SQLite)
+- **`nowo:anonymize:history`** - View and manage anonymization history (list, view, compare runs)
+- **`nowo:anonymize:export-db`** - Export databases to files with optional compression (MySQL, PostgreSQL, SQLite, MongoDB)
 - **`nowo:anonymize:generate-column-migration`** - Generate SQL migrations for `anonymized` column (MySQL, PostgreSQL, SQLite)
 - **`nowo:anonymize:generate-mongo-field`** - Generate MongoDB script to add `anonymized` field to documents
 - **`nowo:anonymize:info`** - Display information about anonymizers
@@ -146,7 +165,7 @@ For information about our Git workflow and branching strategy, see [BRANCHING.md
 
 We have an extensive roadmap for future enhancements. See [ROADMAP.md](docs/ROADMAP.md) for details on planned features including:
 
-### Current Status (v0.0.16)
+### Current Status (v0.0.17)
 
 - **Phase 1 Progress**: 100% complete (all 21 fakers implemented)
 - **Total Fakers Available**: 32 fakers (all fakers from Phase 1 + Phase 2 data preservation fakers)

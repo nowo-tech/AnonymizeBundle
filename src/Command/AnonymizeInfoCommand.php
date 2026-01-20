@@ -31,7 +31,28 @@ use Psr\Container\ContainerInterface;
  */
 #[AsCommand(
     name: 'nowo:anonymize:info',
-    description: 'Display information about anonymizers defined in the application'
+    description: 'Display information about anonymizers defined in the application',
+    help: <<<'HELP'
+The <info>%command.name%</info> command displays detailed information about anonymizers.
+
+  <info>php %command.full_name%</info>
+
+This command will:
+  1. Scan all Doctrine connections for entities with the #[Anonymize] attribute
+  2. List all properties marked with #[AnonymizeProperty] attribute
+  3. Show configuration (faker type, options, patterns)
+  4. Display execution order (based on weight)
+  5. Show statistics about how many records will be anonymized
+
+Options:
+  --connection, -c    Process only specific connections (can be used multiple times)
+  --locale, -l       Locale for Faker generator (default: en_US)
+
+Examples:
+  <info>php %command.full_name%</info>
+  <info>php %command.full_name% --connection default</info>
+  <info>php %command.full_name% --locale es_ES</info>
+HELP
 )]
 final class AnonymizeInfoCommand extends Command
 {
@@ -57,30 +78,7 @@ final class AnonymizeInfoCommand extends Command
     {
         $this
             ->addOption('connection', 'c', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Specific connections to process (default: all)')
-            ->addOption('locale', 'l', InputOption::VALUE_OPTIONAL, 'Locale for Faker generator', $this->locale)
-            ->setHelp(
-                <<<'HELP'
-                        The <info>%command.name%</info> command displays detailed information about anonymizers.
-
-                          <info>php %command.full_name%</info>
-
-                        This command will:
-                          1. Scan all Doctrine connections for entities with the #[Anonymize] attribute
-                          2. List all properties marked with #[AnonymizeProperty] attribute
-                          3. Show configuration (faker type, options, patterns)
-                          4. Display execution order (based on weight)
-                          5. Show statistics about how many records will be anonymized
-
-                        Options:
-                          --connection, -c    Process only specific connections (can be used multiple times)
-                          --locale, -l       Locale for Faker generator (default: en_US)
-
-                        Examples:
-                          <info>php %command.full_name%</info>
-                          <info>php %command.full_name% --connection default</info>
-                          <info>php %command.full_name% --locale es_ES</info>
-                    HELP
-            );
+            ->addOption('locale', 'l', InputOption::VALUE_OPTIONAL, 'Locale for Faker generator', $this->locale);
     }
 
     /**

@@ -34,9 +34,14 @@ services:
         resource: '../../Service/*'
 
     # AnonymizeService with optional EventDispatcher
-    Nowo\AnonymizeBundle\Service\AnonymizeService:
+    # EventDispatcher is optional and defaults to null in the constructor
+    # It will be retrieved manually in commands when needed
+    Nowo\AnonymizeBundle\Service\AnonymizeService: ~
+
+    # AnonymizationHistoryService
+    Nowo\AnonymizeBundle\Service\AnonymizationHistoryService:
         arguments:
-            $eventDispatcher: '@?Symfony\Contracts\EventDispatcher\EventDispatcherInterface'
+            $historyDir: '%nowo_anonymize.history_dir%'
 
     # Console Commands
     # Only configure parameters, container is autowired via alias
@@ -63,5 +68,13 @@ services:
             - { name: 'console.command' }
 
     Nowo\AnonymizeBundle\Command\GenerateMongoAnonymizedFieldCommand:
+        tags:
+            - { name: 'console.command' }
+
+    Nowo\AnonymizeBundle\Command\ExportDatabaseCommand:
+        tags:
+            - { name: 'console.command' }
+
+    Nowo\AnonymizeBundle\Command\AnonymizationHistoryCommand:
         tags:
             - { name: 'console.command' }

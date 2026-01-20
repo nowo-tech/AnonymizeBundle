@@ -14,6 +14,15 @@ nowo_anonymize:
     connections: []              # Specific connections to process (empty = all)
     dry_run: false              # Dry-run mode (default: false)
     batch_size: 100             # Batch size for processing records
+    stats_output_dir: '%kernel.project_dir%/var/stats'  # Output directory for statistics (JSON/CSV)
+    history_dir: '%kernel.project_dir%/var/anonymize_history'  # Directory for anonymization history
+    export:                      # Database export configuration
+        enabled: false           # Enable export functionality
+        output_dir: '%kernel.project_dir%/var/exports'  # Output directory
+        filename_pattern: '{connection}_{database}_{date}_{time}.{format}'  # Filename pattern
+        compression: gzip        # Compression format: none, gzip, bzip2, zip
+        connections: []          # Specific connections to export (empty = all)
+        auto_gitignore: true     # Automatically update .gitignore
 ```
 
 ## Configuration Options
@@ -68,6 +77,72 @@ nowo_anonymize:
     batch_size: 50
 ```
 
+### history_dir
+
+**Type**: `string`  
+**Default**: `'%kernel.project_dir%/var/anonymize_history'`  
+**Description**: Directory where anonymization history will be stored. History includes metadata and statistics for each anonymization run.
+
+**Example**:
+```yaml
+nowo_anonymize:
+    history_dir: '%kernel.project_dir%/var/anonymize_history'
+```
+
+**Note**: The history directory is automatically created if it doesn't exist. Each anonymization run is saved as a JSON file with metadata and statistics.
+
+### export
+
+**Type**: `array`  
+**Default**: `disabled` (must be explicitly enabled)  
+**Description**: Configuration for database export functionality.
+
+**Sub-options**:
+
+- **`enabled`** (boolean, default: `false`): Enable export functionality
+- **`output_dir`** (string, default: `'%kernel.project_dir%/var/exports'`): Directory where exports will be saved
+- **`filename_pattern`** (string, default: `'{connection}_{database}_{date}_{time}.{format}'`): Filename pattern with placeholders:
+  - `{connection}` - Connection name
+  - `{database}` - Database name
+  - `{date}` - Current date (Y-m-d format)
+  - `{time}` - Current time (H-i-s format)
+  - `{format}` - File extension (sql, sqlite, bson)
+- **`compression`** (string, default: `'gzip'`): Compression format. Options: `none`, `gzip`, `bzip2`, `zip`
+- **`connections`** (array, default: `[]`): Specific connections to export. Empty array means all connections
+- **`auto_gitignore`** (boolean, default: `true`): Automatically create/update `.gitignore` to exclude export directory
+
+**Example**:
+```yaml
+nowo_anonymize:
+    export:
+        enabled: true
+        output_dir: '%kernel.project_dir%/var/exports'
+        filename_pattern: '{connection}_{database}_{date}_{time}.{format}'
+        compression: gzip
+        connections: []  # Export all connections
+        auto_gitignore: true
+```
+
+**Filename Pattern Examples**:
+```yaml
+# Simple pattern
+filename_pattern: '{database}_{date}.{format}'
+
+# With connection and time
+filename_pattern: '{connection}_{database}_{date}_{time}.{format}'
+
+# Custom format
+filename_pattern: 'backup_{database}_{date}.{format}'
+```
+
+**Compression Notes**:
+- `gzip`: Requires `gzip` command (usually pre-installed on Linux/Mac)
+- `bzip2`: Requires `bzip2` command (usually pre-installed on Linux/Mac)
+- `zip`: Requires PHP `ZipArchive` extension (usually pre-installed)
+- `none`: No compression applied
+
+The export command will automatically detect available compression tools and fall back gracefully if a tool is not available.
+
 ## Environment-Specific Configuration
 
 > ⚠️ **Important**: This bundle should **only** be configured for `dev` and `test` environments. Never configure it for production.
@@ -115,7 +190,7 @@ Command-line options take precedence over configuration file values.
 
 ## Available Commands
 
-The bundle provides three console commands. See [COMMANDS.md](COMMANDS.md) for detailed command documentation, options, and examples.
+The bundle provides six console commands. See [COMMANDS.md](COMMANDS.md) for detailed command documentation, options, and examples.
 
 ## Pattern Matching
 

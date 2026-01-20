@@ -58,6 +58,30 @@ class AnonymizeStatisticsTest extends TestCase
     }
 
     /**
+     * Test that statistics can be exported to CSV.
+     */
+    public function testToCsv(): void
+    {
+        $stats = new AnonymizeStatistics();
+        $stats->start();
+        $stats->recordEntity('App\Entity\User', 'default', 10, 8, ['email' => 8, 'name' => 8]);
+        $stats->recordEntity('App\Entity\Customer', 'default', 5, 3, ['email' => 3]);
+        $stats->stop();
+
+        $csv = $stats->toCsv();
+        $this->assertIsString($csv);
+        $this->assertStringContainsString('Section,Key,Value', $csv);
+        $this->assertStringContainsString('Global,Total Entities', $csv);
+        $this->assertStringContainsString('Entity,Connection,Processed,Updated,Skipped,Success Rate (%)', $csv);
+        $this->assertStringContainsString('App\Entity\User,default,10,8,2', $csv);
+        $this->assertStringContainsString('App\Entity\Customer,default,5,3,2', $csv);
+        $this->assertStringContainsString('Entity,Connection,Property,Anonymized Count', $csv);
+        $this->assertStringContainsString('App\Entity\User,default,email,8', $csv);
+        $this->assertStringContainsString('App\Entity\User,default,name,8', $csv);
+        $this->assertStringContainsString('App\Entity\Customer,default,email,3', $csv);
+    }
+
+    /**
      * Test that summary statistics are correct.
      */
     public function testGetSummary(): void

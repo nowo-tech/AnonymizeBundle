@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and enhancements for the Anonymize Bundle.
 
-## Current Status (v0.0.16 - Released)
+## Current Status (v0.0.17 - Released)
 
 ### ✅ Implemented Features
 
@@ -357,10 +357,14 @@ This document outlines the planned features, improvements, and enhancements for 
 
 #### 2. **CLI Improvements**
 
-- **Interactive Mode**: Interactive command execution
-  - Step-by-step confirmation prompts
-  - Interactive pattern builder
-  - Guided entity selection
+- ✅ **Interactive Mode**: Interactive command execution - **IMPLEMENTED** (v0.0.17)
+  - ✅ Step-by-step confirmation prompts
+  - ✅ Summary display before anonymization
+  - ✅ Confirmation for each entity manager
+  - ✅ Confirmation for each entity
+  - ✅ Entity details display (table name, property count)
+  - ⏳ Interactive pattern builder (Pending)
+  - ⏳ Guided entity selection (Pending)
 
 - ✅ **Progress Bars**: Visual progress indicators - **IMPLEMENTED** (v0.0.13)
   - ✅ Real-time progress bars for batch processing
@@ -382,19 +386,21 @@ This document outlines the planned features, improvements, and enhancements for 
 
 #### 3. **Reporting and Analytics**
 
-- **Detailed Reports**: Enhanced statistics and reporting
-  - Per-entity statistics
-  - Per-property statistics
-  - Time-based analytics
-  - Export to CSV/JSON/PDF/HTML
-  - Comparison reports (before/after)
+- ✅ **Detailed Reports**: Enhanced statistics and reporting - **PARTIALLY IMPLEMENTED** (v0.0.17)
+  - ✅ Per-entity statistics
+  - ✅ Per-property statistics
+  - ✅ Export to CSV/JSON
+  - ✅ Success rate calculation
+  - ⏳ Time-based analytics (Pending)
+  - ⏳ Export to PDF/HTML (Pending)
+  - ⏳ Comparison reports (before/after) (Pending)
 
-- **Anonymization History**: Track anonymization runs
-  - Store metadata about each run
-  - Query anonymization history
-  - Compare runs
-  - Timeline visualization
-  - Audit trail export
+- ✅ **Anonymization History**: Track anonymization runs - **IMPLEMENTED** (v0.0.17)
+  - ✅ Store metadata about each run
+  - ✅ Query anonymization history
+  - ✅ Compare runs
+  - ⏳ Timeline visualization (Pending)
+  - ⏳ Audit trail export (Pending)
 
 - **Data Quality Metrics**: Validate anonymization quality
   - Uniqueness checks
@@ -781,10 +787,23 @@ This document outlines the planned features, improvements, and enhancements for 
 11. ✅ **EmailSubscription Demo Entity** - **COMPLETED** (v0.0.14)
 12. ✅ **MongoDB Field Migration Command** - **COMPLETED** (v0.0.15)
 13. ✅ **Relationship Patterns Support** - **COMPLETED** (v0.0.16)
-14. **Symfony Messenger Integration**
-13. **Interactive Mode**
-14. **Enhanced Reporting**
-15. **Security Enhancements**
+14. ✅ **Interactive Mode** - **COMPLETED** (v0.0.17)
+15. ✅ **Enhanced Reporting** - **COMPLETED** (v0.0.17)
+  - ✅ CSV export support (`--stats-csv`)
+  - ✅ Success rate calculation and display
+  - ✅ Enhanced statistics tables
+  - ✅ Configurable output directory (`stats_output_dir`)
+  - ⏳ Per-entity and per-property detailed analytics (Partial)
+  - ⏳ Export to PDF/HTML (Pending)
+  - ⏳ Comparison reports (before/after) (Pending)
+16. ✅ **Database Export Command** - **COMPLETED** (v0.0.17)
+  - ✅ Export MySQL, PostgreSQL, SQLite, MongoDB
+  - ✅ Compression support (gzip, bzip2, zip)
+  - ✅ Configurable output directory and filename patterns
+  - ✅ Automatic .gitignore management
+  - ✅ Selective connection export
+17. **Symfony Messenger Integration**
+18. **Security Enhancements**
 
 ### 📊 Database Support Priority
 

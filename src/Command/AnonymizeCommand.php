@@ -22,6 +22,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -36,7 +37,47 @@ use Psr\Container\ContainerInterface;
  */
 #[AsCommand(
     name: 'nowo:anonymize:run',
-    description: 'Anonymize database records using Doctrine attributes'
+    description: 'Anonymize database records using Doctrine attributes',
+    help: <<<'HELP'
+The <info>%command.name%</info> command anonymizes database records based on Doctrine attributes.
+
+  <info>php %command.full_name%</info>
+
+This command will:
+  1. Scan all Doctrine ORM connections for entities with the #[Anonymize] attribute
+  2. Process properties marked with #[AnonymizeProperty] attribute
+  3. Anonymize values using Faker generators
+  4. Respect weight ordering (lower weights first, then alphabetical)
+  5. Apply inclusion/exclusion patterns
+
+Note: Currently supports Doctrine ORM (MySQL, PostgreSQL, SQLite).
+      MongoDB ODM support is planned for future releases.
+
+Options:
+  --connection, -c    Process only specific connections (can be used multiple times)
+  --dry-run          Show what would be anonymized without making changes
+  --batch-size, -b   Number of records to process in each batch (default: 100)
+  --locale, -l       Locale for Faker generator (default: en_US)
+  --stats-json       Export statistics to JSON file (relative paths use configured stats_output_dir)
+  --stats-csv         Export statistics to CSV file (relative paths use configured stats_output_dir)
+  --stats-only       Show only statistics summary (suppress detailed output)
+  --no-progress      Disable progress bar display
+  --verbose, -v      Increase verbosity of messages (Symfony standard option)
+  --debug            Enable debug mode (shows detailed information)
+  --interactive, -i  Enable interactive mode with step-by-step confirmations
+
+Examples:
+  <info>php %command.full_name%</info>
+  <info>php %command.full_name% --dry-run</info>
+  <info>php %command.full_name% --connection default --connection secondary</info>
+  <info>php %command.full_name% --batch-size 50 --locale en_US</info>
+  <info>php %command.full_name% --stats-json stats.json</info>
+  <info>php %command.full_name% --stats-csv stats.csv</info>
+  <info>php %command.full_name% --stats-only</info>
+  <info>php %command.full_name% --verbose</info>
+  <info>php %command.full_name% --debug</info>
+  <info>php %command.full_name% --interactive</info>
+HELP
 )]
 final class AnonymizeCommand extends Command
 {
@@ -72,48 +113,11 @@ final class AnonymizeCommand extends Command
             ->addOption('batch-size', 'b', InputOption::VALUE_OPTIONAL, 'Batch size for processing records', $this->batchSize)
             ->addOption('locale', 'l', InputOption::VALUE_OPTIONAL, 'Locale for Faker generator', $this->locale)
             ->addOption('stats-json', null, InputOption::VALUE_OPTIONAL, 'Export statistics to JSON file')
+            ->addOption('stats-csv', null, InputOption::VALUE_OPTIONAL, 'Export statistics to CSV file')
             ->addOption('stats-only', null, InputOption::VALUE_NONE, 'Show only statistics summary')
             ->addOption('no-progress', null, InputOption::VALUE_NONE, 'Disable progress bar display')
-            ->addOption('verbose', 'v', InputOption::VALUE_NONE, 'Increase verbosity of messages')
             ->addOption('debug', null, InputOption::VALUE_NONE, 'Enable debug mode (shows detailed information)')
-            ->setHelp(
-                <<<'HELP'
-                    The <info>%command.name%</info> command anonymizes database records based on Doctrine attributes.
-
-                      <info>php %command.full_name%</info>
-
-                    This command will:
-                      1. Scan all Doctrine ORM connections for entities with the #[Anonymize] attribute
-                      2. Process properties marked with #[AnonymizeProperty] attribute
-                      3. Anonymize values using Faker generators
-                      4. Respect weight ordering (lower weights first, then alphabetical)
-                      5. Apply inclusion/exclusion patterns
-
-                    Note: Currently supports Doctrine ORM (MySQL, PostgreSQL, SQLite).
-                          MongoDB ODM support is planned for future releases.
-
-                    Options:
-                      --connection, -c    Process only specific connections (can be used multiple times)
-                      --dry-run          Show what would be anonymized without making changes
-                      --batch-size, -b   Number of records to process in each batch (default: 100)
-                      --locale, -l       Locale for Faker generator (default: en_US)
-                      --stats-json       Export statistics to JSON file
-                      --stats-only       Show only statistics summary (suppress detailed output)
-                      --no-progress      Disable progress bar display
-                      --verbose, -v      Increase verbosity of messages
-                      --debug            Enable debug mode (shows detailed information)
-
-                    Examples:
-                      <info>php %command.full_name%</info>
-                      <info>php %command.full_name% --dry-run</info>
-                      <info>php %command.full_name% --connection default --connection secondary</info>
-                      <info>php %command.full_name% --batch-size 50 --locale en_US</info>
-                      <info>php %command.full_name% --stats-json stats.json</info>
-                      <info>php %command.full_name% --stats-only</info>
-                      <info>php %command.full_name% --verbose</info>
-                      <info>php %command.full_name% --debug</info>
-                    HELP
-            );
+            ->addOption('interactive', 'i', InputOption::VALUE_NONE, 'Enable interactive mode with step-by-step confirmations');
     }
 
     /**
@@ -128,7 +132,81 @@ final class AnonymizeCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         // Enhanced environment protection checks
-        $parameterBag = $this->container->get('parameter_bag');
+        // Get parameter bag - try different ways depending on Symfony version
+        $parameterBag = null;
+        
+        // Try to get parameter_bag service
+        if ($this->container->has('parameter_bag')) {
+            try {
+                $parameterBag = $this->container->get('parameter_bag');
+            } catch (\Exception $e) {
+                // parameter_bag not available
+            }
+        }
+        
+        // Fallback: create a wrapper that accesses parameters via kernel
+        if ($parameterBag === null) {
+            $container = $this->container;
+            // Create a simple parameter bag wrapper
+            $parameterBag = new class($container) implements ParameterBagInterface {
+                public function __construct(private ContainerInterface $container) {}
+                public function get(string $name): array|bool|string|int|float|\UnitEnum|null { 
+                    // Access kernel container's parameter bag via reflection
+                    if ($this->container->has('kernel')) {
+                        $kernel = $this->container->get('kernel');
+                        $reflection = new \ReflectionClass($kernel);
+                        if ($reflection->hasProperty('container')) {
+                            $property = $reflection->getProperty('container');
+                            $property->setAccessible(true);
+                            $kernelContainer = $property->getValue($kernel);
+                            if ($kernelContainer instanceof \Symfony\Component\DependencyInjection\Container) {
+                                // Try getParameterBag method first
+                                if (method_exists($kernelContainer, 'getParameterBag')) {
+                                    $paramBag = $kernelContainer->getParameterBag();
+                                    if ($paramBag instanceof ParameterBagInterface) {
+                                        return $paramBag->get($name);
+                                    }
+                                }
+                                // Fallback: access parameterBag property via reflection
+                                $paramReflection = new \ReflectionClass($kernelContainer);
+                                if ($paramReflection->hasProperty('parameterBag')) {
+                                    $paramProperty = $paramReflection->getProperty('parameterBag');
+                                    $paramProperty->setAccessible(true);
+                                    $paramBag = $paramProperty->getValue($kernelContainer);
+                                    if ($paramBag instanceof ParameterBagInterface) {
+                                        return $paramBag->get($name);
+                                    }
+                                }
+                                // Last resort: try getParameter method directly
+                                if (method_exists($kernelContainer, 'getParameter')) {
+                                    return $kernelContainer->getParameter($name);
+                                }
+                            }
+                        }
+                    }
+                    throw new \InvalidArgumentException(sprintf('Parameter "%s" not found', $name));
+                }
+                public function has(string $name): bool { 
+                    try {
+                        $this->get($name);
+                        return true;
+                    } catch (\Exception $e) {
+                        return false;
+                    }
+                }
+                public function set(string $name, array|bool|string|int|float|\UnitEnum|null $value): void {}
+                public function remove(string $name): void {}
+                public function all(): array { return []; }
+                public function replace(array $parameters): void {}
+                public function add(array $parameters): void {}
+                public function clear(): void {}
+                public function resolve(): void {}
+                public function resolveValue(mixed $value): mixed { return $value; }
+                public function escapeValue(mixed $value): mixed { return $value; }
+                public function unescapeValue(mixed $value): mixed { return $value; }
+            };
+        }
+        
         $environmentProtection = new EnvironmentProtectionService($parameterBag);
 
         $protectionErrors = $environmentProtection->performChecks();
@@ -161,6 +239,7 @@ final class AnonymizeCommand extends Command
         $locale = $input->getOption('locale') ?: $this->locale;
         $verbose = $input->getOption('verbose') || $output->isVerbose();
         $debug = $input->getOption('debug') || $output->isDebug();
+        $interactive = $input->getOption('interactive');
 
         if ($dryRun) {
             $io->warning('DRY RUN MODE: No changes will be made to the database');
@@ -205,6 +284,55 @@ final class AnonymizeCommand extends Command
 
         $statsOnly = $input->getOption('stats-only');
         $statsJson = $input->getOption('stats-json');
+        $statsCsv = $input->getOption('stats-csv');
+        
+        // Get stats output directory from configuration
+        $statsOutputDir = $this->getParameter('nowo_anonymize.stats_output_dir', '%kernel.project_dir%/var/stats');
+        
+        // Resolve kernel.project_dir if present
+        if (str_contains($statsOutputDir, '%kernel.project_dir%')) {
+            if ($this->container->has('kernel')) {
+                $kernel = $this->container->get('kernel');
+                $projectDir = $kernel->getProjectDir();
+                $statsOutputDir = str_replace('%kernel.project_dir%', $projectDir, $statsOutputDir);
+            }
+        }
+        
+        // Process stats file paths - if relative, use configured output directory
+        if ($statsJson !== null && !str_starts_with($statsJson, '/') && !str_contains($statsJson, '\\')) {
+            // Relative path - prepend output directory
+            if (!is_dir($statsOutputDir)) {
+                mkdir($statsOutputDir, 0755, true);
+            }
+            $statsJson = rtrim($statsOutputDir, '/') . '/' . $statsJson;
+        }
+        
+        if ($statsCsv !== null && !str_starts_with($statsCsv, '/') && !str_contains($statsCsv, '\\')) {
+            // Relative path - prepend output directory
+            if (!is_dir($statsOutputDir)) {
+                mkdir($statsOutputDir, 0755, true);
+            }
+            $statsCsv = rtrim($statsOutputDir, '/') . '/' . $statsCsv;
+        }
+
+        // Show summary if interactive mode
+        if ($interactive && !$statsOnly) {
+            $io->title('Interactive Mode - Anonymization Summary');
+            $io->writeln(sprintf('Entity managers to process: <info>%s</info>', implode(', ', $managersToProcess)));
+            $io->writeln(sprintf('Batch size: <info>%d</info>', $batchSize));
+            $io->writeln(sprintf('Locale: <info>%s</info>', $locale));
+            if ($dryRun) {
+                $io->writeln('<comment>DRY RUN MODE: No changes will be made</comment>');
+            }
+            $io->newLine();
+
+            if (!$io->confirm('Do you want to proceed with anonymization?', false)) {
+                $io->warning('Anonymization cancelled by user.');
+
+                return Command::SUCCESS;
+            }
+            $io->newLine();
+        }
 
         // Process each entity manager
         foreach ($managersToProcess as $managerName) {
@@ -239,9 +367,24 @@ final class AnonymizeCommand extends Command
                             $io->writeln('<comment>[DEBUG]</comment> All pre-flight checks completed successfully');
                         }
                     }
+
+                    // Interactive confirmation for entity manager
+                    if ($interactive && !$statsOnly) {
+                        $io->writeln(sprintf('Found <info>%d</info> entity(ies) to process in <info>%s</info>:', count($entities), $managerName));
+                        foreach ($entities as $entityClass) {
+                            $io->writeln(sprintf('  - <info>%s</info>', $entityClass));
+                        }
+                        $io->newLine();
+
+                        if (!$io->confirm(sprintf('Do you want to process entity manager <info>%s</info>?', $managerName), true)) {
+                            $io->note(sprintf('Skipping entity manager: %s', $managerName));
+                            continue;
+                        }
+                        $io->newLine();
+                    }
                 }
 
-                $this->processConnection($io, $em, $anonymizeService, $batchSize, $dryRun, $managerName, $statistics, $statsOnly, $input, $output, $verbose, $debug);
+                $this->processConnection($io, $em, $anonymizeService, $batchSize, $dryRun, $managerName, $statistics, $statsOnly, $input, $output, $verbose, $debug, $interactive);
             } catch (\Exception $e) {
                 $io->error(sprintf('Error processing entity manager %s: %s', $managerName, $e->getMessage()));
 
@@ -251,8 +394,36 @@ final class AnonymizeCommand extends Command
 
         $statistics->stop();
 
+        // Save to history
+        try {
+            $historyDir = $this->getParameter('nowo_anonymize.history_dir', '%kernel.project_dir%/var/anonymize_history');
+            if (str_contains($historyDir, '%kernel.project_dir%')) {
+                if ($this->container->has('kernel')) {
+                    $kernel = $this->container->get('kernel');
+                    $projectDir = $kernel->getProjectDir();
+                    $historyDir = str_replace('%kernel.project_dir%', $projectDir, $historyDir);
+                }
+            }
+            
+            $historyService = new \Nowo\AnonymizeBundle\Service\AnonymizationHistoryService($historyDir);
+            $metadata = [
+                'command' => 'nowo:anonymize:run',
+                'connections' => $connections,
+                'batch_size' => $batchSize,
+                'locale' => $locale,
+                'dry_run' => $dryRun,
+                'interactive' => $interactive,
+            ];
+            $historyService->saveRun($statistics->getAll(), $metadata);
+        } catch (\Exception $e) {
+            // Silently fail if history cannot be saved
+            if ($debug) {
+                $io->writeln(sprintf('<comment>[DEBUG]</comment> Failed to save history: %s', $e->getMessage()));
+            }
+        }
+
         // Display statistics
-        $this->displayStatistics($io, $statistics, $statsOnly, $statsJson);
+        $this->displayStatistics($io, $statistics, $statsOnly, $statsJson, $statsCsv);
 
         return Command::SUCCESS;
     }
@@ -281,7 +452,8 @@ final class AnonymizeCommand extends Command
         ?InputInterface $input = null,
         ?OutputInterface $output = null,
         bool $verbose = false,
-        bool $debug = false
+        bool $debug = false,
+        bool $interactive = false
     ): void {
 
         // Get all anonymizable entities
@@ -328,6 +500,28 @@ final class AnonymizeCommand extends Command
             if (null !== $attribute->connection) {
                 $connectionName = $em->getConnection()->getDatabase();
                 // Note: This is a simplified check. You might need to adjust based on your setup
+            }
+
+            // Interactive confirmation for each entity
+            if ($interactive && !$statsOnly) {
+                // Get property count for summary
+                $propertyCount = count($entityData['properties'] ?? []);
+                $io->writeln(sprintf('Entity: <info>%s</info> (table: <comment>%s</comment>, properties: <info>%d</info>)', $className, $metadata->getTableName(), $propertyCount));
+                
+                if ($verbose && isset($entityData['properties'])) {
+                    $io->writeln('  Properties to anonymize:');
+                    foreach ($entityData['properties'] as $propName => $propData) {
+                        $fakerType = $propData['attribute']->type ?? 'unknown';
+                        $io->writeln(sprintf('    - <info>%s</info> (<comment>%s</comment>)', $propName, $fakerType));
+                    }
+                }
+                $io->newLine();
+
+                if (!$io->confirm(sprintf('Do you want to process entity <info>%s</info>?', $className), true)) {
+                    $io->note(sprintf('Skipping entity: %s', $className));
+                    continue;
+                }
+                $io->newLine();
             }
 
             if (!$statsOnly) {
@@ -481,12 +675,14 @@ final class AnonymizeCommand extends Command
      * @param AnonymizeStatistics $statistics The statistics
      * @param bool $statsOnly If true, show only statistics
      * @param string|null $statsJson Path to export JSON statistics
+     * @param string|null $statsCsv Path to export CSV statistics
      */
     private function displayStatistics(
         SymfonyStyle $io,
         AnonymizeStatistics $statistics,
         bool $statsOnly,
-        ?string $statsJson
+        ?string $statsJson,
+        ?string $statsCsv = null
     ): void {
         $summary = $statistics->getSummary();
         $entities = $statistics->getEntities();
@@ -495,24 +691,36 @@ final class AnonymizeCommand extends Command
         if (null !== $statsJson) {
             $json = $statistics->toJson();
             file_put_contents($statsJson, $json);
-            $io->success(sprintf('Statistics exported to: %s', $statsJson));
+            $io->success(sprintf('Statistics exported to JSON: %s', $statsJson));
+        }
+
+        // Export to CSV if requested
+        if (null !== $statsCsv) {
+            $csv = $statistics->toCsv();
+            file_put_contents($statsCsv, $csv);
+            $io->success(sprintf('Statistics exported to CSV: %s', $statsCsv));
         }
 
         // Display summary
         $io->title('Anonymization Statistics');
 
         $io->section('Summary');
-        $io->table(
-            ['Metric', 'Value'],
-            [
-                ['Total Entities', $summary['total_entities']],
-                ['Total Processed', $summary['total_processed']],
-                ['Total Updated', $summary['total_updated']],
-                ['Total Skipped', $summary['total_skipped']],
-                ['Duration', $summary['duration_formatted']],
-                ['Average per Second', $summary['average_per_second']],
-            ]
-        );
+        $summaryRows = [
+            ['Total Entities', (string) $summary['total_entities']],
+            ['Total Processed', (string) $summary['total_processed']],
+            ['Total Updated', (string) $summary['total_updated']],
+            ['Total Skipped', (string) $summary['total_skipped']],
+            ['Duration', $summary['duration_formatted']],
+            ['Average per Second', (string) $summary['average_per_second']],
+        ];
+        
+        // Add success rate if we have processed records
+        if ($summary['total_processed'] > 0) {
+            $successRate = round(($summary['total_updated'] / $summary['total_processed']) * 100, 2);
+            $summaryRows[] = ['Success Rate', sprintf('%.2f%%', $successRate)];
+        }
+        
+        $io->table(['Metric', 'Value'], $summaryRows);
 
         // Display entity details
         if (!empty($entities)) {
@@ -520,17 +728,22 @@ final class AnonymizeCommand extends Command
 
             $rows = [];
             foreach ($entities as $entityData) {
+                $successRate = $entityData['processed'] > 0
+                    ? round(($entityData['updated'] / $entityData['processed']) * 100, 2) . '%'
+                    : 'N/A';
+                
                 $rows[] = [
                     $entityData['entity'],
                     $entityData['connection'],
-                    $entityData['processed'],
-                    $entityData['updated'],
-                    $entityData['skipped'],
+                    (string) $entityData['processed'],
+                    (string) $entityData['updated'],
+                    (string) $entityData['skipped'],
+                    $successRate,
                 ];
             }
 
             $io->table(
-                ['Entity', 'Connection', 'Processed', 'Updated', 'Skipped'],
+                ['Entity', 'Connection', 'Processed', 'Updated', 'Skipped', 'Success Rate'],
                 $rows
             );
 
@@ -564,5 +777,32 @@ final class AnonymizeCommand extends Command
                 )
             );
         }
+    }
+
+    /**
+     * Gets a parameter from the container.
+     *
+     * @param string $name The parameter name
+     * @param mixed $default The default value if parameter doesn't exist
+     * @return mixed The parameter value
+     */
+    private function getParameter(string $name, mixed $default = null): mixed
+    {
+        if ($this->container->has('kernel')) {
+            $kernel = $this->container->get('kernel');
+            $reflection = new \ReflectionClass($kernel);
+            if ($reflection->hasProperty('container')) {
+                $property = $reflection->getProperty('container');
+                $property->setAccessible(true);
+                $kernelContainer = $property->getValue($kernel);
+                if ($kernelContainer instanceof \Symfony\Component\DependencyInjection\Container) {
+                    if (method_exists($kernelContainer, 'hasParameter') && $kernelContainer->hasParameter($name)) {
+                        return $kernelContainer->getParameter($name);
+                    }
+                }
+            }
+        }
+
+        return $default;
     }
 }
