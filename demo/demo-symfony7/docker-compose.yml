@@ -13,11 +13,8 @@ services:
       - DATABASE_URL=mysql://${MYSQL_USER:-demo_user}:${MYSQL_PASSWORD:-password}@mysql:3306/${MYSQL_DATABASE:-anonymize_demo}?serverVersion=8.0&charset=utf8mb4
       - DATABASE_URL_POSTGRES=postgresql://${POSTGRES_USER:-demo_user}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-anonymize_demo}?serverVersion=16&charset=utf8
     command: ["php-fpm", "-F"]
-    depends_on:
-      mysql:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
+    # Note: depends_on removed to allow entrypoint script to handle database readiness
+    # The entrypoint script will wait for databases and load fixtures automatically
     networks:
       - anonymize-demo-network
 
