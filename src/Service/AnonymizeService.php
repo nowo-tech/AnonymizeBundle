@@ -172,7 +172,7 @@ final class AnonymizeService
 
         foreach ($records as $index => $record) {
             $processed++;
-            
+
             // Check entity-level inclusion/exclusion patterns first
             if ($entityAttribute !== null) {
                 if (!$this->patternMatcher->matches($record, $entityAttribute->includePatterns, $entityAttribute->excludePatterns)) {
@@ -180,7 +180,7 @@ final class AnonymizeService
                     continue;
                 }
             }
-            
+
             $shouldAnonymize = false;
             $updates = [];
 

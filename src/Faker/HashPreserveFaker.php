@@ -23,9 +23,7 @@ final class HashPreserveFaker implements FakerInterface
     /**
      * Creates a new HashPreserveFaker instance.
      */
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     /**
      * Generates a deterministic hash from the original value.
