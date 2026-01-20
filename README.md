@@ -143,11 +143,12 @@ For information about our Git workflow and branching strategy, see [BRANCHING.md
 
 We have an extensive roadmap for future enhancements. See [ROADMAP.md](docs/ROADMAP.md) for details on planned features including:
 
-### Current Status (v0.0.13)
+### Current Status (v0.0.14)
 
 - **Phase 1 Progress**: 100% complete (all 21 fakers implemented)
 - **Total Fakers Available**: 32 fakers (all fakers from Phase 1 + Phase 2 data preservation fakers)
 - **Test Coverage**: 216 tests, 512 assertions, 45.80% line coverage
+- **Pattern Matching**: Enhanced with `|` (OR) operator support for multiple value matching
 
 ### Planned Phases
 

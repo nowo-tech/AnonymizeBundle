@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.14] - 2026-01-20
+
+### Added
+
+- **Pattern Matching Enhancement**: PatternMatcher now supports multiple values with `|` (OR) operator
+  - Allows matching multiple values in a single pattern (e.g., `'status' => 'inactive|unsubscribed'`)
+  - Supports SQL LIKE patterns with `%` wildcard combined with OR operator
+  - Useful for complex pattern matching scenarios
+  - Example: `includePatterns: ['email' => '%@test-domain.com|%@example.com|%@demo.local']`
+
+- **Demo: EmailSubscription Entity**: New entity demonstrating comprehensive pattern-based anonymization
+  - Shows how to anonymize emails based on domain patterns
+  - Demonstrates conditional anonymization based on status
+  - Includes ~50 fixture records covering all pattern combinations
+  - Examples of all pattern types: domain matching, status-based conditions, date conditions
+  - Applied to all demo projects (Symfony 6, 7, 8)
+
+### Fixed
+
+- **Entity-Level Pattern Filtering**: Fixed issue where entity-level `includePatterns`/`excludePatterns` were not applied
+  - Patterns from `#[Anonymize]` attribute are now correctly applied before processing records
+  - Ensures entities like `Order` and `Customer` filter records correctly based on entity-level patterns
+  - Example: `Order` now correctly only processes records with `status='completed'` and `id>5`
+
+- **Service Registration**: Fixed `CustomReferenceFaker` service registration in demos
+  - Now uses `#[Autoconfigure(public: true)]` attribute instead of explicit YAML configuration
+  - More declarative and consistent with bundle patterns
+  - Applied to all demo projects (Symfony 6, 7, 8)
+
+- **EventDispatcher Injection**: Fixed optional EventDispatcher injection compatibility
+  - Changed from `@?event_dispatcher` to full interface name for better compatibility
+  - Prevents configuration loading errors
+
+- **SystemLog Fixtures**: Added missing fixtures for `SystemLog` entity in all demo projects
+  - Ensures `SystemLog` table exists and has data for anonymization testing
+  - Applied to all demo projects (Symfony 6, 7, 8)
+
+### Improved
+
+- **Demo Coverage**: Enhanced demo fixtures with comprehensive test cases
+  - EmailSubscription fixtures expanded to ~50 records
+  - Covers all pattern combinations: domain matching, status conditions, with/without backup emails, with/without notes
+  - All source types represented: website, newsletter, promotion, partner
+  - Different date ranges for comprehensive testing
+
 ## [0.0.13] - 2026-01-19
 
 ### Added

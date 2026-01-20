@@ -13,6 +13,102 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.14
+
+**Release Date**: 2026-01-20
+
+#### What's New
+
+- **Pattern Matching Enhancement**: PatternMatcher now supports multiple values with `|` (OR) operator
+  - You can now use patterns like `'status' => 'inactive|unsubscribed'` to match multiple values
+  - Supports SQL LIKE patterns with `%` wildcard: `'email' => '%@test-domain.com|%@example.com'`
+  - Useful for complex pattern matching scenarios
+
+- **Entity-Level Pattern Filtering Fix**: Entity-level patterns are now correctly applied
+  - Patterns from `#[Anonymize]` attribute are now applied before processing records
+  - Ensures correct filtering based on entity-level `includePatterns`/`excludePatterns`
+
+- **Demo Enhancements**: New `EmailSubscription` entity with comprehensive pattern examples
+  - Demonstrates domain-based email anonymization
+  - Shows conditional anonymization based on status
+  - Includes ~50 fixture records covering all pattern combinations
+
+#### Breaking Changes
+
+None - This is a backward-compatible bug fix and feature release.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Verify installation**:
+   ```bash
+   php bin/console list nowo:anonymize
+   ```
+
+4. **Update your entities** (optional):
+   - You can now use the `|` (OR) operator in patterns for multiple value matching
+   - Example: `includePatterns: ['status' => 'inactive|unsubscribed']`
+   - Example: `includePatterns: ['email' => '%@test-domain.com|%@example.com']`
+
+#### Notes
+
+- No configuration changes required
+- Entity-level patterns now work correctly (if you were experiencing issues with filtering)
+- New pattern matching features are backward compatible
+- Existing anonymization configurations continue to work unchanged
+
+### Upgrading to 0.0.13
+
+**Release Date**: 2026-01-19
+
+#### What's New
+
+- **Enhanced Existing Fakers**: Improved IbanFaker, AgeFaker, NameFaker, and SurnameFaker
+- **New Fakers**: Added 3 new faker types (HashPreserveFaker, ShuffleFaker, ConstantFaker)
+- **Pre-flight Checks**: Comprehensive validation before anonymization execution
+- **Progress Bars**: Visual progress indicators for anonymization process
+- **Enhanced Environment Protection**: Improved safety checks
+- **Debug and Verbose Modes**: Enhanced output options
+- **Info Command**: New command to display anonymizer information
+- **Event System**: Symfony events for extensibility
+- **Demo Coverage**: Complete faker examples in all demos (100% coverage)
+
+#### Breaking Changes
+
+None - This is a backward-compatible feature release.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Verify installation**:
+   ```bash
+   php bin/console list nowo:anonymize
+   ```
+
+#### Notes
+
+- No configuration changes required
+- New features are automatically available after update
+- Existing anonymization configurations continue to work unchanged
+
 ### Upgrading to 0.0.12
 
 **Release Date**: 2026-01-19
