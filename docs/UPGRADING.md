@@ -1298,7 +1298,8 @@ If you encounter issues during upgrade:
 
 | Bundle Version | Symfony Version | PHP Version | Doctrine Bundle | Features |
 |---------------|-----------------|-------------|-----------------|----------|
-| 0.0.24+       | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Simplified services.yaml, complete documentation update |
+| 0.0.25+       | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Fixed FakerFactory autowiring error |
+| 0.0.24        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Simplified services.yaml, complete documentation update |
 | 0.0.23        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Standardized faker API with original_value, #[Autowire] attributes |
 | 0.0.10-0.0.22 | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Doctrine DBAL 3.x compatibility, Deprecation fixes |
 | 0.0.9         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Bug fixes, Improved demo, PostgreSQL compatibility |
