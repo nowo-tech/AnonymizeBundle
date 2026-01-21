@@ -11,6 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - TBD
 
+## [0.0.26] - 2026-01-21
+
+### Fixed
+
+- **AnonymizeService**: Fixed boolean and null value handling in SQL UPDATE queries
+  - Boolean `false` values were incorrectly converted to empty string `''` instead of `'0'`
+  - Boolean `true` values now correctly converted to `'1'`
+  - `null` values now correctly converted to SQL `NULL` (unquoted)
+  - Resolves `SQLSTATE[HY000]: General error: 1366 Incorrect integer value: '' for column 'is_active'` error
+  - Affects MySQL `tinyint` columns and other boolean-type columns
+
+### Changed
+
+- **Demo Projects**: Enhanced Symfony 6 demo Makefile
+  - Added `update-symfony` command to help migrate from Symfony 6.0 to 6.1+
+  - Updated help text to reflect Symfony 6.1+ requirement
+  - Improved documentation for bundle installation process
+
 ## [0.0.25] - 2026-01-21
 
 ### Fixed
