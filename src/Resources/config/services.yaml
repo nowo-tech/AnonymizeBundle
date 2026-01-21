@@ -7,15 +7,86 @@ services:
     # Alias for ContainerInterface to enable autowiring (PSR-11 standard)
     Psr\Container\ContainerInterface: '@service_container'
 
-    Nowo\AnonymizeBundle\Faker\:
-        resource: '../../Faker/*'
-        exclude:
-            - '../../Faker/FakerInterface.php'
-            - '../../Faker/ServiceFaker.php'
-            - '../../Faker/MaskingFaker.php'
-            - '../../Faker/HashPreserveFaker.php'
-            - '../../Faker/ShuffleFaker.php'
-            - '../../Faker/ConstantFaker.php'
+    # Fakers with locale parameter - explicitly defined for Symfony 6.0 compatibility
+    Nowo\AnonymizeBundle\Faker\AddressFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\AgeFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\BooleanFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\ColorFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\CompanyFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\CoordinateFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\CountryFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\CreditCardFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\DateFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\EmailFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\EnumFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\FileFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\HashFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\IbanFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\IpAddressFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\JsonFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\LanguageFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\MacAddressFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\NameFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\NumericFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\PasswordFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\PhoneFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\SurnameFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\TextFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\UrlFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\UsernameFaker:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+    Nowo\AnonymizeBundle\Faker\UuidFaker:
         arguments:
             $locale: '%nowo_anonymize.locale%'
 

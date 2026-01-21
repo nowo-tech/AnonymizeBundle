@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - TBD
 
+## [0.0.22] - 2026-01-21
+
+### Fixed
+
+- **Symfony 6.0 Compatibility**: Fixed services.yaml configuration error
+  - Removed autowiring pattern with `exclude` (incompatible with Symfony 6.0)
+  - Explicitly defined all 28 fakers that require `locale` parameter
+  - Resolved error: "Argument #1 ($resource) must be of type string, array given"
+  - Services configuration now works correctly in Symfony 6.0, 7.0, and 8.0
+
 ## [0.0.21] - 2026-01-21
 
 ### Added
