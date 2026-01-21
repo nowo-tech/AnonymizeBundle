@@ -1,0 +1,87 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Analytics Events - MongoDB{% endblock %}
+
+{% block body %}
+{% if error|default(false) %}
+<div class="alert alert-danger" role="alert">
+    <strong>⚠️ Error:</strong> {{ error }}
+</div>
+{% endif %}
+
+<div class="alert alert-info" role="alert">
+    <strong>ℹ️ Anonymized Fields</strong><br>
+    This MongoDB document demonstrates structured data fakers:
+    <ul class="mb-0 mt-2">
+        <li><strong>eventId</strong> - UUID faker</li>
+        <li><strong>eventType</strong> - Enum faker</li>
+        <li><strong>country</strong> - Country faker</li>
+        <li><strong>language</strong> - Language faker</li>
+        <li><strong>eventData</strong> - JSON faker</li>
+        <li><strong>description</strong> - Text faker</li>
+        <li><strong>userIdHash</strong> - Hash preserve faker</li>
+        <li><strong>category</strong> - Shuffle faker</li>
+        <li><strong>dataClassification</strong> - Constant faker</li>
+    </ul>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Analytics Events <span class="badge bg-info connection-badge">MongoDB</span></h2>
+        <a href="{{ path('mongodb_analytics_event_new') }}" class="btn btn-primary">Create New</a>
+    </div>
+    <div class="card-body">
+        {% if events|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Event ID</th>
+                            <th>Event Type</th>
+                            <th>Country</th>
+                            <th>Language</th>
+                            <th>Category</th>
+                            <th>Timestamp</th>
+                            <th>Anonymized</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events %}
+                        <tr>
+                            <td><code class="small">{{ event._id|slice(0, 8) }}...</code></td>
+                            <td><code class="small">{{ event.eventId|slice(0, 8) }}...</code></td>
+                            <td><span class="badge bg-{{ event.eventType == 'purchase' ? 'success' : (event.eventType == 'click' ? 'info' : 'primary') }}">{{ event.eventType }}</span></td>
+                            <td>{{ event.country }}</td>
+                            <td>{{ event.language }}</td>
+                            <td><span class="badge bg-secondary">{{ event.category ?? '-' }}</span></td>
+                            <td>{{ event.timestamp ? event.timestamp.toDateTime()|date('Y-m-d H:i') : '-' }}</td>
+                            <td>
+                                {% if event.anonymized|default(false) %}
+                                    <span class="badge bg-danger">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-success">No</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ path('mongodb_analytics_event_show', {id: event._id}) }}" class="btn btn-sm btn-outline-primary">Show</a>
+                                    <a href="{{ path('mongodb_analytics_event_edit', {id: event._id}) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                    <form method="post" action="{{ path('mongodb_analytics_event_delete', {id: event._id}) }}" onsubmit="return confirm('Are you sure you want to delete this item?');" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event._id) }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">No analytics events found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

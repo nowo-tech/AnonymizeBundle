@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}System Logs - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+{% if not hasAnonymizedColumn|default(false) %}
+<div class="alert alert-warning" role="alert">
+    <strong>⚠️ Column "anonymized" not found</strong><br>
+    To add the anonymization tracking column, run:<br>
+    <code class="d-inline-block mt-2 p-2 bg-light rounded">
+        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+    </code>
+</div>
+{% endif %}
+
+<div class="alert alert-info" role="alert">
+    <strong>ℹ️ Anonymized Fields</strong><br>
+    This entity demonstrates all remaining faker types: uuid, ip_address, mac_address, password, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language, hash_preserve, shuffle, constant.
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">System Logs <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+        <a href="{{ path('system_log_new', {connection: connection}) }}" class="btn btn-primary">Create New</a>
+    </div>
+    <div class="card-body">
+        {% if logs|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Session ID</th>
+                            <th>IP Address</th>
+                            <th>Log Level</th>
+                            <th>Country</th>
+                            <th>Is Active</th>
+                            <th>Created At</th>
+                            {% if hasAnonymizedColumn|default(false) %}
+                            <th>Anonymized</th>
+                            {% endif %}
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.id }}</td>
+                            <td><code class="small">{{ log.sessionId|slice(0, 8) }}...</code></td>
+                            <td>{{ log.ipAddress }}</td>
+                            <td><span class="badge bg-{{ log.logLevel == 'error' ? 'danger' : (log.logLevel == 'warning' ? 'warning' : 'info') }}">{{ log.logLevel }}</span></td>
+                            <td>{{ log.countryCode }}</td>
+                            <td>
+                                {% if log.isActive %}
+                                    <span class="badge bg-success">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ log.createdAt ? log.createdAt|date('Y-m-d H:i') : '' }}</td>
+                            {% if hasAnonymizedColumn|default(false) %}
+                            <td>
+                                {% if log.anonymized %}
+                                    <span class="badge bg-danger">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-success">No</span>
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ path('system_log_show', {connection: connection, id: log.id}) }}" class="btn btn-sm btn-outline-primary">Show</a>
+                                    <a href="{{ path('system_log_edit', {connection: connection, id: log.id}) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                    <form method="post" action="{{ path('system_log_delete', {connection: connection, id: log.id}) }}" onsubmit="return confirm('Are you sure you want to delete this item?');" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ log.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">No system logs found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

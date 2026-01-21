@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Email Subscription - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h2 class="mb-0">Create New Email Subscription <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <div class="mb-3">
+                <label for="email" class="form-label">Email *</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="mb-3">
+                <label for="name" class="form-label">Name *</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="mb-3">
+                <label for="status" class="form-label">Status *</label>
+                <select class="form-select" id="status" name="status" required>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="unsubscribed">Unsubscribed</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="backupEmail" class="form-label">Backup Email</label>
+                <input type="email" class="form-control" id="backupEmail" name="backupEmail">
+            </div>
+            <div class="mb-3">
+                <label for="source" class="form-label">Source *</label>
+                <select class="form-select" id="source" name="source" required>
+                    <option value="website">Website</option>
+                    <option value="newsletter">Newsletter</option>
+                    <option value="promotion">Promotion</option>
+                    <option value="partner">Partner</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="subscribedAt" class="form-label">Subscribed At *</label>
+                <input type="datetime-local" class="form-control" id="subscribedAt" name="subscribedAt" value="{{ 'now'|date('Y-m-d\\TH:i') }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="unsubscribedAt" class="form-label">Unsubscribed At</label>
+                <input type="datetime-local" class="form-control" id="unsubscribedAt" name="unsubscribedAt">
+            </div>
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notes</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Create</button>
+                <a href="{{ path('email_subscription_index', {connection: connection}) }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

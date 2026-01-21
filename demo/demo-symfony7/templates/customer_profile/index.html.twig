@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Customer Profiles - MongoDB{% endblock %}
+
+{% block body %}
+{% if error|default(false) %}
+<div class="alert alert-danger" role="alert">
+    <strong>⚠️ Error:</strong> {{ error }}
+</div>
+{% endif %}
+
+<div class="alert alert-info" role="alert">
+    <strong>ℹ️ Anonymized Fields</strong><br>
+    This MongoDB document demonstrates basic and advanced fakers:
+    <ul class="mb-0 mt-2">
+        <li><strong>email</strong> - Email faker</li>
+        <li><strong>firstName</strong> - Name faker</li>
+        <li><strong>lastName</strong> - Surname faker</li>
+        <li><strong>phone</strong> - Phone faker</li>
+        <li><strong>address</strong> - Address faker</li>
+        <li><strong>company</strong> - Company faker</li>
+        <li><strong>username</strong> - Username faker</li>
+        <li><strong>website</strong> - URL faker</li>
+        <li><strong>age</strong> - Age faker</li>
+    </ul>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Customer Profiles <span class="badge bg-info connection-badge">MongoDB</span></h2>
+        <a href="{{ path('mongodb_customer_profile_new') }}" class="btn btn-primary">Create New</a>
+    </div>
+    <div class="card-body">
+        {% if profiles|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Email</th>
+                            <th>Name</th>
+                            <th>Company</th>
+                            <th>Status</th>
+                            <th>Created At</th>
+                            <th>Anonymized</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for profile in profiles %}
+                        <tr>
+                            <td><code class="small">{{ profile._id|slice(0, 8) }}...</code></td>
+                            <td>{{ profile.email }}</td>
+                            <td>{{ profile.firstName }} {{ profile.lastName }}</td>
+                            <td>{{ profile.company ?? '-' }}</td>
+                            <td><span class="badge bg-{{ profile.status == 'active' ? 'success' : (profile.status == 'inactive' ? 'warning' : 'secondary') }}">{{ profile.status }}</span></td>
+                            <td>{{ profile.createdAt ? profile.createdAt.toDateTime()|date('Y-m-d H:i') : '-' }}</td>
+                            <td>
+                                {% if profile.anonymized|default(false) %}
+                                    <span class="badge bg-danger">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-success">No</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ path('mongodb_customer_profile_show', {id: profile._id}) }}" class="btn btn-sm btn-outline-primary">Show</a>
+                                    <a href="{{ path('mongodb_customer_profile_edit', {id: profile._id}) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                    <form method="post" action="{{ path('mongodb_customer_profile_delete', {id: profile._id}) }}" onsubmit="return confirm('Are you sure you want to delete this item?');" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ profile._id) }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">No customer profiles found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

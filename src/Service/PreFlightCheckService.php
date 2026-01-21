@@ -88,7 +88,9 @@ final class PreFlightCheckService
 
         try {
             $connection = $em->getConnection();
-            $connection->connect();
+            // Execute a simple query to test connectivity
+            // This will automatically connect if not already connected
+            $connection->executeQuery('SELECT 1');
         } catch (\Exception $e) {
             $errors[] = sprintf('Database connectivity check failed: %s', $e->getMessage());
         }

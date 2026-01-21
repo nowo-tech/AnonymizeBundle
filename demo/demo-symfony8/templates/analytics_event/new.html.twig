@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Analytics Event - MongoDB{% endblock %}
+
+{% block body %}
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h2 class="mb-0">Create New Analytics Event <span class="badge bg-info connection-badge">MongoDB</span></h2>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="eventId" class="form-label">Event ID (UUID)</label>
+                    <input type="text" class="form-control" id="eventId" name="eventId" placeholder="550e8400-e29b-41d4-a716-446655440000">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="eventType" class="form-label">Event Type *</label>
+                    <select class="form-select" id="eventType" name="eventType" required>
+                        <option value="page_view">Page View</option>
+                        <option value="click">Click</option>
+                        <option value="purchase">Purchase</option>
+                        <option value="signup">Signup</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="country" class="form-label">Country Code</label>
+                    <input type="text" class="form-control" id="country" name="country" maxlength="2" placeholder="ES">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="language" class="form-label">Language Code</label>
+                    <input type="text" class="form-control" id="language" name="language" maxlength="5" placeholder="es-ES">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="eventData" class="form-label">Event Data (JSON)</label>
+                <textarea class="form-control" id="eventData" name="eventData" rows="3" placeholder='{"key": "value"}'>{}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="userIdHash" class="form-label">User ID Hash</label>
+                    <input type="text" class="form-control" id="userIdHash" name="userIdHash">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select" id="category" name="category">
+                        <option value="">-- Select --</option>
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="completed">Completed</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="dataClassification" class="form-label">Data Classification</label>
+                    <input type="text" class="form-control" id="dataClassification" name="dataClassification" value="ANONYMIZED">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="timestamp" class="form-label">Timestamp</label>
+                    <input type="datetime-local" class="form-control" id="timestamp" name="timestamp" value="{{ 'now'|date('Y-m-d\\TH:i') }}">
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Create</button>
+                <a href="{{ path('mongodb_analytics_event_index') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

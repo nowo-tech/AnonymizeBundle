@@ -1,0 +1,107 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}System Log Details - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+<div class="alert alert-info" role="alert">
+    <strong>ℹ️ Anonymized Fields</strong><br>
+    This entity demonstrates all remaining faker types: uuid, ip_address, mac_address, password, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language, hash_preserve, shuffle, constant.
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">System Log Details <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+        <div class="btn-group">
+            <a href="{{ path('system_log_edit', {connection: connection, id: log.id}) }}" class="btn btn-primary">Edit</a>
+            <a href="{{ path('system_log_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">{{ log.id }}</dd>
+
+            <dt class="col-sm-3">Session ID</dt>
+            <dd class="col-sm-9"><code>{{ log.sessionId }}</code></dd>
+
+            <dt class="col-sm-3">IP Address</dt>
+            <dd class="col-sm-9">{{ log.ipAddress }}</dd>
+
+            <dt class="col-sm-3">MAC Address</dt>
+            <dd class="col-sm-9"><code>{{ log.macAddress }}</code></dd>
+
+            <dt class="col-sm-3">API Key</dt>
+            <dd class="col-sm-9"><code class="small">{{ log.apiKey|slice(0, 20) }}...</code></dd>
+
+            <dt class="col-sm-3">Token Hash</dt>
+            <dd class="col-sm-9"><code class="small">{{ log.tokenHash }}</code></dd>
+
+            <dt class="col-sm-3">Location</dt>
+            <dd class="col-sm-9">{{ log.location }}</dd>
+
+            <dt class="col-sm-3">Theme Color</dt>
+            <dd class="col-sm-9"><span class="badge" style="background-color: {{ log.themeColor }}">{{ log.themeColor }}</span></dd>
+
+            <dt class="col-sm-3">Is Active</dt>
+            <dd class="col-sm-9">
+                {% if log.isActive %}
+                    <span class="badge bg-success">Yes</span>
+                {% else %}
+                    <span class="badge bg-secondary">No</span>
+                {% endif %}
+            </dd>
+
+            <dt class="col-sm-3">Score</dt>
+            <dd class="col-sm-9">{{ log.score }}</dd>
+
+            <dt class="col-sm-3">Log File</dt>
+            <dd class="col-sm-9"><code>{{ log.logFile }}</code></dd>
+
+            <dt class="col-sm-3">Metadata</dt>
+            <dd class="col-sm-9"><pre class="small">{{ log.metadata|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></dd>
+
+            <dt class="col-sm-3">Description</dt>
+            <dd class="col-sm-9">{{ log.description ?? '-' }}</dd>
+
+            <dt class="col-sm-3">Log Level</dt>
+            <dd class="col-sm-9"><span class="badge bg-{{ log.logLevel == 'error' ? 'danger' : (log.logLevel == 'warning' ? 'warning' : 'info') }}">{{ log.logLevel }}</span></dd>
+
+            <dt class="col-sm-3">Country Code</dt>
+            <dd class="col-sm-9">{{ log.countryCode }}</dd>
+
+            <dt class="col-sm-3">Language Code</dt>
+            <dd class="col-sm-9">{{ log.languageCode }}</dd>
+
+            <dt class="col-sm-3">Created At</dt>
+            <dd class="col-sm-9">{{ log.createdAt ? log.createdAt|date('Y-m-d H:i:s') : '-' }}</dd>
+
+            <dt class="col-sm-3">User ID Hash</dt>
+            <dd class="col-sm-9"><code class="small">{{ log.userIdHash }}</code></dd>
+
+            <dt class="col-sm-3">Process Status</dt>
+            <dd class="col-sm-9"><span class="badge bg-info">{{ log.processStatus ?? '-' }}</span></dd>
+
+            <dt class="col-sm-3">Data Classification</dt>
+            <dd class="col-sm-9"><span class="badge bg-warning">{{ log.dataClassification ?? '-' }}</span></dd>
+
+            {% if hasAnonymizedColumn|default(false) %}
+            <dt class="col-sm-3">Anonymized</dt>
+            <dd class="col-sm-9">
+                {% if log.anonymized|default(false) %}
+                    <span class="badge bg-success">✓ Yes</span>
+                {% else %}
+                    <span class="badge bg-secondary">✗ No</span>
+                {% endif %}
+            </dd>
+            {% endif %}
+        </dl>
+
+        <div class="mt-4">
+            <form method="post" action="{{ path('system_log_delete', {connection: connection, id: log.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this log?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ log.id) }}">
+                <button type="submit" class="btn btn-danger">Delete Log</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

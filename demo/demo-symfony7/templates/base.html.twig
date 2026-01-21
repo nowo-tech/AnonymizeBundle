@@ -128,8 +128,18 @@
                 <li><div class="nav-section">Employees</div></li>
                 <li><a class="nav-link" href="{{ path('employee_index', {connection: 'default'}) }}">Employees (MySQL)</a></li>
                 <li><a class="nav-link" href="{{ path('employee_index', {connection: 'postgres'}) }}">Employees (PostgreSQL)</a></li>
+                <li><div class="nav-section">Email Subscriptions</div></li>
+                <li><a class="nav-link" href="{{ path('email_subscription_index', {connection: 'default'}) }}">Email Subscriptions (MySQL)</a></li>
+                <li><a class="nav-link" href="{{ path('email_subscription_index', {connection: 'postgres'}) }}">Email Subscriptions (PostgreSQL)</a></li>
+                <li><div class="nav-section">System Logs</div></li>
+                <li><a class="nav-link" href="{{ path('system_log_index', {connection: 'default'}) }}">System Logs (MySQL)</a></li>
+                <li><a class="nav-link" href="{{ path('system_log_index', {connection: 'postgres'}) }}">System Logs (PostgreSQL)</a></li>
                 <li><div class="nav-section">MongoDB</div></li>
-                <li><a class="nav-link" href="{{ path('mongodb_user_activity_index') }}">User Activities (MongoDB)</a></li>
+                <li><a class="nav-link" href="{{ path('mongodb_user_activity_index') }}">User Activities</a></li>
+                <li><a class="nav-link" href="{{ path('mongodb_customer_profile_index') }}">Customer Profiles</a></li>
+                <li><a class="nav-link" href="{{ path('mongodb_transaction_log_index') }}">Transaction Logs</a></li>
+                <li><a class="nav-link" href="{{ path('mongodb_device_info_index') }}">Device Infos</a></li>
+                <li><a class="nav-link" href="{{ path('mongodb_analytics_event_index') }}">Analytics Events</a></li>
             </ul>
         </nav>
     </aside>

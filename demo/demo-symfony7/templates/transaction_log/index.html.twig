@@ -1,0 +1,84 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Transaction Logs - MongoDB{% endblock %}
+
+{% block body %}
+{% if error|default(false) %}
+<div class="alert alert-danger" role="alert">
+    <strong>⚠️ Error:</strong> {{ error }}
+</div>
+{% endif %}
+
+<div class="alert alert-info" role="alert">
+    <strong>ℹ️ Anonymized Fields</strong><br>
+    This MongoDB document demonstrates financial fakers:
+    <ul class="mb-0 mt-2">
+        <li><strong>customerEmail</strong> - Email faker</li>
+        <li><strong>iban</strong> - IBAN faker</li>
+        <li><strong>creditCard</strong> - Credit card faker</li>
+        <li><strong>maskedCard</strong> - Masking faker (preserve last 4 digits)</li>
+        <li><strong>amount</strong> - Numeric faker</li>
+        <li><strong>transactionHash</strong> - Hash faker</li>
+    </ul>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Transaction Logs <span class="badge bg-info connection-badge">MongoDB</span></h2>
+        <a href="{{ path('mongodb_transaction_log_new') }}" class="btn btn-primary">Create New</a>
+    </div>
+    <div class="card-body">
+        {% if transactions|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Transaction ID</th>
+                            <th>Customer Email</th>
+                            <th>Amount</th>
+                            <th>Currency</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Anonymized</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td><code class="small">{{ transaction._id|slice(0, 8) }}...</code></td>
+                            <td><code class="small">{{ transaction.transactionId|slice(0, 12) }}...</code></td>
+                            <td>{{ transaction.customerEmail }}</td>
+                            <td>{{ transaction.amount|number_format(2, '.', ',') }} {{ transaction.currency }}</td>
+                            <td>{{ transaction.currency }}</td>
+                            <td><span class="badge bg-{{ transaction.status == 'completed' ? 'success' : (transaction.status == 'failed' ? 'danger' : (transaction.status == 'refunded' ? 'warning' : 'info')) }}">{{ transaction.status }}</span></td>
+                            <td>{{ transaction.transactionDate ? transaction.transactionDate.toDateTime()|date('Y-m-d H:i') : '-' }}</td>
+                            <td>
+                                {% if transaction.anonymized|default(false) %}
+                                    <span class="badge bg-danger">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-success">No</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ path('mongodb_transaction_log_show', {id: transaction._id}) }}" class="btn btn-sm btn-outline-primary">Show</a>
+                                    <a href="{{ path('mongodb_transaction_log_edit', {id: transaction._id}) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                    <form method="post" action="{{ path('mongodb_transaction_log_delete', {id: transaction._id}) }}" onsubmit="return confirm('Are you sure you want to delete this item?');" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ transaction._id) }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">No transaction logs found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Device Info Details - MongoDB{% endblock %}
+
+{% block body %}
+<div class="alert alert-info" role="alert">
+    <strong>ℹ️ Anonymized Fields</strong><br>
+    This MongoDB document demonstrates technical fakers: uuid, ip_address, mac_address, hash, coordinate, color.
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Device Info Details <span class="badge bg-info connection-badge">MongoDB</span></h2>
+        <div class="btn-group">
+            <a href="{{ path('mongodb_device_info_edit', {id: device._id}) }}" class="btn btn-primary">Edit</a>
+            <a href="{{ path('mongodb_device_info_index') }}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9"><code>{{ device._id }}</code></dd>
+
+            <dt class="col-sm-3">Device ID (UUID)</dt>
+            <dd class="col-sm-9"><code>{{ device.deviceId }}</code></dd>
+
+            <dt class="col-sm-3">IP Address</dt>
+            <dd class="col-sm-9">{{ device.ipAddress }}</dd>
+
+            <dt class="col-sm-3">MAC Address</dt>
+            <dd class="col-sm-9"><code>{{ device.macAddress }}</code></dd>
+
+            <dt class="col-sm-3">Device Hash</dt>
+            <dd class="col-sm-9"><code class="small">{{ device.deviceHash ?? '-' }}</code></dd>
+
+            <dt class="col-sm-3">Location (Coordinates)</dt>
+            <dd class="col-sm-9">{{ device.location ?? '-' }}</dd>
+
+            <dt class="col-sm-3">Theme Color</dt>
+            <dd class="col-sm-9"><span class="badge" style="background-color: {{ device.themeColor }}">{{ device.themeColor }}</span></dd>
+
+            <dt class="col-sm-3">Device Name</dt>
+            <dd class="col-sm-9">{{ device.deviceName ?? '-' }}</dd>
+
+            <dt class="col-sm-3">OS Version</dt>
+            <dd class="col-sm-9">{{ device.osVersion ?? '-' }}</dd>
+
+            <dt class="col-sm-3">Browser Version</dt>
+            <dd class="col-sm-9">{{ device.browserVersion ?? '-' }}</dd>
+
+            <dt class="col-sm-3">Is Active</dt>
+            <dd class="col-sm-9">
+                {% if device.isActive|default(false) %}
+                    <span class="badge bg-success">Yes</span>
+                {% else %}
+                    <span class="badge bg-secondary">No</span>
+                {% endif %}
+            </dd>
+
+            <dt class="col-sm-3">Last Seen</dt>
+            <dd class="col-sm-9">{{ device.lastSeen ? device.lastSeen.toDateTime()|date('Y-m-d H:i:s') : '-' }}</dd>
+
+            <dt class="col-sm-3">Anonymized</dt>
+            <dd class="col-sm-9">
+                {% if device.anonymized|default(false) %}
+                    <span class="badge bg-success">✓ Yes</span>
+                {% else %}
+                    <span class="badge bg-secondary">✗ No</span>
+                {% endif %}
+            </dd>
+        </dl>
+
+        <div class="mt-4">
+            <form method="post" action="{{ path('mongodb_device_info_delete', {id: device._id}) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this device?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ device._id) }}">
+                <button type="submit" class="btn btn-danger">Delete Device</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

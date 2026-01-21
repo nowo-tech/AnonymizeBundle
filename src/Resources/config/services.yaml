@@ -30,11 +30,7 @@ services:
     # Note: All faker aliases (nowo_anonymize.faker.*) are automatically created
     # from the #[AsAlias] attributes in each faker class when autoconfigure: true
 
-    Nowo\AnonymizeBundle\Service\:
-        resource: '../../Service/*'
-        exclude:
-            - '../../Service/DatabaseExportService.php'
-
+    # Services - explicitly defined to avoid autowiring issues in Symfony 6.0
     # AnonymizeService with optional EventDispatcher
     # EventDispatcher is optional and defaults to null in the constructor
     # It will be retrieved manually in commands when needed
@@ -52,6 +48,13 @@ services:
             $filenamePattern: '%nowo_anonymize.export.filename_pattern%'
             $compression: '%nowo_anonymize.export.compression%'
             $autoGitignore: '%nowo_anonymize.export.auto_gitignore%'
+
+    # Other services that can be autowired (no special parameters needed)
+    Nowo\AnonymizeBundle\Service\AnonymizeStatistics: ~
+    Nowo\AnonymizeBundle\Service\EnvironmentProtectionService: ~
+    Nowo\AnonymizeBundle\Service\PatternMatcher: ~
+    Nowo\AnonymizeBundle\Service\PreFlightCheckService: ~
+    Nowo\AnonymizeBundle\Service\SchemaService: ~
 
     # Console Commands
     # Only configure parameters, container is autowired via alias

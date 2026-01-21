@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Email Subscriptions - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+{% if not hasAnonymizedColumn|default(false) %}
+<div class="alert alert-warning" role="alert">
+    <strong>⚠️ Column "anonymized" not found</strong><br>
+    To add the anonymization tracking column, run:<br>
+    <code class="d-inline-block mt-2 p-2 bg-light rounded">
+        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+    </code>
+</div>
+{% endif %}
+
+<div class="alert alert-info" role="alert">
+    <strong>ℹ️ Anonymized Fields</strong><br>
+    The following fields in this entity are configured for anonymization:
+    <ul class="mb-0 mt-2">
+        <li><strong>email</strong> - Email faker (pattern: %@test-domain.com|%@example.com|%@demo.local)</li>
+        <li><strong>name</strong> - Name faker</li>
+        <li><strong>backupEmail</strong> - Email faker (pattern: status inactive|unsubscribed)</li>
+        <li><strong>subscribedAt</strong> - Date faker (past dates)</li>
+        <li><strong>unsubscribedAt</strong> - Date faker (pattern: status unsubscribed)</li>
+        <li><strong>notes</strong> - Text faker (pattern: status inactive|unsubscribed)</li>
+    </ul>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Email Subscriptions <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+        <a href="{{ path('email_subscription_new', {connection: connection}) }}" class="btn btn-primary">Create New</a>
+    </div>
+    <div class="card-body">
+        {% if subscriptions|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Email</th>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Source</th>
+                            <th>Subscribed At</th>
+                            {% if hasAnonymizedColumn|default(false) %}
+                            <th>Anonymized</th>
+                            {% endif %}
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subscription in subscriptions %}
+                        <tr>
+                            <td>{{ subscription.id }}</td>
+                            <td>{{ subscription.email }}</td>
+                            <td>{{ subscription.name }}</td>
+                            <td><span class="badge bg-{{ subscription.status == 'active' ? 'success' : (subscription.status == 'inactive' ? 'warning' : 'secondary') }}">{{ subscription.status }}</span></td>
+                            <td>{{ subscription.source }}</td>
+                            <td>{{ subscription.subscribedAt ? subscription.subscribedAt|date('Y-m-d H:i') : '' }}</td>
+                            {% if hasAnonymizedColumn|default(false) %}
+                            <td>
+                                {% if subscription.anonymized %}
+                                    <span class="badge bg-danger">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-success">No</span>
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ path('email_subscription_show', {connection: connection, id: subscription.id}) }}" class="btn btn-sm btn-outline-primary">Show</a>
+                                    <a href="{{ path('email_subscription_edit', {connection: connection, id: subscription.id}) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                    <form method="post" action="{{ path('email_subscription_delete', {connection: connection, id: subscription.id}) }}" onsubmit="return confirm('Are you sure you want to delete this item?');" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ subscription.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">No email subscriptions found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

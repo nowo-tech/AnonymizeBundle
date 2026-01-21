@@ -1,0 +1,125 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New System Log - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h2 class="mb-0">Create New System Log <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="sessionId" class="form-label">Session ID</label>
+                    <input type="text" class="form-control" id="sessionId" name="sessionId" placeholder="UUID">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="ipAddress" class="form-label">IP Address</label>
+                    <input type="text" class="form-control" id="ipAddress" name="ipAddress" placeholder="192.168.1.1">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="macAddress" class="form-label">MAC Address</label>
+                    <input type="text" class="form-control" id="macAddress" name="macAddress" placeholder="00:11:22:33:44:55">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="logLevel" class="form-label">Log Level</label>
+                    <select class="form-select" id="logLevel" name="logLevel">
+                        <option value="info">Info</option>
+                        <option value="warning">Warning</option>
+                        <option value="error">Error</option>
+                        <option value="debug">Debug</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="countryCode" class="form-label">Country Code</label>
+                    <input type="text" class="form-control" id="countryCode" name="countryCode" maxlength="2" placeholder="ES">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="languageCode" class="form-label">Language Code</label>
+                    <input type="text" class="form-control" id="languageCode" name="languageCode" maxlength="5" placeholder="es-ES">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="apiKey" class="form-label">API Key</label>
+                    <input type="text" class="form-control" id="apiKey" name="apiKey">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="tokenHash" class="form-label">Token Hash</label>
+                    <input type="text" class="form-control" id="tokenHash" name="tokenHash">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="location" class="form-label">Location (Coordinates)</label>
+                    <input type="text" class="form-control" id="location" name="location" placeholder="40.4168, -3.7038">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="themeColor" class="form-label">Theme Color</label>
+                    <input type="color" class="form-control form-control-color" id="themeColor" name="themeColor" value="#667eea">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="score" class="form-label">Score</label>
+                    <input type="number" step="0.01" class="form-control" id="score" name="score" placeholder="0.00">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="isActive" class="form-label">Is Active</label>
+                    <select class="form-select" id="isActive" name="isActive">
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="logFile" class="form-label">Log File</label>
+                <input type="text" class="form-control" id="logFile" name="logFile" placeholder="logs/app.log">
+            </div>
+            <div class="mb-3">
+                <label for="metadata" class="form-label">Metadata (JSON)</label>
+                <textarea class="form-control" id="metadata" name="metadata" rows="3" placeholder='{"key": "value"}'></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="userIdHash" class="form-label">User ID Hash</label>
+                    <input type="text" class="form-control" id="userIdHash" name="userIdHash">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="processStatus" class="form-label">Process Status</label>
+                    <select class="form-select" id="processStatus" name="processStatus">
+                        <option value="">-- Select --</option>
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="completed">Completed</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="dataClassification" class="form-label">Data Classification</label>
+                    <input type="text" class="form-control" id="dataClassification" name="dataClassification" value="ANONYMIZED">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="createdAt" class="form-label">Created At</label>
+                    <input type="datetime-local" class="form-control" id="createdAt" name="createdAt" value="{{ 'now'|date('Y-m-d\\TH:i') }}">
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Create</button>
+                <a href="{{ path('system_log_index', {connection: connection}) }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
