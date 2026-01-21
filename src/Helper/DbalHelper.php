@@ -51,17 +51,17 @@ final class DbalHelper
     public static function getDriverName(Connection $connection): string
     {
         $driver = $connection->getDriver();
-        
+
         // Try getName() method (DBAL 2.x)
         if (method_exists($driver, 'getName')) {
             return $driver->getName();
         }
-        
+
         // Try getDatabasePlatform() and get name from platform (DBAL 3.x)
         try {
             $platform = $connection->getDatabasePlatform();
             $platformName = $platform::class;
-            
+
             // Extract driver name from platform class name
             if (str_contains($platformName, 'MySQL')) {
                 return 'pdo_mysql';
@@ -72,7 +72,7 @@ final class DbalHelper
             if (str_contains($platformName, 'Sqlite')) {
                 return 'pdo_sqlite';
             }
-            
+
             // Fallback: try to get from connection params
             $params = $connection->getParams();
             if (isset($params['driver'])) {
@@ -93,7 +93,7 @@ final class DbalHelper
         } catch (\Exception $e) {
             // Fall through to default
         }
-        
+
         // Last resort: default to mysql
         return 'pdo_mysql';
     }

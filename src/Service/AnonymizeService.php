@@ -231,13 +231,13 @@ final class AnonymizeService
 
                 // Generate anonymized value
                 $faker = $this->getFaker($attribute->type, $attribute->service);
-                
+
                 // For hash_preserve faker, add the original value to options
                 $fakerOptions = $attribute->options;
                 if ($attribute->type === 'hash_preserve' && !isset($fakerOptions['value'])) {
                     $fakerOptions['value'] = $record[$columnName] ?? null;
                 }
-                
+
                 $anonymizedValue = $faker->generate($fakerOptions);
 
                 // Convert value based on field type
