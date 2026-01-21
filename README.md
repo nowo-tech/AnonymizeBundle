@@ -6,6 +6,8 @@
 
 **Symfony bundle for database anonymization, test data generation, and GDPR compliance.** Anonymize database records using Doctrine attributes and Faker generators. Perfect for development environments, testing, data masking, and privacy compliance.
 
+> 📋 **Compatible with Symfony 6.1+, 7.x, and 8.x** - This bundle requires Symfony 6.1 or higher (Symfony 6.0 is not supported).
+
 ## What is this?
 
 This bundle helps you **anonymize sensitive data** in your Symfony applications for:
@@ -93,9 +95,11 @@ For detailed usage examples, see [USAGE.md](docs/USAGE.md).
 ## Requirements
 
 - PHP >= 8.1, < 8.6
-- Symfony >= 6.0 || >= 7.0 || >= 8.0
+- **Symfony >= 6.1** || >= 7.0 || >= 8.0
 - Doctrine ORM >= 2.13 || >= 3.0
 - Doctrine Bundle >= 2.8 || >= 3.0 (3.0 required for Symfony 8)
+
+> **Note**: This bundle requires **Symfony 6.1 or higher**. Symfony 6.0 is not supported because the bundle uses the `#[Autowire]` attribute for dependency injection, which is only available from Symfony 6.1 onwards.
 
 ## Configuration
 

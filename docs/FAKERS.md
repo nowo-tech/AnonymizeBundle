@@ -1,5 +1,7 @@
 # Faker Types
 
+> 📋 **Requirements**: This bundle requires **Symfony 6.1 or higher** (Symfony 6.0 is not supported). See [INSTALLATION.md](INSTALLATION.md) for complete requirements.
+
 The bundle supports 32 different faker types for anonymizing various data types.
 
 ## Basic Fakers

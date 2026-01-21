@@ -44,7 +44,7 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 - **ExportDatabaseCommand**: Fixed DBAL compatibility error
   - Resolved "Call to undefined method Driver::getName()" error
   - Improved compatibility across different Doctrine DBAL versions
-  - Works correctly in Symfony 6.0, 7.0, and 8.0
+  - Works correctly in Symfony 6.1+, 7.0, and 8.0
 
 #### What's Changed
 
@@ -176,7 +176,7 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 #### What's Fixed
 
-- **Symfony 6.0 Compatibility**: All commands now fully compatible with Symfony 6.0, 6.1, 7.0, and 8.0
+- **Symfony 6.1+ Compatibility**: All commands now fully compatible with Symfony 6.1+, 7.0, and 8.0
   - Command help text moved from `#[AsCommand]` attribute to `setHelp()` method
   - No breaking changes, only internal improvements for compatibility
 
@@ -206,7 +206,7 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 - This release is fully backward compatible
 - All existing functionality remains unchanged
-- Improved compatibility with Symfony 6.0
+- Improved compatibility with Symfony 6.1+
 
 ### Upgrading to 0.0.17
 
@@ -818,7 +818,7 @@ None - This is a backward-compatible update.
 - **Symfony 8 Compatibility**: Full support for Symfony 8.0
   - Updated `doctrine/doctrine-bundle` constraint to support both 2.x and 3.x
   - Symfony 8 requires doctrine-bundle 3.x, while Symfony 6/7 use 2.x
-  - Bundle now compatible with all Symfony versions (6.0, 7.0, 8.0)
+  - Bundle now compatible with all Symfony versions (6.1+, 7.0, 8.0)
 
 #### Breaking Changes
 
@@ -1224,7 +1224,8 @@ If you encounter issues during upgrade:
 
 | Bundle Version | Symfony Version | PHP Version | Doctrine Bundle | Features |
 |---------------|-----------------|-------------|-----------------|----------|
-| 0.0.10        | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Doctrine DBAL 3.x compatibility, Deprecation fixes |
+| 0.0.23+       | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Standardized faker API with original_value, #[Autowire] attributes |
+| 0.0.10-0.0.22 | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Doctrine DBAL 3.x compatibility, Deprecation fixes |
 | 0.0.9         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Bug fixes, Improved demo, PostgreSQL compatibility |
 | 0.0.8         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Release workflow fix, Documentation improvements |
 | 0.0.7         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | SchemaService, Improved code organization, Enhanced documentation |

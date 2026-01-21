@@ -7,6 +7,7 @@ namespace Nowo\AnonymizeBundle\Faker;
 use Faker\Factory;
 use Faker\Generator as FakerGenerator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * Faker for generating anonymized email addresses.
@@ -22,9 +23,12 @@ final class EmailFaker implements FakerInterface
     /**
      * Creates a new EmailFaker instance.
      *
-     * @param string $locale The locale for Faker generator (default: 'en_US')
+     * @param string $locale The locale for Faker generator
      */
-    public function __construct(string $locale = 'en_US')
+    public function __construct(
+        #[Autowire('%nowo_anonymize.locale%')]
+        string $locale = 'en_US'
+    )
     {
         $this->faker = Factory::create($locale);
     }
@@ -33,6 +37,7 @@ final class EmailFaker implements FakerInterface
      * Generates an anonymized email address.
      *
      * @param array<string, mixed> $options Options:
+     *   - 'original_value' (mixed): The original value from database (available but not used by default)
      *   - 'domain' (string): Custom domain to use (default: random)
      *   - 'format' (string): 'name.surname' or 'random' (default: 'random')
      *   - 'local_part_length' (int): Length of local part (default: random)

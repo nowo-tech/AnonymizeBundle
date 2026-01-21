@@ -29,21 +29,23 @@ final class HashPreserveFaker implements FakerInterface
      * Generates a deterministic hash from the original value.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'value' (mixed): The original value to hash (required).
+     *   - 'original_value' (mixed): The original value to hash (standard, always provided).
+     *   - 'value' (mixed): Alias for 'original_value' (backward compatibility).
      *   - 'algorithm' (string): Hash algorithm ('md5', 'sha1', 'sha256', 'sha512', default: 'sha256').
      *   - 'salt' (string): Optional salt to add before hashing (default: '').
      *   - 'preserve_format' (bool): If true, attempts to preserve the format of the original value (default: false).
      *   - 'length' (int|null): Maximum length of the output (truncates hash if specified).
      * @return string The hashed value.
-     * @throws \InvalidArgumentException If 'value' option is missing.
+     * @throws \InvalidArgumentException If neither 'original_value' nor 'value' option is provided.
      */
     public function generate(array $options = []): string
     {
-        if (!isset($options['value'])) {
-            throw new \InvalidArgumentException('HashPreserveFaker requires a "value" option with the original value to hash.');
+        // Support both 'original_value' (standard) and 'value' (backward compatibility)
+        $value = $options['original_value'] ?? $options['value'] ?? null;
+        
+        if ($value === null) {
+            throw new \InvalidArgumentException('HashPreserveFaker requires an "original_value" (or "value") option with the original value to hash.');
         }
-
-        $value = $options['value'];
         $algorithm = $options['algorithm'] ?? 'sha256';
         $salt = $options['salt'] ?? '';
         $preserveFormat = $options['preserve_format'] ?? false;

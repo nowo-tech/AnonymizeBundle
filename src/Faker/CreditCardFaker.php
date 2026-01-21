@@ -7,6 +7,7 @@ namespace Nowo\AnonymizeBundle\Faker;
 use Faker\Factory;
 use Faker\Generator as FakerGenerator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * Faker for generating anonymized credit card numbers.
@@ -22,9 +23,12 @@ final class CreditCardFaker implements FakerInterface
     /**
      * Creates a new CreditCardFaker instance.
      *
-     * @param string $locale The locale for Faker generator (default: 'en_US')
+     * @param string $locale The locale for Faker generator
      */
-    public function __construct(string $locale = 'en_US')
+    public function __construct(
+        #[Autowire('%nowo_anonymize.locale%')]
+        string $locale = 'en_US'
+    )
     {
         $this->faker = Factory::create($locale);
     }

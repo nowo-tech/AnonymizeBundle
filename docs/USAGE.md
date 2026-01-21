@@ -2,6 +2,8 @@
 
 This guide covers how to use the Anonymize Bundle in your Symfony application.
 
+> 📋 **Requirements**: This bundle requires **Symfony 6.1 or higher** (Symfony 6.0 is not supported). See [INSTALLATION.md](INSTALLATION.md) for complete requirements.
+
 ## Basic Setup
 
 1. **Mark an entity for anonymization** with the `#[Anonymize]` attribute:

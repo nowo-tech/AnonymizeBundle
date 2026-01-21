@@ -3,9 +3,11 @@
 ## Prerequisites
 
 - PHP >= 8.1, < 8.6
-- Symfony >= 6.0 || >= 7.0 || >= 8.0
+- Symfony >= 6.1 || >= 7.0 || >= 8.0
 - Doctrine ORM >= 2.13 || >= 3.0
 - Doctrine Bundle >= 2.8 || >= 3.0 (3.0 required for Symfony 8)
+
+> **Note**: Symfony 6.1+ is required because the bundle uses `#[Autowire]` attribute for dependency injection, which is only available from Symfony 6.1 onwards.
 
 ## Step 1: Install the Bundle
 

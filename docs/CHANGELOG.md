@@ -11,15 +11,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - TBD
 
+## [0.0.23] - 2026-01-21
+
+### Added
+
+- **Standardized Faker API**: All fakers now receive `original_value` parameter
+  - `FakerInterface` updated to document `original_value` as standard parameter
+  - All fakers receive the original database value automatically
+  - Enables more intelligent fakers that can use original values when needed
+  - Improves versatility and extensibility for custom fakers
+
+- **Improved PreFlightCheckService**: Enhanced column existence checking
+  - Now queries actual database columns instead of relying solely on Doctrine mapping
+  - Case-insensitive matching for better compatibility
+  - More informative error messages showing available columns
+  - Helps identify mapping issues (e.g., firstname vs firstName)
+
+### Changed
+
+- **Symfony Version Requirement**: Minimum Symfony version increased to 6.1+
+  - Required for `#[Autowire]` attribute support in constructor parameters
+  - All fakers now use `#[Autowire('%nowo_anonymize.locale%')]` attribute
+  - Symfony 6.0 is no longer supported
+  - Updated `composer.json`, documentation, and demo projects
+
+- **AnonymizeService**: Always passes `original_value` to all fakers
+  - Standardized API: all fakers receive `original_value` automatically
+  - Backward compatibility: `hash_preserve` and `masking` still support `value` key
+  - Fakers can use or ignore the original value as needed
+
+- **HashPreserveFaker and MaskingFaker**: Support both `original_value` and `value`
+  - Accept `original_value` (standard) or `value` (backward compatibility)
+  - Prioritize `original_value` if available
+
+### Fixed
+
+- **PreFlightCheckService**: Fixed column name detection
+  - Now queries actual database schema instead of relying on mapping
+  - Better error messages with column suggestions
+  - Case-insensitive matching for database compatibility
+
 ## [0.0.22] - 2026-01-21
 
 ### Fixed
 
-- **Symfony 6.0 Compatibility**: Fixed services.yaml configuration error
-  - Removed autowiring pattern with `exclude` (incompatible with Symfony 6.0)
+- **Symfony 6.1+ Compatibility**: Fixed services.yaml configuration error
+  - Removed autowiring pattern with `exclude` (incompatible with Symfony 6.0, now requires 6.1+)
   - Explicitly defined all 28 fakers that require `locale` parameter
   - Resolved error: "Argument #1 ($resource) must be of type string, array given"
-  - Services configuration now works correctly in Symfony 6.0, 7.0, and 8.0
+  - Services configuration now works correctly in Symfony 6.1+, 7.0, and 8.0
 
 ## [0.0.21] - 2026-01-21
 
@@ -53,7 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **ExportDatabaseCommand**: Fixed DBAL compatibility error
   - Replaced `$connection->getDriver()->getName()` with `DbalHelper::getDriverName()`
-  - Resolved "Call to undefined method Driver::getName()" error in Symfony 6.0/7.0
+  - Resolved "Call to undefined method Driver::getName()" error in Symfony 6.1+/7.0
   - Improved compatibility across different Doctrine DBAL versions
   - `DatabaseExportService` also updated to use the new helper method
 
@@ -131,10 +171,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Symfony 6.0 Compatibility**: Fixed compatibility issue with Symfony 6.0
+- **Symfony 6.1+ Compatibility**: Fixed compatibility issue
   - Moved command help text from `#[AsCommand]` attribute parameter to `setHelp()` method in `configure()`
   - The `help` parameter in `#[AsCommand]` is only available from Symfony 6.1+
-  - All commands now use `setHelp()` for maximum compatibility (Symfony 6.0, 6.1, 7.0, 8.0)
+  - All commands now use `setHelp()` for maximum compatibility (Symfony 6.1+, 7.0, 8.0)
   - Affected commands: `AnonymizeCommand`, `AnonymizationHistoryCommand`, `ExportDatabaseCommand`, `AnonymizeInfoCommand`, `GenerateAnonymizedColumnCommand`, `GenerateMongoAnonymizedFieldCommand`
 
 - **DatabaseExportService Configuration**: Fixed autowiring issue for `DatabaseExportService`
@@ -788,7 +828,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Configuration file created in `config/packages/dev/` by default
 
 - **Demo Projects**: Created three independent demo projects for different Symfony versions
-  - `demo-symfony6` - Demo with Symfony 6.0, MySQL and PostgreSQL connections
+  - `demo-symfony6` - Demo with Symfony 6.1+, MySQL and PostgreSQL connections
   - `demo-symfony7` - Demo with Symfony 7.0, MySQL and PostgreSQL connections
   - `demo-symfony8` - Demo with Symfony 8.0, MySQL and PostgreSQL connections
   - Each demo includes:

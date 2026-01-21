@@ -24,20 +24,23 @@ final class MaskingFaker implements FakerInterface
      * Generates a masked version of the original value.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'value' (string): The original value to mask (required)
+     *   - 'original_value' (string): The original value to mask (standard, always provided)
+     *   - 'value' (string): Alias for 'original_value' (backward compatibility)
      *   - 'preserve_start' (int): Number of characters to preserve at start (default: 1)
      *   - 'preserve_end' (int): Number of characters to preserve at end (default: 0)
      *   - 'mask_char' (string): Character to use for masking (default: '*')
      *   - 'mask_length' (int|null): Fixed length for mask, null for auto (default: null)
      * @return string The masked value
+     * @throws \InvalidArgumentException If neither 'original_value' nor 'value' option is provided or is not a string
      */
     public function generate(array $options = []): string
     {
-        if (!isset($options['value']) || !is_string($options['value'])) {
-            throw new \InvalidArgumentException('MaskingFaker requires a "value" option with the original value to mask.');
+        // Support both 'original_value' (standard) and 'value' (backward compatibility)
+        $value = $options['original_value'] ?? $options['value'] ?? null;
+        
+        if ($value === null || !is_string($value)) {
+            throw new \InvalidArgumentException('MaskingFaker requires an "original_value" (or "value") option with the original value to mask.');
         }
-
-        $value = $options['value'];
         $preserveStart = (int) ($options['preserve_start'] ?? 1);
         $preserveEnd = (int) ($options['preserve_end'] ?? 0);
         $maskChar = $options['mask_char'] ?? '*';
