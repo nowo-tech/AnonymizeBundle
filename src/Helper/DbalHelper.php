@@ -41,4 +41,60 @@ final class DbalHelper
         // This is a simple fallback but may not work for all databases
         return '`' . str_replace('`', '``', $identifier) . '`';
     }
+
+    /**
+     * Gets the database driver name in a compatible way across DBAL versions.
+     *
+     * @param Connection $connection The database connection
+     * @return string The driver name (e.g., 'pdo_mysql', 'pdo_pgsql', 'pdo_sqlite')
+     */
+    public static function getDriverName(Connection $connection): string
+    {
+        $driver = $connection->getDriver();
+        
+        // Try getName() method (DBAL 2.x)
+        if (method_exists($driver, 'getName')) {
+            return $driver->getName();
+        }
+        
+        // Try getDatabasePlatform() and get name from platform (DBAL 3.x)
+        try {
+            $platform = $connection->getDatabasePlatform();
+            $platformName = $platform::class;
+            
+            // Extract driver name from platform class name
+            if (str_contains($platformName, 'MySQL')) {
+                return 'pdo_mysql';
+            }
+            if (str_contains($platformName, 'PostgreSQL')) {
+                return 'pdo_pgsql';
+            }
+            if (str_contains($platformName, 'Sqlite')) {
+                return 'pdo_sqlite';
+            }
+            
+            // Fallback: try to get from connection params
+            $params = $connection->getParams();
+            if (isset($params['driver'])) {
+                return $params['driver'];
+            }
+            if (isset($params['driverClass'])) {
+                $driverClass = $params['driverClass'];
+                if (str_contains($driverClass, 'MySQL')) {
+                    return 'pdo_mysql';
+                }
+                if (str_contains($driverClass, 'PostgreSQL')) {
+                    return 'pdo_pgsql';
+                }
+                if (str_contains($driverClass, 'Sqlite')) {
+                    return 'pdo_sqlite';
+                }
+            }
+        } catch (\Exception $e) {
+            // Fall through to default
+        }
+        
+        // Last resort: default to mysql
+        return 'pdo_mysql';
+    }
 }

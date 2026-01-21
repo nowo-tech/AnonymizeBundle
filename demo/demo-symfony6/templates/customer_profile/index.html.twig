@@ -3,6 +3,7 @@
 {% block title %}Customer Profiles - MongoDB{% endblock %}
 
 {% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Customer Profiles', isMongo: true, routePrefix: 'mongodb_customer_profile', currentPage: 'List'} %}
 {% if error|default(false) %}
 <div class="alert alert-danger" role="alert">
     <strong>⚠️ Error:</strong> {{ error }}
@@ -57,9 +58,7 @@
                             <td>{{ profile.createdAt ? profile.createdAt.toDateTime()|date('Y-m-d H:i') : '-' }}</td>
                             <td>
                                 {% if profile.anonymized|default(false) %}
-                                    <span class="badge bg-danger">Yes</span>
-                                {% else %}
-                                    <span class="badge bg-success">No</span>
+                                    {% include \'_anonymized_badge.html.twig\' with {value: profile.anonymized|default(false)} %}
                                 {% endif %}
                             </td>
                             <td>

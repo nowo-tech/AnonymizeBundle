@@ -11,6 +11,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - TBD
 
+## [0.0.21] - 2026-01-21
+
+### Added
+
+- **DbalHelper Enhancement**: New `getDriverName()` method for DBAL compatibility
+  - Provides cross-version compatibility for getting database driver names
+  - Supports DBAL 2.x and 3.x with multiple fallback strategies
+  - Extracts driver name from platform class, connection params, or defaults to 'pdo_mysql'
+  - Used by `ExportDatabaseCommand` and `DatabaseExportService` for better compatibility
+
+- **Demo UI Improvements**: Enhanced navigation and visual consistency
+  - Added breadcrumbs navigation to all CRUD pages (index, show, new, edit)
+  - Standardized anonymized badge display with icons and consistent colors
+  - Created reusable `_breadcrumbs.html.twig` and `_anonymized_badge.html.twig` components
+  - All 156 templates across 3 demos now have consistent navigation and badges
+
+- **MongoDB Fixtures**: Improved fixture loading and data generation
+  - Enhanced `load-fixtures.js` script with better error handling
+  - Created `reload-mongodb-fixtures.sh` script for manual fixture reloading
+  - Improved `entrypoint.sh` for better MongoDB container detection
+  - All 5 MongoDB collections now have sample data (125 documents per demo)
+
+### Fixed
+
+- **HashPreserveFaker**: Fixed "requires a 'value' option" error
+  - `AnonymizeService` now automatically passes the original value to `HashPreserveFaker`
+  - No need to manually specify `value` option in `#[AnonymizeProperty]` attributes
+  - Resolved error when anonymizing entities with `hash_preserve` faker type
+  - Affects `SystemLog` entity and any entity using `hash_preserve` faker
+
+- **ExportDatabaseCommand**: Fixed DBAL compatibility error
+  - Replaced `$connection->getDriver()->getName()` with `DbalHelper::getDriverName()`
+  - Resolved "Call to undefined method Driver::getName()" error in Symfony 6.0/7.0
+  - Improved compatibility across different Doctrine DBAL versions
+  - `DatabaseExportService` also updated to use the new helper method
+
+### Changed
+
+- **AnonymizeService**: Enhanced faker option handling
+  - Automatically injects original value for `hash_preserve` faker type
+  - Maintains backward compatibility with existing configurations
+  - Improves developer experience by reducing required configuration
+
+- **Demo Templates**: Standardized UI components
+  - All anonymized badges now use consistent styling (green check for anonymized, gray X for not anonymized)
+  - Bootstrap Icons used for visual clarity
+  - Breadcrumbs follow consistent pattern: Home > Entity (connection) > Current Page
+
 ## [0.0.20] - 2026-01-20
 
 ### Added

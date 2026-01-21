@@ -246,7 +246,7 @@ final class ExportDatabaseCommand extends AbstractCommand
                     // Handle ORM connections (MySQL, PostgreSQL, SQLite)
                     $em = $doctrine->getManager($managerName);
                     $connection = $em->getConnection();
-                    $driver = $connection->getDriver()->getName();
+                    $driver = \Nowo\AnonymizeBundle\Helper\DbalHelper::getDriverName($connection);
                     $database = $connection->getDatabase();
 
                     $io->writeln(sprintf('Exporting <info>%s</info> (%s)...', $managerName, $driver));

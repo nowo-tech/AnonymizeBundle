@@ -3,6 +3,7 @@
 {% block title %}Email Subscription Details - {{ connection|upper }}{% endblock %}
 
 {% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Email Subscriptions', connection: connection, routePrefix: 'email_subscription', currentPage: 'Show'} %}
 <div class="alert alert-info" role="alert">
     <strong>ℹ️ Anonymized Fields</strong><br>
     The following fields in this entity are configured for anonymization:
@@ -57,10 +58,8 @@
             <dt class="col-sm-3">Anonymized</dt>
             <dd class="col-sm-9">
                 {% if subscription.anonymized|default(false) %}
-                    <span class="badge bg-success">✓ Yes</span>
-                {% else %}
-                    <span class="badge bg-secondary">✗ No</span>
-                {% endif %}
+                                    {% include \'_anonymized_badge.html.twig\' with {value: subscription.anonymized|default(false)} %}
+                                {% endif %}
             </dd>
             {% endif %}
         </dl>

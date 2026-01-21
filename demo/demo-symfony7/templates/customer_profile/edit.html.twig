@@ -3,6 +3,7 @@
 {% block title %}Edit Customer Profile - MongoDB{% endblock %}
 
 {% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Customer Profiles', isMongo: true, routePrefix: 'mongodb_customer_profile', currentPage: 'Edit'} %}
 <div class="mb-3">
     <a href="{{ path('mongodb_customer_profile_index') }}" class="btn btn-outline-secondary">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">

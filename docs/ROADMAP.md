@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and enhancements for the Anonymize Bundle.
 
-## Current Status (v0.0.20 - Released)
+## Current Status (v0.0.21 - Released)
 
 ### ✅ Implemented Features
 

@@ -3,6 +3,7 @@
 {% block title %}Email Subscriptions - {{ connection|upper }}{% endblock %}
 
 {% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Email Subscriptions', connection: connection, routePrefix: 'email_subscription', currentPage: 'List'} %}
 {% if not hasAnonymizedColumn|default(false) %}
 <div class="alert alert-warning" role="alert">
     <strong>⚠️ Column "anonymized" not found</strong><br>
@@ -60,11 +61,7 @@
                             <td>{{ subscription.subscribedAt ? subscription.subscribedAt|date('Y-m-d H:i') : '' }}</td>
                             {% if hasAnonymizedColumn|default(false) %}
                             <td>
-                                {% if subscription.anonymized %}
-                                    <span class="badge bg-danger">Yes</span>
-                                {% else %}
-                                    <span class="badge bg-success">No</span>
-                                {% endif %}
+                                {% include \'_anonymized_badge.html.twig\' with {value: subscription.anonymized|default(false)} %}
                             </td>
                             {% endif %}
                             <td>

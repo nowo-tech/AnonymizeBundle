@@ -263,23 +263,39 @@ main() {
                 echo "  Loading MongoDB fixtures..."
                 # Use docker exec to run mongosh from the MongoDB container
                 # The script is mounted as a volume, so we can pipe it to mongosh
-                # Try to detect MongoDB container name automatically
-                DETECTED_MONGODB_CONTAINER=$(docker ps --format '{{.Names}}' | grep -E "anonymize-demo.*mongodb|.*mongodb.*anonymize" | head -1)
-                if [ -n "$DETECTED_MONGODB_CONTAINER" ]; then
-                    echo "  📦 Loading fixtures into MongoDB container: $DETECTED_MONGODB_CONTAINER"
-                    cat "$FIXTURE_SCRIPT" | docker exec -i "$DETECTED_MONGODB_CONTAINER" mongosh "$MONGODB_DATABASE" \
+                # Try multiple methods to find MongoDB container
+                # Method 1: Try docker-compose service name
+                MONGODB_CONTAINER_NAME=""
+                if docker-compose ps mongodb 2>/dev/null | grep -q "Up"; then
+                    MONGODB_CONTAINER_NAME=$(docker-compose ps -q mongodb | head -1)
+                    if [ -n "$MONGODB_CONTAINER_NAME" ]; then
+                        MONGODB_CONTAINER_NAME=$(docker inspect --format='{{.Name}}' "$MONGODB_CONTAINER_NAME" | sed 's/^\///')
+                    fi
+                fi
+                
+                # Method 2: Try to detect by name pattern
+                if [ -z "$MONGODB_CONTAINER_NAME" ]; then
+                    DETECTED_MONGODB_CONTAINER=$(docker ps --format '{{.Names}}' | grep -E "anonymize-demo.*mongodb|.*mongodb.*anonymize|.*symfony.*mongodb" | head -1)
+                    if [ -n "$DETECTED_MONGODB_CONTAINER" ]; then
+                        MONGODB_CONTAINER_NAME="$DETECTED_MONGODB_CONTAINER"
+                    fi
+                fi
+                
+                if [ -n "$MONGODB_CONTAINER_NAME" ]; then
+                    echo "  📦 Loading fixtures into MongoDB container: $MONGODB_CONTAINER_NAME"
+                    # Wait a bit more for MongoDB to be fully ready
+                    sleep 2
+                    if cat "$FIXTURE_SCRIPT" | docker exec -i "$MONGODB_CONTAINER_NAME" mongosh "$MONGODB_DATABASE" \
                         -u "$MONGODB_USER" \
                         -p "$MONGODB_PASSWORD" \
-                        --authenticationDatabase admin --quiet 2>&1 | while IFS= read -r line; do
+                        --authenticationDatabase admin 2>&1 | while IFS= read -r line; do
                         echo "    $line"
-                    done
-                    FIXTURE_EXIT_CODE=${PIPESTATUS[1]}
-                    if [ "$FIXTURE_EXIT_CODE" -eq 0 ]; then
+                    done; then
                         echo "  ✅ MongoDB fixtures loaded successfully"
                     else
-                        echo "  ⚠️  Warning: MongoDB fixtures may have errors (exit code: $FIXTURE_EXIT_CODE)"
+                        echo "  ⚠️  Warning: MongoDB fixtures may have errors"
                         echo "  💡 You can manually load fixtures by running:"
-                        echo "     cat $FIXTURE_SCRIPT | docker exec -i $DETECTED_MONGODB_CONTAINER mongosh $MONGODB_DATABASE -u $MONGODB_USER -p $MONGODB_PASSWORD --authenticationDatabase admin"
+                        echo "     cat $FIXTURE_SCRIPT | docker exec -i $MONGODB_CONTAINER_NAME mongosh $MONGODB_DATABASE -u $MONGODB_USER -p $MONGODB_PASSWORD --authenticationDatabase admin"
                     fi
                 else
                     echo "  ⚠️  Warning: MongoDB container not found, skipping fixture load"

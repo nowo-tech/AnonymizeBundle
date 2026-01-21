@@ -3,6 +3,7 @@
 {% block title %}User Activity #{{ activity._id }} - MongoDB{% endblock %}
 
 {% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'User Activities', isMongo: true, routePrefix: 'mongodb_user_activity', currentPage: 'Show'} %}
 <div class="alert alert-info" role="alert">
     <strong>ℹ️ Anonymized Fields</strong><br>
     The following fields in this document are configured for anonymization:
@@ -61,10 +62,8 @@
             <dt class="col-sm-3">Anonymized</dt>
             <dd class="col-sm-9">
                 {% if activity.anonymized|default(false) %}
-                    <span class="badge bg-success">✓ Yes</span>
-                {% else %}
-                    <span class="badge bg-secondary">✗ No</span>
-                {% endif %}
+                                    {% include \'_anonymized_badge.html.twig\' with {value: activity.anonymized|default(false)} %}
+                                {% endif %}
             </dd>
         </dl>
     </div>

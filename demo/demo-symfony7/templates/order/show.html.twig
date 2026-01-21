@@ -3,6 +3,7 @@
 {% block title %}Order #{{ order.id }} - {{ connection|upper }}{% endblock %}
 
 {% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Orders', connection: connection, routePrefix: 'order', currentPage: 'Show'} %}
 {% if not hasAnonymizedColumn|default(false) %}
 <div class="alert alert-warning" role="alert">
     <strong>⚠️ Column "anonymized" not found</strong><br>
@@ -56,10 +57,8 @@
             <dt class="col-sm-3">Anonymized</dt>
             <dd class="col-sm-9">
                 {% if order.anonymized|default(false) %}
-                    <span class="badge bg-success">✓ Yes</span>
-                {% else %}
-                    <span class="badge bg-secondary">✗ No</span>
-                {% endif %}
+                                    {% include \'_anonymized_badge.html.twig\' with {value: order.anonymized|default(false)} %}
+                                {% endif %}
             </dd>
             {% endif %}
         </dl>

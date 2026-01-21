@@ -3,6 +3,7 @@
 {% block title %}Device Infos - MongoDB{% endblock %}
 
 {% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Device Infos', isMongo: true, routePrefix: 'mongodb_device_info', currentPage: 'List'} %}
 {% if error|default(false) %}
 <div class="alert alert-danger" role="alert">
     <strong>⚠️ Error:</strong> {{ error }}
@@ -62,9 +63,7 @@
                             <td>{{ device.lastSeen ? device.lastSeen.toDateTime()|date('Y-m-d H:i') : '-' }}</td>
                             <td>
                                 {% if device.anonymized|default(false) %}
-                                    <span class="badge bg-danger">Yes</span>
-                                {% else %}
-                                    <span class="badge bg-success">No</span>
+                                    {% include \'_anonymized_badge.html.twig\' with {value: device.anonymized|default(false)} %}
                                 {% endif %}
                             </td>
                             <td>

@@ -3,6 +3,7 @@
 {% block title %}Edit Device Info - MongoDB{% endblock %}
 
 {% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Device Infos', isMongo: true, routePrefix: 'mongodb_device_info', currentPage: 'Edit'} %}
 <div class="mb-3">
     <a href="{{ path('mongodb_device_info_index') }}" class="btn btn-outline-secondary">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">

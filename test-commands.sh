@@ -3,7 +3,7 @@
 # Script to test all bundle commands in the demos
 # Usage: ./test-commands.sh [demo-symfony6|demo-symfony7|demo-symfony8|all]
 
-set -e
+set +e  # Don't exit on error, we want to continue testing
 
 DEMO=${1:-all}
 BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -23,9 +23,9 @@ COMMANDS=(
     "nowo:anonymize:run --connection postgres --dry-run"
     "nowo:anonymize:run --connection sqlite --dry-run"
     "nowo:anonymize:history --limit 5"
-    "nowo:anonymize:export-db --connection default --dry-run"
-    "nowo:anonymize:generate-column-migration --entity App\\Entity\\User --connection default"
-    "nowo:anonymize:generate-mongo-field --document App\\Document\\UserActivity"
+    "nowo:anonymize:export-db --connection default"
+    "nowo:anonymize:generate-column-migration --connection default"
+    "nowo:anonymize:generate-mongo-field --scan-documents"
 )
 
 test_command() {

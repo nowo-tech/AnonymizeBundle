@@ -45,7 +45,7 @@ final class DatabaseExportService
     public function exportConnection(EntityManagerInterface $em, string $connectionName): ?string
     {
         $connection = $em->getConnection();
-        $driver = $connection->getDriver()->getName();
+        $driver = \Nowo\AnonymizeBundle\Helper\DbalHelper::getDriverName($connection);
         $database = $connection->getDatabase();
 
         // Generate filename

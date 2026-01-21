@@ -3,6 +3,7 @@
 {% block title %}Edit Customer #{{ customer.id }} - {{ connection|upper }}{% endblock %}
 
 {% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Customers', connection: connection, routePrefix: 'customer', currentPage: 'Edit'} %}
 <div class="mb-3">
     <a href="{{ path('customer_index', {connection: connection}) }}" class="btn btn-outline-secondary">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">

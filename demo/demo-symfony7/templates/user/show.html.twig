@@ -3,6 +3,8 @@
 {% block title %}User Details - {{ connection|upper }}{% endblock %}
 
 {% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Users', connection: connection, routePrefix: 'user', currentPage: 'Show'} %}
+
 <div class="card shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h2 class="mb-0">User Details <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
@@ -44,10 +46,8 @@
             <dt class="col-sm-3">Anonymized</dt>
             <dd class="col-sm-9">
                 {% if user.anonymized|default(false) %}
-                    <span class="badge bg-success">✓ Yes</span>
-                {% else %}
-                    <span class="badge bg-secondary">✗ No</span>
-                {% endif %}
+                                    {% include \'_anonymized_badge.html.twig\' with {value: user.anonymized|default(false)} %}
+                                {% endif %}
             </dd>
             {% endif %}
         </dl>

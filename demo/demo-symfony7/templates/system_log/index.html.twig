@@ -3,6 +3,7 @@
 {% block title %}System Logs - {{ connection|upper }}{% endblock %}
 
 {% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'System Logs', connection: connection, routePrefix: 'system_log', currentPage: 'List'} %}
 {% if not hasAnonymizedColumn|default(false) %}
 <div class="alert alert-warning" role="alert">
     <strong>⚠️ Column "anonymized" not found</strong><br>
@@ -60,11 +61,7 @@
                             <td>{{ log.createdAt ? log.createdAt|date('Y-m-d H:i') : '' }}</td>
                             {% if hasAnonymizedColumn|default(false) %}
                             <td>
-                                {% if log.anonymized %}
-                                    <span class="badge bg-danger">Yes</span>
-                                {% else %}
-                                    <span class="badge bg-success">No</span>
-                                {% endif %}
+                                {% include '_anonymized_badge.html.twig' with {value: log.anonymized|default(false)} %}
                             </td>
                             {% endif %}
                             <td>

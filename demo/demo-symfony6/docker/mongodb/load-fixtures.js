@@ -37,7 +37,7 @@ for (let i = 1; i <= 30; i++) {
     });
 }
 const activitiesResult = db.user_activities.insertMany(activities);
-print(`✅ Inserted ${activitiesResult.insertedCount} user activities`);
+print(`✅ Inserted ${activitiesResult.insertedIds ? Object.keys(activitiesResult.insertedIds).length : activities.length} user activities`);
 
 // ============================================
 // 2. CUSTOMER PROFILES
@@ -67,7 +67,7 @@ for (let i = 1; i <= 25; i++) {
     });
 }
 const profilesResult = db.customer_profiles.insertMany(profiles);
-print(`✅ Inserted ${profilesResult.insertedCount} customer profiles`);
+print(`✅ Inserted ${profilesResult.insertedIds ? Object.keys(profilesResult.insertedIds).length : profiles.length} customer profiles`);
 
 // ============================================
 // 3. TRANSACTION LOGS
@@ -96,7 +96,7 @@ for (let i = 1; i <= 20; i++) {
     });
 }
 const transactionsResult = db.transaction_logs.insertMany(transactions);
-print(`✅ Inserted ${transactionsResult.insertedCount} transaction logs`);
+print(`✅ Inserted ${transactionsResult.insertedIds ? Object.keys(transactionsResult.insertedIds).length : transactions.length} transaction logs`);
 
 // ============================================
 // 4. DEVICE INFOS
@@ -134,7 +134,7 @@ for (let i = 1; i <= 15; i++) {
     });
 }
 const devicesResult = db.device_infos.insertMany(devices);
-print(`✅ Inserted ${devicesResult.insertedCount} device infos`);
+print(`✅ Inserted ${devicesResult.insertedIds ? Object.keys(devicesResult.insertedIds).length : devices.length} device infos`);
 
 // ============================================
 // 5. ANALYTICS EVENTS
@@ -171,7 +171,7 @@ for (let i = 1; i <= 35; i++) {
     });
 }
 const eventsResult = db.analytics_events.insertMany(events);
-print(`✅ Inserted ${eventsResult.insertedCount} analytics events`);
+print(`✅ Inserted ${eventsResult.insertedIds ? Object.keys(eventsResult.insertedIds).length : events.length} analytics events`);
 
 // ============================================
 // SUMMARY

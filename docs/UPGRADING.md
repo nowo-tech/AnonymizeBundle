@@ -13,6 +13,67 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.21
+
+**Release Date**: 2026-01-21
+
+#### What's New
+
+- **DbalHelper Enhancement**: New `getDriverName()` method
+  - Provides cross-version compatibility for getting database driver names
+  - Supports DBAL 2.x and 3.x with multiple fallback strategies
+  - Used internally by export commands for better compatibility
+
+- **Demo UI Improvements**: Enhanced navigation and visual consistency
+  - Breadcrumbs navigation added to all CRUD pages
+  - Standardized anonymized badge display with icons
+  - Reusable template components for consistency
+
+- **MongoDB Fixtures**: Improved fixture loading
+  - Enhanced fixture scripts with better error handling
+  - New reload script for manual fixture management
+  - All MongoDB collections now have sample data
+
+#### What's Fixed
+
+- **HashPreserveFaker**: Fixed "requires a 'value' option" error
+  - `AnonymizeService` now automatically passes the original value
+  - No manual configuration needed for `hash_preserve` faker type
+  - Resolves errors when anonymizing entities with hash preservation
+
+- **ExportDatabaseCommand**: Fixed DBAL compatibility error
+  - Resolved "Call to undefined method Driver::getName()" error
+  - Improved compatibility across different Doctrine DBAL versions
+  - Works correctly in Symfony 6.0, 7.0, and 8.0
+
+#### What's Changed
+
+- **AnonymizeService**: Enhanced faker option handling
+  - Automatically injects original value for `hash_preserve` faker
+  - Maintains full backward compatibility
+  - Improves developer experience
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **No configuration changes required**: This release focuses on bug fixes and improvements
+
+#### Notes
+
+- This release is fully backward compatible
+- All existing functionality remains unchanged
+- HashPreserveFaker now works automatically without manual value configuration
+- Export commands now work correctly across all DBAL versions
+
 ### Upgrading to 0.0.20
 
 **Release Date**: 2026-01-20

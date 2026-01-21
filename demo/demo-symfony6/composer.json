@@ -7,7 +7,6 @@
         "php": ">=8.1,<8.6",
         "doctrine/dbal": "^3.8.2",
         "doctrine/doctrine-bundle": "^2.8 || ^2.9 || ^2.10",
-        "doctrine/doctrine-fixtures-bundle": "^3.4",
         "doctrine/orm": "^2.13 || ^3.0",
         "mongodb/mongodb": "^2.1",
         "symfony/asset": "^6.0",
@@ -73,7 +72,8 @@
     },
     "repositories": [],
     "require-dev": {
-        "nowo-tech/anonymize-bundle": "v0.0.19",
+        "doctrine/doctrine-fixtures-bundle": "*",
+        "nowo-tech/anonymize-bundle": "v0.0.20",
         "symfony/debug-bundle": "^6.0",
         "symfony/web-profiler-bundle": "^6.0"
     }
