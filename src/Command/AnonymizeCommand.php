@@ -15,7 +15,6 @@ use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -39,7 +38,7 @@ use Psr\Container\ContainerInterface;
     name: 'nowo:anonymize:run',
     description: 'Anonymize database records using Doctrine attributes'
 )]
-final class AnonymizeCommand extends Command
+final class AnonymizeCommand extends AbstractCommand
 {
     private const PREFIX_COMMAND = 'nowo:anonymize:';
 
@@ -234,7 +233,7 @@ final class AnonymizeCommand extends Command
             $io->warning('This bundle is intended for development purposes only and should not be used in production.');
             $io->note('Please review your configuration and ensure the bundle is only enabled for "dev" and "test" environments.');
 
-            return Command::FAILURE;
+            return self::FAILURE;
         }
 
         // Additional check for environment
@@ -245,7 +244,7 @@ final class AnonymizeCommand extends Command
             ));
             $io->warning('This bundle is intended for development purposes only and should not be used in production.');
 
-            return Command::FAILURE;
+            return self::FAILURE;
         }
 
         // Get options
@@ -286,7 +285,7 @@ final class AnonymizeCommand extends Command
         if (empty($managersToProcess)) {
             $io->error('No entity managers found to process.');
 
-            return Command::FAILURE;
+            return self::FAILURE;
         }
 
         // Initialize services
@@ -345,7 +344,7 @@ final class AnonymizeCommand extends Command
             if (!$io->confirm('Do you want to proceed with anonymization?', false)) {
                 $io->warning('Anonymization cancelled by user.');
 
-                return Command::SUCCESS;
+                return self::SUCCESS;
             }
             $io->newLine();
         }
@@ -374,7 +373,7 @@ final class AnonymizeCommand extends Command
                         }
                         $io->warning('Please fix the errors above before running anonymization.');
 
-                        return Command::FAILURE;
+                        return self::FAILURE;
                     }
 
                     if (!$statsOnly) {
@@ -404,7 +403,7 @@ final class AnonymizeCommand extends Command
             } catch (\Exception $e) {
                 $io->error(sprintf('Error processing entity manager %s: %s', $managerName, $e->getMessage()));
 
-                return Command::FAILURE;
+                return self::FAILURE;
             }
         }
 
@@ -441,7 +440,7 @@ final class AnonymizeCommand extends Command
         // Display statistics
         $this->displayStatistics($io, $statistics, $statsOnly, $statsJson, $statsCsv);
 
-        return Command::SUCCESS;
+        return self::SUCCESS;
     }
 
     /**
@@ -589,7 +588,7 @@ final class AnonymizeCommand extends Command
             // Get total records count for progress bar
             $tableName = $metadata->getTableName();
             $connection = $em->getConnection();
-            $countQuery = sprintf('SELECT COUNT(*) as total FROM %s', $connection->quoteSingleIdentifier($tableName));
+            $countQuery = sprintf('SELECT COUNT(*) as total FROM %s', $this->quoteIdentifier($connection, $tableName));
             $totalRecords = (int) $connection->fetchOne($countQuery);
 
             if ($debug) {

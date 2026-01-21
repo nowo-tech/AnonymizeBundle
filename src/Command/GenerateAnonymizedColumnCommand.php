@@ -10,7 +10,6 @@ use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -30,7 +29,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
     name: 'nowo:anonymize:generate-column-migration',
     description: 'Generate migration SQL to add anonymized column to anonymizable entities'
 )]
-final class GenerateAnonymizedColumnCommand extends Command
+final class GenerateAnonymizedColumnCommand extends AbstractCommand
 {
     /**
      * Creates a new GenerateAnonymizedColumnCommand instance.
@@ -155,8 +154,8 @@ final class GenerateAnonymizedColumnCommand extends Command
                     // Generate ALTER TABLE statement
                     $sql = sprintf(
                         'ALTER TABLE %s ADD COLUMN %s BOOLEAN NOT NULL DEFAULT FALSE;',
-                        $connection->quoteSingleIdentifier($tableName),
-                        $connection->quoteSingleIdentifier('anonymized')
+                        $this->quoteIdentifier($connection, $tableName),
+                        $this->quoteIdentifier($connection, 'anonymized')
                     );
 
                     $sqlStatements[] = [
@@ -176,7 +175,7 @@ final class GenerateAnonymizedColumnCommand extends Command
 
         if (empty($sqlStatements)) {
             $io->success('No migrations needed. All tables already have the anonymized column or no entities use AnonymizableTrait.');
-            return Command::SUCCESS;
+            return self::SUCCESS;
         }
 
         // Generate SQL output
@@ -197,7 +196,7 @@ final class GenerateAnonymizedColumnCommand extends Command
             $io->note('Use --output option to save to a file');
         }
 
-        return Command::SUCCESS;
+        return self::SUCCESS;
     }
 
     /**

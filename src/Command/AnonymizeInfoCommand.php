@@ -10,7 +10,6 @@ use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -33,7 +32,7 @@ use Psr\Container\ContainerInterface;
     name: 'nowo:anonymize:info',
     description: 'Display information about anonymizers defined in the application'
 )]
-final class AnonymizeInfoCommand extends Command
+final class AnonymizeInfoCommand extends AbstractCommand
 {
     /**
      * Creates a new AnonymizeInfoCommand instance.
@@ -104,7 +103,7 @@ final class AnonymizeInfoCommand extends Command
         if (empty($managersToProcess)) {
             $io->error('No entity managers found to process.');
 
-            return Command::FAILURE;
+            return self::FAILURE;
         }
 
         // Initialize services
@@ -148,11 +147,11 @@ final class AnonymizeInfoCommand extends Command
                     }
 
                     // Get total records count
-                    $countQuery = sprintf('SELECT COUNT(*) as total FROM %s', $connection->quoteSingleIdentifier($tableName));
+                    $countQuery = sprintf('SELECT COUNT(*) as total FROM %s', $this->quoteIdentifier($connection, $tableName));
                     $totalRecords = (int) $connection->fetchOne($countQuery);
 
                     // Get all records for pattern matching
-                    $query = sprintf('SELECT * FROM %s', $connection->quoteSingleIdentifier($tableName));
+                    $query = sprintf('SELECT * FROM %s', $this->quoteIdentifier($connection, $tableName));
                     $allRecords = $connection->fetchAllAssociative($query);
 
                     $io->writeln('');
@@ -270,7 +269,7 @@ final class AnonymizeInfoCommand extends Command
             } catch (\Exception $e) {
                 $io->error(sprintf('Error processing entity manager %s: %s', $managerName, $e->getMessage()));
 
-                return Command::FAILURE;
+                return self::FAILURE;
             }
         }
 
@@ -311,6 +310,6 @@ final class AnonymizeInfoCommand extends Command
             }
         }
 
-        return Command::SUCCESS;
+        return self::SUCCESS;
     }
 }

@@ -13,6 +13,64 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.20
+
+**Release Date**: 2026-01-20
+
+#### What's New
+
+- **DbalHelper**: New static helper class for DBAL operations
+  - `DbalHelper::quoteIdentifier()` can be used from anywhere
+  - No instantiation required, fully static methods
+  - Centralized DBAL compatibility handling
+
+- **AbstractCommand**: New base class for commands
+  - All commands now extend from `AbstractCommand`
+  - Provides common functionality and helper methods
+  - Maintains backward compatibility
+
+- **Testing Infrastructure**: New testing tools
+  - Automated testing script: `test-commands.sh`
+  - Comprehensive testing guide: `docs/TESTING_COMMANDS.md`
+
+#### What's Changed
+
+- **Code Refactoring**: Improved code organization
+  - `quoteIdentifier()` logic moved to `DbalHelper` static class
+  - Commands use `self::SUCCESS/FAILURE` instead of `Command::SUCCESS/FAILURE`
+  - Better code reusability and maintainability
+
+#### What's Fixed
+
+- **PreFlightCheckService**: Fixed method call error
+  - Resolved "Call to undefined method getEntityManager()" error
+  - Improved database column existence checking
+
+- **DBAL Compatibility**: Enhanced compatibility
+  - Better support for different DBAL versions
+  - Automatic fallback for older DBAL versions
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **No configuration changes required**: This is a refactoring and bugfix release
+
+#### Notes
+
+- This release is fully backward compatible
+- All existing functionality remains unchanged
+- Code improvements are internal and transparent to users
+- New `DbalHelper` class can be used in custom code if needed
+
 ### Upgrading to 0.0.19
 
 **Release Date**: 2026-01-20

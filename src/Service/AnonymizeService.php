@@ -15,6 +15,7 @@ use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\BeforeEntityAnonymizeEvent;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
+use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use ReflectionClass;
 use ReflectionProperty;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
@@ -391,7 +392,7 @@ final class AnonymizeService
             // Convert to string for quote() method
             $where[] = sprintf(
                 '%s = %s',
-                $connection->quoteSingleIdentifier($idColumn),
+                DbalHelper::quoteIdentifier($connection, $idColumn),
                 $connection->quote((string) $idValue)
             );
         }
@@ -401,14 +402,14 @@ final class AnonymizeService
             // Convert to string for quote() method
             $set[] = sprintf(
                 '%s = %s',
-                $connection->quoteSingleIdentifier($column),
+                DbalHelper::quoteIdentifier($connection, $column),
                 $connection->quote((string) $value)
             );
         }
 
         $query = sprintf(
             'UPDATE %s SET %s WHERE %s',
-            $connection->quoteSingleIdentifier($tableName),
+            DbalHelper::quoteIdentifier($connection, $tableName),
             implode(', ', $set),
             implode(' AND ', $where)
         );
@@ -464,7 +465,7 @@ final class AnonymizeService
         $connection = $em->getConnection();
         $mainTableAlias = 't0';
         $joins = [];
-        $selectFields = [$connection->quoteSingleIdentifier($mainTableAlias) . '.*'];
+        $selectFields = [DbalHelper::quoteIdentifier($connection, $mainTableAlias) . '.*'];
         $joinCounter = 1;
 
         // Detect relationship patterns (fields with dots, e.g., 'type.name')
@@ -520,9 +521,9 @@ final class AnonymizeService
                     $relatedColumnName = $relatedFieldMapping['columnName'] ?? $relatedField;
                     $selectFields[] = sprintf(
                         '%s.%s AS %s',
-                        $connection->quoteSingleIdentifier($alias),
-                        $connection->quoteSingleIdentifier($relatedColumnName),
-                        $connection->quoteSingleIdentifier($patternField)
+                        DbalHelper::quoteIdentifier($connection, $alias),
+                        DbalHelper::quoteIdentifier($connection, $relatedColumnName),
+                        DbalHelper::quoteIdentifier($connection, $patternField)
                     );
                 }
 
@@ -536,8 +537,8 @@ final class AnonymizeService
         // Build FROM clause
         $fromClause = sprintf(
             '%s AS %s',
-            $connection->quoteSingleIdentifier($tableName),
-            $connection->quoteSingleIdentifier($mainTableAlias)
+            DbalHelper::quoteIdentifier($connection, $tableName),
+            DbalHelper::quoteIdentifier($connection, $mainTableAlias)
         );
 
         // Build JOIN clauses
@@ -545,12 +546,12 @@ final class AnonymizeService
         foreach ($joins as $join) {
             $joinClauses[] = sprintf(
                 'LEFT JOIN %s AS %s ON %s.%s = %s.%s',
-                $connection->quoteSingleIdentifier($join['table']),
-                $connection->quoteSingleIdentifier($join['alias']),
-                $connection->quoteSingleIdentifier($mainTableAlias),
-                $connection->quoteSingleIdentifier($join['sourceColumn']),
-                $connection->quoteSingleIdentifier($join['alias']),
-                $connection->quoteSingleIdentifier($join['targetColumn'])
+                DbalHelper::quoteIdentifier($connection, $join['table']),
+                DbalHelper::quoteIdentifier($connection, $join['alias']),
+                DbalHelper::quoteIdentifier($connection, $mainTableAlias),
+                DbalHelper::quoteIdentifier($connection, $join['sourceColumn']),
+                DbalHelper::quoteIdentifier($connection, $join['alias']),
+                DbalHelper::quoteIdentifier($connection, $join['targetColumn'])
             );
         }
 

@@ -6,7 +6,6 @@ namespace Nowo\AnonymizeBundle\Command;
 
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -28,7 +27,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
     name: 'nowo:anonymize:generate-mongo-field',
     description: 'Generate MongoDB script to add anonymized field to anonymizable documents'
 )]
-final class GenerateMongoAnonymizedFieldCommand extends Command
+final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
 {
     /**
      * Creates a new GenerateMongoAnonymizedFieldCommand instance.
@@ -146,7 +145,7 @@ final class GenerateMongoAnonymizedFieldCommand extends Command
         if (empty($collections)) {
             $io->error('No collections specified. Use --collection option or --scan-documents to find collections automatically.');
             $io->note('Example: php bin/console nowo:anonymize:generate-mongo-field --collection=user_activities');
-            return Command::FAILURE;
+            return self::FAILURE;
         }
 
         // Generate JavaScript script
@@ -163,7 +162,7 @@ final class GenerateMongoAnonymizedFieldCommand extends Command
             $io->note(sprintf('Execute with: mongosh "mongodb://localhost:27017/%s" < script.js', $database));
         }
 
-        return Command::SUCCESS;
+        return self::SUCCESS;
     }
 
     /**

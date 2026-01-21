@@ -63,7 +63,7 @@ final class PreFlightCheckService
                 $propertyAttribute = $propertyData['attribute'];
 
                 // Check column existence
-                $errors = array_merge($errors, $this->checkColumnExistence($metadata, $propertyName, $property));
+                $errors = array_merge($errors, $this->checkColumnExistence($em, $metadata, $propertyName, $property));
 
                 // Validate faker type
                 $errors = array_merge($errors, $this->validateFakerType($propertyAttribute));
@@ -131,12 +131,13 @@ final class PreFlightCheckService
     /**
      * Checks if column exists in the database table.
      *
+     * @param EntityManagerInterface $em The entity manager
      * @param ClassMetadata $metadata The entity metadata
      * @param string $propertyName The property name
      * @param ReflectionProperty $property The reflection property
      * @return array<string> Array of error messages
      */
-    private function checkColumnExistence(ClassMetadata $metadata, string $propertyName, ReflectionProperty $property): array
+    private function checkColumnExistence(EntityManagerInterface $em, ClassMetadata $metadata, string $propertyName, ReflectionProperty $property): array
     {
         $errors = [];
 
@@ -146,7 +147,7 @@ final class PreFlightCheckService
 
             try {
                 $tableName = $metadata->getTableName();
-                $connection = $metadata->getEntityManager()->getConnection();
+                $connection = $em->getConnection();
                 $schemaManager = $connection->createSchemaManager();
 
                 if ($schemaManager->tablesExist([$tableName])) {

@@ -10,7 +10,6 @@ use Nowo\AnonymizeBundle\Service\DatabaseExportService;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -29,7 +28,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
     name: 'nowo:anonymize:export-db',
     description: 'Export databases to files with optional compression'
 )]
-final class ExportDatabaseCommand extends Command
+final class ExportDatabaseCommand extends AbstractCommand
 {
     /**
      * Creates a new ExportDatabaseCommand instance.
@@ -96,7 +95,7 @@ final class ExportDatabaseCommand extends Command
             }
             $io->warning('This bundle is intended for development purposes only.');
 
-            return Command::FAILURE;
+            return self::FAILURE;
         }
 
         if (!$environmentProtection->isSafeEnvironment()) {
@@ -105,7 +104,7 @@ final class ExportDatabaseCommand extends Command
                 $environmentProtection->getEnvironment()
             ));
 
-            return Command::FAILURE;
+            return self::FAILURE;
         }
 
         // Get configuration
@@ -155,7 +154,7 @@ final class ExportDatabaseCommand extends Command
         if (!in_array($compression, ['none', 'gzip', 'bzip2', 'zip'], true)) {
             $io->error(sprintf('Invalid compression format: %s. Allowed values: none, gzip, bzip2, zip', $compression));
 
-            return Command::FAILURE;
+            return self::FAILURE;
         }
 
         // Get Doctrine registry
@@ -178,7 +177,7 @@ final class ExportDatabaseCommand extends Command
         if (empty($managersToProcess)) {
             $io->error('No entity managers found to process.');
 
-            return Command::FAILURE;
+            return self::FAILURE;
         }
 
         // Create export service
@@ -293,7 +292,7 @@ final class ExportDatabaseCommand extends Command
             $io->warning(sprintf('%d export(s) failed. Check the output above for details.', $failureCount));
         }
 
-        return $failureCount > 0 ? Command::FAILURE : Command::SUCCESS;
+        return $failureCount > 0 ? self::FAILURE : self::SUCCESS;
     }
 
     /**

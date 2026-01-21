@@ -11,6 +11,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - TBD
 
+## [0.0.20] - 2026-01-20
+
+### Added
+
+- **DbalHelper**: New static helper class for DBAL operations
+  - Created `DbalHelper::quoteIdentifier()` static method for database identifier quoting
+  - Compatible with both DBAL 2.x and 3.x versions
+  - Can be used from anywhere without instantiation
+  - Centralized location for DBAL compatibility methods
+
+- **AbstractCommand**: New base class for all bundle commands
+  - Provides common functionality for all commands
+  - Includes wrapper method for `quoteIdentifier()` for command convenience
+  - All 6 commands now extend from `AbstractCommand`
+
+- **Testing Infrastructure**: Added testing script and documentation
+  - Created `test-commands.sh` script for automated command testing
+  - Added `docs/TESTING_COMMANDS.md` guide for testing all commands
+  - Script supports testing in all three demo applications (Symfony 6, 7, 8)
+
+### Changed
+
+- **Code Refactoring**: Improved code organization and reusability
+  - Moved `quoteIdentifier()` logic to static `DbalHelper` class
+  - All commands now extend `AbstractCommand` instead of `Command` directly
+  - `AnonymizeService` now uses `DbalHelper::quoteIdentifier()` directly
+  - Eliminated code duplication across commands and services
+  - Replaced `Command::SUCCESS/FAILURE` with `self::SUCCESS/FAILURE` for consistency
+
+### Fixed
+
+- **PreFlightCheckService**: Fixed `getEntityManager()` method call error
+  - `ClassMetadata` does not have `getEntityManager()` method
+  - Updated `checkColumnExistence()` to receive `EntityManagerInterface` as parameter
+  - Resolved error: "Call to undefined method Doctrine\ORM\Mapping\ClassMetadata::getEntityManager()"
+
+- **DBAL Compatibility**: Fixed `quoteSingleIdentifier()` compatibility issues
+  - Added fallback for DBAL versions that don't have `quoteSingleIdentifier()` method
+  - Supports DBAL 2.x (`quoteIdentifier`) and DBAL 3.x (`quoteSingleIdentifier`)
+  - Manual fallback with backticks for maximum compatibility
+
 ## [0.0.19] - 2026-01-20
 
 ### Added

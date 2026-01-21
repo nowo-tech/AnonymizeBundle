@@ -6,7 +6,6 @@ namespace Nowo\AnonymizeBundle\Command;
 
 use Nowo\AnonymizeBundle\Service\AnonymizationHistoryService;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -22,7 +21,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
     name: 'nowo:anonymize:history',
     description: 'View and manage anonymization history'
 )]
-final class AnonymizationHistoryCommand extends Command
+final class AnonymizationHistoryCommand extends AbstractCommand
 {
     protected function configure(): void
     {
@@ -77,7 +76,7 @@ final class AnonymizationHistoryCommand extends Command
             $deleted = $historyService->cleanup($days);
             $io->success(sprintf('Cleaned up %d old run(s) (kept runs from last %d days)', $deleted, $days));
 
-            return Command::SUCCESS;
+            return self::SUCCESS;
         }
 
         // Handle comparison
@@ -86,25 +85,25 @@ final class AnonymizationHistoryCommand extends Command
             if (count($runIds) !== 2) {
                 $io->error('Comparison requires exactly 2 run IDs (comma-separated)');
 
-                return Command::FAILURE;
+                return self::FAILURE;
             }
 
             $comparison = $historyService->compareRuns(trim($runIds[0]), trim($runIds[1]));
             if ($comparison === null) {
                 $io->error('One or both runs not found');
 
-                return Command::FAILURE;
+                return self::FAILURE;
             }
 
             if ($input->getOption('json')) {
                 $output->writeln(json_encode($comparison, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
-                return Command::SUCCESS;
+                return self::SUCCESS;
             }
 
             $this->displayComparison($io, $comparison);
 
-            return Command::SUCCESS;
+            return self::SUCCESS;
         }
 
         // Handle single run view
@@ -113,18 +112,18 @@ final class AnonymizationHistoryCommand extends Command
             if ($run === null) {
                 $io->error(sprintf('Run with ID "%s" not found', $input->getOption('run-id')));
 
-                return Command::FAILURE;
+                return self::FAILURE;
             }
 
             if ($input->getOption('json')) {
                 $output->writeln(json_encode($run, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
-                return Command::SUCCESS;
+                return self::SUCCESS;
             }
 
             $this->displayRun($io, $run);
 
-            return Command::SUCCESS;
+            return self::SUCCESS;
         }
 
         // List all runs
@@ -135,18 +134,18 @@ final class AnonymizationHistoryCommand extends Command
         if (empty($runs)) {
             $io->info('No anonymization runs found in history.');
 
-            return Command::SUCCESS;
+            return self::SUCCESS;
         }
 
         if ($input->getOption('json')) {
             $output->writeln(json_encode($runs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
-            return Command::SUCCESS;
+            return self::SUCCESS;
         }
 
         $this->displayRunsList($io, $runs);
 
-        return Command::SUCCESS;
+        return self::SUCCESS;
     }
 
     /**
