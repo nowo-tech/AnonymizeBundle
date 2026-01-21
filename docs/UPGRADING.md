@@ -13,6 +13,37 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.25
+
+**Release Date**: 2026-01-21
+
+#### What's Fixed
+
+- **Services Configuration**: Fixed FakerFactory autowiring error
+  - Resolved "Cannot autowire service AnonymizeService: argument FakerFactory has been excluded" error
+  - `FakerFactory` is now explicitly registered in services configuration
+  - No functional changes, only fixes a configuration issue
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **No configuration changes required**: This is a bug fix release
+
+#### Notes
+
+- This release fixes a critical bug in v0.0.24
+- If you encountered the FakerFactory autowiring error, this release resolves it
+- All functionality remains unchanged
+
 ### Upgrading to 0.0.24
 
 **Release Date**: 2026-01-21

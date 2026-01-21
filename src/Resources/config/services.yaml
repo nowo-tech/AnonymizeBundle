@@ -29,6 +29,12 @@ services:
     Nowo\AnonymizeBundle\Faker\ShuffleFaker: ~
     Nowo\AnonymizeBundle\Faker\ConstantFaker: ~
 
+    # FakerFactory is excluded from autowiring pattern but needed by services
+    # It requires locale parameter and optional ContainerInterface
+    Nowo\AnonymizeBundle\Faker\FakerFactory:
+        arguments:
+            $locale: '%nowo_anonymize.locale%'
+
     # Note: All faker aliases (nowo_anonymize.faker.*) are automatically created
     # from the #[AsAlias] attributes in each faker class when autoconfigure: true
 

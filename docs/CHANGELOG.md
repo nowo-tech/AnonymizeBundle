@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - TBD
 
+## [0.0.25] - 2026-01-21
+
+### Fixed
+
+- **Services Configuration**: Fixed FakerFactory autowiring error
+  - `FakerFactory` was excluded from autowiring pattern but needed by `AnonymizeService` and `PreFlightCheckService`
+  - Now explicitly registered in `services.yaml` with locale parameter
+  - Resolves "Cannot autowire service AnonymizeService: argument FakerFactory has been excluded" error
+
 ## [0.0.24] - 2026-01-21
 
 ### Changed
