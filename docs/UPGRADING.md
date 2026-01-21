@@ -13,6 +13,49 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.24
+
+**Release Date**: 2026-01-21
+
+#### What's Changed
+
+- **Services Configuration**: Simplified `services.yaml` configuration
+  - Now uses autowiring pattern for fakers (cleaner and more maintainable)
+  - Reduced configuration complexity while maintaining full functionality
+  - All fakers continue to work exactly as before
+
+- **Documentation**: Complete documentation update
+  - All documentation now consistently states Symfony 6.1+ requirement
+  - Added requirement notes to all major documentation files
+  - Updated demo projects documentation
+
+#### What's Fixed
+
+- **Demo Projects**: Fixed Symfony version inconsistencies
+  - All demo dependencies now correctly use Symfony 6.1+
+  - Updated demo documentation to reflect correct requirements
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **No configuration changes required**: This release focuses on code cleanup and documentation improvements
+
+#### Notes
+
+- This release is fully backward compatible
+- All existing functionality remains unchanged
+- Services configuration is now cleaner but works identically
+- If you're using Symfony 6.0, you must upgrade to 6.1+ first (see v0.0.23 upgrade guide)
+
 ### Upgrading to 0.0.21
 
 **Release Date**: 2026-01-21
@@ -1224,7 +1267,8 @@ If you encounter issues during upgrade:
 
 | Bundle Version | Symfony Version | PHP Version | Doctrine Bundle | Features |
 |---------------|-----------------|-------------|-----------------|----------|
-| 0.0.23+       | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Standardized faker API with original_value, #[Autowire] attributes |
+| 0.0.24+       | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Simplified services.yaml, complete documentation update |
+| 0.0.23        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Standardized faker API with original_value, #[Autowire] attributes |
 | 0.0.10-0.0.22 | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Doctrine DBAL 3.x compatibility, Deprecation fixes |
 | 0.0.9         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Bug fixes, Improved demo, PostgreSQL compatibility |
 | 0.0.8         | 6.0, 7.0, 8.0   | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Release workflow fix, Documentation improvements |

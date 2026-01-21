@@ -10,10 +10,10 @@ Demos are organized by Symfony version. Each demo includes **multiple database c
 
 ### 1. Symfony 6 Demo (`demo-symfony6`)
 
-Complete demo with Symfony 6.0, MySQL 8.0, and PostgreSQL 16.
+Complete demo with Symfony 6.1+, MySQL 8.0, and PostgreSQL 16.
 
 **Features:**
-- Symfony 6.0 with all necessary dependencies
+- Symfony 6.1+ with all necessary dependencies
 - MySQL 8.0 as default connection
 - PostgreSQL 16 as secondary connection
 - MongoDB 7.0 (infrastructure ready, ODM support coming soon)
@@ -205,7 +205,7 @@ The data should be anonymized according to the attributes defined in the entitie
 
 | Feature | Symfony 6 | Symfony 7 | Symfony 8 |
 |---------|-----------|-----------|-----------|
-| Symfony Version | 6.0 | 7.0 | 8.0 |
+| Symfony Version | 6.1+ | 7.0 | 8.0 |
 | MySQL | 8.0 | 8.0 | 8.0 |
 | PostgreSQL | 16 | 16 | 16 |
 | SQLite | ✅ | ✅ | ✅ |

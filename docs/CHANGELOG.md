@@ -11,6 +11,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - TBD
 
+## [0.0.24] - 2026-01-21
+
+### Changed
+
+- **Services Configuration**: Simplified `services.yaml` using autowiring pattern
+  - Replaced explicit faker definitions with autowiring pattern and `exclude`
+  - Reduced configuration from ~165 lines to ~95 lines (42% reduction)
+  - All fakers now use `#[Autowire('%nowo_anonymize.locale%')]` attribute
+  - Requires Symfony 6.1+ (already documented requirement)
+  - More maintainable and cleaner configuration
+
+- **Documentation**: Complete documentation update for Symfony 6.1+ requirement
+  - Updated all documentation files to consistently state Symfony 6.1+ requirement
+  - Added requirement notes to all major documentation files
+  - Updated demo projects documentation
+  - Fixed inconsistencies in demo composer.json files
+
+### Fixed
+
+- **Demo Projects**: Fixed Symfony version inconsistencies
+  - Updated `demo-symfony6/composer.json` to use `^6.1` for all Symfony dependencies
+  - Updated `debug-bundle` and `web-profiler-bundle` to `^6.1`
+  - Updated Symfony Flex `require` to `6.1.*`
+  - Updated demo README files to reflect Symfony 6.1+ requirement
+
 ## [0.0.23] - 2026-01-21
 
 ### Added

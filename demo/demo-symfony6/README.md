@@ -1,10 +1,10 @@
 # Anonymize Bundle Demo - Symfony 6
 
-This demo shows how to use the AnonymizeBundle with Symfony 6.0, including multiple database connections (MySQL, PostgreSQL, SQLite, and MongoDB).
+This demo shows how to use the AnonymizeBundle with Symfony 6.1+, including multiple database connections (MySQL, PostgreSQL, SQLite, and MongoDB).
 
 ## Features
 
-- **Symfony 6.0** with all necessary dependencies
+- **Symfony 6.1+** with all necessary dependencies
 - **MySQL 8.0** as default connection
 - **PostgreSQL 16** as secondary connection
 - **SQLite** as file-based connection
