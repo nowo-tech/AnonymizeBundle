@@ -1,11 +1,11 @@
-# Makefile for Anonymize Bundle Demo - Symfony 7
+# Makefile for Anonymize Bundle Demo - Symfony 6.1+
 # Simplifies Docker commands for the demo
 
-.PHONY: help up down shell install clean setup
+.PHONY: help up down shell install clean setup update-symfony
 
 # Default target
 help:
-	@echo "Anonymize Bundle Demo - Symfony 7 - Development Commands"
+	@echo "Anonymize Bundle Demo - Symfony 6.1+ - Development Commands"
 	@echo ""
 	@echo "Usage: make <target>"
 	@echo ""
@@ -15,6 +15,7 @@ help:
 	@echo "  shell         Open shell in PHP container"
 	@echo "  install       Install Composer dependencies (without bundle)"
 	@echo "  setup         Setup databases and load fixtures (without bundle)"
+	@echo "  update-symfony Update Symfony from 6.0 to 6.1+ (required for bundle v0.0.25+)"
 	@echo "  clean         Remove vendor, var, and cache"
 	@echo "  logs          Show container logs"
 	@echo ""

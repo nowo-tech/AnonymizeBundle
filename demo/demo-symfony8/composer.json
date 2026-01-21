@@ -71,7 +71,7 @@
     "repositories": [],
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "*",
-        "nowo-tech/anonymize-bundle": "v0.0.24",
+        "nowo-tech/anonymize-bundle": "v0.0.25",
         "symfony/debug-bundle": "^8.0",
         "symfony/web-profiler-bundle": "^8.0"
     }

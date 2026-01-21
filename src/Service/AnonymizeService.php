@@ -416,11 +416,20 @@ final class AnonymizeService
 
         $set = [];
         foreach ($updates as $column => $value) {
-            // Convert to string for quote() method
+            // Handle boolean values specially - convert to 0/1 for database
+            if (is_bool($value)) {
+                $quotedValue = $value ? '1' : '0';
+            } elseif ($value === null) {
+                $quotedValue = 'NULL';
+            } else {
+                // Convert to string for quote() method
+                $quotedValue = $connection->quote((string) $value);
+            }
+            
             $set[] = sprintf(
                 '%s = %s',
                 DbalHelper::quoteIdentifier($connection, $column),
-                $connection->quote((string) $value)
+                $quotedValue
             );
         }
 
