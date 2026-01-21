@@ -42,7 +42,7 @@ final class HashPreserveFaker implements FakerInterface
     {
         // Support both 'original_value' (standard) and 'value' (backward compatibility)
         $value = $options['original_value'] ?? $options['value'] ?? null;
-        
+
         if ($value === null) {
             throw new \InvalidArgumentException('HashPreserveFaker requires an "original_value" (or "value") option with the original value to hash.');
         }

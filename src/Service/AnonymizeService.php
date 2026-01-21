@@ -231,23 +231,23 @@ final class AnonymizeService
 
                 // Generate anonymized value
                 $faker = $this->getFaker($attribute->type, $attribute->service);
-                
+
                 // Always pass the original value to all fakers for consistency and versatility
                 // This allows fakers to use the original value if needed (e.g., hash_preserve, masking)
                 // or ignore it if not needed (most fakers)
                 $fakerOptions = $attribute->options;
                 $originalValue = $record[$columnName] ?? null;
-                
+
                 // Set original_value (standard key for all fakers)
                 if (!isset($fakerOptions['original_value'])) {
                     $fakerOptions['original_value'] = $originalValue;
                 }
-                
+
                 // For backward compatibility with hash_preserve and masking (they use 'value' key)
                 if (in_array($attribute->type, ['hash_preserve', 'masking']) && !isset($fakerOptions['value'])) {
                     $fakerOptions['value'] = $originalValue;
                 }
-                
+
                 $anonymizedValue = $faker->generate($fakerOptions);
 
                 // Convert value based on field type

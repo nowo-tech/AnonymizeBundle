@@ -152,22 +152,22 @@ final class PreFlightCheckService
 
                 if ($schemaManager->tablesExist([$tableName])) {
                     $columns = $schemaManager->listTableColumns($tableName);
-                    
+
                     // Get actual column names from database (case-sensitive)
                     $actualColumnNames = [];
                     $columnExists = false;
                     $caseInsensitiveMatch = null;
-                    
+
                     foreach ($columns as $column) {
                         $actualColumnName = $column->getName();
                         $actualColumnNames[] = $actualColumnName;
-                        
+
                         // Exact match (case-sensitive)
                         if ($actualColumnName === $expectedColumnName) {
                             $columnExists = true;
                             break;
                         }
-                        
+
                         // Case-insensitive match (for databases that are case-insensitive)
                         if (strcasecmp($actualColumnName, $expectedColumnName) === 0) {
                             $caseInsensitiveMatch = $actualColumnName;
@@ -182,7 +182,7 @@ final class PreFlightCheckService
                             $tableName,
                             $propertyName
                         );
-                        
+
                         // Add case-insensitive match suggestion if found
                         if ($caseInsensitiveMatch !== null) {
                             $errorMessage .= sprintf(
@@ -190,7 +190,7 @@ final class PreFlightCheckService
                                 $caseInsensitiveMatch
                             );
                         }
-                        
+
                         // Add available columns as hint (limit to first 10 to avoid huge messages)
                         $availableColumns = array_slice($actualColumnNames, 0, 10);
                         if (count($actualColumnNames) > 10) {
@@ -200,7 +200,7 @@ final class PreFlightCheckService
                             '. Available columns: %s',
                             implode(', ', $availableColumns)
                         );
-                        
+
                         $errors[] = $errorMessage;
                     }
                 }
