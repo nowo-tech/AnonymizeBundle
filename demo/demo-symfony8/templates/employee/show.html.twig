@@ -61,7 +61,7 @@
             <dt class="col-sm-3">Anonymized</dt>
             <dd class="col-sm-9">
                 {% if employee.anonymized|default(false) %}
-                                    {% include \'_anonymized_badge.html.twig\' with {value: employee.anonymized|default(false)} %}
+                                    {% include '_anonymized_badge.html.twig' with {value: employee.anonymized|default(false)} %}
                                 {% endif %}
             </dd>
             {% endif %}

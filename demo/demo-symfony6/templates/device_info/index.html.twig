@@ -63,7 +63,7 @@
                             <td>{{ device.lastSeen ? device.lastSeen.toDateTime()|date('Y-m-d H:i') : '-' }}</td>
                             <td>
                                 {% if device.anonymized|default(false) %}
-                                    {% include \'_anonymized_badge.html.twig\' with {value: device.anonymized|default(false)} %}
+                                    {% include '_anonymized_badge.html.twig' with {value: device.anonymized|default(false)} %}
                                 {% endif %}
                             </td>
                             <td>

@@ -55,7 +55,7 @@
             <dt class="col-sm-3">Anonymized</dt>
             <dd class="col-sm-9">
                 {% if event.anonymized|default(false) %}
-                                    {% include \'_anonymized_badge.html.twig\' with {value: event.anonymized|default(false)} %}
+                                    {% include '_anonymized_badge.html.twig' with {value: event.anonymized|default(false)} %}
                                 {% endif %}
             </dd>
         </dl>

@@ -58,7 +58,7 @@
                                 {% if hasAnonymizedColumn|default(false) %}
                                 <td>
                                     {% if customer.anonymized|default(false) %}
-                                    {% include \'_anonymized_badge.html.twig\' with {value: customer.anonymized|default(false)} %}
+                                    {% include '_anonymized_badge.html.twig' with {value: customer.anonymized|default(false)} %}
                                 {% endif %}
                                 </td>
                                 {% endif %}

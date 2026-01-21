@@ -57,7 +57,7 @@
                             <td>{{ transaction.transactionDate ? transaction.transactionDate.toDateTime()|date('Y-m-d H:i') : '-' }}</td>
                             <td>
                                 {% if transaction.anonymized|default(false) %}
-                                    {% include \'_anonymized_badge.html.twig\' with {value: transaction.anonymized|default(false)} %}
+                                    {% include '_anonymized_badge.html.twig' with {value: transaction.anonymized|default(false)} %}
                                 {% endif %}
                             </td>
                             <td>

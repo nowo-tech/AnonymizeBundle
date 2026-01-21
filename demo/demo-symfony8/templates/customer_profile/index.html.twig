@@ -58,7 +58,7 @@
                             <td>{{ profile.createdAt ? profile.createdAt.toDateTime()|date('Y-m-d H:i') : '-' }}</td>
                             <td>
                                 {% if profile.anonymized|default(false) %}
-                                    {% include \'_anonymized_badge.html.twig\' with {value: profile.anonymized|default(false)} %}
+                                    {% include '_anonymized_badge.html.twig' with {value: profile.anonymized|default(false)} %}
                                 {% endif %}
                             </td>
                             <td>

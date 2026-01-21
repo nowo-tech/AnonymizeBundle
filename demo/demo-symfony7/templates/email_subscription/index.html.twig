@@ -61,7 +61,7 @@
                             <td>{{ subscription.subscribedAt ? subscription.subscribedAt|date('Y-m-d H:i') : '' }}</td>
                             {% if hasAnonymizedColumn|default(false) %}
                             <td>
-                                {% include \'_anonymized_badge.html.twig\' with {value: subscription.anonymized|default(false)} %}
+                                {% include '_anonymized_badge.html.twig' with {value: subscription.anonymized|default(false)} %}
                             </td>
                             {% endif %}
                             <td>

@@ -60,7 +60,7 @@
                             <td>{{ event.timestamp ? event.timestamp.toDateTime()|date('Y-m-d H:i') : '-' }}</td>
                             <td>
                                 {% if event.anonymized|default(false) %}
-                                    {% include \'_anonymized_badge.html.twig\' with {value: event.anonymized|default(false)} %}
+                                    {% include '_anonymized_badge.html.twig' with {value: event.anonymized|default(false)} %}
                                 {% endif %}
                             </td>
                             <td>

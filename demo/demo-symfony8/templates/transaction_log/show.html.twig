@@ -52,7 +52,7 @@
             <dt class="col-sm-3">Anonymized</dt>
             <dd class="col-sm-9">
                 {% if transaction.anonymized|default(false) %}
-                                    {% include \'_anonymized_badge.html.twig\' with {value: transaction.anonymized|default(false)} %}
+                                    {% include '_anonymized_badge.html.twig' with {value: transaction.anonymized|default(false)} %}
                                 {% endif %}
             </dd>
         </dl>
