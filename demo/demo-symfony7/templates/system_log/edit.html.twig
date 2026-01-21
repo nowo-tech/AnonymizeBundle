@@ -3,123 +3,99 @@
 {% block title %}Edit System Log - {{ connection|upper }}{% endblock %}
 
 {% block body %}
+<div class="mb-3">
+    <a href="{{ path('system_log_index', {connection: connection}) }}" class="btn btn-outline-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+        </svg>
+        Back to List
+    </a>
+</div>
 <div class="card shadow-sm">
     <div class="card-header">
         <h2 class="mb-0">Edit System Log <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
     </div>
     <div class="card-body">
-        <form method="post">
+        {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': true}}) }}
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="sessionId" class="form-label">Session ID</label>
-                    <input type="text" class="form-control" id="sessionId" name="sessionId" value="{{ log.sessionId }}">
+                    {{ form_row(form.sessionId, {'attr': {'class': 'form-control'}}) }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="ipAddress" class="form-label">IP Address</label>
-                    <input type="text" class="form-control" id="ipAddress" name="ipAddress" value="{{ log.ipAddress }}">
+                    {{ form_row(form.ipAddress, {'attr': {'class': 'form-control'}}) }}
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="macAddress" class="form-label">MAC Address</label>
-                    <input type="text" class="form-control" id="macAddress" name="macAddress" value="{{ log.macAddress }}">
+                    {{ form_row(form.macAddress, {'attr': {'class': 'form-control'}}) }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="logLevel" class="form-label">Log Level</label>
-                    <select class="form-select" id="logLevel" name="logLevel">
-                        <option value="info" {{ log.logLevel == 'info' ? 'selected' : '' }}>Info</option>
-                        <option value="warning" {{ log.logLevel == 'warning' ? 'selected' : '' }}>Warning</option>
-                        <option value="error" {{ log.logLevel == 'error' ? 'selected' : '' }}>Error</option>
-                        <option value="debug" {{ log.logLevel == 'debug' ? 'selected' : '' }}>Debug</option>
-                    </select>
+                    {{ form_row(form.logLevel, {'attr': {'class': 'form-select'}}) }}
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="countryCode" class="form-label">Country Code</label>
-                    <input type="text" class="form-control" id="countryCode" name="countryCode" maxlength="2" value="{{ log.countryCode }}">
+                    {{ form_row(form.countryCode, {'attr': {'class': 'form-control'}}) }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="languageCode" class="form-label">Language Code</label>
-                    <input type="text" class="form-control" id="languageCode" name="languageCode" maxlength="5" value="{{ log.languageCode }}">
+                    {{ form_row(form.languageCode, {'attr': {'class': 'form-control'}}) }}
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="apiKey" class="form-label">API Key</label>
-                    <input type="text" class="form-control" id="apiKey" name="apiKey" value="{{ log.apiKey }}">
+                    {{ form_row(form.apiKey, {'attr': {'class': 'form-control'}}) }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="tokenHash" class="form-label">Token Hash</label>
-                    <input type="text" class="form-control" id="tokenHash" name="tokenHash" value="{{ log.tokenHash }}">
+                    {{ form_row(form.tokenHash, {'attr': {'class': 'form-control'}}) }}
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="location" class="form-label">Location (Coordinates)</label>
-                    <input type="text" class="form-control" id="location" name="location" value="{{ log.location }}">
+                    {{ form_row(form.location, {'attr': {'class': 'form-control'}}) }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="themeColor" class="form-label">Theme Color</label>
-                    <input type="color" class="form-control form-control-color" id="themeColor" name="themeColor" value="{{ log.themeColor }}">
+                    {{ form_row(form.themeColor, {'attr': {'class': 'form-control'}}) }}
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="score" class="form-label">Score</label>
-                    <input type="number" step="0.01" class="form-control" id="score" name="score" value="{{ log.score }}">
+                    {{ form_row(form.score, {'attr': {'class': 'form-control'}}) }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="isActive" class="form-label">Is Active</label>
-                    <select class="form-select" id="isActive" name="isActive">
-                        <option value="1" {{ log.isActive ? 'selected' : '' }}>Yes</option>
-                        <option value="0" {{ not log.isActive ? 'selected' : '' }}>No</option>
-                    </select>
+                    {{ form_row(form.isActive) }}
                 </div>
             </div>
             <div class="mb-3">
-                <label for="logFile" class="form-label">Log File</label>
-                <input type="text" class="form-control" id="logFile" name="logFile" value="{{ log.logFile }}">
+                {{ form_row(form.logFile, {'attr': {'class': 'form-control'}}) }}
             </div>
             <div class="mb-3">
-                <label for="metadata" class="form-label">Metadata (JSON)</label>
-                <textarea class="form-control" id="metadata" name="metadata" rows="3">{{ log.metadata }}</textarea>
+                {{ form_row(form.metadata, {'attr': {'class': 'form-control'}}) }}
             </div>
             <div class="mb-3">
-                <label for="description" class="form-label">Description</label>
-                <textarea class="form-control" id="description" name="description" rows="3">{{ log.description }}</textarea>
+                {{ form_row(form.description, {'attr': {'class': 'form-control'}}) }}
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="userIdHash" class="form-label">User ID Hash</label>
-                    <input type="text" class="form-control" id="userIdHash" name="userIdHash" value="{{ log.userIdHash }}">
+                    {{ form_row(form.userIdHash, {'attr': {'class': 'form-control'}}) }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="processStatus" class="form-label">Process Status</label>
-                    <select class="form-select" id="processStatus" name="processStatus">
-                        <option value="">-- Select --</option>
-                        <option value="pending" {{ log.processStatus == 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="processing" {{ log.processStatus == 'processing' ? 'selected' : '' }}>Processing</option>
-                        <option value="completed" {{ log.processStatus == 'completed' ? 'selected' : '' }}>Completed</option>
-                        <option value="failed" {{ log.processStatus == 'failed' ? 'selected' : '' }}>Failed</option>
-                    </select>
+                    {{ form_row(form.processStatus, {'attr': {'class': 'form-select'}}) }}
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="dataClassification" class="form-label">Data Classification</label>
-                    <input type="text" class="form-control" id="dataClassification" name="dataClassification" value="{{ log.dataClassification }}">
+                    {{ form_row(form.dataClassification, {'attr': {'class': 'form-control'}}) }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="createdAt" class="form-label">Created At</label>
-                    <input type="datetime-local" class="form-control" id="createdAt" name="createdAt" value="{{ log.createdAt ? log.createdAt|date('Y-m-d\\TH:i') : '' }}">
+                    {{ form_row(form.createdAt, {'attr': {'class': 'form-control'}}) }}
                 </div>
             </div>
-            <div class="d-flex gap-2">
+
+            <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">Update</button>
                 <a href="{{ path('system_log_index', {connection: connection}) }}" class="btn btn-secondary">Cancel</a>
             </div>
-        </form>
+        {{ form_end(form) }}
     </div>
 </div>
 {% endblock %}

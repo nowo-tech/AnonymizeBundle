@@ -3,58 +3,56 @@
 {% block title %}New Email Subscription - {{ connection|upper }}{% endblock %}
 
 {% block body %}
+<div class="mb-3">
+    <a href="{{ path('email_subscription_index', {connection: connection}) }}" class="btn btn-outline-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+        </svg>
+        Back to List
+    </a>
+</div>
 <div class="card shadow-sm">
     <div class="card-header">
         <h2 class="mb-0">Create New Email Subscription <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
     </div>
     <div class="card-body">
-        <form method="post">
-            <div class="mb-3">
-                <label for="email" class="form-label">Email *</label>
-                <input type="email" class="form-control" id="email" name="email" required>
+        {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': true}}) }}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.email, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.name, {'attr': {'class': 'form-control'}}) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.status, {'attr': {'class': 'form-select'}}) }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.source, {'attr': {'class': 'form-select'}}) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.backupEmail, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.subscribedAt, {'attr': {'class': 'form-control'}}) }}
+                </div>
             </div>
             <div class="mb-3">
-                <label for="name" class="form-label">Name *</label>
-                <input type="text" class="form-control" id="name" name="name" required>
+                {{ form_row(form.unsubscribedAt, {'attr': {'class': 'form-control'}}) }}
             </div>
             <div class="mb-3">
-                <label for="status" class="form-label">Status *</label>
-                <select class="form-select" id="status" name="status" required>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="unsubscribed">Unsubscribed</option>
-                </select>
+                {{ form_row(form.notes, {'attr': {'class': 'form-control'}}) }}
             </div>
-            <div class="mb-3">
-                <label for="backupEmail" class="form-label">Backup Email</label>
-                <input type="email" class="form-control" id="backupEmail" name="backupEmail">
-            </div>
-            <div class="mb-3">
-                <label for="source" class="form-label">Source *</label>
-                <select class="form-select" id="source" name="source" required>
-                    <option value="website">Website</option>
-                    <option value="newsletter">Newsletter</option>
-                    <option value="promotion">Promotion</option>
-                    <option value="partner">Partner</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="subscribedAt" class="form-label">Subscribed At *</label>
-                <input type="datetime-local" class="form-control" id="subscribedAt" name="subscribedAt" value="{{ 'now'|date('Y-m-d\\TH:i') }}" required>
-            </div>
-            <div class="mb-3">
-                <label for="unsubscribedAt" class="form-label">Unsubscribed At</label>
-                <input type="datetime-local" class="form-control" id="unsubscribedAt" name="unsubscribedAt">
-            </div>
-            <div class="mb-3">
-                <label for="notes" class="form-label">Notes</label>
-                <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
-            </div>
-            <div class="d-flex gap-2">
+
+            <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">Create</button>
                 <a href="{{ path('email_subscription_index', {connection: connection}) }}" class="btn btn-secondary">Cancel</a>
             </div>
-        </form>
+        {{ form_end(form) }}
     </div>
 </div>
 {% endblock %}

@@ -107,17 +107,41 @@
                             <li><a href="{{ path('employee_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Employees in SQLite</a></li>
                         </ul>
                     </div>
+                    <div class="col-md-6 mb-3">
+                        <h5>Email Subscriptions</h5>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ path('email_subscription_index', {connection: 'default'}) }}" class="text-decoration-none">Email Subscriptions in MySQL</a></li>
+                            <li><a href="{{ path('email_subscription_index', {connection: 'postgres'}) }}" class="text-decoration-none">Email Subscriptions in PostgreSQL</a></li>
+                            <li><a href="{{ path('email_subscription_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Email Subscriptions in SQLite</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h5>System Logs</h5>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ path('system_log_index', {connection: 'default'}) }}" class="text-decoration-none">System Logs in MySQL</a></li>
+                            <li><a href="{{ path('system_log_index', {connection: 'postgres'}) }}" class="text-decoration-none">System Logs in PostgreSQL</a></li>
+                            <li><a href="{{ path('system_log_index', {connection: 'sqlite'}) }}" class="text-decoration-none">System Logs in SQLite</a></li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div class="mt-3">
-                    <h5>User Activities (MongoDB)</h5>
-                    <ul class="list-unstyled mb-0">
-                        <li><a href="{{ path('mongodb_user_activity_index') }}" class="text-decoration-none">User Activities in MongoDB</a></li>
-                    </ul>
-                </div>
-                
-                <div class="alert alert-info mt-4 mb-0">
-                    <em>Note: EmailSubscription and SystemLog entities exist but don't have CRUD interfaces yet.</em>
+                    <h5>MongoDB Collections</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <ul class="list-unstyled">
+                                <li><a href="{{ path('mongodb_user_activity_index') }}" class="text-decoration-none">User Activities</a></li>
+                                <li><a href="{{ path('mongodb_customer_profile_index') }}" class="text-decoration-none">Customer Profiles</a></li>
+                                <li><a href="{{ path('mongodb_transaction_log_index') }}" class="text-decoration-none">Transaction Logs</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <ul class="list-unstyled">
+                                <li><a href="{{ path('mongodb_device_info_index') }}" class="text-decoration-none">Device Infos</a></li>
+                                <li><a href="{{ path('mongodb_analytics_event_index') }}" class="text-decoration-none">Analytics Events</a></li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

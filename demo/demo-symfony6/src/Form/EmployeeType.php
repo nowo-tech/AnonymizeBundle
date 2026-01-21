@@ -6,6 +6,7 @@ namespace App\Form;
 
 use App\Entity\Employee;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
@@ -48,9 +49,17 @@ class EmployeeType extends AbstractType
                 'required' => true,
                 'attr' => ['class' => 'form-control'],
             ])
-            ->add('department', TextType::class, [
+            ->add('department', ChoiceType::class, [
+                'choices' => [
+                    'HR' => 'HR',
+                    'IT' => 'IT',
+                    'Sales' => 'Sales',
+                    'Marketing' => 'Marketing',
+                    'Finance' => 'Finance',
+                    'Operations' => 'Operations',
+                ],
                 'required' => true,
-                'attr' => ['class' => 'form-control'],
+                'attr' => ['class' => 'form-select'],
             ])
             ->add('previousCompany', TextType::class, [
                 'required' => false,

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\EmailSubscription;
+use App\Form\EmailSubscriptionType;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -76,19 +77,10 @@ class EmailSubscriptionController extends AbstractController
     {
         $subscription = new EmailSubscription();
         $em = $this->doctrine->getManager($connection);
+        $form = $this->createForm(EmailSubscriptionType::class, $subscription);
+        $form->handleRequest($request);
 
-        if ($request->isMethod('POST')) {
-            $subscription->setEmail($request->request->get('email'));
-            $subscription->setName($request->request->get('name'));
-            $subscription->setStatus($request->request->get('status'));
-            $subscription->setBackupEmail($request->request->get('backupEmail'));
-            $subscription->setSource($request->request->get('source'));
-            $subscription->setNotes($request->request->get('notes'));
-            $subscription->setSubscribedAt(new \DateTime($request->request->get('subscribedAt') ?: 'now'));
-            if ($request->request->get('unsubscribedAt')) {
-                $subscription->setUnsubscribedAt(new \DateTime($request->request->get('unsubscribedAt')));
-            }
-
+        if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($subscription);
             $em->flush();
 
@@ -99,6 +91,7 @@ class EmailSubscriptionController extends AbstractController
 
         return $this->render('email_subscription/new.html.twig', [
             'subscription' => $subscription,
+            'form' => $form,
             'connection' => $connection,
         ]);
     }
@@ -131,20 +124,10 @@ class EmailSubscriptionController extends AbstractController
             throw $this->createNotFoundException('Email subscription not found');
         }
 
-        if ($request->isMethod('POST')) {
-            $subscription->setEmail($request->request->get('email'));
-            $subscription->setName($request->request->get('name'));
-            $subscription->setStatus($request->request->get('status'));
-            $subscription->setBackupEmail($request->request->get('backupEmail'));
-            $subscription->setSource($request->request->get('source'));
-            $subscription->setNotes($request->request->get('notes'));
-            $subscription->setSubscribedAt(new \DateTime($request->request->get('subscribedAt') ?: 'now'));
-            if ($request->request->get('unsubscribedAt')) {
-                $subscription->setUnsubscribedAt(new \DateTime($request->request->get('unsubscribedAt')));
-            } else {
-                $subscription->setUnsubscribedAt(null);
-            }
+        $form = $this->createForm(EmailSubscriptionType::class, $subscription);
+        $form->handleRequest($request);
 
+        if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
 
             $this->addFlash('success', 'Email subscription updated successfully!');
@@ -154,6 +137,7 @@ class EmailSubscriptionController extends AbstractController
 
         return $this->render('email_subscription/edit.html.twig', [
             'subscription' => $subscription,
+            'form' => $form,
             'connection' => $connection,
         ]);
     }

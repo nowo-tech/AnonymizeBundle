@@ -3,68 +3,61 @@
 {% block title %}Edit Invoice #{{ invoice.id }} - {{ connection|upper }}{% endblock %}
 
 {% block body %}
-<div class="card">
-    <h2>Edit Invoice <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+<div class="mb-3">
+    <a href="{{ path('invoice_index', {connection: connection}) }}" class="btn btn-outline-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+        </svg>
+        Back to List
+    </a>
+</div>
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h2 class="mb-0">Edit Invoice <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+    </div>
+    <div class="card-body">
+        {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': true}}) }}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.invoiceNumber, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.companyName, {'attr': {'class': 'form-control'}}) }}
+                </div>
+            </div>
+            <div class="mb-3">
+                {{ form_row(form.companyAddress, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.bankAccount, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.creditCard, {'attr': {'class': 'form-control'}}) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.amount, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.status, {'attr': {'class': 'form-select'}}) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.issueDate, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.dueDate, {'attr': {'class': 'form-control'}}) }}
+                </div>
+            </div>
 
-    {{ form_start(form, {'attr': {'class': 'form'}}) }}
-        <div class="form-row">
-            {{ form_label(form.invoiceNumber) }}
-            {{ form_widget(form.invoiceNumber) }}
-            {{ form_errors(form.invoiceNumber) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.companyName) }}
-            {{ form_widget(form.companyName) }}
-            {{ form_errors(form.companyName) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.companyAddress) }}
-            {{ form_widget(form.companyAddress) }}
-            {{ form_errors(form.companyAddress) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.bankAccount) }}
-            {{ form_widget(form.bankAccount) }}
-            {{ form_errors(form.bankAccount) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.creditCard) }}
-            {{ form_widget(form.creditCard) }}
-            {{ form_errors(form.creditCard) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.amount) }}
-            {{ form_widget(form.amount) }}
-            {{ form_errors(form.amount) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.issueDate) }}
-            {{ form_widget(form.issueDate) }}
-            {{ form_errors(form.issueDate) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.dueDate) }}
-            {{ form_widget(form.dueDate) }}
-            {{ form_errors(form.dueDate) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.status) }}
-            {{ form_widget(form.status) }}
-            {{ form_errors(form.status) }}
-        </div>
-
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Update Invoice</button>
-            <a href="{{ path('invoice_show', {connection: connection, id: invoice.id}) }}" class="btn btn-secondary">Cancel</a>
-        </div>
-    {{ form_end(form) }}
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Update Invoice</button>
+                <a href="{{ path('invoice_show', {connection: connection, id: invoice.id}) }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        {{ form_end(form) }}
+    </div>
 </div>
 {% endblock %}

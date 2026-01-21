@@ -13,6 +13,44 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.19
+
+**Release Date**: 2026-01-20
+
+#### What's New
+
+- **Demo Improvements**: Enhanced demo applications with better navigation and user experience
+  - Added "Back to List" links in all form pages for better navigation
+  - Added missing links in home page for EmailSubscription, SystemLog, and all MongoDB collections
+  - Added SQLite connection links in sidebar navigation for all ORM entities
+  - Improved consistency across all three demo applications (Symfony 6, 7, and 8)
+
+#### What's Fixed
+
+- **Demo Navigation**: Fixed missing `connection` parameter in home page links
+  - EmailSubscription and SystemLog links now correctly include the `connection` parameter
+  - Resolved routing error: "Some mandatory parameters are missing ("connection") to generate a URL"
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **No configuration changes required**: This release only includes demo improvements and fixes
+
+#### Notes
+
+- This release is fully backward compatible
+- All changes are in demo applications only, no bundle code changes
+- No action required for production applications
+
 ### Upgrading to 0.0.18
 
 **Release Date**: 2026-01-20

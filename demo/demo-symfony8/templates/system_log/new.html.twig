@@ -3,123 +3,99 @@
 {% block title %}New System Log - {{ connection|upper }}{% endblock %}
 
 {% block body %}
+<div class="mb-3">
+    <a href="{{ path('system_log_index', {connection: connection}) }}" class="btn btn-outline-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+        </svg>
+        Back to List
+    </a>
+</div>
 <div class="card shadow-sm">
     <div class="card-header">
         <h2 class="mb-0">Create New System Log <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
     </div>
     <div class="card-body">
-        <form method="post">
+        {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': true}}) }}
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="sessionId" class="form-label">Session ID</label>
-                    <input type="text" class="form-control" id="sessionId" name="sessionId" placeholder="UUID">
+                    {{ form_row(form.sessionId, {'attr': {'class': 'form-control'}}) }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="ipAddress" class="form-label">IP Address</label>
-                    <input type="text" class="form-control" id="ipAddress" name="ipAddress" placeholder="192.168.1.1">
+                    {{ form_row(form.ipAddress, {'attr': {'class': 'form-control'}}) }}
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="macAddress" class="form-label">MAC Address</label>
-                    <input type="text" class="form-control" id="macAddress" name="macAddress" placeholder="00:11:22:33:44:55">
+                    {{ form_row(form.macAddress, {'attr': {'class': 'form-control'}}) }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="logLevel" class="form-label">Log Level</label>
-                    <select class="form-select" id="logLevel" name="logLevel">
-                        <option value="info">Info</option>
-                        <option value="warning">Warning</option>
-                        <option value="error">Error</option>
-                        <option value="debug">Debug</option>
-                    </select>
+                    {{ form_row(form.logLevel, {'attr': {'class': 'form-select'}}) }}
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="countryCode" class="form-label">Country Code</label>
-                    <input type="text" class="form-control" id="countryCode" name="countryCode" maxlength="2" placeholder="ES">
+                    {{ form_row(form.countryCode, {'attr': {'class': 'form-control'}}) }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="languageCode" class="form-label">Language Code</label>
-                    <input type="text" class="form-control" id="languageCode" name="languageCode" maxlength="5" placeholder="es-ES">
+                    {{ form_row(form.languageCode, {'attr': {'class': 'form-control'}}) }}
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="apiKey" class="form-label">API Key</label>
-                    <input type="text" class="form-control" id="apiKey" name="apiKey">
+                    {{ form_row(form.apiKey, {'attr': {'class': 'form-control'}}) }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="tokenHash" class="form-label">Token Hash</label>
-                    <input type="text" class="form-control" id="tokenHash" name="tokenHash">
+                    {{ form_row(form.tokenHash, {'attr': {'class': 'form-control'}}) }}
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="location" class="form-label">Location (Coordinates)</label>
-                    <input type="text" class="form-control" id="location" name="location" placeholder="40.4168, -3.7038">
+                    {{ form_row(form.location, {'attr': {'class': 'form-control'}}) }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="themeColor" class="form-label">Theme Color</label>
-                    <input type="color" class="form-control form-control-color" id="themeColor" name="themeColor" value="#667eea">
+                    {{ form_row(form.themeColor, {'attr': {'class': 'form-control'}}) }}
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="score" class="form-label">Score</label>
-                    <input type="number" step="0.01" class="form-control" id="score" name="score" placeholder="0.00">
+                    {{ form_row(form.score, {'attr': {'class': 'form-control'}}) }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="isActive" class="form-label">Is Active</label>
-                    <select class="form-select" id="isActive" name="isActive">
-                        <option value="1">Yes</option>
-                        <option value="0">No</option>
-                    </select>
+                    {{ form_row(form.isActive) }}
                 </div>
             </div>
             <div class="mb-3">
-                <label for="logFile" class="form-label">Log File</label>
-                <input type="text" class="form-control" id="logFile" name="logFile" placeholder="logs/app.log">
+                {{ form_row(form.logFile, {'attr': {'class': 'form-control'}}) }}
             </div>
             <div class="mb-3">
-                <label for="metadata" class="form-label">Metadata (JSON)</label>
-                <textarea class="form-control" id="metadata" name="metadata" rows="3" placeholder='{"key": "value"}'></textarea>
+                {{ form_row(form.metadata, {'attr': {'class': 'form-control'}}) }}
             </div>
             <div class="mb-3">
-                <label for="description" class="form-label">Description</label>
-                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                {{ form_row(form.description, {'attr': {'class': 'form-control'}}) }}
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="userIdHash" class="form-label">User ID Hash</label>
-                    <input type="text" class="form-control" id="userIdHash" name="userIdHash">
+                    {{ form_row(form.userIdHash, {'attr': {'class': 'form-control'}}) }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="processStatus" class="form-label">Process Status</label>
-                    <select class="form-select" id="processStatus" name="processStatus">
-                        <option value="">-- Select --</option>
-                        <option value="pending">Pending</option>
-                        <option value="processing">Processing</option>
-                        <option value="completed">Completed</option>
-                        <option value="failed">Failed</option>
-                    </select>
+                    {{ form_row(form.processStatus, {'attr': {'class': 'form-select'}}) }}
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="dataClassification" class="form-label">Data Classification</label>
-                    <input type="text" class="form-control" id="dataClassification" name="dataClassification" value="ANONYMIZED">
+                    {{ form_row(form.dataClassification, {'attr': {'class': 'form-control'}}) }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="createdAt" class="form-label">Created At</label>
-                    <input type="datetime-local" class="form-control" id="createdAt" name="createdAt" value="{{ 'now'|date('Y-m-d\\TH:i') }}">
+                    {{ form_row(form.createdAt, {'attr': {'class': 'form-control'}}) }}
                 </div>
             </div>
-            <div class="d-flex gap-2">
+
+            <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">Create</button>
                 <a href="{{ path('system_log_index', {connection: connection}) }}" class="btn btn-secondary">Cancel</a>
             </div>
-        </form>
+        {{ form_end(form) }}
     </div>
 </div>
 {% endblock %}

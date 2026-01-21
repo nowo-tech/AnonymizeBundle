@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\SystemLog;
+use App\Form\SystemLogType;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -76,28 +77,10 @@ class SystemLogController extends AbstractController
     {
         $log = new SystemLog();
         $em = $this->doctrine->getManager($connection);
+        $form = $this->createForm(SystemLogType::class, $log);
+        $form->handleRequest($request);
 
-        if ($request->isMethod('POST')) {
-            $log->setSessionId($request->request->get('sessionId'));
-            $log->setIpAddress($request->request->get('ipAddress'));
-            $log->setMacAddress($request->request->get('macAddress'));
-            $log->setApiKey($request->request->get('apiKey'));
-            $log->setTokenHash($request->request->get('tokenHash'));
-            $log->setLocation($request->request->get('location'));
-            $log->setThemeColor($request->request->get('themeColor'));
-            $log->setIsActive($request->request->get('isActive') === '1');
-            $log->setScore($request->request->get('score'));
-            $log->setLogFile($request->request->get('logFile'));
-            $log->setMetadata($request->request->get('metadata'));
-            $log->setDescription($request->request->get('description'));
-            $log->setLogLevel($request->request->get('logLevel'));
-            $log->setCountryCode($request->request->get('countryCode'));
-            $log->setLanguageCode($request->request->get('languageCode'));
-            $log->setCreatedAt(new \DateTime($request->request->get('createdAt') ?: 'now'));
-            $log->setUserIdHash($request->request->get('userIdHash'));
-            $log->setProcessStatus($request->request->get('processStatus'));
-            $log->setDataClassification($request->request->get('dataClassification'));
-
+        if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($log);
             $em->flush();
 
@@ -108,6 +91,7 @@ class SystemLogController extends AbstractController
 
         return $this->render('system_log/new.html.twig', [
             'log' => $log,
+            'form' => $form,
             'connection' => $connection,
         ]);
     }
@@ -140,29 +124,10 @@ class SystemLogController extends AbstractController
             throw $this->createNotFoundException('System log not found');
         }
 
-        if ($request->isMethod('POST')) {
-            $log->setSessionId($request->request->get('sessionId'));
-            $log->setIpAddress($request->request->get('ipAddress'));
-            $log->setMacAddress($request->request->get('macAddress'));
-            $log->setApiKey($request->request->get('apiKey'));
-            $log->setTokenHash($request->request->get('tokenHash'));
-            $log->setLocation($request->request->get('location'));
-            $log->setThemeColor($request->request->get('themeColor'));
-            $log->setIsActive($request->request->get('isActive') === '1');
-            $log->setScore($request->request->get('score'));
-            $log->setLogFile($request->request->get('logFile'));
-            $log->setMetadata($request->request->get('metadata'));
-            $log->setDescription($request->request->get('description'));
-            $log->setLogLevel($request->request->get('logLevel'));
-            $log->setCountryCode($request->request->get('countryCode'));
-            $log->setLanguageCode($request->request->get('languageCode'));
-            if ($request->request->get('createdAt')) {
-                $log->setCreatedAt(new \DateTime($request->request->get('createdAt')));
-            }
-            $log->setUserIdHash($request->request->get('userIdHash'));
-            $log->setProcessStatus($request->request->get('processStatus'));
-            $log->setDataClassification($request->request->get('dataClassification'));
+        $form = $this->createForm(SystemLogType::class, $log);
+        $form->handleRequest($request);
 
+        if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
 
             $this->addFlash('success', 'System log updated successfully!');
@@ -172,6 +137,7 @@ class SystemLogController extends AbstractController
 
         return $this->render('system_log/edit.html.twig', [
             'log' => $log,
+            'form' => $form,
             'connection' => $connection,
         ]);
     }

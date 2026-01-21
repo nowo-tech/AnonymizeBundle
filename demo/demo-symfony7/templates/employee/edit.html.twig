@@ -3,74 +3,66 @@
 {% block title %}Edit Employee #{{ employee.id }} - {{ connection|upper }}{% endblock %}
 
 {% block body %}
-<div class="card">
-    <h2>Edit Employee <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+<div class="mb-3">
+    <a href="{{ path('employee_index', {connection: connection}) }}" class="btn btn-outline-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+        </svg>
+        Back to List
+    </a>
+</div>
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h2 class="mb-0">Edit Employee <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+    </div>
+    <div class="card-body">
+        {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': true}}) }}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.firstName, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.lastName, {'attr': {'class': 'form-control'}}) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.username, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.email, {'attr': {'class': 'form-control'}}) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.phone, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.age, {'attr': {'class': 'form-control'}}) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.birthDate, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.hireDate, {'attr': {'class': 'form-control'}}) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.department, {'attr': {'class': 'form-select'}}) }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.previousCompany, {'attr': {'class': 'form-control'}}) }}
+                </div>
+            </div>
 
-    {{ form_start(form, {'attr': {'class': 'form'}}) }}
-        <div class="form-row">
-            {{ form_label(form.firstName) }}
-            {{ form_widget(form.firstName) }}
-            {{ form_errors(form.firstName) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.lastName) }}
-            {{ form_widget(form.lastName) }}
-            {{ form_errors(form.lastName) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.username) }}
-            {{ form_widget(form.username) }}
-            {{ form_errors(form.username) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.email) }}
-            {{ form_widget(form.email) }}
-            {{ form_errors(form.email) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.phone) }}
-            {{ form_widget(form.phone) }}
-            {{ form_errors(form.phone) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.birthDate) }}
-            {{ form_widget(form.birthDate) }}
-            {{ form_errors(form.birthDate) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.age) }}
-            {{ form_widget(form.age) }}
-            {{ form_errors(form.age) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.department) }}
-            {{ form_widget(form.department) }}
-            {{ form_errors(form.department) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.previousCompany) }}
-            {{ form_widget(form.previousCompany) }}
-            {{ form_errors(form.previousCompany) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.hireDate) }}
-            {{ form_widget(form.hireDate) }}
-            {{ form_errors(form.hireDate) }}
-        </div>
-
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Update Employee</button>
-            <a href="{{ path('employee_show', {connection: connection, id: employee.id}) }}" class="btn btn-secondary">Cancel</a>
-        </div>
-    {{ form_end(form) }}
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Update Employee</button>
+                <a href="{{ path('employee_show', {connection: connection, id: employee.id}) }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        {{ form_end(form) }}
+    </div>
 </div>
 {% endblock %}

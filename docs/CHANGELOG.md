@@ -11,6 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - TBD
 
+## [0.0.19] - 2026-01-20
+
+### Added
+
+- **Demo Improvements**: Enhanced demo applications with better navigation and user experience
+  - Added "Back to List" links in all form pages (new.html.twig and edit.html.twig) for better navigation
+  - Added missing links in home page for EmailSubscription, SystemLog, and all MongoDB collections
+  - Added SQLite connection links in sidebar navigation for all ORM entities
+  - Improved consistency across all three demo applications (Symfony 6, 7, and 8)
+
+### Fixed
+
+- **Demo Navigation**: Fixed missing `connection` parameter in home page links
+  - EmailSubscription and SystemLog links now correctly include the `connection` parameter
+  - All home page links now follow the same pattern as other entities (MySQL, PostgreSQL, SQLite)
+  - Resolved routing error: "Some mandatory parameters are missing ("connection") to generate a URL"
+
 ## [0.0.18] - 2026-01-20
 
 ### Fixed

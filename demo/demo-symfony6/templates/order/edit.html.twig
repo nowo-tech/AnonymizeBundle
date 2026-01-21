@@ -3,56 +3,53 @@
 {% block title %}Edit Order #{{ order.id }} - {{ connection|upper }}{% endblock %}
 
 {% block body %}
-<div class="card">
-    <h2>Edit Order <span class="connection-badge {{ connection }}">{{ connection }}</span></h2>
+<div class="mb-3">
+    <a href="{{ path('order_index', {connection: connection}) }}" class="btn btn-outline-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+        </svg>
+        Back to List
+    </a>
+</div>
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h2 class="mb-0">Edit Order <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+    </div>
+    <div class="card-body">
+        {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': true}}) }}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.orderNumber, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.customerEmail, {'attr': {'class': 'form-control'}}) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.shippingAddress, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.billingAddress, {'attr': {'class': 'form-control'}}) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.totalAmount, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form_row(form.status, {'attr': {'class': 'form-select'}}) }}
+                </div>
+            </div>
+            <div class="mb-3">
+                {{ form_row(form.orderDate, {'attr': {'class': 'form-control'}}) }}
+            </div>
 
-    {{ form_start(form, {'attr': {'class': 'form'}}) }}
-        <div class="form-row">
-            {{ form_label(form.orderNumber) }}
-            {{ form_widget(form.orderNumber) }}
-            {{ form_errors(form.orderNumber) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.shippingAddress) }}
-            {{ form_widget(form.shippingAddress) }}
-            {{ form_errors(form.shippingAddress) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.billingAddress) }}
-            {{ form_widget(form.billingAddress) }}
-            {{ form_errors(form.billingAddress) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.totalAmount) }}
-            {{ form_widget(form.totalAmount) }}
-            {{ form_errors(form.totalAmount) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.orderDate) }}
-            {{ form_widget(form.orderDate) }}
-            {{ form_errors(form.orderDate) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.status) }}
-            {{ form_widget(form.status) }}
-            {{ form_errors(form.status) }}
-        </div>
-
-        <div class="form-row">
-            {{ form_label(form.customerEmail) }}
-            {{ form_widget(form.customerEmail) }}
-            {{ form_errors(form.customerEmail) }}
-        </div>
-
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Update Order</button>
-            <a href="{{ path('order_show', {connection: connection, id: order.id}) }}" class="btn btn-secondary">Cancel</a>
-        </div>
-    {{ form_end(form) }}
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Update Order</button>
+                <a href="{{ path('order_show', {connection: connection, id: order.id}) }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        {{ form_end(form) }}
+    </div>
 </div>
 {% endblock %}
