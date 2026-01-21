@@ -28,8 +28,7 @@ final class UsernameFaker implements FakerInterface
     public function __construct(
         #[Autowire('%nowo_anonymize.locale%')]
         string $locale = 'en_US'
-    )
-    {
+    ) {
         $this->faker = Factory::create($locale);
     }
 

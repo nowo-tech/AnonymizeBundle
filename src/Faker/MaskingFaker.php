@@ -37,7 +37,7 @@ final class MaskingFaker implements FakerInterface
     {
         // Support both 'original_value' (standard) and 'value' (backward compatibility)
         $value = $options['original_value'] ?? $options['value'] ?? null;
-        
+
         if ($value === null || !is_string($value)) {
             throw new \InvalidArgumentException('MaskingFaker requires an "original_value" (or "value") option with the original value to mask.');
         }
