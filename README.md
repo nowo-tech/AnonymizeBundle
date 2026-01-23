@@ -27,7 +27,7 @@ Looking for: **database anonymization**, **test data generator**, **GDPR complia
 
 - ✅ Attribute-based anonymization configuration
 - ✅ Support for multiple Doctrine connections
-- ✅ Multiple faker types (32 total: email, name, surname, age, phone, IBAN, credit card, address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language, hash_preserve, shuffle, constant, custom service)
+- ✅ Multiple faker types (35 total: email, name, surname, age, phone, IBAN, credit card, address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language, hash_preserve, shuffle, constant, dni_cif, name_fallback, html, custom service)
 - ✅ Weight-based anonymization order
 - ✅ Pattern-based inclusion/exclusion filters
 - ✅ Support for MySQL and PostgreSQL (MongoDB infrastructure ready in demos, ODM support coming soon)
@@ -103,7 +103,15 @@ For detailed usage examples, see [USAGE.md](docs/USAGE.md).
 
 ## Configuration
 
-The bundle works with default settings. If you're using Symfony Flex, the configuration file is automatically created at `config/packages/dev/nowo_anonymize.yaml`. Otherwise, you can configure it manually in `config/packages/dev/nowo_anonymize.yaml`:
+The bundle works with default settings. 
+
+> ⚠️ **Note**: The configuration file is **only automatically created** when:
+> - Installing from Packagist with Symfony Flex
+> - **AND** the recipe is published in the Symfony recipes-contrib repository
+>
+> **Current Status**: The recipe is **not yet published**, so you need to **manually create** the file (see below).
+
+If the configuration file was not created automatically, create it manually at `config/packages/dev/nowo_anonymize.yaml`:
 
 ```yaml
 nowo_anonymize:
@@ -132,11 +140,12 @@ See [COMMANDS.md](docs/COMMANDS.md) for detailed command documentation and examp
 
 ## Faker Types
 
-The bundle supports **32 faker types** for anonymizing various data types, including:
+The bundle supports **35 faker types** for anonymizing various data types, including:
 
 - **Basic**: email, name, surname, age, phone, IBAN, credit_card
 - **Advanced**: address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language
 - **Data Preservation**: hash_preserve, shuffle, constant
+- **Specialized**: dni_cif (Spanish DNI/CIF/NIF), name_fallback (handles nullable related name fields), html (HTML with lorem ipsum, perfect for email signatures)
 - **Custom**: service (custom service faker)
 
 See [FAKERS.md](docs/FAKERS.md) for complete list and configuration options.

@@ -1,43 +1,44 @@
-# Anonymize Bundle Configuration
-# This file was automatically created by Symfony Flex.
-# You can modify it according to your needs.
-#
-# ⚠️ IMPORTANT: This bundle is development-only and should never be used in production.
+when@dev:
+    # Anonymize Bundle Configuration
+    # This file was automatically created by Symfony Flex.
+    # You can modify it according to your needs.
+    #
+    # ⚠️ IMPORTANT: This bundle is development-only and should never be used in production.
 
-nowo_anonymize:
-    # Locale for Faker generator (e.g., en_US, es_ES, fr_FR, de_DE)
-    # Default: 'en_US'
-    locale: 'en_US'
+    nowo_anonymize:
+        # Locale for Faker generator (e.g., en_US, es_ES, fr_FR, de_DE)
+        # Default: 'en_US'
+        locale: 'en_US'
 
-    # Doctrine connections to process. If empty, all connections will be processed.
-    # Example: ['default', 'secondary']
-    connections: []
+        # Doctrine connections to process. If empty, all connections will be processed.
+        # Example: ['default', 'secondary']
+        connections: []
 
-    # If true, only show what would be anonymized without making changes.
-    # Useful for testing and previewing changes.
-    # Default: false
-    dry_run: false
+        # If true, only show what would be anonymized without making changes.
+        # Useful for testing and previewing changes.
+        # Default: false
+        dry_run: false
 
-    # Number of records to process in each batch.
-    # Larger batch sizes may improve performance but use more memory.
-    # Default: 100
-    batch_size: 100
+        # Number of records to process in each batch.
+        # Larger batch sizes may improve performance but use more memory.
+        # Default: 100
+        batch_size: 100
 
-    # Directory where statistics exports (JSON/CSV) will be saved.
-    # Relative filenames in --stats-json or --stats-csv will be saved here.
-    # Default: '%kernel.project_dir%/var/stats'
-    stats_output_dir: '%kernel.project_dir%/var/stats'
+        # Directory where statistics exports (JSON/CSV) will be saved.
+        # Relative filenames in --stats-json or --stats-csv will be saved here.
+        # Default: '%kernel.project_dir%/var/stats'
+        stats_output_dir: '%kernel.project_dir%/var/stats'
 
-    # Directory where anonymization history will be stored.
-    # Each anonymization run is automatically saved with metadata and statistics.
-    # Default: '%kernel.project_dir%/var/anonymize_history'
-    history_dir: '%kernel.project_dir%/var/anonymize_history'
+        # Directory where anonymization history will be stored.
+        # Each anonymization run is automatically saved with metadata and statistics.
+        # Default: '%kernel.project_dir%/var/anonymize_history'
+        history_dir: '%kernel.project_dir%/var/anonymize_history'
 
-    # Database export configuration
-    export:
-        enabled: false  # Set to true to enable database export functionality
-        output_dir: '%kernel.project_dir%/var/exports'
-        filename_pattern: '{connection}_{database}_{date}_{time}.{format}'
-        compression: gzip  # Options: none, gzip, bzip2, zip
-        connections: []  # Empty array means all connections
-        auto_gitignore: true  # Automatically update .gitignore to exclude export directory
+        # Database export configuration
+        export:
+            enabled: false  # Set to true to enable database export functionality
+            output_dir: '%kernel.project_dir%/var/exports'
+            filename_pattern: '{connection}_{database}_{date}_{time}.{format}'
+            compression: gzip  # Options: none, gzip, bzip2, zip
+            connections: []  # Empty array means all connections
+            auto_gitignore: true  # Automatically update .gitignore to exclude export directory

@@ -6,7 +6,14 @@
 
 ## Configuration File
 
-> 📍 **Location**: The configuration file is automatically created at `config/packages/dev/nowo_anonymize.yaml` when using Symfony Flex, since this bundle is development-only.
+> 📍 **Location**: The configuration file should be located at `config/packages/dev/nowo_anonymize.yaml` (since this bundle is development-only).
+
+> ⚠️ **Important**: The configuration file is **only automatically created** when:
+> - The bundle is installed from **Packagist** (not from a local repository or private repository)
+> - **Symfony Flex** is enabled and can access the official Symfony recipes repository
+> - The recipe is published in the Symfony recipes repository
+>
+> If the file was not created automatically, you need to **manually create** it.
 
 The bundle configuration is defined in `config/packages/dev/nowo_anonymize.yaml`:
 

@@ -45,6 +45,14 @@ class User
     #[ORM\Column(length: 20, nullable: true)]
     #[AnonymizeProperty(type: 'phone', weight: 5)]
     private ?string $phone = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[AnonymizeProperty(
+        type: 'email',
+        weight: 6,
+        options: ['nullable' => true, 'null_probability' => 20]
+    )]
+    private ?string $optionalEmail = null; // 20% chance of being null
 }
 ```
 
@@ -383,6 +391,278 @@ Patterns support the following operators:
 - `=`: Equal to
 - `!=` or `<>`: Not equal to
 - `%`: SQL LIKE pattern (e.g., `'name' => 'John%'`)
+
+## Specialized Fakers
+
+### Name Fallback Faker
+
+The `name_fallback` faker handles cases where an entity has multiple name fields (e.g., `name` and `firstname`) where one can be nullable. It ensures data consistency by generating a random value for the null field when the related field has a value.
+
+**Use Case**: When you have entities with nullable related name fields and want to ensure both fields are populated after anonymization.
+
+**Example**:
+```php
+#[ORM\Entity]
+#[Anonymize]
+class Person
+{
+    #[ORM\Column(length: 255, nullable: true)]
+    #[AnonymizeProperty(
+        type: 'name_fallback',
+        options: ['fallback_field' => 'firstname', 'gender' => 'random']
+    )]
+    private ?string $name = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[AnonymizeProperty(
+        type: 'name_fallback',
+        options: ['fallback_field' => 'name', 'gender' => 'random']
+    )]
+    private ?string $firstname = null;
+}
+```
+
+**Behavior**:
+- If `name = 'John'` and `firstname = null` → generates a random `firstname`
+- If `name = null` and `firstname = 'Jane'` → generates a random `name`
+- If both are `null` → generates both randomly
+- If both have values → anonymizes both normally
+
+**Options**:
+- `fallback_field` (required): Name of the related field to check (e.g., `'firstname'` or `'name'`)
+- `gender` (optional): `'male'`, `'female'`, or `'random'` (default: `'random'`)
+- `locale_specific` (optional): Use locale-specific names (default: `true`)
+
+### DNI/CIF/NIF Faker
+
+The `dni_cif` faker generates anonymized Spanish identification numbers (DNI, CIF, or NIF) with proper format validation.
+
+**Use Case**: Anonymizing Spanish personal or company identification numbers while maintaining the correct format.
+
+**Example**:
+```php
+#[ORM\Entity]
+#[Anonymize]
+class Customer
+{
+    #[ORM\Column(length: 20, nullable: true)]
+    #[AnonymizeProperty(
+        type: 'dni_cif',
+        options: ['type' => 'auto', 'formatted' => false]
+    )]
+    private ?string $documentId = null;
+}
+```
+
+**Types**:
+- `'dni'`: Generates DNI format (8 digits + 1 letter, e.g., `12345678A`)
+- `'cif'`: Generates CIF format (1 letter + 7 digits + 1 letter/digit, e.g., `A12345674`)
+- `'nif'`: Same as DNI (8 digits + 1 letter)
+- `'auto'`: Auto-detects type from original value if available, otherwise defaults to DNI
+
+**Options**:
+- `type` (optional): `'dni'`, `'cif'`, `'nif'`, or `'auto'` (default: `'auto'`)
+- `formatted` (optional): Add separators (default: `false`)
+  - DNI formatted: `12345678-A`
+  - CIF formatted: `A-1234567-4`
+
+**Examples**:
+```php
+// DNI with formatting
+#[AnonymizeProperty(type: 'dni_cif', options: ['type' => 'dni', 'formatted' => true])]
+
+// CIF without formatting
+#[AnonymizeProperty(type: 'dni_cif', options: ['type' => 'cif', 'formatted' => false])]
+
+// Auto-detect from original value
+#[AnonymizeProperty(type: 'dni_cif', options: ['type' => 'auto'])]
+```
+
+### HTML Faker
+
+The `html` faker generates anonymized HTML content with lorem ipsum text. Perfect for anonymizing email signatures, HTML templates, and other HTML content.
+
+**Use Case**: Anonymizing email signatures, HTML email bodies, HTML templates, or any HTML content while maintaining valid HTML structure.
+
+**Example**:
+```php
+#[ORM\Entity]
+#[Anonymize]
+class EmailSignature
+{
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[AnonymizeProperty(
+        type: 'html',
+        options: [
+            'type' => 'signature',
+            'include_links' => true,
+            'include_styles' => false,
+        ]
+    )]
+    private ?string $signature = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[AnonymizeProperty(
+        type: 'html',
+        options: [
+            'type' => 'paragraph',
+            'min_paragraphs' => 1,
+            'max_paragraphs' => 3,
+            'include_links' => true,
+        ]
+    )]
+    private ?string $emailBody = null;
+}
+```
+
+**Types**:
+- `'signature'`: Generates email signature-like HTML with name, title, company, and contact info (default)
+- `'paragraph'`: Generates HTML paragraphs with lorem ipsum
+- `'list'`: Generates HTML lists (ul/ol) with lorem ipsum items
+- `'mixed'`: Generates mixed HTML content (paragraphs, lists, headings)
+
+**Options**:
+- `type` (optional): `'signature'`, `'paragraph'`, `'list'`, or `'mixed'` (default: `'signature'`)
+- `include_links` (optional): Include hyperlinks in HTML (default: `true`)
+- `include_styles` (optional): Include inline styles (default: `false`)
+- `min_paragraphs` (optional): Minimum number of paragraphs (default: `1`)
+- `max_paragraphs` (optional): Maximum number of paragraphs (default: `3`)
+- `min_list_items` (optional): Minimum number of list items (default: `2`)
+- `max_list_items` (optional): Maximum number of list items (default: `5`)
+
+**Examples**:
+```php
+// Email signature with links
+#[AnonymizeProperty(type: 'html', options: ['type' => 'signature', 'include_links' => true])]
+
+// Email signature with styles
+#[AnonymizeProperty(type: 'html', options: ['type' => 'signature', 'include_styles' => true])]
+
+// HTML paragraphs
+#[AnonymizeProperty(type: 'html', options: ['type' => 'paragraph', 'min_paragraphs' => 2, 'max_paragraphs' => 5])]
+
+// HTML list
+#[AnonymizeProperty(type: 'html', options: ['type' => 'list', 'min_list_items' => 3, 'max_list_items' => 7])]
+
+// Mixed HTML content
+#[AnonymizeProperty(type: 'html', options: ['type' => 'mixed', 'include_styles' => true])]
+```
+
+**Signature Output Example**:
+```html
+<div>
+    <p><strong>John Doe</strong><br>
+    Senior Developer<br>
+    Tech Solutions Inc.</p>
+    <p>Phone: <a href="tel:+34612345678">+34 612 345 678</a><br>
+    Email: <a href="mailto:john.doe@example.com">john.doe@example.com</a><br>
+    Website: <a href="https://www.example.com">www.example.com</a></p>
+</div>
+```
+
+### Nullable Option
+
+All fakers support a `nullable` option that allows you to generate `null` values with a configurable probability. This is useful for simulating real-world data where some fields may be optional.
+
+**Options**:
+- `nullable` (bool): Enable null value generation (default: `false`)
+- `null_probability` (int): Probability of generating null (0-100, default: `0`)
+  - `0` = never null (always generates a value)
+  - `100` = always null (never generates a value)
+  - `30` = 30% chance of being null, 70% chance of generating a value
+
+**Example**:
+```php
+#[ORM\Entity]
+#[Anonymize]
+class User
+{
+    #[ORM\Column(length: 255, nullable: true)]
+    #[AnonymizeProperty(
+        type: 'email',
+        options: [
+            'nullable' => true,
+            'null_probability' => 20  // 20% chance of being null
+        ]
+    )]
+    private ?string $optionalEmail = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[AnonymizeProperty(
+        type: 'phone',
+        options: [
+            'nullable' => true,
+            'null_probability' => 50  // 50% chance of being null
+        ]
+    )]
+    private ?string $phone = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[AnonymizeProperty(
+        type: 'html',
+        options: [
+            'type' => 'signature',
+            'nullable' => true,
+            'null_probability' => 10  // 10% chance of being null
+        ]
+    )]
+    private ?string $emailSignature = null;
+}
+```
+
+**Use Cases**:
+- Simulating optional fields in your database
+- Testing how your application handles null values
+- Creating more realistic anonymized datasets
+- Matching the null distribution of your original data
+
+**Note**: The `nullable` option works with all faker types. When a value is determined to be null, it bypasses the faker generation and sets the field to `null` directly.
+
+### Preserve Null Option
+
+All fakers support a `preserve_null` option that allows you to skip anonymization when the original value is `null`. This is useful when you want to anonymize only fields that have values, leaving null values unchanged.
+
+**Options**:
+- `preserve_null` (bool): Skip anonymization if the original value is null (default: `false`)
+  - `true` = If original value is null, skip anonymization (preserve the null)
+  - `false` = Always anonymize, even if original value is null (generate a new value)
+
+**Example**:
+```php
+#[ORM\Entity]
+#[Anonymize]
+class User
+{
+    #[ORM\Column(length: 255, nullable: true)]
+    #[AnonymizeProperty(
+        type: 'email',
+        options: ['preserve_null' => true]  // Skip if null, anonymize if has value
+    )]
+    private ?string $optionalEmail = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[AnonymizeProperty(
+        type: 'dni_cif',
+        options: [
+            'type' => 'dni',
+            'preserve_null' => true  // Only anonymize if DNI exists
+        ]
+    )]
+    private ?string $legalId = null;
+}
+```
+
+**Behavior**:
+- If original value is `null` and `preserve_null` is `true` → Skip anonymization (field remains null)
+- If original value has a value and `preserve_null` is `true` → Anonymize normally
+- If `preserve_null` is `false` (default) → Always anonymize, even if original is null
+
+**Use Cases**:
+- Anonymizing only fields that have values, preserving nulls
+- Maintaining data structure where nulls have meaning
+- Selective anonymization based on data presence
+
+**Note**: The `preserve_null` option works with all faker types and takes precedence over `nullable` option. If `preserve_null` is `true` and the original value is null, the field is skipped entirely (not added to updates).
 
 ## Event System
 

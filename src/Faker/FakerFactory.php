@@ -80,6 +80,9 @@ final class FakerFactory
                 'hash_preserve' => 'nowo_anonymize.faker.hash_preserve',
                 'shuffle' => 'nowo_anonymize.faker.shuffle',
                 'constant' => 'nowo_anonymize.faker.constant',
+                'dni_cif' => 'nowo_anonymize.faker.dni_cif',
+                'name_fallback' => 'nowo_anonymize.faker.name_fallback',
+                'html' => 'nowo_anonymize.faker.html',
                 default => null,
             };
 
@@ -121,6 +124,9 @@ final class FakerFactory
             'hash_preserve' => new HashPreserveFaker(),
             'shuffle' => new ShuffleFaker(),
             'constant' => new ConstantFaker(),
+            'dni_cif' => new DniCifFaker($this->locale),
+            'name_fallback' => new NameFallbackFaker($this->locale),
+            'html' => new HtmlFaker($this->locale),
             'service' => new ServiceFaker($this->container, $serviceName ?? ''),
             default => throw new \InvalidArgumentException(sprintf('Unsupported faker type: %s', $type)),
         };

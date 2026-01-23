@@ -13,6 +13,75 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.28
+
+**Release Date**: 2026-01-23
+
+#### What's New
+
+- **Nullable Option for All Fakers**: Generate `null` values with configurable probability
+  - New options: `nullable` (bool) and `null_probability` (0-100)
+  - Works with all faker types
+  - Useful for simulating optional fields and creating more realistic anonymized datasets
+  - Example: `['nullable' => true, 'null_probability' => 30]` generates null 30% of the time
+  - When a value is determined to be null, it bypasses faker generation and sets the field to `null` directly
+  - Preserves null values during type conversion to prevent null from being converted to empty strings
+
+- **Preserve Null Option for All Fakers**: Skip anonymization when original value is null
+  - New option: `preserve_null` (bool)
+  - Works with all faker types
+  - If `preserve_null` is `true` and the original value is `null`, the field is skipped (not anonymized)
+  - If `preserve_null` is `true` and the original value has a value, it is anonymized normally
+  - Useful for anonymizing only fields that have values, leaving nulls unchanged
+  - Example: `['preserve_null' => true]` - only anonymizes if the field has a value
+  - Takes precedence over `nullable` option when original value is null
+
+- **Demo: Contact Entity**: New example entity demonstrating `nullable` and `preserve_null` options
+  - Shows how to use both options together with different faker types
+  - Includes comprehensive fixtures with 8 records covering all use cases
+  - Available in all demo projects (Symfony 6, 7, 8)
+
+#### Breaking Changes
+
+None - This is a backward-compatible feature release.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Optional: Use new options** in your entities:
+   ```php
+   // Generate null values with 20% probability
+   #[AnonymizeProperty(
+       type: 'email',
+       options: ['nullable' => true, 'null_probability' => 20]
+   )]
+   private ?string $optionalEmail = null;
+
+   // Only anonymize if field has a value (preserve nulls)
+   #[AnonymizeProperty(
+       type: 'dni_cif',
+       options: ['type' => 'dni', 'preserve_null' => true]
+   )]
+   private ?string $legalId = null;
+   ```
+
+#### Notes
+
+- No configuration changes required
+- New options are optional and work with all existing faker types
+- Existing anonymization configurations continue to work unchanged
+- Both options can be used together for maximum flexibility
+- See [USAGE.md](USAGE.md) for detailed examples and use cases
+
 ### Upgrading to 0.0.26
 
 **Release Date**: 2026-01-21

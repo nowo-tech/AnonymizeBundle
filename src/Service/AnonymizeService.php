@@ -238,6 +238,13 @@ final class AnonymizeService
                 $fakerOptions = $attribute->options;
                 $originalValue = $record[$columnName] ?? null;
 
+                // Check if we should preserve null values (skip anonymization if original is null)
+                $preserveNull = $fakerOptions['preserve_null'] ?? false;
+                if ($preserveNull && $originalValue === null) {
+                    // Skip anonymization for this property if original value is null
+                    continue;
+                }
+
                 // Set original_value (standard key for all fakers)
                 if (!isset($fakerOptions['original_value'])) {
                     $fakerOptions['original_value'] = $originalValue;
@@ -248,10 +255,34 @@ final class AnonymizeService
                     $fakerOptions['value'] = $originalValue;
                 }
 
-                $anonymizedValue = $faker->generate($fakerOptions);
+                // For name_fallback faker, pass the full record to check related fields
+                if ($attribute->type === 'name_fallback' && !isset($fakerOptions['record'])) {
+                    $fakerOptions['record'] = $record;
+                }
 
-                // Convert value based on field type
-                $anonymizedValue = $this->convertValue($anonymizedValue, $metadata, $propertyName);
+                // Check if value should be null based on nullable option
+                $nullable = $fakerOptions['nullable'] ?? false;
+                $nullProbability = (int) ($fakerOptions['null_probability'] ?? 0);
+                
+                // If nullable is enabled and random chance determines it should be null
+                if ($nullable && $nullProbability > 0) {
+                    // Generate random number 0-99 and check if it's below the probability threshold
+                    // null_probability of 30 means 30% chance of being null (0-29 out of 0-99)
+                    // null_probability of 100 means 100% chance of being null (0-99 out of 0-99)
+                    $random = mt_rand(0, 99);
+                    if ($random < $nullProbability) {
+                        $anonymizedValue = null;
+                    } else {
+                        $anonymizedValue = $faker->generate($fakerOptions);
+                    }
+                } else {
+                    $anonymizedValue = $faker->generate($fakerOptions);
+                }
+
+                // Convert value based on field type (but preserve null values)
+                if ($anonymizedValue !== null) {
+                    $anonymizedValue = $this->convertValue($anonymizedValue, $metadata, $propertyName);
+                }
 
                 // Dispatch AnonymizePropertyEvent to allow listeners to modify or skip anonymization
                 if ($this->eventDispatcher !== null) {

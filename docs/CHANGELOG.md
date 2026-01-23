@@ -5,11 +5,96 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.0.28] - 2026-01-23
 
 ### Added
 
-- TBD
+- **Nullable Option for All Fakers**: Added support for generating `null` values with configurable probability
+  - New options: `nullable` (bool) and `null_probability` (0-100)
+  - Works with all faker types
+  - Useful for simulating optional fields and creating more realistic anonymized datasets
+  - Example: `['nullable' => true, 'null_probability' => 30]` generates null 30% of the time
+  - When a value is determined to be null, it bypasses faker generation and sets the field to `null` directly
+  - Preserves null values during type conversion to prevent null from being converted to empty strings
+
+- **Preserve Null Option for All Fakers**: Added support for preserving null values (skip anonymization when original is null)
+  - New option: `preserve_null` (bool)
+  - Works with all faker types
+  - If `preserve_null` is `true` and the original value is `null`, the field is skipped (not anonymized)
+  - If `preserve_null` is `true` and the original value has a value, it is anonymized normally
+  - Useful for anonymizing only fields that have values, leaving nulls unchanged
+  - Example: `['preserve_null' => true]` - only anonymizes if the field has a value
+  - Takes precedence over `nullable` option when original value is null
+
+- **New Faker: DNI/CIF/NIF Faker**: Spanish identification number anonymization
+  - Supports DNI (8 digits + 1 letter), CIF (1 letter + 7 digits + 1 letter/digit), and NIF formats
+  - Auto-detects type from original value if available
+  - Optional formatting with separators (e.g., `12345678-A` or `A-1234567-4`)
+  - Generates valid identification numbers with proper checksum validation
+  - Options: `type` (dni/cif/nif/auto), `formatted` (bool)
+  - Example: `#[AnonymizeProperty(type: 'dni_cif', options: ['type' => 'auto', 'formatted' => false])]`
+
+- **New Faker: Name Fallback Faker**: Handles nullable related name fields
+  - Perfect for entities with multiple name fields (e.g., `name` and `firstname`) where one can be nullable
+  - Ensures data consistency: if one field has value and the other is null, generates a random value for the null field
+  - Automatically uses the full database record to check related field values
+  - Options: `fallback_field` (required), `gender` (male/female/random), `locale_specific` (bool)
+  - Example: `#[AnonymizeProperty(type: 'name_fallback', options: ['fallback_field' => 'firstname'])]`
+  - Behavior:
+    - If current field is null but related field has value → generates random name
+    - If current field has value → anonymizes normally
+    - If both are null → generates random name
+    - If both have values → anonymizes both normally
+
+- **New Faker: HTML Faker**: Generates anonymized HTML content with lorem ipsum
+  - Perfect for anonymizing email signatures, HTML templates, and HTML content
+  - Supports multiple types: `signature` (email signature-like), `paragraph`, `list`, `mixed`
+  - Generates valid HTML with lorem ipsum text while maintaining realistic structure
+  - Options: `type`, `include_links`, `include_styles`, `min_paragraphs`, `max_paragraphs`, `min_list_items`, `max_list_items`
+  - Signature type includes name, title, company, contact info with optional links and styles
+  - Example: `#[AnonymizeProperty(type: 'html', options: ['type' => 'signature', 'include_links' => true])]`
+
+- **Demo: Person Entity**: New example entity demonstrating `name_fallback` faker
+  - Shows how to handle nullable related name fields
+  - Includes comprehensive fixtures covering all use cases:
+    - Both fields have values
+    - Only `name` has value (firstname is null)
+    - Only `firstname` has value (name is null)
+    - Both fields are null
+  - Available in all demo projects (Symfony 6, 7, 8)
+
+- **Demo: EmailSignature Entity**: New example entity demonstrating `html` faker
+  - Shows how to anonymize email signatures and HTML email bodies
+  - Includes comprehensive fixtures with realistic email signatures
+  - Demonstrates different HTML faker types (signature, paragraph)
+  - Available in all demo projects (Symfony 6, 7, 8)
+
+- **Demo: Contact Entity**: New example entity demonstrating `nullable` and `preserve_null` options
+  - Shows how to use `nullable` with `null_probability` to generate null values with configurable probability
+  - Shows how to use `preserve_null` to skip anonymization when original value is null
+  - Includes comprehensive fixtures with 8 records covering all use cases
+  - Demonstrates both options working together with different faker types
+  - Available in all demo projects (Symfony 6, 7, 8)
+
+### Changed
+
+- **Total Faker Types**: Increased from 32 to 35 fakers
+  - Added `dni_cif` for Spanish identification numbers
+  - Added `name_fallback` for nullable related name fields
+  - Added `html` for HTML content with lorem ipsum (perfect for email signatures)
+
+- **Test Coverage**: Improved test coverage
+  - **Total tests**: 766 tests with 2121 assertions (increased from 726 tests)
+  - **Code coverage metrics**:
+    - Classes: 68.25% (43/63)
+    - Methods: 75.42% (181/240)
+    - Lines: 61.29% (1884/3074)
+  - Added comprehensive tests for `nullable` and `preserve_null` options
+  - All tests passing successfully
+
+## [Unreleased]
+
+### Added
 
 ## [0.0.27] - 2026-01-21
 

@@ -38,9 +38,24 @@ return [
 
 ## Step 3: Configure the Bundle (Optional)
 
-If you're using Symfony Flex, the configuration file is automatically created at `config/packages/dev/nowo_anonymize.yaml`.
+> ⚠️ **Important**: The configuration file is **only automatically created** when:
+> - The bundle is installed from **Packagist**
+> - **Symfony Flex** is enabled and can access the official Symfony recipes repository
+> - **The recipe is published** in the Symfony recipes-contrib repository (https://github.com/symfony/recipes-contrib)
+>
+> **Current Status**: The recipe is **not yet published** in the official repository, so the configuration file **will not be created automatically**. You need to **manually create** it (see below).
+>
+> If you're installing the bundle from a local path, Git repository, or private repository, you also need to **manually create** the configuration file.
 
-Otherwise, manually create the configuration file `config/packages/dev/nowo_anonymize.yaml`:
+### Automatic Configuration (Symfony Flex from Packagist)
+
+If you installed the bundle from Packagist using Symfony Flex, the configuration file should be automatically created at `config/packages/dev/nowo_anonymize.yaml`.
+
+If the file was not created automatically, you can manually create it (see below).
+
+### Manual Configuration
+
+Manually create the configuration file `config/packages/dev/nowo_anonymize.yaml`:
 
 ```yaml
 nowo_anonymize:

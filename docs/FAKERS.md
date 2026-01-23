@@ -2,7 +2,9 @@
 
 > 📋 **Requirements**: This bundle requires **Symfony 6.1 or higher** (Symfony 6.0 is not supported). See [INSTALLATION.md](INSTALLATION.md) for complete requirements.
 
-The bundle supports 32 different faker types for anonymizing various data types.
+The bundle supports 35 different faker types for anonymizing various data types.
+
+> 💡 **Tip**: All fakers support the `nullable` and `null_probability` options to generate null values with a configurable probability. See [USAGE.md](USAGE.md#nullable-option) for details.
 
 ## Basic Fakers
 
@@ -37,6 +39,28 @@ The bundle supports 32 different faker types for anonymizing various data types.
 - **enum**: Generates values from a predefined list (supports `values` (array), `weighted` (associative array) options)
 - **country**: Generates anonymized country codes/names (supports `format` (code/name/iso2/iso3), `locale` options)
 - **language**: Generates anonymized language codes/names (supports `format` (code/name), `locale` options)
+
+## Specialized Fakers
+
+- **dni_cif**: Generates anonymized Spanish DNI, CIF, or NIF numbers
+  - Options: `type` (dni/cif/nif/auto), `formatted` (add separators)
+  - Auto-detects type from original value if available
+  - DNI format: 8 digits + 1 letter (e.g., `12345678A`)
+  - CIF format: 1 letter + 7 digits + 1 letter/digit (e.g., `A12345674`)
+  - Example: `['type' => 'dni', 'formatted' => true]` generates `12345678-A`
+
+- **name_fallback**: Handles nullable related name fields with fallback logic
+  - Options: `fallback_field` (required, name of related field), `gender` (male/female/random), `locale_specific` (bool)
+  - Ensures data consistency: if one name field has value and the other is null, generates a random value for the null field
+  - Perfect for entities with `name` and `firstname` where one can be nullable
+  - Example: `['fallback_field' => 'firstname', 'gender' => 'random']`
+
+- **html**: Generates anonymized HTML content with lorem ipsum
+  - Options: `type` (signature/paragraph/list/mixed), `include_links` (bool), `include_styles` (bool), `min_paragraphs`, `max_paragraphs`, `min_list_items`, `max_list_items`
+  - Perfect for anonymizing email signatures, HTML templates, and HTML content
+  - Generates valid HTML with lorem ipsum text while maintaining realistic structure
+  - Signature type includes name, title, company, contact info with optional links
+  - Example: `['type' => 'signature', 'include_links' => true, 'include_styles' => false]`
 
 ## Data Preservation Fakers
 

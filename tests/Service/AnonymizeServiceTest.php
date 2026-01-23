@@ -1772,4 +1772,328 @@ class AnonymizeServiceTest extends TestCase
         $this->assertEquals(1, $result['updated']);
     }
 
+    /**
+     * Test that anonymizeEntity handles nullable option with null probability.
+     */
+    public function testAnonymizeEntityHandlesNullableOption(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        
+        $testEntity = new class {
+            #[AnonymizeProperty(type: 'email', options: ['nullable' => true, 'null_probability' => 100])]
+            public ?string $email = 'test@example.com';
+        };
+        $reflection = new ReflectionClass($testEntity);
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+        $metadata->method('hasField')
+            ->with('email')
+            ->willReturn(true);
+        $metadata->method('hasAssociation')
+            ->willReturn(false);
+        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email');
+        $metadata->method('getFieldMapping')
+            ->with('email')
+            ->willReturn($fieldMapping);
+        $metadata->method('getFieldNames')
+            ->willReturn(['email']);
+        $metadata->method('getIdentifierColumnNames')
+            ->willReturn(['id']);
+
+        $connection->method('fetchAllAssociative')
+            ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
+        $connection->method('quoteSingleIdentifier')
+            ->willReturnCallback(fn($id) => '`' . $id . '`');
+        $connection->method('quote')
+            ->willReturnCallback(function ($val) {
+                if ($val === null) {
+                    return 'NULL';
+                }
+                return "'" . (string) $val . "'";
+            });
+        
+        // Track if null was used in SQL and capture SQL for debugging
+        $nullUsed = false;
+        $capturedSql = '';
+        $connection->method('executeStatement')
+            ->willReturnCallback(function ($sql) use (&$nullUsed, &$capturedSql) {
+                $capturedSql = $sql;
+                // Check if SQL contains '= NULL' (without quotes, which means null value)
+                // The SQL should be like: UPDATE `test_table` SET `email` = NULL WHERE `id` = '1'
+                if (preg_match('/`email`\s*=\s*NULL\b/i', $sql) || preg_match('/email\s*=\s*NULL\b/i', $sql)) {
+                    $nullUsed = true;
+                }
+                return 1;
+            });
+
+        $property = $reflection->getProperty('email');
+        $properties = [
+            [
+                'property' => $property,
+                'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
+                'weight' => 1,
+            ],
+        ];
+
+        $progressCallback = function ($current, $total, $message) {
+            // Empty callback
+        };
+        $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
+
+        $this->assertIsArray($result);
+        $this->assertEquals(1, $result['processed']);
+        $this->assertEquals(1, $result['updated']);
+        // With 100% null probability, value should be null
+        // Debug: show SQL if assertion fails
+        $this->assertTrue($nullUsed, 'With 100% null probability, the value should be null. SQL was: ' . ($capturedSql ?: 'NOT EXECUTED'));
+    }
+
+    /**
+     * Test that anonymizeEntity handles nullable option with 0% null probability.
+     */
+    public function testAnonymizeEntityHandlesNullableOptionZeroProbability(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        
+        $testEntity = new class {
+            #[AnonymizeProperty(type: 'email', options: ['nullable' => true, 'null_probability' => 0])]
+            public ?string $email = 'test@example.com';
+        };
+        $reflection = new ReflectionClass($testEntity);
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+        $metadata->method('hasField')
+            ->with('email')
+            ->willReturn(true);
+        $metadata->method('hasAssociation')
+            ->willReturn(false);
+        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email');
+        $metadata->method('getFieldMapping')
+            ->with('email')
+            ->willReturn($fieldMapping);
+        $metadata->method('getFieldNames')
+            ->willReturn(['email']);
+        $metadata->method('getIdentifierColumnNames')
+            ->willReturn(['id']);
+
+        $connection->method('fetchAllAssociative')
+            ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
+        $connection->method('quoteSingleIdentifier')
+            ->willReturnCallback(fn($id) => '`' . $id . '`');
+        $connection->method('quote')
+            ->willReturnCallback(function ($val) {
+                if ($val === null) {
+                    return 'NULL';
+                }
+                return "'" . (string) $val . "'";
+            });
+        
+        // Track if null was used in SQL
+        $nullUsed = false;
+        $connection->method('executeStatement')
+            ->willReturnCallback(function ($sql) use (&$nullUsed) {
+                // The SQL should NOT contain '= NULL' for the email field with 0% probability
+                if (preg_match('/`email`\s*=\s*NULL\b/i', $sql) || preg_match('/email\s*=\s*NULL\b/i', $sql)) {
+                    $nullUsed = true;
+                }
+                return 1;
+            });
+
+        $property = $reflection->getProperty('email');
+        $properties = [
+            [
+                'property' => $property,
+                'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
+                'weight' => 1,
+            ],
+        ];
+
+        $progressCallback = function ($current, $total, $message) {
+            // Empty callback
+        };
+        
+        // Run multiple times to ensure 0% null probability never returns null
+        $neverNull = true;
+        for ($i = 0; $i < 10; $i++) {
+            $nullUsed = false;
+            $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
+            
+            if ($nullUsed) {
+                $neverNull = false;
+                break;
+            }
+        }
+
+        $this->assertIsArray($result);
+        $this->assertEquals(1, $result['processed']);
+        $this->assertEquals(1, $result['updated']);
+        // With 0% null probability, value should NOT be null
+        $this->assertTrue($neverNull, 'With 0% null probability, the value should never be null');
+    }
+
+    /**
+     * Test that anonymizeEntity preserves null values when preserve_null option is enabled.
+     */
+    public function testAnonymizeEntityPreservesNullValues(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        
+        $testEntity = new class {
+            #[AnonymizeProperty(type: 'email', options: ['preserve_null' => true])]
+            public ?string $email = null;
+        };
+        $reflection = new ReflectionClass($testEntity);
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+        $metadata->method('hasField')
+            ->with('email')
+            ->willReturn(true);
+        $metadata->method('hasAssociation')
+            ->willReturn(false);
+        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email');
+        $metadata->method('getFieldMapping')
+            ->with('email')
+            ->willReturn($fieldMapping);
+        $metadata->method('getFieldNames')
+            ->willReturn(['email']);
+        $metadata->method('getIdentifierColumnNames')
+            ->willReturn(['id']);
+
+        // Record with null email - should NOT be anonymized when preserve_null is true
+        $connection->method('fetchAllAssociative')
+            ->willReturn([['id' => 1, 'email' => null]]);
+        $connection->method('quoteSingleIdentifier')
+            ->willReturnCallback(fn($id) => '`' . $id . '`');
+        $connection->method('quote')
+            ->willReturnCallback(function ($val) {
+                if ($val === null) {
+                    return 'NULL';
+                }
+                return "'" . (string) $val . "'";
+            });
+        
+        // Track if SQL was executed (should NOT be executed when preserve_null is true and value is null)
+        $sqlExecuted = false;
+        $connection->method('executeStatement')
+            ->willReturnCallback(function ($sql) use (&$sqlExecuted) {
+                $sqlExecuted = true;
+                return 1;
+            });
+
+        $property = $reflection->getProperty('email');
+        $properties = [
+            [
+                'property' => $property,
+                'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
+                'weight' => 1,
+            ],
+        ];
+
+        $progressCallback = function ($current, $total, $message) {
+            // Empty callback
+        };
+        $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
+
+        $this->assertIsArray($result);
+        $this->assertEquals(1, $result['processed']);
+        // When preserve_null is true and value is null, no update should occur
+        $this->assertEquals(0, $result['updated']);
+        $this->assertFalse($sqlExecuted, 'SQL should not be executed when preserve_null is true and value is null');
+    }
+
+    /**
+     * Test that anonymizeEntity anonymizes non-null values even when preserve_null is enabled.
+     */
+    public function testAnonymizeEntityAnonymizesNonNullValuesWithPreserveNull(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        
+        $testEntity = new class {
+            #[AnonymizeProperty(type: 'email', options: ['preserve_null' => true])]
+            public ?string $email = null;
+        };
+        $reflection = new ReflectionClass($testEntity);
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+        $metadata->method('hasField')
+            ->with('email')
+            ->willReturn(true);
+        $metadata->method('hasAssociation')
+            ->willReturn(false);
+        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email');
+        $metadata->method('getFieldMapping')
+            ->with('email')
+            ->willReturn($fieldMapping);
+        $metadata->method('getFieldNames')
+            ->willReturn(['email']);
+        $metadata->method('getIdentifierColumnNames')
+            ->willReturn(['id']);
+
+        // Record with non-null email - should be anonymized even when preserve_null is true
+        $connection->method('fetchAllAssociative')
+            ->willReturn([['id' => 1, 'email' => 'original@example.com']]);
+        $connection->method('quoteSingleIdentifier')
+            ->willReturnCallback(fn($id) => '`' . $id . '`');
+        $connection->method('quote')
+            ->willReturnCallback(function ($val) {
+                if ($val === null) {
+                    return 'NULL';
+                }
+                return "'" . (string) $val . "'";
+            });
+        $connection->method('executeStatement')
+            ->willReturn(1);
+
+        $property = $reflection->getProperty('email');
+        $properties = [
+            [
+                'property' => $property,
+                'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
+                'weight' => 1,
+            ],
+        ];
+
+        $progressCallback = function ($current, $total, $message) {
+            // Empty callback
+        };
+        $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
+
+        $this->assertIsArray($result);
+        $this->assertEquals(1, $result['processed']);
+        // When preserve_null is true but value is NOT null, it should be anonymized
+        $this->assertEquals(1, $result['updated']);
+    }
+
 }

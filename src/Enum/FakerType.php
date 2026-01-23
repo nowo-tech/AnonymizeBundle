@@ -107,4 +107,13 @@ enum FakerType: string
 
     /** Custom service faker (requires service name) */
     case SERVICE = 'service';
+
+    /** Spanish DNI/CIF/NIF faker (supports type, formatted options) */
+    case DNI_CIF = 'dni_cif';
+
+    /** Name fallback faker (handles nullable related name fields) */
+    case NAME_FALLBACK = 'name_fallback';
+
+    /** HTML faker (generates HTML with lorem ipsum, perfect for email signatures) */
+    case HTML = 'html';
 }
