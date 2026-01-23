@@ -21,7 +21,7 @@ class AnonymizePropertyTest extends TestCase
     public function testAnonymizePropertyCanBeInstantiatedWithTypeOnly(): void
     {
         $attribute = new AnonymizeProperty(type: 'email');
-        
+
         $this->assertEquals('email', $attribute->type);
         $this->assertNull($attribute->weight);
         $this->assertIsArray($attribute->includePatterns);
@@ -39,7 +39,7 @@ class AnonymizePropertyTest extends TestCase
     public function testAnonymizePropertyCanBeInstantiatedWithWeight(): void
     {
         $attribute = new AnonymizeProperty(type: 'email', weight: 10);
-        
+
         $this->assertEquals('email', $attribute->type);
         $this->assertEquals(10, $attribute->weight);
     }
@@ -51,7 +51,7 @@ class AnonymizePropertyTest extends TestCase
     {
         $includePatterns = ['id' => '>100', 'status' => 'active'];
         $attribute = new AnonymizeProperty(type: 'email', includePatterns: $includePatterns);
-        
+
         $this->assertEquals('email', $attribute->type);
         $this->assertEquals($includePatterns, $attribute->includePatterns);
     }
@@ -63,7 +63,7 @@ class AnonymizePropertyTest extends TestCase
     {
         $excludePatterns = ['id' => '<=100', 'deleted' => 'true'];
         $attribute = new AnonymizeProperty(type: 'email', excludePatterns: $excludePatterns);
-        
+
         $this->assertEquals('email', $attribute->type);
         $this->assertEquals($excludePatterns, $attribute->excludePatterns);
     }
@@ -74,7 +74,7 @@ class AnonymizePropertyTest extends TestCase
     public function testAnonymizePropertyCanBeInstantiatedWithService(): void
     {
         $attribute = new AnonymizeProperty(type: 'service', service: 'custom_faker');
-        
+
         $this->assertEquals('service', $attribute->type);
         $this->assertEquals('custom_faker', $attribute->service);
     }
@@ -86,7 +86,7 @@ class AnonymizePropertyTest extends TestCase
     {
         $options = ['min' => 18, 'max' => 65];
         $attribute = new AnonymizeProperty(type: 'age', options: $options);
-        
+
         $this->assertEquals('age', $attribute->type);
         $this->assertEquals($options, $attribute->options);
     }
@@ -99,7 +99,7 @@ class AnonymizePropertyTest extends TestCase
         $includePatterns = ['id' => '>100'];
         $excludePatterns = ['deleted' => 'true'];
         $options = ['min' => 18, 'max' => 65];
-        
+
         $attribute = new AnonymizeProperty(
             type: 'age',
             weight: 5,
@@ -108,7 +108,7 @@ class AnonymizePropertyTest extends TestCase
             service: null,
             options: $options
         );
-        
+
         $this->assertEquals('age', $attribute->type);
         $this->assertEquals(5, $attribute->weight);
         $this->assertEquals($includePatterns, $attribute->includePatterns);
@@ -123,7 +123,7 @@ class AnonymizePropertyTest extends TestCase
     public function testAnonymizePropertyPropertiesArePublic(): void
     {
         $attribute = new AnonymizeProperty(type: 'email');
-        
+
         // Properties exist and are accessible
         $this->assertTrue(property_exists($attribute, 'type'));
         $this->assertTrue(property_exists($attribute, 'weight'));
@@ -131,7 +131,7 @@ class AnonymizePropertyTest extends TestCase
         $this->assertTrue(property_exists($attribute, 'excludePatterns'));
         $this->assertTrue(property_exists($attribute, 'service'));
         $this->assertTrue(property_exists($attribute, 'options'));
-        
+
         // Properties can be read
         $this->assertEquals('email', $attribute->type);
         $this->assertNull($attribute->weight);
@@ -139,14 +139,14 @@ class AnonymizePropertyTest extends TestCase
         $this->assertIsArray($attribute->excludePatterns);
         $this->assertNull($attribute->service);
         $this->assertIsArray($attribute->options);
-        
+
         // Properties can be modified
         $attribute->type = 'name';
         $this->assertEquals('name', $attribute->type);
-        
+
         $attribute->weight = 20;
         $this->assertEquals(20, $attribute->weight);
-        
+
         $attribute->options = ['new' => 'option'];
         $this->assertEquals(['new' => 'option'], $attribute->options);
     }
@@ -161,9 +161,9 @@ class AnonymizePropertyTest extends TestCase
             'address', 'date', 'username', 'url', 'company', 'masking', 'password',
             'ip_address', 'mac_address', 'uuid', 'hash', 'coordinate', 'color',
             'boolean', 'numeric', 'file', 'json', 'text', 'enum', 'country',
-            'language', 'hash_preserve', 'shuffle', 'constant', 'service'
+            'language', 'hash_preserve', 'shuffle', 'constant', 'service',
         ];
-        
+
         foreach ($types as $type) {
             $attribute = new AnonymizeProperty(type: $type);
             $this->assertEquals($type, $attribute->type, "Failed for type: {$type}");

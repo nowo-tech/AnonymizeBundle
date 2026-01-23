@@ -18,7 +18,6 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionProperty;
 
-
 /**
  * Test case for PreFlightCheckService.
  *

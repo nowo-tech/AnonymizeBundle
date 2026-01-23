@@ -43,13 +43,13 @@ class ExportDatabaseCommandTest extends TestCase
     public function testCommandConfiguration(): void
     {
         $definition = $this->command->getDefinition();
-        
+
         $this->assertTrue($definition->hasOption('connection'));
         $this->assertTrue($definition->hasOption('output-dir'));
         $this->assertTrue($definition->hasOption('filename-pattern'));
         $this->assertTrue($definition->hasOption('compression'));
         $this->assertTrue($definition->hasOption('no-gitignore'));
-        
+
         $compressionOption = $definition->getOption('compression');
         $this->assertEquals('gzip', $compressionOption->getDefault());
     }
@@ -82,21 +82,21 @@ class ExportDatabaseCommandTest extends TestCase
     public function testGetParameterBagReturnsParameterBag(): void
     {
         $parameterBag = $this->createMock(ParameterBagInterface::class);
-        
+
         $this->container->method('has')
             ->with('parameter_bag')
             ->willReturn(true);
         $this->container->method('get')
             ->with('parameter_bag')
             ->willReturn($parameterBag);
-        
+
         // Use reflection to test private method
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('getParameterBag');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->command);
-        
+
         $this->assertInstanceOf(ParameterBagInterface::class, $result);
     }
 
@@ -107,12 +107,12 @@ class ExportDatabaseCommandTest extends TestCase
     {
         $this->container->method('has')
             ->willReturn(false);
-        
+
         // Use reflection to test private method
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('getParameterBag');
         $method->setAccessible(true);
-        
+
         // Should return a ParameterBagInterface wrapper when parameter_bag is not available
         $result = $method->invoke($this->command);
         $this->assertInstanceOf(ParameterBagInterface::class, $result);
@@ -127,15 +127,15 @@ class ExportDatabaseCommandTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('formatBytes');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->command, 1024);
         $this->assertIsString($result);
         $this->assertStringContainsString('KB', $result);
-        
+
         $result = $method->invoke($this->command, 1024 * 1024);
         $this->assertIsString($result);
         $this->assertStringContainsString('MB', $result);
-        
+
         $result = $method->invoke($this->command, 1024 * 1024 * 1024);
         $this->assertIsString($result);
         $this->assertStringContainsString('GB', $result);
@@ -150,7 +150,7 @@ class ExportDatabaseCommandTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('formatBytes');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->command, 0);
         $this->assertIsString($result);
         $this->assertStringContainsString('0', $result);
@@ -165,7 +165,7 @@ class ExportDatabaseCommandTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('formatBytes');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->command, 1024 * 1024 * 1024 * 1024);
         $this->assertIsString($result);
         $this->assertStringContainsString('TB', $result);

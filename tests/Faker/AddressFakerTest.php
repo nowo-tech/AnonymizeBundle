@@ -82,7 +82,7 @@ class AddressFakerTest extends TestCase
     {
         $faker = new AddressFaker('en_US');
         $countries = ['ES', 'FR', 'DE', 'IT', 'GB'];
-        
+
         foreach ($countries as $country) {
             $address = $faker->generate(['country' => $country]);
             $this->assertIsString($address);

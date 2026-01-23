@@ -92,10 +92,10 @@ class EnvironmentProtectionServiceTest extends TestCase
     public function testPerformChecksDetectsProductionConfigFile(): void
     {
         $tempDir = sys_get_temp_dir() . '/anonymize_test_' . uniqid();
-        mkdir($tempDir, 0755, true);
-        mkdir($tempDir . '/config', 0755, true);
-        mkdir($tempDir . '/config/packages', 0755, true);
-        mkdir($tempDir . '/config/packages/prod', 0755, true);
+        mkdir($tempDir, 0o755, true);
+        mkdir($tempDir . '/config', 0o755, true);
+        mkdir($tempDir . '/config/packages', 0o755, true);
+        mkdir($tempDir . '/config/packages/prod', 0o755, true);
         file_put_contents($tempDir . '/config/packages/prod/nowo_anonymize.yaml', 'test');
 
         $parameterBag = $this->createMock(ParameterBagInterface::class);
@@ -130,16 +130,16 @@ class EnvironmentProtectionServiceTest extends TestCase
     public function testPerformChecksDetectsBundleRegisteredForProduction(): void
     {
         $tempDir = sys_get_temp_dir() . '/anonymize_test_' . uniqid();
-        mkdir($tempDir, 0755, true);
-        mkdir($tempDir . '/config', 0755, true);
-        
-        $bundlesContent = <<<'PHP'
-<?php
+        mkdir($tempDir, 0o755, true);
+        mkdir($tempDir . '/config', 0o755, true);
 
-return [
-    'Nowo\AnonymizeBundle\AnonymizeBundle' => ['all' => true, 'prod' => true],
-];
-PHP;
+        $bundlesContent = <<<'PHP'
+            <?php
+
+            return [
+                'Nowo\AnonymizeBundle\AnonymizeBundle' => ['all' => true, 'prod' => true],
+            ];
+            PHP;
         file_put_contents($tempDir . '/config/bundles.php', $bundlesContent);
 
         $parameterBag = $this->createMock(ParameterBagInterface::class);
@@ -236,8 +236,8 @@ PHP;
     public function testPerformChecksHandlesMissingBundlesFile(): void
     {
         $tempDir = sys_get_temp_dir() . '/anonymize_test_' . uniqid();
-        mkdir($tempDir, 0755, true);
-        mkdir($tempDir . '/config', 0755, true);
+        mkdir($tempDir, 0o755, true);
+        mkdir($tempDir . '/config', 0o755, true);
 
         $parameterBag = $this->createMock(ParameterBagInterface::class);
         $parameterBag->method('get')
@@ -267,16 +267,16 @@ PHP;
     public function testPerformChecksHandlesBundlesArrayFormat(): void
     {
         $tempDir = sys_get_temp_dir() . '/anonymize_test_' . uniqid();
-        mkdir($tempDir, 0755, true);
-        mkdir($tempDir . '/config', 0755, true);
-        
-        $bundlesContent = <<<'PHP'
-<?php
+        mkdir($tempDir, 0o755, true);
+        mkdir($tempDir . '/config', 0o755, true);
 
-return [
-    'Nowo\AnonymizeBundle\AnonymizeBundle' => ['all' => true],
-];
-PHP;
+        $bundlesContent = <<<'PHP'
+            <?php
+
+            return [
+                'Nowo\AnonymizeBundle\AnonymizeBundle' => ['all' => true],
+            ];
+            PHP;
         file_put_contents($tempDir . '/config/bundles.php', $bundlesContent);
 
         $parameterBag = $this->createMock(ParameterBagInterface::class);

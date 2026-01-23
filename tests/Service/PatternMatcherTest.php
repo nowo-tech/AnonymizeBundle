@@ -268,7 +268,7 @@ class PatternMatcherTest extends TestCase
         // The pattern 'A_B' without % is treated as exact match, not LIKE
         // For LIKE we need % wildcard
         $this->assertIsBool($result);
-        
+
         // Test with proper LIKE pattern
         $this->assertTrue($this->matcher->matches($record, ['code' => 'A%B']));
     }
@@ -320,10 +320,10 @@ class PatternMatcherTest extends TestCase
         $record = ['email' => 'test@example.com'];
         // Pattern with OR: 'example.com|test.com' - no % so it's OR, not LIKE
         $includePatterns = ['email' => 'example.com|test.com'];
-        
+
         // OR operator: 'test@example.com' contains 'example.com'
         $this->assertTrue($this->matcher->matches($record, $includePatterns));
-        
+
         // Test with LIKE pattern in OR (when option contains %)
         // Note: If pattern contains %, it's treated as LIKE, not OR
         // So we test OR with LIKE pattern in individual options
@@ -346,12 +346,12 @@ class PatternMatcherTest extends TestCase
         // 'active' != 'inactive' is true, so record matches
         $result = $this->matcher->matches($record, ['status' => '!=inactive']);
         $this->assertTrue($result, 'active should not equal inactive');
-        
+
         // Pattern '!=active' means: value != 'active'
         // 'active' == 'active' is true, so value == expected, return false (doesn't match)
         $result2 = $this->matcher->matches($record, ['status' => '!=active']);
         $this->assertFalse($result2, 'active should equal active, so pattern should not match');
-        
+
         // Test with different value
         $record2 = ['status' => 'pending'];
         $result3 = $this->matcher->matches($record2, ['status' => '!=active']);
@@ -392,7 +392,7 @@ class PatternMatcherTest extends TestCase
     {
         $record = ['status' => 'active'];
         $includePatterns = ['status' => 'active|pending'];
-        
+
         $this->assertTrue($this->matcher->matches($record, $includePatterns));
     }
 
@@ -403,7 +403,7 @@ class PatternMatcherTest extends TestCase
     {
         $record = ['email' => 'user@example.com'];
         $includePatterns = ['email' => 'example|test'];
-        
+
         // Should match because 'user@example.com' contains 'example'
         $this->assertTrue($this->matcher->matches($record, $includePatterns));
     }

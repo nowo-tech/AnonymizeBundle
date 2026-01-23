@@ -39,7 +39,7 @@ class SymfonyServiceTest extends TestCase
     {
         $reflection = new \ReflectionClass(SymfonyService::class);
         $constants = $reflection->getConstants();
-        
+
         $this->assertArrayHasKey('DOCTRINE', $constants);
         $this->assertEquals('doctrine', $constants['DOCTRINE']);
     }

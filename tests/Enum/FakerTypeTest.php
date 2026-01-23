@@ -91,7 +91,7 @@ class FakerTypeTest extends TestCase
         $cases = FakerType::cases();
         $this->assertIsArray($cases);
         $this->assertGreaterThan(0, count($cases));
-        
+
         // Verify all expected cases exist
         $expectedCases = [
             'EMAIL', 'NAME', 'SURNAME', 'AGE', 'PHONE', 'IBAN', 'CREDIT_CARD',
@@ -100,7 +100,7 @@ class FakerTypeTest extends TestCase
             'BOOLEAN', 'NUMERIC', 'FILE', 'JSON', 'TEXT', 'ENUM', 'COUNTRY',
             'LANGUAGE', 'HASH_PRESERVE', 'SHUFFLE', 'CONSTANT', 'SERVICE',
         ];
-        
+
         foreach ($expectedCases as $caseName) {
             $this->assertTrue(
                 in_array(constant("Nowo\\AnonymizeBundle\\Enum\\FakerType::$caseName"), $cases),

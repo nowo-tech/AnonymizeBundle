@@ -576,13 +576,13 @@ final class AnonymizeService
                 if ($targetMetadata->hasField($relatedField)) {
                     $relatedFieldMapping = $targetMetadata->getFieldMapping($relatedField);
                     $relatedColumnName = $relatedFieldMapping['columnName'] ?? $relatedField;
-                    
+
                     // Validate that we have valid identifiers before adding to SELECT
                     if (!empty($relatedColumnName) && !empty($alias)) {
                         $quotedAlias = DbalHelper::quoteIdentifier($connection, $alias);
                         $quotedColumn = DbalHelper::quoteIdentifier($connection, $relatedColumnName);
                         $quotedPattern = DbalHelper::quoteIdentifier($connection, $patternField);
-                        
+
                         // Only add if all quoted identifiers are non-empty
                         if (!empty($quotedAlias) && !empty($quotedColumn) && !empty($quotedPattern)) {
                             $selectFields[] = sprintf(
@@ -602,11 +602,11 @@ final class AnonymizeService
         // Build SELECT clause
         // Always start with main table fields - ensure it's properly quoted
         $mainTableSelect = DbalHelper::quoteIdentifier($connection, $mainTableAlias) . '.*';
-        
+
         // Build list of valid select fields
         // Start fresh and always include main table first
         $validSelectFields = [$mainTableSelect];
-        
+
         // Add related fields that are not empty and different from main table select
         foreach ($selectFields as $field) {
             $trimmed = trim($field);
@@ -614,7 +614,7 @@ final class AnonymizeService
                 $validSelectFields[] = $trimmed;
             }
         }
-        
+
         $selectClause = implode(', ', $validSelectFields);
 
         // Build FROM clause
@@ -644,7 +644,7 @@ final class AnonymizeService
             // If SELECT clause is malformed, use only main table fields
             $selectClause = $mainTableSelect;
         }
-        
+
         $query = sprintf('SELECT %s FROM %s', $selectClause, $fromClause);
         if (!empty($joinClauses)) {
             $query .= ' ' . implode(' ', $joinClauses);

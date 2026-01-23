@@ -149,11 +149,11 @@ class CoordinateFakerTest extends TestCase
     {
         $faker = new CoordinateFaker('en_US');
         $coords = [];
-        
+
         for ($i = 0; $i < 10; $i++) {
             $coords[] = $faker->generate();
         }
-        
+
         // Should have some variation
         $uniqueCoords = array_unique($coords);
         $this->assertGreaterThan(1, count($uniqueCoords));
