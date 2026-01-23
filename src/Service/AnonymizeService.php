@@ -425,7 +425,7 @@ final class AnonymizeService
                 // Convert to string for quote() method
                 $quotedValue = $connection->quote((string) $value);
             }
-            
+
             $set[] = sprintf(
                 '%s = %s',
                 DbalHelper::quoteIdentifier($connection, $column),
