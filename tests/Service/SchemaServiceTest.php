@@ -183,4 +183,27 @@ class SchemaServiceTest extends TestCase
 
         $this->assertFalse($result);
     }
+
+    /**
+     * Test that hasColumn returns false when table doesn't exist.
+     */
+    public function testHasColumnReturnsFalseWhenTableDoesNotExist(): void
+    {
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $schemaManager->method('tablesExist')->willReturn(false);
+
+        $connection = $this->createMock(Connection::class);
+        $connection->method('createSchemaManager')->willReturn($schemaManager);
+
+        $metadata = $this->createMock(ClassMetadata::class);
+        $metadata->method('getTableName')->willReturn('users');
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->method('getClassMetadata')->willReturn($metadata);
+        $em->method('getConnection')->willReturn($connection);
+
+        $result = $this->service->hasColumn($em, 'App\Entity\User', 'email');
+
+        $this->assertFalse($result);
+    }
 }

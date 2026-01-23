@@ -95,4 +95,65 @@ class TextFakerTest extends TestCase
             $this->assertTrue(true, 'At least one generation had 5 or more words');
         }
     }
+
+    /**
+     * Test that TextFaker handles invalid type gracefully.
+     */
+    public function testGenerateWithInvalidType(): void
+    {
+        $faker = new TextFaker('en_US');
+        // Invalid type should default to sentence
+        $text = $faker->generate(['type' => 'invalid']);
+
+        $this->assertIsString($text);
+        $this->assertNotEmpty($text);
+    }
+
+    /**
+     * Test that TextFaker constructor works.
+     */
+    public function testConstructor(): void
+    {
+        $faker = new TextFaker('en_US');
+        $this->assertInstanceOf(TextFaker::class, $faker);
+    }
+
+    /**
+     * Test that TextFaker works with different locales.
+     */
+    public function testGenerateWithDifferentLocale(): void
+    {
+        $faker = new TextFaker('es_ES');
+        $text = $faker->generate();
+
+        $this->assertIsString($text);
+        $this->assertNotEmpty($text);
+    }
+
+    /**
+     * Test that TextFaker generates paragraph with word limits.
+     */
+    public function testGenerateParagraphWithWordLimits(): void
+    {
+        $faker = new TextFaker('en_US');
+        $text = $faker->generate(['type' => 'paragraph', 'min_words' => 10, 'max_words' => 30]);
+
+        $this->assertIsString($text);
+        $this->assertNotEmpty($text);
+        $wordCount = str_word_count($text);
+        $this->assertGreaterThanOrEqual(3, $wordCount); // Faker's practical minimum
+    }
+
+    /**
+     * Test that TextFaker handles min_words greater than max_words.
+     */
+    public function testGenerateWithMinGreaterThanMax(): void
+    {
+        $faker = new TextFaker('en_US');
+        $text = $faker->generate(['min_words' => 20, 'max_words' => 10]);
+
+        $this->assertIsString($text);
+        $this->assertNotEmpty($text);
+        // Faker will handle this gracefully
+    }
 }

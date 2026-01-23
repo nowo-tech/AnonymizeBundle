@@ -80,4 +80,78 @@ class EmailFakerTest extends TestCase
         $this->assertCount(2, $parts);
         $this->assertLessThanOrEqual(10, strlen($parts[0]));
     }
+
+    /**
+     * Test that EmailFaker handles invalid format option gracefully.
+     */
+    public function testGenerateWithInvalidFormat(): void
+    {
+        $faker = new EmailFaker('en_US');
+        $email = $faker->generate(['format' => 'invalid_format']);
+
+        $this->assertIsString($email);
+        $this->assertStringContainsString('@', $email);
+        $this->assertMatchesRegularExpression('/^[^\s@]+@[^\s@]+\.[^\s@]+$/', $email);
+    }
+
+    /**
+     * Test that EmailFaker handles local_part_length when part is shorter.
+     */
+    public function testGenerateWithLocalPartLengthPadding(): void
+    {
+        $faker = new EmailFaker('en_US');
+        // Use a smaller length to avoid exceeding mt_getrandmax()
+        $email = $faker->generate(['local_part_length' => 10, 'format' => 'name.surname']);
+
+        $this->assertIsString($email);
+        $parts = explode('@', $email);
+        $this->assertCount(2, $parts);
+        // Should pad if shorter, but not exceed the specified length
+        $this->assertLessThanOrEqual(10, strlen($parts[0]));
+        $this->assertGreaterThanOrEqual(5, strlen($parts[0]));
+    }
+
+    /**
+     * Test that EmailFaker handles zero local_part_length.
+     */
+    public function testGenerateWithZeroLocalPartLength(): void
+    {
+        $faker = new EmailFaker('en_US');
+        $email = $faker->generate(['local_part_length' => 0]);
+
+        $this->assertIsString($email);
+        $this->assertStringContainsString('@', $email);
+        // Should generate normally when length is 0 or negative
+        $parts = explode('@', $email);
+        $this->assertGreaterThan(0, strlen($parts[0]));
+    }
+
+    /**
+     * Test that EmailFaker handles negative local_part_length.
+     */
+    public function testGenerateWithNegativeLocalPartLength(): void
+    {
+        $faker = new EmailFaker('en_US');
+        $email = $faker->generate(['local_part_length' => -5]);
+
+        $this->assertIsString($email);
+        $this->assertStringContainsString('@', $email);
+        // Should generate normally when length is negative
+        $parts = explode('@', $email);
+        $this->assertGreaterThan(0, strlen($parts[0]));
+    }
+
+    /**
+     * Test that EmailFaker combines domain and format options.
+     */
+    public function testGenerateWithDomainAndFormat(): void
+    {
+        $faker = new EmailFaker('en_US');
+        $email = $faker->generate(['domain' => 'test.com', 'format' => 'name.surname']);
+
+        $this->assertIsString($email);
+        $this->assertStringEndsWith('@test.com', $email);
+        $parts = explode('@', $email);
+        $this->assertStringContainsString('.', $parts[0]);
+    }
 }

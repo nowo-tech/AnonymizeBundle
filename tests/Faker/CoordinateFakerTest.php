@@ -99,4 +99,84 @@ class CoordinateFakerTest extends TestCase
         $this->assertGreaterThanOrEqual(-5.0, $coords['longitude']);
         $this->assertLessThanOrEqual(5.0, $coords['longitude']);
     }
+
+    /**
+     * Test that CoordinateFaker handles invalid format gracefully.
+     */
+    public function testGenerateWithInvalidFormat(): void
+    {
+        $faker = new CoordinateFaker('en_US');
+        // Invalid format should default to string
+        $coords = $faker->generate(['format' => 'invalid']);
+
+        $this->assertIsString($coords);
+        $this->assertStringContainsString(',', $coords);
+    }
+
+    /**
+     * Test that CoordinateFaker handles zero precision.
+     */
+    public function testGenerateWithZeroPrecision(): void
+    {
+        $faker = new CoordinateFaker('en_US');
+        $coords = $faker->generate(['precision' => 0]);
+
+        $this->assertIsString($coords);
+        $parts = explode(',', $coords);
+        $this->assertCount(2, $parts);
+        // With precision 0, should be whole numbers
+        $this->assertStringNotContainsString('.', $parts[0]);
+        $this->assertStringNotContainsString('.', $parts[1]);
+    }
+
+    /**
+     * Test that CoordinateFaker handles high precision.
+     */
+    public function testGenerateWithHighPrecision(): void
+    {
+        $faker = new CoordinateFaker('en_US');
+        $coords = $faker->generate(['precision' => 10]);
+
+        $this->assertIsString($coords);
+        $parts = explode(',', $coords);
+        $this->assertCount(2, $parts);
+    }
+
+    /**
+     * Test that CoordinateFaker generates different coordinates.
+     */
+    public function testGenerateDifferentCoordinates(): void
+    {
+        $faker = new CoordinateFaker('en_US');
+        $coords = [];
+        
+        for ($i = 0; $i < 10; $i++) {
+            $coords[] = $faker->generate();
+        }
+        
+        // Should have some variation
+        $uniqueCoords = array_unique($coords);
+        $this->assertGreaterThan(1, count($uniqueCoords));
+    }
+
+    /**
+     * Test that CoordinateFaker constructor works.
+     */
+    public function testConstructor(): void
+    {
+        $faker = new CoordinateFaker('en_US');
+        $this->assertInstanceOf(CoordinateFaker::class, $faker);
+    }
+
+    /**
+     * Test that CoordinateFaker works with different locales.
+     */
+    public function testGenerateWithDifferentLocale(): void
+    {
+        $faker = new CoordinateFaker('es_ES');
+        $coords = $faker->generate();
+
+        $this->assertIsString($coords);
+        $this->assertStringContainsString(',', $coords);
+    }
 }

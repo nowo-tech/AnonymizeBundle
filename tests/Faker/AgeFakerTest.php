@@ -91,4 +91,70 @@ class AgeFakerTest extends TestCase
         $this->assertGreaterThanOrEqual(30, $age);
         $this->assertLessThanOrEqual(70, $age);
     }
+
+    /**
+     * Test that AgeFaker handles min equal to max.
+     */
+    public function testGenerateWithMinEqualMax(): void
+    {
+        $faker = new AgeFaker('en_US');
+        $age = $faker->generate(['min' => 25, 'max' => 25]);
+
+        $this->assertEquals(25, $age);
+    }
+
+    /**
+     * Test that AgeFaker handles invalid distribution gracefully.
+     */
+    public function testGenerateWithInvalidDistribution(): void
+    {
+        $faker = new AgeFaker('en_US');
+        // Invalid distribution should default to uniform
+        $age = $faker->generate(['distribution' => 'invalid', 'min' => 20, 'max' => 30]);
+
+        $this->assertIsInt($age);
+        $this->assertGreaterThanOrEqual(20, $age);
+        $this->assertLessThanOrEqual(30, $age);
+    }
+
+    /**
+     * Test that AgeFaker handles normal distribution with extreme values.
+     */
+    public function testGenerateNormalWithExtremeValues(): void
+    {
+        $faker = new AgeFaker('en_US');
+        $age = $faker->generate([
+            'distribution' => 'normal',
+            'mean' => 100,
+            'std_dev' => 50,
+            'min' => 0,
+            'max' => 150,
+        ]);
+
+        $this->assertIsInt($age);
+        $this->assertGreaterThanOrEqual(0, $age);
+        $this->assertLessThanOrEqual(150, $age);
+    }
+
+    /**
+     * Test that AgeFaker constructor works.
+     */
+    public function testConstructor(): void
+    {
+        $faker = new AgeFaker('en_US');
+        $this->assertInstanceOf(AgeFaker::class, $faker);
+    }
+
+    /**
+     * Test that AgeFaker works with different locales.
+     */
+    public function testGenerateWithDifferentLocale(): void
+    {
+        $faker = new AgeFaker('es_ES');
+        $age = $faker->generate();
+
+        $this->assertIsInt($age);
+        $this->assertGreaterThanOrEqual(18, $age);
+        $this->assertLessThanOrEqual(100, $age);
+    }
 }

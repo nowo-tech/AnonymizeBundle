@@ -444,16 +444,22 @@ final class AnonymizeCommand extends AbstractCommand
     }
 
     /**
-     * Processes a single Doctrine entity manager.
+     * Processes anonymization for a specific entity manager connection.
      *
-     * @param SymfonyStyle $io The I/O helper
+     * @param SymfonyStyle $io The Symfony style output
      * @param EntityManagerInterface $em The entity manager
      * @param AnonymizeService $anonymizeService The anonymize service
-     * @param int $batchSize The batch size
-     * @param bool $dryRun If true, only show what would be anonymized
+     * @param int $batchSize The batch size for processing records
+     * @param bool $dryRun If true, only show what would be anonymized without making changes
      * @param string $managerName The entity manager name
      * @param AnonymizeStatistics $statistics The statistics collector
      * @param bool $statsOnly If true, only collect statistics without output
+     * @param InputInterface|null $input The input interface (for interactive mode)
+     * @param OutputInterface|null $output The output interface (for interactive mode)
+     * @param bool $verbose If true, enable verbose output
+     * @param bool $debug If true, enable debug output
+     * @param bool $interactive If true, enable interactive mode with confirmations
+     * @return void
      */
     private function processConnection(
         SymfonyStyle $io,
@@ -684,13 +690,14 @@ final class AnonymizeCommand extends AbstractCommand
     }
 
     /**
-     * Displays anonymization statistics.
+     * Displays anonymization statistics and optionally exports them to files.
      *
-     * @param SymfonyStyle $io The I/O helper
-     * @param AnonymizeStatistics $statistics The statistics
-     * @param bool $statsOnly If true, show only statistics
-     * @param string|null $statsJson Path to export JSON statistics
-     * @param string|null $statsCsv Path to export CSV statistics
+     * @param SymfonyStyle $io The Symfony style output
+     * @param AnonymizeStatistics $statistics The statistics collector
+     * @param bool $statsOnly If true, show only statistics summary
+     * @param string|null $statsJson Path to export JSON statistics file
+     * @param string|null $statsCsv Path to export CSV statistics file
+     * @return void
      */
     private function displayStatistics(
         SymfonyStyle $io,
@@ -795,11 +802,11 @@ final class AnonymizeCommand extends AbstractCommand
     }
 
     /**
-     * Gets a parameter from the container.
+     * Gets a parameter value from the container.
      *
      * @param string $name The parameter name
      * @param mixed $default The default value if parameter doesn't exist
-     * @return mixed The parameter value
+     * @return mixed The parameter value or default if not found
      */
     private function getParameter(string $name, mixed $default = null): mixed
     {

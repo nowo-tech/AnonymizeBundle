@@ -16,9 +16,21 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 final class AnonymizationHistoryService
 {
+    /**
+     * @var Filesystem The filesystem service for file operations
+     */
     private Filesystem $filesystem;
+
+    /**
+     * @var string The directory where anonymization history is stored
+     */
     private string $historyDir;
 
+    /**
+     * Creates a new AnonymizationHistoryService instance.
+     *
+     * @param string $historyDir The directory where anonymization history is stored
+     */
     public function __construct(string $historyDir)
     {
         $this->filesystem = new Filesystem();
@@ -226,7 +238,9 @@ final class AnonymizationHistoryService
     }
 
     /**
-     * Generate a unique run ID.
+     * Generates a unique run ID.
+     *
+     * @return string A unique 12-character hexadecimal run ID
      */
     private function generateRunId(): string
     {
@@ -234,9 +248,10 @@ final class AnonymizationHistoryService
     }
 
     /**
-     * Update the index file.
+     * Updates the index file with a new history entry.
      *
      * @param array<string, mixed> $entry The history entry to add
+     * @return void
      */
     private function updateIndex(array $entry): void
     {
@@ -276,7 +291,11 @@ final class AnonymizationHistoryService
     }
 
     /**
-     * Rebuild the index from existing files.
+     * Rebuilds the index file from existing history files.
+     *
+     * Scans the history directory for all run files and rebuilds the index.json file.
+     *
+     * @return void
      */
     private function rebuildIndex(): void
     {
@@ -385,7 +404,9 @@ final class AnonymizationHistoryService
     }
 
     /**
-     * Get Symfony version.
+     * Gets the Symfony version.
+     *
+     * @return string The Symfony version string, or 'unknown' if not available
      */
     private function getSymfonyVersion(): string
     {

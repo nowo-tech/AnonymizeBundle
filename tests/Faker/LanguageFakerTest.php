@@ -49,5 +49,42 @@ class LanguageFakerTest extends TestCase
 
         $this->assertIsString($language);
         $this->assertNotEmpty($language);
+        $this->assertStringContainsString('(name)', $language);
+    }
+
+    /**
+     * Test that LanguageFaker respects locale option.
+     */
+    public function testGenerateWithLocale(): void
+    {
+        $faker = new LanguageFaker('en_US');
+        $language = $faker->generate(['locale' => 'es_ES']);
+
+        $this->assertIsString($language);
+        $this->assertNotEmpty($language);
+    }
+
+    /**
+     * Test that LanguageFaker handles invalid format gracefully.
+     */
+    public function testGenerateWithInvalidFormat(): void
+    {
+        $faker = new LanguageFaker('en_US');
+        $language = $faker->generate(['format' => 'invalid']);
+
+        $this->assertIsString($language);
+        $this->assertNotEmpty($language);
+    }
+
+    /**
+     * Test that LanguageFaker combines format and locale options.
+     */
+    public function testGenerateWithFormatAndLocale(): void
+    {
+        $faker = new LanguageFaker('en_US');
+        $language = $faker->generate(['format' => 'name', 'locale' => 'fr_FR']);
+
+        $this->assertIsString($language);
+        $this->assertNotEmpty($language);
     }
 }

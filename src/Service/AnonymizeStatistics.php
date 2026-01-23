@@ -13,12 +13,12 @@ namespace Nowo\AnonymizeBundle\Service;
 final class AnonymizeStatistics
 {
     /**
-     * @var array<string, array{entity: string, connection: string, processed: int, updated: int, properties: array<string, int>}>
+     * @var array<string, array{entity: string, connection: string, processed: int, updated: int, skipped: int, properties: array<string, int>}> Entity-level statistics
      */
     private array $entityStats = [];
 
     /**
-     * @var array<string, int> Global statistics
+     * @var array<string, int|float> Global statistics (total_entities, total_processed, total_updated, total_skipped, start_time, end_time, duration)
      */
     private array $globalStats = [
         'total_entities' => 0,

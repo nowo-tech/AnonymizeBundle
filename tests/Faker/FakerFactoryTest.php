@@ -388,10 +388,146 @@ class FakerFactoryTest extends TestCase
      */
     public function testCreateServiceFaker(): void
     {
-        $container = $this->createMock(ContainerInterface::class);
+        $container = $this->createMock(\Psr\Container\ContainerInterface::class);
         $factory = new FakerFactory('en_US', $container);
         $faker = $factory->create('service', 'test_service');
 
         $this->assertInstanceOf(FakerInterface::class, $faker);
+    }
+
+    /**
+     * Test that create uses container when available.
+     */
+    public function testCreateUsesContainerWhenAvailable(): void
+    {
+        $mockFaker = $this->createMock(FakerInterface::class);
+        $mockFaker->method('generate')
+            ->willReturn('container_value');
+
+        $container = $this->createMock(\Psr\Container\ContainerInterface::class);
+        $container->method('has')
+            ->with('nowo_anonymize.faker.email')
+            ->willReturn(true);
+        $container->method('get')
+            ->with('nowo_anonymize.faker.email')
+            ->willReturn($mockFaker);
+
+        $factory = new FakerFactory('en_US', $container);
+        $faker = $factory->create('email');
+
+        $this->assertSame($mockFaker, $faker);
+    }
+
+    /**
+     * Test that create falls back to direct instantiation when container doesn't have service.
+     */
+    public function testCreateFallsBackWhenContainerDoesNotHaveService(): void
+    {
+        $container = $this->createMock(\Psr\Container\ContainerInterface::class);
+        $container->method('has')
+            ->with('nowo_anonymize.faker.email')
+            ->willReturn(false);
+
+        $factory = new FakerFactory('en_US', $container);
+        $faker = $factory->create('email');
+
+        $this->assertInstanceOf(\Nowo\AnonymizeBundle\Faker\EmailFaker::class, $faker);
+    }
+
+    /**
+     * Test that create accepts FakerType enum.
+     */
+    public function testCreateAcceptsFakerTypeEnum(): void
+    {
+        $factory = new FakerFactory('en_US');
+        $faker = $factory->create(FakerType::EMAIL);
+
+        $this->assertInstanceOf(\Nowo\AnonymizeBundle\Faker\EmailFaker::class, $faker);
+    }
+
+    /**
+     * Test that create handles service type with service name.
+     */
+    public function testCreateHandlesServiceTypeWithServiceName(): void
+    {
+        $container = $this->createMock(\Psr\Container\ContainerInterface::class);
+        $factory = new FakerFactory('en_US', $container);
+        $faker = $factory->create('service', 'custom_service');
+
+        $this->assertInstanceOf(\Nowo\AnonymizeBundle\Faker\ServiceFaker::class, $faker);
+    }
+
+    /**
+     * Test that create handles all faker types from container when available.
+     */
+    public function testCreateAllTypesFromContainer(): void
+    {
+        $mockFaker = $this->createMock(FakerInterface::class);
+        $container = $this->createMock(\Psr\Container\ContainerInterface::class);
+        
+        $container->method('has')
+            ->willReturn(true);
+        $container->method('get')
+            ->willReturn($mockFaker);
+
+        $factory = new FakerFactory('en_US', $container);
+        
+        $types = ['email', 'name', 'surname', 'age', 'phone', 'iban', 'credit_card', 
+                  'address', 'date', 'username', 'url', 'company', 'masking', 'password',
+                  'ip_address', 'mac_address', 'uuid', 'hash', 'coordinate', 'color',
+                  'boolean', 'numeric', 'file', 'json', 'text', 'enum', 'country', 
+                  'language', 'hash_preserve', 'shuffle', 'constant'];
+        
+        foreach ($types as $type) {
+            $faker = $factory->create($type);
+            $this->assertInstanceOf(FakerInterface::class, $faker);
+        }
+    }
+
+    /**
+     * Test that create handles container exception gracefully.
+     */
+    public function testCreateHandlesContainerException(): void
+    {
+        $container = $this->createMock(\Psr\Container\ContainerInterface::class);
+        $container->method('has')
+            ->with('nowo_anonymize.faker.email')
+            ->willReturn(true);
+        
+        $exception = $this->createMock(\Psr\Container\ContainerExceptionInterface::class);
+        $container->method('get')
+            ->with('nowo_anonymize.faker.email')
+            ->willThrowException($exception);
+
+        $factory = new FakerFactory('en_US', $container);
+        
+        // When container throws exception, it should propagate
+        // The factory doesn't catch exceptions from container
+        $this->expectException(\Psr\Container\ContainerExceptionInterface::class);
+        $factory->create('email');
+    }
+
+    /**
+     * Test that create uses different locale when provided.
+     */
+    public function testCreateUsesLocale(): void
+    {
+        $factory = new FakerFactory('es_ES');
+        $faker = $factory->create('email');
+        
+        $this->assertInstanceOf(\Nowo\AnonymizeBundle\Faker\EmailFaker::class, $faker);
+    }
+
+    /**
+     * Test that create handles service type without container.
+     */
+    public function testCreateServiceTypeWithoutContainer(): void
+    {
+        // ServiceFaker requires a container, so we need to provide one
+        $container = $this->createMock(\Psr\Container\ContainerInterface::class);
+        $factory = new FakerFactory('en_US', $container);
+        $faker = $factory->create('service', 'test_service');
+        
+        $this->assertInstanceOf(\Nowo\AnonymizeBundle\Faker\ServiceFaker::class, $faker);
     }
 }

@@ -67,4 +67,70 @@ class ColorFakerTest extends TestCase
         $this->assertIsString($color);
         $this->assertStringContainsString('0.50', $color);
     }
+
+    /**
+     * Test that ColorFaker handles different alpha values.
+     */
+    public function testGenerateWithDifferentAlphaValues(): void
+    {
+        $faker = new ColorFaker('en_US');
+        $alphaValues = [0.0, 0.25, 0.5, 0.75, 1.0];
+        
+        foreach ($alphaValues as $alpha) {
+            $color = $faker->generate(['format' => 'rgba', 'alpha' => $alpha]);
+            $this->assertIsString($color);
+            $this->assertStringStartsWith('rgba(', $color);
+        }
+    }
+
+    /**
+     * Test that ColorFaker handles invalid format gracefully.
+     */
+    public function testGenerateWithInvalidFormat(): void
+    {
+        $faker = new ColorFaker('en_US');
+        // Invalid format should default to hex
+        $color = $faker->generate(['format' => 'invalid']);
+
+        $this->assertIsString($color);
+        $this->assertStringStartsWith('#', $color);
+    }
+
+    /**
+     * Test that ColorFaker constructor works.
+     */
+    public function testConstructor(): void
+    {
+        $faker = new ColorFaker('en_US');
+        $this->assertInstanceOf(ColorFaker::class, $faker);
+    }
+
+    /**
+     * Test that ColorFaker works with different locales.
+     */
+    public function testGenerateWithDifferentLocale(): void
+    {
+        $faker = new ColorFaker('es_ES');
+        $color = $faker->generate();
+
+        $this->assertIsString($color);
+        $this->assertStringStartsWith('#', $color);
+    }
+
+    /**
+     * Test that ColorFaker generates different colors.
+     */
+    public function testGenerateDifferentColors(): void
+    {
+        $faker = new ColorFaker('en_US');
+        $colors = [];
+        
+        for ($i = 0; $i < 10; $i++) {
+            $colors[] = $faker->generate();
+        }
+        
+        // Should have some variation
+        $uniqueColors = array_unique($colors);
+        $this->assertGreaterThan(1, count($uniqueColors));
+    }
 }

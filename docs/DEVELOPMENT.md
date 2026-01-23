@@ -42,11 +42,11 @@ The bundle includes comprehensive tests. All tests are located in the `tests/` d
 
 ### Test Statistics
 
-- **Total Tests**: 216 tests
-- **Total Assertions**: 512 assertions
-- **Code Coverage**: 45.80% line coverage (414/904 lines)
-- **Class Coverage**: 52.78% (19/36 classes)
-- **Method Coverage**: 62.37% (58/93 methods)
+- **Total Tests**: ~285 tests
+- **Total Assertions**: ~720 assertions
+- **Code Coverage**: 33.55% line coverage (976/2909 lines)
+- **Class Coverage**: 41.67% (25/60 classes)
+- **Method Coverage**: 40.18% (90/224 methods)
 
 ### Running Tests
 

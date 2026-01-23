@@ -23,7 +23,7 @@ class MaskingFakerTest extends TestCase
         $faker = new MaskingFaker();
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('MaskingFaker requires a "value" option with the original value to mask.');
+        $this->expectExceptionMessage('MaskingFaker requires an "original_value" (or "value") option with the original value to mask.');
 
         $faker->generate();
     }
@@ -101,5 +101,102 @@ class MaskingFakerTest extends TestCase
         $this->assertIsString($masked);
         $this->assertEquals(2, strlen($masked));
         $this->assertEquals('**', $masked);
+    }
+
+    /**
+     * Test that MaskingFaker uses original_value option.
+     */
+    public function testGenerateWithOriginalValue(): void
+    {
+        $faker = new MaskingFaker();
+        $masked1 = $faker->generate(['original_value' => '1234567890']);
+        $masked2 = $faker->generate(['value' => '1234567890']);
+
+        $this->assertEquals($masked1, $masked2);
+    }
+
+    /**
+     * Test that MaskingFaker throws exception when value is not a string.
+     */
+    public function testGenerateThrowsExceptionWhenValueNotString(): void
+    {
+        $faker = new MaskingFaker();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('MaskingFaker requires an "original_value" (or "value") option with the original value to mask.');
+
+        $faker->generate(['value' => 12345]);
+    }
+
+    /**
+     * Test that MaskingFaker handles preserve_start and preserve_end together.
+     */
+    public function testGenerateWithPreserveStartAndEnd(): void
+    {
+        $faker = new MaskingFaker();
+        $masked = $faker->generate(['value' => '1234567890', 'preserve_start' => 2, 'preserve_end' => 2]);
+
+        $this->assertIsString($masked);
+        $this->assertStringStartsWith('12', $masked);
+        $this->assertStringEndsWith('90', $masked);
+        $this->assertEquals(10, strlen($masked));
+    }
+
+    /**
+     * Test that MaskingFaker handles zero preserve_start.
+     */
+    public function testGenerateWithZeroPreserveStart(): void
+    {
+        $faker = new MaskingFaker();
+        $masked = $faker->generate(['value' => '1234567890', 'preserve_start' => 0, 'preserve_end' => 2]);
+
+        $this->assertIsString($masked);
+        $this->assertStringEndsWith('90', $masked);
+        $this->assertStringStartsWith('*', $masked);
+    }
+
+    /**
+     * Test that MaskingFaker handles mask_length shorter than calculated.
+     */
+    public function testGenerateWithShorterMaskLength(): void
+    {
+        $faker = new MaskingFaker();
+        $masked = $faker->generate(['value' => '1234567890', 'preserve_start' => 1, 'preserve_end' => 1, 'mask_length' => 3]);
+
+        $this->assertIsString($masked);
+        $this->assertEquals(5, strlen($masked)); // 1 + 3 + 1
+    }
+
+    /**
+     * Test that MaskingFaker handles mask_length longer than calculated.
+     */
+    public function testGenerateWithLongerMaskLength(): void
+    {
+        $faker = new MaskingFaker();
+        $masked = $faker->generate(['value' => '1234567890', 'preserve_start' => 1, 'preserve_end' => 1, 'mask_length' => 20]);
+
+        $this->assertIsString($masked);
+        $this->assertEquals(22, strlen($masked)); // 1 + 20 + 1
+    }
+
+    /**
+     * Test that MaskingFaker handles single character value.
+     */
+    public function testGenerateWithSingleCharacter(): void
+    {
+        $faker = new MaskingFaker();
+        $masked = $faker->generate(['value' => 'A']);
+
+        $this->assertIsString($masked);
+        $this->assertEquals('*', $masked);
+    }
+
+    /**
+     * Test that MaskingFaker constructor works.
+     */
+    public function testConstructor(): void
+    {
+        $faker = new MaskingFaker();
+        $this->assertInstanceOf(MaskingFaker::class, $faker);
     }
 }

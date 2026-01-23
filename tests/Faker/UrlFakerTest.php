@@ -69,4 +69,73 @@ class UrlFakerTest extends TestCase
             $this->assertEmpty($parsed['path'] ?? '');
         }
     }
+
+    /**
+     * Test that UrlFaker combines scheme and domain options.
+     */
+    public function testGenerateWithSchemeAndDomain(): void
+    {
+        $faker = new UrlFaker('en_US');
+        $url = $faker->generate(['scheme' => 'http', 'domain' => 'example.com']);
+
+        $this->assertIsString($url);
+        $this->assertStringStartsWith('http://example.com', $url);
+    }
+
+    /**
+     * Test that UrlFaker combines domain and path options.
+     */
+    public function testGenerateWithDomainAndPath(): void
+    {
+        $faker = new UrlFaker('en_US');
+        $url = $faker->generate(['domain' => 'example.com', 'path' => true]);
+
+        $this->assertIsString($url);
+        $this->assertStringContainsString('example.com', $url);
+    }
+
+    /**
+     * Test that UrlFaker combines domain and path false options.
+     */
+    public function testGenerateWithDomainAndPathFalse(): void
+    {
+        $faker = new UrlFaker('en_US');
+        $url = $faker->generate(['domain' => 'example.com', 'path' => false]);
+
+        $this->assertIsString($url);
+        $this->assertEquals('https://example.com', $url);
+    }
+
+    /**
+     * Test that UrlFaker constructor works.
+     */
+    public function testConstructor(): void
+    {
+        $faker = new UrlFaker('en_US');
+        $this->assertInstanceOf(UrlFaker::class, $faker);
+    }
+
+    /**
+     * Test that UrlFaker works with different locales.
+     */
+    public function testGenerateWithDifferentLocale(): void
+    {
+        $faker = new UrlFaker('es_ES');
+        $url = $faker->generate();
+
+        $this->assertIsString($url);
+        $this->assertStringStartsWith('http', $url);
+    }
+
+    /**
+     * Test that UrlFaker handles custom scheme.
+     */
+    public function testGenerateWithCustomScheme(): void
+    {
+        $faker = new UrlFaker('en_US');
+        $url = $faker->generate(['scheme' => 'ftp', 'domain' => 'example.com']);
+
+        $this->assertIsString($url);
+        $this->assertStringStartsWith('ftp://example.com', $url);
+    }
 }

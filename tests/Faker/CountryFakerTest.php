@@ -64,4 +64,81 @@ class CountryFakerTest extends TestCase
         $this->assertNotEmpty($country);
         $this->assertEquals(3, strlen($country));
     }
+
+    /**
+     * Test that CountryFaker handles default format (code).
+     */
+    public function testGenerateWithCodeFormat(): void
+    {
+        $faker = new CountryFaker('en_US');
+        $country = $faker->generate(['format' => 'code']);
+
+        $this->assertIsString($country);
+        $this->assertNotEmpty($country);
+        $this->assertEquals(2, strlen($country));
+    }
+
+    /**
+     * Test that CountryFaker handles unknown format gracefully.
+     */
+    public function testGenerateWithUnknownFormat(): void
+    {
+        $faker = new CountryFaker('en_US');
+        $country = $faker->generate(['format' => 'unknown']);
+
+        $this->assertIsString($country);
+        $this->assertNotEmpty($country);
+        // Should default to countryCode
+        $this->assertEquals(2, strlen($country));
+    }
+
+    /**
+     * Test that CountryFaker respects locale option.
+     */
+    public function testGenerateWithLocale(): void
+    {
+        $faker = new CountryFaker('en_US');
+        $country = $faker->generate(['format' => 'name', 'locale' => 'es_ES']);
+
+        $this->assertIsString($country);
+        $this->assertNotEmpty($country);
+    }
+
+    /**
+     * Test that CountryFaker constructor works.
+     */
+    public function testConstructor(): void
+    {
+        $faker = new CountryFaker('en_US');
+        $this->assertInstanceOf(CountryFaker::class, $faker);
+    }
+
+    /**
+     * Test that CountryFaker works with different locales.
+     */
+    public function testGenerateWithDifferentLocale(): void
+    {
+        $faker = new CountryFaker('es_ES');
+        $country = $faker->generate();
+
+        $this->assertIsString($country);
+        $this->assertNotEmpty($country);
+    }
+
+    /**
+     * Test that CountryFaker generates different countries.
+     */
+    public function testGenerateDifferentCountries(): void
+    {
+        $faker = new CountryFaker('en_US');
+        $countries = [];
+        
+        for ($i = 0; $i < 10; $i++) {
+            $countries[] = $faker->generate();
+        }
+        
+        // Should have some variation
+        $uniqueCountries = array_unique($countries);
+        $this->assertGreaterThan(1, count($uniqueCountries));
+    }
 }

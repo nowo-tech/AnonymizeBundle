@@ -1,12 +1,15 @@
 #!/bin/bash
 
 # Script to test all bundle commands in the demos
-# Usage: ./test-commands.sh [demo-symfony6|demo-symfony7|demo-symfony8|all]
+# Usage: ./scripts/test-commands.sh [demo-symfony6|demo-symfony7|demo-symfony8|all]
+#        or from scripts/ directory: ./test-commands.sh [demo-symfony6|demo-symfony7|demo-symfony8|all]
 
 set +e  # Don't exit on error, we want to continue testing
 
 DEMO=${1:-all}
-BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Get the directory where the script is located, then go up one level to get the project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Colors
 GREEN='\033[0;32m'
@@ -14,18 +17,45 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Commands to test
+# Commands to test - covering all commands with their main options
 COMMANDS=(
+    # nowo:anonymize:info - Test all connections and options
+    "nowo:anonymize:info"
     "nowo:anonymize:info --connection default"
     "nowo:anonymize:info --connection postgres"
     "nowo:anonymize:info --connection sqlite"
+    "nowo:anonymize:info --connection default --locale es_ES"
+    "nowo:anonymize:info --connection default --verbose"
+    
+    # nowo:anonymize:run - Test dry-run with all connections
     "nowo:anonymize:run --connection default --dry-run"
     "nowo:anonymize:run --connection postgres --dry-run"
     "nowo:anonymize:run --connection sqlite --dry-run"
+    "nowo:anonymize:run --connection default --dry-run --batch-size 50"
+    "nowo:anonymize:run --connection default --dry-run --locale es_ES"
+    "nowo:anonymize:run --connection default --dry-run --verbose"
+    
+    # nowo:anonymize:history - Test history commands
+    "nowo:anonymize:history"
     "nowo:anonymize:history --limit 5"
+    "nowo:anonymize:history --connection default"
+    "nowo:anonymize:history --limit 10 --connection default"
+    
+    # nowo:anonymize:export-db - Test export with all connections (no dry-run option)
     "nowo:anonymize:export-db --connection default"
+    "nowo:anonymize:export-db --connection postgres"
+    "nowo:anonymize:export-db --connection sqlite"
+    "nowo:anonymize:export-db --connection mongodb"
+    
+    # nowo:anonymize:generate-column-migration - Test migration generation
+    "nowo:anonymize:generate-column-migration"
     "nowo:anonymize:generate-column-migration --connection default"
+    "nowo:anonymize:generate-column-migration --connection postgres"
+    "nowo:anonymize:generate-column-migration --connection sqlite"
+    
+    # nowo:anonymize:generate-mongo-field - Test MongoDB field generation
     "nowo:anonymize:generate-mongo-field --scan-documents"
+    "nowo:anonymize:generate-mongo-field --collection user_activities"
 )
 
 test_command() {

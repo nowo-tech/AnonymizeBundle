@@ -149,7 +149,22 @@ See [FAKERS.md](docs/FAKERS.md) for complete list and configuration options.
 - [Configuration Guide](docs/CONFIGURATION.md) - Detailed configuration options
 - [Installation Guide](docs/INSTALLATION.md) - Step-by-step installation instructions
 - [Upgrade Guide](docs/UPGRADING.md) - Instructions for upgrading between versions
+- [Testing Guide](docs/TESTING_COMMANDS.md) - How to test all commands with all options
 - [Development Guide](docs/DEVELOPMENT.md) - Development setup, testing, and code quality
+
+## Testing
+
+The bundle includes a comprehensive testing script to verify all commands work correctly:
+
+```bash
+# Test all commands in all demos
+./scripts/test-commands.sh all
+
+# Test in a specific demo
+./scripts/test-commands.sh demo-symfony6
+```
+
+The script tests **31 different command combinations** covering all main options across all database connections. See [TESTING_COMMANDS.md](docs/TESTING_COMMANDS.md) for details.
 - [Changelog](docs/CHANGELOG.md) - Complete version history and changes
 - [Roadmap](docs/ROADMAP.md) - Planned features and future enhancements
 - [Branching Strategy](docs/BRANCHING.md) - Git workflow and branching guidelines
@@ -169,14 +184,18 @@ For information about our Git workflow and branching strategy, see [BRANCHING.md
 
 We have an extensive roadmap for future enhancements. See [ROADMAP.md](docs/ROADMAP.md) for details on planned features including:
 
-### Current Status (v0.0.18)
+### Current Status (v0.0.26)
 
 - **Phase 1 Progress**: 100% complete (all 21 fakers implemented)
 - **Total Fakers Available**: 32 fakers (all fakers from Phase 1 + Phase 2 data preservation fakers)
-- **Test Coverage**: 216 tests, 512 assertions, 45.80% line coverage
+- **Test Coverage**: 726 tests, 2011 assertions, 59.57% line coverage (1731/2906 lines)
+  - Classes: 73.33% (44/60) - 44 classes with 100% coverage
+  - Methods: 75.89% (170/224)
+  - Comprehensive test coverage for all fakers, services, commands, events, and attributes
 - **Pattern Matching**: Enhanced with `|` (OR) operator support for multiple value matching and relationship patterns (e.g., `'type.name' => '%HR'`)
 - **MongoDB Support**: Command to generate scripts for adding `anonymized` field to MongoDB documents
 - **Relationship Patterns**: Support for patterns referencing related entities using dot notation with automatic SQL JOIN construction
+- **Recent Improvements**: Enhanced test coverage, improved boolean/null handling in SQL queries, better error messages
 
 ### Planned Phases
 

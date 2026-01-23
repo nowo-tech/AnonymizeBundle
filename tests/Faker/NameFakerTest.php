@@ -75,4 +75,62 @@ class NameFakerTest extends TestCase
         $this->assertIsString($name);
         $this->assertNotEmpty($name);
     }
+
+    /**
+     * Test that NameFaker handles invalid gender gracefully.
+     */
+    public function testGenerateWithInvalidGender(): void
+    {
+        $faker = new NameFaker('en_US');
+        // Invalid gender should default to random
+        $name = $faker->generate(['gender' => 'invalid']);
+
+        $this->assertIsString($name);
+        $this->assertNotEmpty($name);
+    }
+
+    /**
+     * Test that NameFaker respects locale_specific option.
+     */
+    public function testGenerateWithLocaleSpecific(): void
+    {
+        $faker = new NameFaker('en_US');
+        $name = $faker->generate(['locale_specific' => true]);
+
+        $this->assertIsString($name);
+        $this->assertNotEmpty($name);
+    }
+
+    /**
+     * Test that NameFaker respects locale_specific false option.
+     */
+    public function testGenerateWithLocaleSpecificFalse(): void
+    {
+        $faker = new NameFaker('en_US');
+        $name = $faker->generate(['locale_specific' => false]);
+
+        $this->assertIsString($name);
+        $this->assertNotEmpty($name);
+    }
+
+    /**
+     * Test that NameFaker constructor works.
+     */
+    public function testConstructor(): void
+    {
+        $faker = new NameFaker('en_US');
+        $this->assertInstanceOf(NameFaker::class, $faker);
+    }
+
+    /**
+     * Test that NameFaker works with different locales.
+     */
+    public function testGenerateWithDifferentLocale(): void
+    {
+        $faker = new NameFaker('es_ES');
+        $name = $faker->generate();
+
+        $this->assertIsString($name);
+        $this->assertNotEmpty($name);
+    }
 }

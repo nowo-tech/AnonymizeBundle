@@ -49,29 +49,50 @@ final class PasswordFaker implements FakerInterface
         $includeNumbers = $options['include_numbers'] ?? true;
         $includeUppercase = $options['include_uppercase'] ?? true;
 
-        // Build character set
-        $chars = 'abcdefghijklmnopqrstuvwxyz';
+        // Define character sets
+        $lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        $uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $numbers = '0123456789';
+        $special = '!@#$%^&*()_+-=[]{}|;:,.<>?';
 
+        // Build full character set
+        $chars = $lowercase;
         if ($includeUppercase) {
-            $chars .= 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            $chars .= $uppercase;
         }
-
         if ($includeNumbers) {
-            $chars .= '0123456789';
+            $chars .= $numbers;
         }
-
         if ($includeSpecial) {
-            $chars .= '!@#$%^&*()_+-=[]{}|;:,.<>?';
+            $chars .= $special;
         }
 
-        // Generate password
-        $password = '';
+        // Start with required characters to guarantee they are included
+        $passwordChars = [];
+        
+        if ($includeUppercase) {
+            $passwordChars[] = $uppercase[$this->faker->numberBetween(0, strlen($uppercase) - 1)];
+        }
+        
+        if ($includeNumbers) {
+            $passwordChars[] = $numbers[$this->faker->numberBetween(0, strlen($numbers) - 1)];
+        }
+        
+        if ($includeSpecial) {
+            $passwordChars[] = $special[$this->faker->numberBetween(0, strlen($special) - 1)];
+        }
+
+        // Fill the rest with random characters from the full set
         $charsLength = strlen($chars);
-
-        for ($i = 0; $i < $length; $i++) {
-            $password .= $chars[$this->faker->numberBetween(0, $charsLength - 1)];
+        $remainingLength = $length - count($passwordChars);
+        
+        for ($i = 0; $i < $remainingLength; $i++) {
+            $passwordChars[] = $chars[$this->faker->numberBetween(0, $charsLength - 1)];
         }
 
-        return $password;
+        // Shuffle to randomize positions
+        shuffle($passwordChars);
+
+        return implode('', $passwordChars);
     }
 }

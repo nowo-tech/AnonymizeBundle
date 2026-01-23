@@ -51,4 +51,73 @@ class SurnameFakerTest extends TestCase
         $this->assertIsString($surname);
         $this->assertNotEmpty($surname);
     }
+
+    /**
+     * Test that SurnameFaker respects gender option (female).
+     */
+    public function testGenerateWithGenderFemale(): void
+    {
+        $faker = new SurnameFaker('en_US');
+        $surname = $faker->generate(['gender' => 'female']);
+
+        $this->assertIsString($surname);
+        $this->assertNotEmpty($surname);
+    }
+
+    /**
+     * Test that SurnameFaker respects gender option (random).
+     */
+    public function testGenerateWithGenderRandom(): void
+    {
+        $faker = new SurnameFaker('en_US');
+        $surname = $faker->generate(['gender' => 'random']);
+
+        $this->assertIsString($surname);
+        $this->assertNotEmpty($surname);
+    }
+
+    /**
+     * Test that SurnameFaker respects locale_specific option.
+     */
+    public function testGenerateWithLocaleSpecific(): void
+    {
+        $faker = new SurnameFaker('en_US');
+        $surname = $faker->generate(['locale_specific' => true]);
+
+        $this->assertIsString($surname);
+        $this->assertNotEmpty($surname);
+    }
+
+    /**
+     * Test that SurnameFaker respects locale_specific false option.
+     */
+    public function testGenerateWithLocaleSpecificFalse(): void
+    {
+        $faker = new SurnameFaker('en_US');
+        $surname = $faker->generate(['locale_specific' => false]);
+
+        $this->assertIsString($surname);
+        $this->assertNotEmpty($surname);
+    }
+
+    /**
+     * Test that SurnameFaker constructor works.
+     */
+    public function testConstructor(): void
+    {
+        $faker = new SurnameFaker('en_US');
+        $this->assertInstanceOf(SurnameFaker::class, $faker);
+    }
+
+    /**
+     * Test that SurnameFaker works with different locales.
+     */
+    public function testGenerateWithDifferentLocale(): void
+    {
+        $faker = new SurnameFaker('es_ES');
+        $surname = $faker->generate();
+
+        $this->assertIsString($surname);
+        $this->assertNotEmpty($surname);
+    }
 }

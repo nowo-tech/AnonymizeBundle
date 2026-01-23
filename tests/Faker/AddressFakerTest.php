@@ -74,4 +74,89 @@ class AddressFakerTest extends TestCase
         $this->assertIsString($address);
         $this->assertNotEmpty($address);
     }
+
+    /**
+     * Test that AddressFaker handles different countries.
+     */
+    public function testGenerateWithDifferentCountries(): void
+    {
+        $faker = new AddressFaker('en_US');
+        $countries = ['ES', 'FR', 'DE', 'IT', 'GB'];
+        
+        foreach ($countries as $country) {
+            $address = $faker->generate(['country' => $country]);
+            $this->assertIsString($address);
+            $this->assertNotEmpty($address);
+        }
+    }
+
+    /**
+     * Test that AddressFaker handles unknown country gracefully.
+     */
+    public function testGenerateWithUnknownCountry(): void
+    {
+        $faker = new AddressFaker('en_US');
+        $address = $faker->generate(['country' => 'XX']);
+
+        $this->assertIsString($address);
+        $this->assertNotEmpty($address);
+    }
+
+    /**
+     * Test that AddressFaker combines format and postal code options.
+     */
+    public function testGenerateWithFormatAndPostalCode(): void
+    {
+        $faker = new AddressFaker('en_US');
+        $address = $faker->generate(['format' => 'full', 'include_postal_code' => true]);
+
+        $this->assertIsString($address);
+        $this->assertNotEmpty($address);
+    }
+
+    /**
+     * Test that AddressFaker handles short format with postal code.
+     */
+    public function testGenerateShortFormatWithPostalCode(): void
+    {
+        $faker = new AddressFaker('en_US');
+        $address = $faker->generate(['format' => 'short', 'include_postal_code' => true]);
+
+        $this->assertIsString($address);
+        $this->assertNotEmpty($address);
+    }
+
+    /**
+     * Test that AddressFaker constructor works.
+     */
+    public function testConstructor(): void
+    {
+        $faker = new AddressFaker('en_US');
+        $this->assertInstanceOf(AddressFaker::class, $faker);
+    }
+
+    /**
+     * Test that AddressFaker works with different locales.
+     */
+    public function testGenerateWithDifferentLocale(): void
+    {
+        $faker = new AddressFaker('es_ES');
+        $address = $faker->generate();
+
+        $this->assertIsString($address);
+        $this->assertNotEmpty($address);
+    }
+
+    /**
+     * Test that AddressFaker handles invalid format gracefully.
+     */
+    public function testGenerateWithInvalidFormat(): void
+    {
+        $faker = new AddressFaker('en_US');
+        // Invalid format should default to full
+        $address = $faker->generate(['format' => 'invalid']);
+
+        $this->assertIsString($address);
+        $this->assertNotEmpty($address);
+    }
 }

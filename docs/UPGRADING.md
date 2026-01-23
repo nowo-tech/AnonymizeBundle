@@ -13,6 +13,46 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 0.0.26
+
+**Release Date**: 2026-01-21
+
+#### What's Fixed
+
+- **AnonymizeService**: Fixed boolean and null value handling in SQL UPDATE queries
+  - Boolean `false` values were incorrectly converted to empty string `''` instead of `'0'`
+  - Boolean `true` values now correctly converted to `'1'`
+  - `null` values now correctly converted to SQL `NULL` (unquoted)
+  - Resolves `SQLSTATE[HY000]: General error: 1366 Incorrect integer value: '' for column 'is_active'` error
+  - Affects MySQL `tinyint` columns and other boolean-type columns
+
+#### What's Changed
+
+- **Demo Projects**: Enhanced Symfony 6 demo Makefile
+  - Added `update-symfony` command to help migrate from Symfony 6.0 to 6.1+
+  - Updated help text to reflect Symfony 6.1+ requirement
+  - Improved documentation for bundle installation process
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **No configuration changes required**: This is a bug fix release
+
+#### Notes
+
+- This release fixes a critical bug affecting boolean and null value handling in SQL queries
+- If you encountered errors with boolean columns (especially `tinyint` in MySQL), this release resolves them
+- All functionality remains unchanged, only bug fixes
+
 ### Upgrading to 0.0.25
 
 **Release Date**: 2026-01-21
@@ -165,7 +205,7 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
   - Maintains backward compatibility
 
 - **Testing Infrastructure**: New testing tools
-  - Automated testing script: `test-commands.sh`
+  - Automated testing script: `scripts/test-commands.sh`
   - Comprehensive testing guide: `docs/TESTING_COMMANDS.md`
 
 #### What's Changed

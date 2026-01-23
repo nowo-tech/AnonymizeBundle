@@ -77,4 +77,84 @@ class HashFakerTest extends TestCase
         $this->assertIsString($hash);
         $this->assertEquals(16, strlen($hash));
     }
+
+    /**
+     * Test that HashFaker generates SHA512 hash.
+     */
+    public function testGenerateSha512(): void
+    {
+        $faker = new HashFaker('en_US');
+        $hash = $faker->generate(['algorithm' => 'sha512']);
+
+        $this->assertIsString($hash);
+        $this->assertEquals(128, strlen($hash)); // SHA512 length
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{128}$/', $hash);
+    }
+
+    /**
+     * Test that HashFaker generates different hashes.
+     */
+    public function testGenerateUnique(): void
+    {
+        $faker = new HashFaker('en_US');
+        $hash1 = $faker->generate();
+        $hash2 = $faker->generate();
+
+        $this->assertIsString($hash1);
+        $this->assertIsString($hash2);
+        // Hashes should be different (very unlikely to be the same)
+        $this->assertNotEquals($hash1, $hash2);
+    }
+
+    /**
+     * Test that HashFaker handles invalid algorithm gracefully.
+     */
+    public function testGenerateWithInvalidAlgorithm(): void
+    {
+        $faker = new HashFaker('en_US');
+        $hash = $faker->generate(['algorithm' => 'invalid_algorithm']);
+
+        $this->assertIsString($hash);
+        // Should default to sha256
+        $this->assertEquals(64, strlen($hash));
+    }
+
+    /**
+     * Test that HashFaker respects length option with different algorithms.
+     */
+    public function testGenerateWithLengthAndAlgorithm(): void
+    {
+        $faker = new HashFaker('en_US');
+        $hash = $faker->generate(['algorithm' => 'md5', 'length' => 10]);
+
+        $this->assertIsString($hash);
+        $this->assertEquals(10, strlen($hash));
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{10}$/', $hash);
+    }
+
+    /**
+     * Test that HashFaker handles zero length.
+     */
+    public function testGenerateWithZeroLength(): void
+    {
+        $faker = new HashFaker('en_US');
+        $hash = $faker->generate(['length' => 0]);
+
+        $this->assertIsString($hash);
+        // Should return full hash when length is 0 or invalid
+        $this->assertEquals(64, strlen($hash));
+    }
+
+    /**
+     * Test that HashFaker handles negative length.
+     */
+    public function testGenerateWithNegativeLength(): void
+    {
+        $faker = new HashFaker('en_US');
+        $hash = $faker->generate(['length' => -5]);
+
+        $this->assertIsString($hash);
+        // Should return full hash when length is negative
+        $this->assertEquals(64, strlen($hash));
+    }
 }

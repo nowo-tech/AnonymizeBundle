@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Script to reload MongoDB fixtures in all demos
-# Usage: ./reload-mongodb-fixtures.sh [demo-symfony6|demo-symfony7|demo-symfony8|all]
+# Usage: ./scripts/reload-mongodb-fixtures.sh [demo-symfony6|demo-symfony7|demo-symfony8|all]
+#        or from scripts/ directory: ./reload-mongodb-fixtures.sh [demo-symfony6|demo-symfony7|demo-symfony8|all]
 
 set -e
 

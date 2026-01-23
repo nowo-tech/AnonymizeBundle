@@ -96,6 +96,57 @@ class ServiceFakerTest extends TestCase
     }
 
     /**
+     * Test that ServiceFaker uses service with __invoke method.
+     */
+    public function testGenerateWithInvokeMethod(): void
+    {
+        $invokableService = new class {
+            public function __invoke(array $options = []): string
+            {
+                return 'invoked_value';
+            }
+        };
+
+        $container = $this->createMock(ContainerInterface::class);
+        $container->expects($this->once())
+            ->method('has')
+            ->with('test_service')
+            ->willReturn(true);
+        $container->expects($this->once())
+            ->method('get')
+            ->with('test_service')
+            ->willReturn($invokableService);
+
+        $serviceFaker = new ServiceFaker($container, 'test_service');
+        $result = $serviceFaker->generate();
+
+        $this->assertEquals('invoked_value', $result);
+    }
+
+    /**
+     * Test that ServiceFaker passes options to service.
+     */
+    public function testGeneratePassesOptions(): void
+    {
+        $mockFaker = $this->createMock(FakerInterface::class);
+        $mockFaker->expects($this->once())
+            ->method('generate')
+            ->with(['key' => 'value', 'original_value' => 'test'])
+            ->willReturn('result');
+
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('has')
+            ->willReturn(true);
+        $container->method('get')
+            ->willReturn($mockFaker);
+
+        $serviceFaker = new ServiceFaker($container, 'test_service');
+        $result = $serviceFaker->generate(['key' => 'value', 'original_value' => 'test']);
+
+        $this->assertEquals('result', $result);
+    }
+
+    /**
      * Test that ServiceFaker throws exception when service not found.
      */
     public function testGenerateThrowsExceptionWhenServiceNotFound(): void

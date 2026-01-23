@@ -77,4 +77,76 @@ class PhoneFakerTest extends TestCase
         $this->assertIsString($phone);
         $this->assertStringContainsString('ext.', $phone);
     }
+
+    /**
+     * Test that PhoneFaker combines country_code and format options.
+     */
+    public function testGenerateWithCountryCodeAndFormat(): void
+    {
+        $faker = new PhoneFaker('en_US');
+        $phone = $faker->generate(['country_code' => '+34', 'format' => 'international']);
+
+        $this->assertIsString($phone);
+        $this->assertStringStartsWith('+34', $phone);
+    }
+
+    /**
+     * Test that PhoneFaker handles country_code with national format.
+     */
+    public function testGenerateWithCountryCodeAndNationalFormat(): void
+    {
+        $faker = new PhoneFaker('en_US');
+        $phone = $faker->generate(['country_code' => '+34', 'format' => 'national']);
+
+        $this->assertIsString($phone);
+        // National format should remove country code
+        $this->assertFalse(str_starts_with($phone, '+34'));
+    }
+
+    /**
+     * Test that PhoneFaker handles extension with national format.
+     */
+    public function testGenerateWithExtensionAndNationalFormat(): void
+    {
+        $faker = new PhoneFaker('en_US');
+        $phone = $faker->generate(['format' => 'national', 'include_extension' => true]);
+
+        $this->assertIsString($phone);
+        $this->assertStringContainsString('ext.', $phone);
+        $this->assertFalse(str_starts_with($phone, '+'));
+    }
+
+    /**
+     * Test that PhoneFaker constructor works.
+     */
+    public function testConstructor(): void
+    {
+        $faker = new PhoneFaker('en_US');
+        $this->assertInstanceOf(PhoneFaker::class, $faker);
+    }
+
+    /**
+     * Test that PhoneFaker works with different locales.
+     */
+    public function testGenerateWithDifferentLocale(): void
+    {
+        $faker = new PhoneFaker('es_ES');
+        $phone = $faker->generate();
+
+        $this->assertIsString($phone);
+        $this->assertNotEmpty($phone);
+    }
+
+    /**
+     * Test that PhoneFaker handles invalid format gracefully.
+     */
+    public function testGenerateWithInvalidFormat(): void
+    {
+        $faker = new PhoneFaker('en_US');
+        // Invalid format should default to international
+        $phone = $faker->generate(['format' => 'invalid']);
+
+        $this->assertIsString($phone);
+        $this->assertNotEmpty($phone);
+    }
 }

@@ -20,8 +20,12 @@ wait_for_db() {
     while [ $attempt -le $max_attempts ]; do
         case $db_type in
             mysql)
-                if mysqladmin ping -h "$host" -P "$port" -u "${MYSQL_USER:-demo_user}" -p"${MYSQL_PASSWORD:-password}" --silent 2>/dev/null; then
+                # Try with demo_user first, fallback to root if demo_user doesn't exist yet
+                if mysqladmin ping -h "$host" -P "$port" -u "${MYSQL_USER:-demo_user}" -p"${MYSQL_PASSWORD:-password}" --skip-ssl --silent 2>/dev/null; then
                     echo "✅ MySQL is ready!"
+                    return 0
+                elif mysqladmin ping -h "$host" -P "$port" -u root -p"${MYSQL_ROOT_PASSWORD:-password}" --skip-ssl --silent 2>/dev/null; then
+                    echo "✅ MySQL is ready (using root)!"
                     return 0
                 fi
                 ;;
@@ -323,8 +327,10 @@ main() {
     echo "🌐 Application is ready!"
 }
 
-# Run main function
-main
+# Run main function in background and execute php-fpm immediately
+# This prevents blocking PHP-FPM startup while waiting for databases
+# The database setup will happen in the background
+main > /proc/1/fd/1 2>&1 &
 
-# Execute original command (php-fpm)
+# Execute original command (php-fpm) immediately
 exec "$@"

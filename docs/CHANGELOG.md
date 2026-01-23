@@ -11,6 +11,87 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - TBD
 
+## [0.0.27] - 2026-01-21
+
+### Improved
+
+- **Test Coverage**: Significantly improved code coverage across the entire bundle
+  - Added comprehensive test suites for multiple components
+  - **Total tests**: 726 tests with 2011 assertions (increased from 660 tests)
+  - **Code coverage metrics**:
+    - Classes: 73.33% (44/60) - 44 classes with 100% coverage
+    - Methods: 75.89% (170/224)
+    - Lines: 59.57% (1731/2906)
+  - All tests passing successfully
+
+- **Command Tests**: Added comprehensive test coverage for commands
+  - `GenerateAnonymizedColumnCommand`: 9 new tests covering instantiation, configuration, execution scenarios
+  - `ExportDatabaseCommand`: 9 new tests covering command structure, formatBytes, getParameterBag
+  - `GenerateMongoAnonymizedFieldCommand`: 12 new tests covering script generation, file output, project root detection
+  - `AnonymizationHistoryCommand`: Enhanced test coverage
+
+- **Attribute Tests**: Complete test coverage for attribute classes
+  - `Anonymize`: 6 tests covering all constructor parameters and property access
+  - `AnonymizeProperty`: 9 tests covering all faker types, options, and property access
+  - Both attribute classes now have 100% code coverage
+
+- **Faker Tests**: Enhanced test coverage for faker classes
+  - `HashPreserveFaker`: 4 additional tests for preserve_format edge cases (long hashes, float/integer values)
+  - `EnumFaker`: 4 additional tests for weighted value selection, zero weights, small weights, locale support
+  - `JsonFaker`: 4 additional tests for object type with zero depth, number type, random structure edge cases
+  - `DbalHelper`: 6 additional tests for quoteIdentifier and getDriverName edge cases
+
+- **Service Tests**: Enhanced test coverage for core services
+  - `AnonymizeService`: Additional tests for buildQueryWithRelationships with duplicate patterns
+  - `AnonymizeStatistics`: Enhanced tests for formatDuration edge cases
+  - `PatternMatcher`: Additional edge case tests
+  - `PreFlightCheckService`: Comprehensive test coverage improvements
+  - `EnvironmentProtectionService`: Complete test coverage
+  - `DatabaseExportService`: Enhanced test coverage
+
+- **Event Tests**: Complete test coverage for all event classes
+  - `AnonymizePropertyEvent`: All getters, setters, and skip functionality tested
+  - `BeforeAnonymizeEvent`: Complete test coverage
+  - `AfterAnonymizeEvent`: Complete test coverage
+  - `BeforeEntityAnonymizeEvent`: Complete test coverage
+  - `AfterEntityAnonymizeEvent`: Complete test coverage
+  - All event classes now have 100% code coverage
+
+- **Trait Tests**: Complete test coverage for AnonymizableTrait
+  - 7 tests covering all methods and edge cases
+  - 100% code coverage achieved
+
+- **Enum Tests**: Complete test coverage for enum classes
+  - `FakerType`: All enum cases tested
+  - `SymfonyService`: All constants tested
+  - Both enum classes now have 100% code coverage
+
+- **Dependency Injection Tests**: Complete test coverage
+  - `AnonymizeExtension`: All methods tested
+  - `Configuration`: Complete test coverage
+  - Both classes now have 100% code coverage
+
+- **Bundle Tests**: Complete test coverage for AnonymizeBundle
+  - `getContainerExtension` method fully tested
+  - 100% code coverage achieved
+
+### Fixed
+
+- **PasswordFaker**: Fixed intermittent test failures
+  - Ensured guaranteed inclusion of special characters and numbers when options are enabled
+  - Improved password generation algorithm for deterministic character type inclusion
+
+- **PatternMatcher**: Fixed TypeError with non-string values
+  - Added type check before calling `str_starts_with()` to prevent errors with boolean values
+
+- **AnonymizeStatistics**: Fixed CSV export with empty properties
+  - Only includes property header when there are actual properties to report
+
+- **Test Robustness**: Improved test reliability
+  - Fixed multiple test failures related to mocking final classes
+  - Improved test assertions for edge cases
+  - Enhanced test data generation for better coverage
+
 ## [0.0.26] - 2026-01-21
 
 ### Fixed
@@ -131,7 +212,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **MongoDB Fixtures**: Improved fixture loading and data generation
   - Enhanced `load-fixtures.js` script with better error handling
-  - Created `reload-mongodb-fixtures.sh` script for manual fixture reloading
+  - Created `scripts/reload-mongodb-fixtures.sh` script for manual fixture reloading
   - Improved `entrypoint.sh` for better MongoDB container detection
   - All 5 MongoDB collections now have sample data (125 documents per demo)
 
@@ -177,7 +258,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - All 6 commands now extend from `AbstractCommand`
 
 - **Testing Infrastructure**: Added testing script and documentation
-  - Created `test-commands.sh` script for automated command testing
+  - Created `scripts/test-commands.sh` script for automated command testing
   - Added `docs/TESTING_COMMANDS.md` guide for testing all commands
   - Script supports testing in all three demo applications (Symfony 6, 7, 8)
 

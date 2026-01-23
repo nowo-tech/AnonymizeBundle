@@ -15,19 +15,63 @@ The bundle provides 6 console commands:
 
 ## Testing Script
 
-A testing script is available at the root of the project: `test-commands.sh`
+A comprehensive testing script is available in the `scripts/` directory: `scripts/test-commands.sh`
+
+This script automatically tests **all bundle commands with their main options** across all demo projects, ensuring compatibility and functionality.
 
 ### Usage
 
 ```bash
-# Test all commands in all demos
-./test-commands.sh all
+# Test all commands in all demos (recommended)
+./scripts/test-commands.sh all
 
 # Test in a specific demo
-./test-commands.sh demo-symfony6
-./test-commands.sh demo-symfony7
-./test-commands.sh demo-symfony8
+./scripts/test-commands.sh demo-symfony6
+./scripts/test-commands.sh demo-symfony7
+./scripts/test-commands.sh demo-symfony8
 ```
+
+### What It Tests
+
+The script tests **31 different command combinations** covering:
+
+#### 1. `nowo:anonymize:info` (8 tests)
+- Without options (all connections)
+- With each connection (default, postgres, sqlite)
+- With locale option (`--locale es_ES`)
+- With verbose mode (`--verbose`)
+- With debug mode (`--debug`)
+- With no-progress option (`--no-progress`)
+
+#### 2. `nowo:anonymize:run` (9 tests)
+- Dry-run with all connections (default, postgres, sqlite)
+- Dry-run with batch-size option (`--batch-size 50`)
+- Dry-run with locale option (`--locale es_ES`)
+- Dry-run with verbose mode (`--verbose`)
+- Dry-run with debug mode (`--debug`)
+- Dry-run with no-progress option (`--no-progress`)
+- Dry-run with stats-only option (`--stats-only`)
+
+> **Note**: All `nowo:anonymize:run` tests use `--dry-run` to avoid modifying data during testing.
+
+#### 3. `nowo:anonymize:history` (4 tests)
+- Without options
+- With limit option (`--limit 5`)
+- With connection filter (`--connection default`)
+- Combined options (`--limit 10 --connection default`)
+
+#### 4. `nowo:anonymize:export-db` (4 tests)
+- Dry-run with all connections (default, postgres, sqlite, mongodb)
+
+> **Note**: All export tests use `--dry-run` to avoid creating actual export files.
+
+#### 5. `nowo:anonymize:generate-column-migration` (4 tests)
+- Without options (all connections)
+- With each connection (default, postgres, sqlite)
+
+#### 6. `nowo:anonymize:generate-mongo-field` (2 tests)
+- With scan-documents option (`--scan-documents`)
+- With collection option (`--collection user_activities`)
 
 ### Prerequisites
 
@@ -38,6 +82,60 @@ A testing script is available at the root of the project: `test-commands.sh`
    cd demo/demo-symfony7 && docker-compose up -d
    cd demo/demo-symfony8 && docker-compose up -d
    ```
+
+### Output
+
+The script provides:
+- ✅ **Success** indicators for passing tests
+- ❌ **Error** messages with details for failing tests
+- ⚠️ **Skipped** status for containers that aren't running
+- 📊 **Summary** statistics for each demo:
+  - Number of successful tests
+  - Number of failed tests
+  - Number of skipped tests
+
+### Example Output
+
+```
+🚀 Starting AnonymizeBundle command tests
+
+==========================================
+🧪 Testing: demo-symfony7
+==========================================
+
+Testing: nowo:anonymize:info
+✅ Success
+   Output (first 5 lines):
+   
+   Anonymizer Information
+   ======================
+   
+   Entity Manager: default
+
+Testing: nowo:anonymize:info --connection default
+✅ Success
+...
+
+==========================================
+📊 Summary for demo-symfony7:
+   ✅ Successful: 28
+   ❌ Failed: 2
+   ⚠️  Skipped: 1
+==========================================
+```
+
+### Customizing Tests
+
+To modify which commands are tested, edit the `COMMANDS` array in `scripts/test-commands.sh`:
+
+```bash
+# Commands to test - covering all commands with their main options
+COMMANDS=(
+    "nowo:anonymize:info"
+    "nowo:anonymize:info --connection default"
+    # Add more commands here...
+)
+```
 
 ## Manual Testing
 
@@ -165,7 +263,7 @@ php bin/console doctrine:fixtures:load
 
 Ensure the script has execute permissions:
 ```bash
-chmod +x test-commands.sh
+chmod +x scripts/test-commands.sh
 ```
 
 ## Notes

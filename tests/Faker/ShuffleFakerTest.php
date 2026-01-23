@@ -92,4 +92,69 @@ class ShuffleFakerTest extends TestCase
         $faker = new ShuffleFaker();
         $faker->generate(['values' => ['value1'], 'exclude' => 'value1']);
     }
+
+    /**
+     * Test that ShuffleFaker constructor works.
+     */
+    public function testConstructor(): void
+    {
+        $faker = new ShuffleFaker();
+        $this->assertInstanceOf(ShuffleFaker::class, $faker);
+    }
+
+    /**
+     * Test that ShuffleFaker generates different values on multiple calls.
+     */
+    public function testGenerateDifferentValues(): void
+    {
+        $faker = new ShuffleFaker();
+        $values = ['value1', 'value2', 'value3', 'value4', 'value5', 'value6', 'value7', 'value8', 'value9', 'value10'];
+
+        $results = [];
+        for ($i = 0; $i < 10; $i++) {
+            $results[] = $faker->generate(['values' => $values]);
+        }
+
+        // Should have at least some variation (not all the same)
+        $uniqueResults = array_unique($results);
+        $this->assertGreaterThan(1, count($uniqueResults));
+    }
+
+    /**
+     * Test that ShuffleFaker handles numeric values.
+     */
+    public function testGenerateWithNumericValues(): void
+    {
+        $faker = new ShuffleFaker();
+        $values = [1, 2, 3, 4, 5];
+        $value = $faker->generate(['values' => $values]);
+
+        $this->assertContains($value, $values);
+        $this->assertIsInt($value);
+    }
+
+    /**
+     * Test that ShuffleFaker handles mixed type values.
+     */
+    public function testGenerateWithMixedTypes(): void
+    {
+        $faker = new ShuffleFaker();
+        $values = ['string', 123, true, null, 45.67];
+        $value = $faker->generate(['values' => $values]);
+
+        $this->assertContains($value, $values);
+    }
+
+    /**
+     * Test that ShuffleFaker handles exclude with multiple occurrences.
+     */
+    public function testGenerateWithExcludeMultipleOccurrences(): void
+    {
+        $faker = new ShuffleFaker();
+        $values = ['value1', 'value2', 'value1', 'value3', 'value1'];
+        $value = $faker->generate(['values' => $values, 'exclude' => 'value1']);
+
+        $this->assertNotEquals('value1', $value);
+        $this->assertContains($value, ['value2', 'value3']);
+    }
 }

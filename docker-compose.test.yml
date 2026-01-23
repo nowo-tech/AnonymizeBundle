@@ -31,7 +31,7 @@ services:
       MYSQL_USER: ${MYSQL_USER:-test_user}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-test_password}
     ports:
-      - "33063:3306"
+      - "33064:3306"
     networks:
       - anonymize-bundle-network
     healthcheck:
@@ -48,7 +48,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-test_password}
       POSTGRES_DB: ${POSTGRES_DB:-anonymize_test}
     ports:
-      - "54323:5432"
+      - "54324:5432"
     networks:
       - anonymize-bundle-network
     healthcheck:

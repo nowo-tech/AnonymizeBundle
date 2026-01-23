@@ -79,4 +79,124 @@ class UsernameFakerTest extends TestCase
         // Note: Numbers might not always be included due to probability
         $this->assertNotEmpty($username);
     }
+
+    /**
+     * Test that UsernameFaker handles include_numbers false.
+     */
+    public function testGenerateWithoutNumbers(): void
+    {
+        $faker = new UsernameFaker('en_US');
+        $username = $faker->generate(['include_numbers' => false, 'max_length' => 20]);
+
+        $this->assertIsString($username);
+        $this->assertNotEmpty($username);
+    }
+
+    /**
+     * Test that UsernameFaker handles length constraints with prefix and suffix.
+     */
+    public function testGenerateWithPrefixSuffixAndLength(): void
+    {
+        $faker = new UsernameFaker('en_US');
+        $username = $faker->generate([
+            'prefix' => 'user_',
+            'suffix' => '_test',
+            'min_length' => 10,
+            'max_length' => 20
+        ]);
+
+        $this->assertIsString($username);
+        $this->assertStringStartsWith('user_', $username);
+        $this->assertStringEndsWith('_test', $username);
+        $this->assertLessThanOrEqual(20, strlen($username));
+    }
+
+    /**
+     * Test that UsernameFaker pads to minimum length when needed.
+     */
+    public function testGeneratePadsToMinimumLength(): void
+    {
+        $faker = new UsernameFaker('en_US');
+        // Force a very short base by using a long prefix/suffix
+        $username = $faker->generate([
+            'prefix' => 'a',
+            'suffix' => 'b',
+            'min_length' => 10,
+            'max_length' => 20
+        ]);
+
+        $this->assertIsString($username);
+        $this->assertGreaterThanOrEqual(10, strlen($username));
+    }
+
+    /**
+     * Test that UsernameFaker constructor works.
+     */
+    public function testConstructor(): void
+    {
+        $faker = new UsernameFaker('en_US');
+        $this->assertInstanceOf(UsernameFaker::class, $faker);
+    }
+
+    /**
+     * Test that UsernameFaker works with different locales.
+     */
+    public function testGenerateWithDifferentLocale(): void
+    {
+        $faker = new UsernameFaker('es_ES');
+        $username = $faker->generate();
+
+        $this->assertIsString($username);
+        $this->assertNotEmpty($username);
+    }
+
+    /**
+     * Test that UsernameFaker handles very long prefix and suffix.
+     */
+    public function testGenerateWithVeryLongPrefixSuffix(): void
+    {
+        $faker = new UsernameFaker('en_US');
+        $username = $faker->generate([
+            'prefix' => 'very_long_prefix_',
+            'suffix' => '_very_long_suffix',
+            'min_length' => 5,
+            'max_length' => 50
+        ]);
+
+        $this->assertIsString($username);
+        $this->assertStringStartsWith('very_long_prefix_', $username);
+        $this->assertStringEndsWith('_very_long_suffix', $username);
+        $this->assertLessThanOrEqual(50, strlen($username));
+    }
+
+    /**
+     * Test that UsernameFaker handles min_length equal to max_length.
+     */
+    public function testGenerateWithEqualMinMaxLength(): void
+    {
+        $faker = new UsernameFaker('en_US');
+        $username = $faker->generate([
+            'min_length' => 10,
+            'max_length' => 10
+        ]);
+
+        $this->assertIsString($username);
+        $this->assertEquals(10, strlen($username));
+    }
+
+    /**
+     * Test that UsernameFaker handles zero min_length.
+     */
+    public function testGenerateWithZeroMinLength(): void
+    {
+        $faker = new UsernameFaker('en_US');
+        $username = $faker->generate([
+            'min_length' => 0,
+            'max_length' => 20
+        ]);
+
+        $this->assertIsString($username);
+        // When min_length is 0, username might be empty, but should not exceed max_length
+        $this->assertLessThanOrEqual(20, strlen($username));
+    }
 }

@@ -149,10 +149,11 @@ final class AnonymizationHistoryCommand extends AbstractCommand
     }
 
     /**
-     * Display list of runs.
+     * Displays a list of anonymization runs.
      *
-     * @param SymfonyStyle $io
-     * @param array<int, array<string, mixed>> $runs
+     * @param SymfonyStyle $io The Symfony style output
+     * @param array<int, array<string, mixed>> $runs Array of anonymization runs
+     * @return void
      */
     private function displayRunsList(SymfonyStyle $io, array $runs): void
     {
@@ -180,10 +181,11 @@ final class AnonymizationHistoryCommand extends AbstractCommand
     }
 
     /**
-     * Display details of a single run.
+     * Displays detailed information about a single anonymization run.
      *
-     * @param SymfonyStyle $io
-     * @param array<string, mixed> $run
+     * @param SymfonyStyle $io The Symfony style output
+     * @param array<string, mixed> $run The anonymization run data
+     * @return void
      */
     private function displayRun(SymfonyStyle $io, array $run): void
     {
@@ -243,10 +245,11 @@ final class AnonymizationHistoryCommand extends AbstractCommand
     }
 
     /**
-     * Display comparison between two runs.
+     * Displays a comparison between two anonymization runs.
      *
-     * @param SymfonyStyle $io
-     * @param array<string, mixed> $comparison
+     * @param SymfonyStyle $io The Symfony style output
+     * @param array<string, mixed> $comparison The comparison data between two runs
+     * @return void
      */
     private function displayComparison(SymfonyStyle $io, array $comparison): void
     {
@@ -305,7 +308,10 @@ final class AnonymizationHistoryCommand extends AbstractCommand
     }
 
     /**
-     * Format duration in seconds to human-readable format.
+     * Formats duration in seconds to human-readable format.
+     *
+     * @param float $seconds Duration in seconds
+     * @return string Formatted duration string (e.g., "1.23 s", "2 m 30.45 s")
      */
     private function formatDuration(float $seconds): string
     {
@@ -324,7 +330,9 @@ final class AnonymizationHistoryCommand extends AbstractCommand
     }
 
     /**
-     * Get history directory from container parameters.
+     * Gets the history directory from container parameters.
+     *
+     * @return string The history directory path
      */
     private function getHistoryDir(): string
     {

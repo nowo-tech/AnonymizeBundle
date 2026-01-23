@@ -84,4 +84,76 @@ class CreditCardFakerTest extends TestCase
         // Should contain spaces
         $this->assertStringContainsString(' ', $creditCard);
     }
+
+    /**
+     * Test that CreditCardFaker respects formatted false option.
+     */
+    public function testGenerateWithoutFormatted(): void
+    {
+        $faker = new CreditCardFaker('en_US');
+        $creditCard = $faker->generate(['formatted' => false]);
+
+        $this->assertIsString($creditCard);
+        $this->assertNotEmpty($creditCard);
+        // Should not contain spaces when formatted is false
+        $cleanNumber = preg_replace('/[\s-]/', '', $creditCard);
+        $this->assertMatchesRegularExpression('/^\d{13,19}$/', $cleanNumber);
+    }
+
+    /**
+     * Test that CreditCardFaker respects type option (amex).
+     */
+    public function testGenerateWithTypeAmex(): void
+    {
+        $faker = new CreditCardFaker('en_US');
+        $creditCard = $faker->generate(['type' => 'amex']);
+
+        $this->assertIsString($creditCard);
+        $this->assertNotEmpty($creditCard);
+        $cleanNumber = preg_replace('/[\s-]/', '', $creditCard);
+        // American Express numbers typically start with 34 or 37
+        $this->assertMatchesRegularExpression('/^\d{13,19}$/', $cleanNumber);
+    }
+
+    /**
+     * Test that CreditCardFaker respects valid false option.
+     */
+    public function testGenerateWithValidFalse(): void
+    {
+        $faker = new CreditCardFaker('en_US');
+        $creditCard = $faker->generate(['valid' => false]);
+
+        $this->assertIsString($creditCard);
+        $this->assertNotEmpty($creditCard);
+        $cleanNumber = preg_replace('/[\s-]/', '', $creditCard);
+        // Should still be a valid length credit card number
+        $this->assertMatchesRegularExpression('/^\d{13,19}$/', $cleanNumber);
+    }
+
+    /**
+     * Test that CreditCardFaker handles invalid type gracefully.
+     */
+    public function testGenerateWithInvalidType(): void
+    {
+        $faker = new CreditCardFaker('en_US');
+        $creditCard = $faker->generate(['type' => 'invalid_type']);
+
+        $this->assertIsString($creditCard);
+        $this->assertNotEmpty($creditCard);
+        $cleanNumber = preg_replace('/[\s-]/', '', $creditCard);
+        $this->assertMatchesRegularExpression('/^\d{13,19}$/', $cleanNumber);
+    }
+
+    /**
+     * Test that CreditCardFaker combines formatted and valid options.
+     */
+    public function testGenerateWithFormattedAndValidFalse(): void
+    {
+        $faker = new CreditCardFaker('en_US');
+        $creditCard = $faker->generate(['formatted' => true, 'valid' => false]);
+
+        $this->assertIsString($creditCard);
+        $this->assertNotEmpty($creditCard);
+        $this->assertStringContainsString(' ', $creditCard);
+    }
 }

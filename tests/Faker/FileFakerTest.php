@@ -76,4 +76,64 @@ class FileFakerTest extends TestCase
         $this->assertStringStartsWith('/', $file);
         $this->assertStringContainsString('uploads/', $file);
     }
+
+    /**
+     * Test that FileFaker handles directory with trailing slash.
+     */
+    public function testGenerateWithDirectoryTrailingSlash(): void
+    {
+        $faker = new FileFaker('en_US');
+        $file = $faker->generate(['directory' => 'uploads/']);
+
+        $this->assertIsString($file);
+        $this->assertStringStartsWith('uploads/', $file);
+        $this->assertStringNotContainsString('//', $file);
+    }
+
+    /**
+     * Test that FileFaker handles extension with leading dot.
+     */
+    public function testGenerateWithExtensionLeadingDot(): void
+    {
+        $faker = new FileFaker('en_US');
+        $file = $faker->generate(['extension' => '.pdf']);
+
+        $this->assertIsString($file);
+        $this->assertStringEndsWith('.pdf', $file);
+        $this->assertStringNotContainsString('..', $file);
+    }
+
+    /**
+     * Test that FileFaker handles absolute path without directory.
+     */
+    public function testGenerateAbsoluteWithoutDirectory(): void
+    {
+        $faker = new FileFaker('en_US');
+        $file = $faker->generate(['absolute' => true]);
+
+        $this->assertIsString($file);
+        $this->assertStringStartsWith('/', $file);
+        $this->assertStringContainsString('.', $file);
+    }
+
+    /**
+     * Test that FileFaker constructor works.
+     */
+    public function testConstructor(): void
+    {
+        $faker = new FileFaker('en_US');
+        $this->assertInstanceOf(FileFaker::class, $faker);
+    }
+
+    /**
+     * Test that FileFaker works with different locales.
+     */
+    public function testGenerateWithDifferentLocale(): void
+    {
+        $faker = new FileFaker('es_ES');
+        $file = $faker->generate();
+
+        $this->assertIsString($file);
+        $this->assertNotEmpty($file);
+    }
 }

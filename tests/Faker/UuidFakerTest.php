@@ -16,7 +16,7 @@ use PHPUnit\Framework\TestCase;
 class UuidFakerTest extends TestCase
 {
     /**
-     * Test that UuidFaker generates a valid UUID.
+     * Test that UuidFaker generates a UUID.
      */
     public function testGenerate(): void
     {
@@ -24,36 +24,12 @@ class UuidFakerTest extends TestCase
         $uuid = $faker->generate();
 
         $this->assertIsString($uuid);
+        $this->assertNotEmpty($uuid);
         $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $uuid);
     }
 
     /**
-     * Test that UuidFaker generates UUID v4.
-     */
-    public function testGenerateV4(): void
-    {
-        $faker = new UuidFaker('en_US');
-        $uuid = $faker->generate(['version' => 4]);
-
-        $this->assertIsString($uuid);
-        // UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx where y is 8, 9, a, or b
-        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $uuid);
-    }
-
-    /**
-     * Test that UuidFaker generates UUID v1.
-     */
-    public function testGenerateV1(): void
-    {
-        $faker = new UuidFaker('en_US');
-        $uuid = $faker->generate(['version' => 1]);
-
-        $this->assertIsString($uuid);
-        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $uuid);
-    }
-
-    /**
-     * Test that UuidFaker respects format option (with_dashes).
+     * Test that UuidFaker generates UUID with dashes by default.
      */
     public function testGenerateWithDashes(): void
     {
@@ -62,11 +38,11 @@ class UuidFakerTest extends TestCase
 
         $this->assertIsString($uuid);
         $this->assertStringContainsString('-', $uuid);
-        $this->assertEquals(36, strlen($uuid));
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $uuid);
     }
 
     /**
-     * Test that UuidFaker respects format option (without_dashes).
+     * Test that UuidFaker generates UUID without dashes.
      */
     public function testGenerateWithoutDashes(): void
     {
@@ -76,5 +52,80 @@ class UuidFakerTest extends TestCase
         $this->assertIsString($uuid);
         $this->assertStringNotContainsString('-', $uuid);
         $this->assertEquals(32, strlen($uuid));
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{32}$/i', $uuid);
+    }
+
+    /**
+     * Test that UuidFaker generates UUID v4 by default.
+     */
+    public function testGenerateUuidV4(): void
+    {
+        $faker = new UuidFaker('en_US');
+        $uuid = $faker->generate(['version' => 4]);
+
+        $this->assertIsString($uuid);
+        $this->assertNotEmpty($uuid);
+        // Faker's uuid() generates valid UUIDs but may not strictly follow v4 format
+        // Just verify it's a valid UUID format
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $uuid);
+    }
+
+    /**
+     * Test that UuidFaker generates UUID v1.
+     */
+    public function testGenerateUuidV1(): void
+    {
+        $faker = new UuidFaker('en_US');
+        $uuid = $faker->generate(['version' => 1]);
+
+        $this->assertIsString($uuid);
+        $this->assertNotEmpty($uuid);
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $uuid);
+    }
+
+    /**
+     * Test that UuidFaker generates different UUIDs.
+     */
+    public function testGenerateDifferentUuids(): void
+    {
+        $faker = new UuidFaker('en_US');
+        $uuid1 = $faker->generate();
+        $uuid2 = $faker->generate();
+
+        $this->assertNotEquals($uuid1, $uuid2);
+    }
+
+    /**
+     * Test that UuidFaker handles invalid version gracefully.
+     */
+    public function testGenerateWithInvalidVersion(): void
+    {
+        $faker = new UuidFaker('en_US');
+        // Invalid version should default to v4
+        $uuid = $faker->generate(['version' => 99]);
+
+        $this->assertIsString($uuid);
+        $this->assertNotEmpty($uuid);
+    }
+
+    /**
+     * Test that UuidFaker constructor works.
+     */
+    public function testConstructor(): void
+    {
+        $faker = new UuidFaker('en_US');
+        $this->assertInstanceOf(UuidFaker::class, $faker);
+    }
+
+    /**
+     * Test that UuidFaker works with different locales.
+     */
+    public function testGenerateWithDifferentLocale(): void
+    {
+        $faker = new UuidFaker('es_ES');
+        $uuid = $faker->generate();
+
+        $this->assertIsString($uuid);
+        $this->assertNotEmpty($uuid);
     }
 }
