@@ -2443,9 +2443,9 @@ class AnonymizeServiceTest extends TestCase
         $this->assertArrayHasKey('test_table', $result);
         // PostgreSQL should use TRUNCATE TABLE ... CASCADE
         $this->assertTrue(
-            in_array('TRUNCATE TABLE "test_table" CASCADE', $executedStatements, true) ||
-            str_contains(implode(' ', $executedStatements), 'TRUNCATE') &&
-            str_contains(implode(' ', $executedStatements), 'CASCADE')
+            in_array('TRUNCATE TABLE "test_table" CASCADE', $executedStatements, true)
+            || str_contains(implode(' ', $executedStatements), 'TRUNCATE')
+            && str_contains(implode(' ', $executedStatements), 'CASCADE')
         );
     }
 
