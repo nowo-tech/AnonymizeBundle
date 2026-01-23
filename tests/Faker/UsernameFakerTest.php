@@ -102,7 +102,7 @@ class UsernameFakerTest extends TestCase
             'prefix' => 'user_',
             'suffix' => '_test',
             'min_length' => 10,
-            'max_length' => 20
+            'max_length' => 20,
         ]);
 
         $this->assertIsString($username);
@@ -122,7 +122,7 @@ class UsernameFakerTest extends TestCase
             'prefix' => 'a',
             'suffix' => 'b',
             'min_length' => 10,
-            'max_length' => 20
+            'max_length' => 20,
         ]);
 
         $this->assertIsString($username);
@@ -160,7 +160,7 @@ class UsernameFakerTest extends TestCase
             'prefix' => 'very_long_prefix_',
             'suffix' => '_very_long_suffix',
             'min_length' => 5,
-            'max_length' => 50
+            'max_length' => 50,
         ]);
 
         $this->assertIsString($username);
@@ -177,7 +177,7 @@ class UsernameFakerTest extends TestCase
         $faker = new UsernameFaker('en_US');
         $username = $faker->generate([
             'min_length' => 10,
-            'max_length' => 10
+            'max_length' => 10,
         ]);
 
         $this->assertIsString($username);
@@ -192,7 +192,7 @@ class UsernameFakerTest extends TestCase
         $faker = new UsernameFaker('en_US');
         $username = $faker->generate([
             'min_length' => 0,
-            'max_length' => 20
+            'max_length' => 20,
         ]);
 
         $this->assertIsString($username);

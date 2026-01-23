@@ -234,7 +234,7 @@ class HashPreserveFakerTest extends TestCase
         // Use a value that will generate a hash with many digits after preserve_format
         // We'll use a numeric value and ensure the hash has many numeric characters
         $hash = $faker->generate(['value' => '12345678901234567890', 'preserve_format' => true]);
-        
+
         $this->assertIsString($hash);
         $this->assertMatchesRegularExpression('/^[0-9]+$/', $hash);
         // Should be limited to 20 characters
@@ -248,7 +248,7 @@ class HashPreserveFakerTest extends TestCase
     {
         $faker = new HashPreserveFaker();
         $hash = $faker->generate(['value' => '123.45', 'preserve_format' => true]);
-        
+
         $this->assertIsString($hash);
         $this->assertMatchesRegularExpression('/^[0-9]+$/', $hash);
         $this->assertLessThanOrEqual(20, strlen($hash));
@@ -261,7 +261,7 @@ class HashPreserveFakerTest extends TestCase
     {
         $faker = new HashPreserveFaker();
         $hash = $faker->generate(['value' => 12345, 'preserve_format' => true]);
-        
+
         $this->assertIsString($hash);
         $this->assertMatchesRegularExpression('/^[0-9]+$/', $hash);
         $this->assertLessThanOrEqual(20, strlen($hash));
@@ -274,7 +274,7 @@ class HashPreserveFakerTest extends TestCase
     {
         $faker = new HashPreserveFaker();
         $hash = $faker->generate(['value' => 123.45, 'preserve_format' => true]);
-        
+
         $this->assertIsString($hash);
         $this->assertMatchesRegularExpression('/^[0-9]+$/', $hash);
         $this->assertLessThanOrEqual(20, strlen($hash));

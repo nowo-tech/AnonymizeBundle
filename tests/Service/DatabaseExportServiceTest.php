@@ -24,7 +24,7 @@ class DatabaseExportServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->tempDir = sys_get_temp_dir() . '/anonymize_export_test_' . uniqid();
-        mkdir($this->tempDir, 0755, true);
+        mkdir($this->tempDir, 0o755, true);
 
         $this->container = $this->createMock(ContainerInterface::class);
         $this->container->method('has')
@@ -162,7 +162,7 @@ class DatabaseExportServiceTest extends TestCase
             ->willReturn(['driver' => 'unsupported_driver']);
 
         $result = $service->exportConnection($em, 'test_connection');
-        
+
         // Directory should be created even if export fails
         // (Note: This might not happen if export fails early, but we test the structure)
         $this->assertInstanceOf(DatabaseExportService::class, $service);
@@ -391,8 +391,8 @@ class DatabaseExportServiceTest extends TestCase
     public function testUpdateGitignoreWorksWithKernel(): void
     {
         $projectDir = $this->tempDir . '/project';
-        mkdir($projectDir, 0755, true);
-        
+        mkdir($projectDir, 0o755, true);
+
         $kernel = $this->createMock(\Symfony\Component\HttpKernel\KernelInterface::class);
         $kernel->method('getProjectDir')
             ->willReturn($projectDir);
@@ -427,14 +427,14 @@ class DatabaseExportServiceTest extends TestCase
             ->willReturn(['driver' => 'unsupported_driver']);
 
         $result = $service->exportConnection($em, 'test_connection');
-        
+
         // Check if .gitignore was created/updated
         $gitignorePath = $projectDir . '/.gitignore';
         if (file_exists($gitignorePath)) {
             $content = file_get_contents($gitignorePath);
             $this->assertStringContainsString('exports/', $content);
         }
-        
+
         $this->assertNull($result);
     }
 
@@ -444,11 +444,11 @@ class DatabaseExportServiceTest extends TestCase
     public function testUpdateGitignoreDoesNotDuplicateEntries(): void
     {
         $projectDir = $this->tempDir . '/project';
-        mkdir($projectDir, 0755, true);
-        
+        mkdir($projectDir, 0o755, true);
+
         $gitignorePath = $projectDir . '/.gitignore';
         file_put_contents($gitignorePath, "exports/\n");
-        
+
         $kernel = $this->createMock(\Symfony\Component\HttpKernel\KernelInterface::class);
         $kernel->method('getProjectDir')
             ->willReturn($projectDir);
@@ -485,7 +485,7 @@ class DatabaseExportServiceTest extends TestCase
         // Call twice to test duplicate prevention
         $service->exportConnection($em, 'test_connection');
         $service->exportConnection($em, 'test_connection');
-        
+
         if (file_exists($gitignorePath)) {
             $content = file_get_contents($gitignorePath);
             $count = substr_count($content, 'exports/');

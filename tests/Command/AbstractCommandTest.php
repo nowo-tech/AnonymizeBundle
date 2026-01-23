@@ -31,7 +31,7 @@ class AbstractCommandTest extends TestCase
         };
 
         $connection = $this->createMock(Connection::class);
-        
+
         // Mock quoteSingleIdentifier (DBAL 3.6+)
         $connection->method('quoteSingleIdentifier')
             ->with('test_table')
@@ -55,10 +55,10 @@ class AbstractCommandTest extends TestCase
 
         $connection = $this->createMock(Connection::class);
         $platform = $this->createMock(AbstractPlatform::class);
-        
+
         $connection->method('getDatabasePlatform')
             ->willReturn($platform);
-        
+
         $platform->method('quoteIdentifier')
             ->willReturnCallback(function ($identifier) {
                 return '`' . $identifier . '`';
@@ -67,10 +67,10 @@ class AbstractCommandTest extends TestCase
         // Test that the method is called correctly
         $result1 = $command->testQuoteIdentifier($connection, 'users');
         $this->assertIsString($result1);
-        
+
         $result2 = $command->testQuoteIdentifier($connection, 'email');
         $this->assertIsString($result2);
-        
+
         $result3 = $command->testQuoteIdentifier($connection, 'user_id');
         $this->assertIsString($result3);
     }

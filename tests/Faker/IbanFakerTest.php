@@ -118,7 +118,7 @@ class IbanFakerTest extends TestCase
     {
         $faker = new IbanFaker('en_US');
         $countries = ['DE', 'GB', 'IT', 'NL', 'PT'];
-        
+
         foreach ($countries as $country) {
             $iban = $faker->generate(['country' => $country]);
             $this->assertIsString($iban);

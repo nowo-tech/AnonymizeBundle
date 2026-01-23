@@ -69,15 +69,15 @@ final class PasswordFaker implements FakerInterface
 
         // Start with required characters to guarantee they are included
         $passwordChars = [];
-        
+
         if ($includeUppercase) {
             $passwordChars[] = $uppercase[$this->faker->numberBetween(0, strlen($uppercase) - 1)];
         }
-        
+
         if ($includeNumbers) {
             $passwordChars[] = $numbers[$this->faker->numberBetween(0, strlen($numbers) - 1)];
         }
-        
+
         if ($includeSpecial) {
             $passwordChars[] = $special[$this->faker->numberBetween(0, strlen($special) - 1)];
         }
@@ -85,7 +85,7 @@ final class PasswordFaker implements FakerInterface
         // Fill the rest with random characters from the full set
         $charsLength = strlen($chars);
         $remainingLength = $length - count($passwordChars);
-        
+
         for ($i = 0; $i < $remainingLength; $i++) {
             $passwordChars[] = $chars[$this->faker->numberBetween(0, $charsLength - 1)];
         }

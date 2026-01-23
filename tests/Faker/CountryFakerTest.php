@@ -132,11 +132,11 @@ class CountryFakerTest extends TestCase
     {
         $faker = new CountryFaker('en_US');
         $countries = [];
-        
+
         for ($i = 0; $i < 10; $i++) {
             $countries[] = $faker->generate();
         }
-        
+
         // Should have some variation
         $uniqueCountries = array_unique($countries);
         $this->assertGreaterThan(1, count($uniqueCountries));

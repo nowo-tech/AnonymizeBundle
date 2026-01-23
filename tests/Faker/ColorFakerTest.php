@@ -75,7 +75,7 @@ class ColorFakerTest extends TestCase
     {
         $faker = new ColorFaker('en_US');
         $alphaValues = [0.0, 0.25, 0.5, 0.75, 1.0];
-        
+
         foreach ($alphaValues as $alpha) {
             $color = $faker->generate(['format' => 'rgba', 'alpha' => $alpha]);
             $this->assertIsString($color);
@@ -124,11 +124,11 @@ class ColorFakerTest extends TestCase
     {
         $faker = new ColorFaker('en_US');
         $colors = [];
-        
+
         for ($i = 0; $i < 10; $i++) {
             $colors[] = $faker->generate();
         }
-        
+
         // Should have some variation
         $uniqueColors = array_unique($colors);
         $this->assertGreaterThan(1, count($uniqueColors));

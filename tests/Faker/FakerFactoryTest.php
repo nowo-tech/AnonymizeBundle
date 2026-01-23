@@ -464,20 +464,20 @@ class FakerFactoryTest extends TestCase
     {
         $mockFaker = $this->createMock(FakerInterface::class);
         $container = $this->createMock(\Psr\Container\ContainerInterface::class);
-        
+
         $container->method('has')
             ->willReturn(true);
         $container->method('get')
             ->willReturn($mockFaker);
 
         $factory = new FakerFactory('en_US', $container);
-        
-        $types = ['email', 'name', 'surname', 'age', 'phone', 'iban', 'credit_card', 
-                  'address', 'date', 'username', 'url', 'company', 'masking', 'password',
-                  'ip_address', 'mac_address', 'uuid', 'hash', 'coordinate', 'color',
-                  'boolean', 'numeric', 'file', 'json', 'text', 'enum', 'country', 
-                  'language', 'hash_preserve', 'shuffle', 'constant'];
-        
+
+        $types = ['email', 'name', 'surname', 'age', 'phone', 'iban', 'credit_card',
+            'address', 'date', 'username', 'url', 'company', 'masking', 'password',
+            'ip_address', 'mac_address', 'uuid', 'hash', 'coordinate', 'color',
+            'boolean', 'numeric', 'file', 'json', 'text', 'enum', 'country',
+            'language', 'hash_preserve', 'shuffle', 'constant'];
+
         foreach ($types as $type) {
             $faker = $factory->create($type);
             $this->assertInstanceOf(FakerInterface::class, $faker);
@@ -493,14 +493,14 @@ class FakerFactoryTest extends TestCase
         $container->method('has')
             ->with('nowo_anonymize.faker.email')
             ->willReturn(true);
-        
+
         $exception = $this->createMock(\Psr\Container\ContainerExceptionInterface::class);
         $container->method('get')
             ->with('nowo_anonymize.faker.email')
             ->willThrowException($exception);
 
         $factory = new FakerFactory('en_US', $container);
-        
+
         // When container throws exception, it should propagate
         // The factory doesn't catch exceptions from container
         $this->expectException(\Psr\Container\ContainerExceptionInterface::class);
@@ -514,7 +514,7 @@ class FakerFactoryTest extends TestCase
     {
         $factory = new FakerFactory('es_ES');
         $faker = $factory->create('email');
-        
+
         $this->assertInstanceOf(\Nowo\AnonymizeBundle\Faker\EmailFaker::class, $faker);
     }
 
@@ -527,7 +527,7 @@ class FakerFactoryTest extends TestCase
         $container = $this->createMock(\Psr\Container\ContainerInterface::class);
         $factory = new FakerFactory('en_US', $container);
         $faker = $factory->create('service', 'test_service');
-        
+
         $this->assertInstanceOf(\Nowo\AnonymizeBundle\Faker\ServiceFaker::class, $faker);
     }
 }

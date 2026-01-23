@@ -482,7 +482,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email')]
             public string $email = 'test@example.com';
@@ -543,7 +543,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', includePatterns: ['user.status' => 'active'])]
             public string $email = 'test@example.com';
@@ -630,7 +630,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', includePatterns: ['id' => '>100'])]
             public string $email = 'test@example.com';
@@ -695,7 +695,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', excludePatterns: ['status' => 'deleted'])]
             public string $email = 'test@example.com';
@@ -761,10 +761,10 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             use \Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
-            
+
             #[AnonymizeProperty(type: 'email')]
             public string $email = 'test@example.com';
         };
@@ -796,14 +796,14 @@ class AnonymizeServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->with(['test_table'])
             ->willReturn(true);
-        
+
         $column = $this->createMock(\Doctrine\DBAL\Schema\Column::class);
         $column->method('getName')
             ->willReturn('anonymized');
         $schemaManager->method('listTableColumns')
             ->with('test_table')
             ->willReturn(['anonymized' => $column]);
-        
+
         $connection->method('quoteSingleIdentifier')
             ->willReturnCallback(fn($id) => '`' . $id . '`');
         $connection->method('quote')
@@ -841,10 +841,10 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             use \Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
-            
+
             #[AnonymizeProperty(type: 'email')]
             public string $email = 'test@example.com';
         };
@@ -876,14 +876,14 @@ class AnonymizeServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->with(['test_table'])
             ->willReturn(true);
-        
+
         $column = $this->createMock(\Doctrine\DBAL\Schema\Column::class);
         $column->method('getName')
             ->willReturn('other_column');
         $schemaManager->method('listTableColumns')
             ->with('test_table')
             ->willReturn(['other_column' => $column]);
-        
+
         $connection->method('quoteSingleIdentifier')
             ->willReturnCallback(fn($id) => '`' . $id . '`');
         $connection->method('quote')
@@ -921,7 +921,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email')]
             public string $email = 'test@example.com';
@@ -1001,7 +1001,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email')]
             public string $email = 'test@example.com';
@@ -1079,7 +1079,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'numeric', options: ['type' => 'int', 'min' => 1, 'max' => 100])]
             public int $age = 25;
@@ -1143,7 +1143,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'numeric', options: ['type' => 'float', 'min' => 0, 'max' => 100])]
             public float $price = 99.99;
@@ -1207,7 +1207,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'boolean')]
             public bool $active = true;
@@ -1271,7 +1271,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email')]
             public ?string $email = null;
@@ -1342,7 +1342,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'boolean', options: ['true_probability' => 100])]
             public bool $active = true;
@@ -1406,7 +1406,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'boolean', options: ['true_probability' => 0])]
             public bool $active = false;
@@ -1470,7 +1470,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'numeric', options: ['type' => 'int', 'min' => 1, 'max' => 100])]
             public int $count = 10;
@@ -1534,7 +1534,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'numeric', options: ['type' => 'float', 'min' => 0, 'max' => 100])]
             public float $amount = 50.50;
@@ -1598,7 +1598,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', includePatterns: ['nonexistent.name' => 'active'])]
             public string $email = 'test@example.com';
@@ -1665,7 +1665,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', includePatterns: ['type.name' => 'HR'], excludePatterns: ['type.name' => 'IT'])]
             public string $email = 'test@example.com';
@@ -1718,7 +1718,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'numeric', options: ['type' => 'int'])]
             public int $count = 10;

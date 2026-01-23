@@ -57,14 +57,14 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
     public function testCommandConfiguration(): void
     {
         $definition = $this->command->getDefinition();
-        
+
         $this->assertTrue($definition->hasOption('connection'));
         $this->assertTrue($definition->hasOption('output'));
-        
+
         $connectionOption = $definition->getOption('connection');
         $this->assertTrue($connectionOption->isArray());
         $this->assertTrue($connectionOption->isValueRequired());
-        
+
         $outputOption = $definition->getOption('output');
         $this->assertFalse($outputOption->isValueRequired());
     }
@@ -77,30 +77,30 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $em = $this->createMock(EntityManagerInterface::class);
         $doctrine = $this->createMock(ManagerRegistry::class);
         $config = $this->createMock(\Doctrine\ORM\Configuration::class);
-        
+
         $this->container->method('has')
             ->with(SymfonyService::DOCTRINE)
             ->willReturn(true);
         $this->container->method('get')
             ->with(SymfonyService::DOCTRINE)
             ->willReturn($doctrine);
-        
+
         $doctrine->method('getManagerNames')
             ->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')
             ->with('default')
             ->willReturn($em);
-        
+
         $em->method('getConfiguration')
             ->willReturn($config);
         $config->method('getMetadataDriverImpl')
             ->willReturn(null);
-        
+
         $input = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
-        
+
         $result = $this->command->run($input, $output);
-        
+
         $this->assertEquals(GenerateAnonymizedColumnCommand::SUCCESS, $result);
         $this->assertStringContainsString('No migrations needed', $output->fetch());
     }
@@ -144,25 +144,25 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
     public function testExecuteHandlesConnectionNotFound(): void
     {
         $doctrine = $this->createMock(ManagerRegistry::class);
-        
+
         $this->container->method('has')
             ->with(SymfonyService::DOCTRINE)
             ->willReturn(true);
         $this->container->method('get')
             ->with(SymfonyService::DOCTRINE)
             ->willReturn($doctrine);
-        
+
         $doctrine->method('getManagerNames')
             ->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')
             ->with('nonexistent')
             ->willThrowException(new \Exception('Manager not found'));
-        
+
         $input = new ArrayInput(['--connection' => ['nonexistent']]);
         $output = new BufferedOutput();
-        
+
         $result = $this->command->run($input, $output);
-        
+
         $this->assertEquals(GenerateAnonymizedColumnCommand::SUCCESS, $result);
         $outputContent = $output->fetch();
         $this->assertStringContainsString('not found', $outputContent);
@@ -187,30 +187,30 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $em = $this->createMock(EntityManagerInterface::class);
         $doctrine = $this->createMock(ManagerRegistry::class);
         $config = $this->createMock(\Doctrine\ORM\Configuration::class);
-        
+
         $this->container->method('has')
             ->with(SymfonyService::DOCTRINE)
             ->willReturn(true);
         $this->container->method('get')
             ->with(SymfonyService::DOCTRINE)
             ->willReturn($doctrine);
-        
+
         $doctrine->method('getManagerNames')
             ->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')
             ->with('default')
             ->willReturn($em);
-        
+
         $em->method('getConfiguration')
             ->willReturn($config);
         $config->method('getMetadataDriverImpl')
             ->willReturn(null);
-        
+
         $input = new ArrayInput([]);
         $output = new BufferedOutput();
-        
+
         $result = $this->command->run($input, $output);
-        
+
         $this->assertEquals(GenerateAnonymizedColumnCommand::SUCCESS, $result);
     }
 
@@ -220,25 +220,25 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
     public function testExecuteHandlesExceptionGracefully(): void
     {
         $doctrine = $this->createMock(ManagerRegistry::class);
-        
+
         $this->container->method('has')
             ->with(SymfonyService::DOCTRINE)
             ->willReturn(true);
         $this->container->method('get')
             ->with(SymfonyService::DOCTRINE)
             ->willReturn($doctrine);
-        
+
         $doctrine->method('getManagerNames')
             ->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')
             ->with('default')
             ->willThrowException(new \Exception('Database error'));
-        
+
         $input = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
-        
+
         $result = $this->command->run($input, $output);
-        
+
         $this->assertEquals(GenerateAnonymizedColumnCommand::SUCCESS, $result);
         $outputContent = $output->fetch();
         // The command catches exceptions and continues, so it should succeed

@@ -42,13 +42,13 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
     public function testCommandConfiguration(): void
     {
         $definition = $this->command->getDefinition();
-        
+
         $this->assertTrue($definition->hasOption('database'));
         $this->assertTrue($definition->hasOption('collection'));
         $this->assertTrue($definition->hasOption('scan-documents'));
         $this->assertTrue($definition->hasOption('document-path'));
         $this->assertTrue($definition->hasOption('output'));
-        
+
         $collectionOption = $definition->getOption('collection');
         $this->assertTrue($collectionOption->isArray());
     }
@@ -60,9 +60,9 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
     {
         $input = new ArrayInput([]);
         $output = new BufferedOutput();
-        
+
         $result = $this->command->run($input, $output);
-        
+
         $this->assertEquals(GenerateMongoAnonymizedFieldCommand::FAILURE, $result);
         $outputContent = $output->fetch();
         $this->assertStringContainsString('No collections specified', $outputContent);
@@ -75,9 +75,9 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
     {
         $input = new ArrayInput(['--collection' => ['users', 'activities']]);
         $output = new BufferedOutput();
-        
+
         $result = $this->command->run($input, $output);
-        
+
         $this->assertEquals(GenerateMongoAnonymizedFieldCommand::SUCCESS, $result);
         $outputContent = $output->fetch();
         $this->assertStringContainsString('MongoDB Script', $outputContent);
@@ -91,18 +91,18 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
     public function testExecuteSavesScriptToFile(): void
     {
         $tempFile = sys_get_temp_dir() . '/test_mongo_script_' . uniqid() . '.js';
-        
+
         $input = new ArrayInput(['--collection' => ['users'], '--output' => $tempFile]);
         $output = new BufferedOutput();
-        
+
         $result = $this->command->run($input, $output);
-        
+
         $this->assertEquals(GenerateMongoAnonymizedFieldCommand::SUCCESS, $result);
         $this->assertFileExists($tempFile);
         $fileContent = file_get_contents($tempFile);
         $this->assertStringContainsString('use(', $fileContent);
         $this->assertStringContainsString('users', $fileContent);
-        
+
         // Cleanup
         if (file_exists($tempFile)) {
             unlink($tempFile);
@@ -116,9 +116,9 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
     {
         $input = new ArrayInput(['--collection' => ['users'], '--database' => 'myapp']);
         $output = new BufferedOutput();
-        
+
         $result = $this->command->run($input, $output);
-        
+
         $this->assertEquals(GenerateMongoAnonymizedFieldCommand::SUCCESS, $result);
         $outputContent = $output->fetch();
         $this->assertStringContainsString('myapp', $outputContent);
@@ -133,9 +133,9 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('generateMongoScript');
         $method->setAccessible(true);
-        
+
         $script = $method->invoke($this->command, 'test_db', ['users', 'activities']);
-        
+
         $this->assertStringContainsString('test_db', $script);
         $this->assertStringContainsString('users', $script);
         $this->assertStringContainsString('activities', $script);
@@ -152,9 +152,9 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('generateMongoScript');
         $method->setAccessible(true);
-        
+
         $script = $method->invoke($this->command, 'test_db', []);
-        
+
         $this->assertStringContainsString('test_db', $script);
         $this->assertStringContainsString('use(', $script);
     }
@@ -167,14 +167,14 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         $this->container->method('has')
             ->with('kernel')
             ->willReturn(false);
-        
+
         // Use reflection to test private method
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('getProjectRoot');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->command);
-        
+
         // Should return null or a valid path
         $this->assertTrue($result === null || is_string($result));
     }
@@ -187,21 +187,21 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         $kernel = $this->createMock(\Symfony\Component\HttpKernel\KernelInterface::class);
         $kernel->method('getProjectDir')
             ->willReturn('/test/project');
-        
+
         $this->container->method('has')
             ->with('kernel')
             ->willReturn(true);
         $this->container->method('get')
             ->with('kernel')
             ->willReturn($kernel);
-        
+
         // Use reflection to test private method
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('getProjectRoot');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->command);
-        
+
         $this->assertEquals('/test/project', $result);
     }
 
@@ -214,9 +214,9 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('scanDocumentClasses');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->command, '/nonexistent/path');
-        
+
         $this->assertIsArray($result);
         $this->assertEmpty($result);
     }
@@ -230,16 +230,16 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         $this->container->method('has')
             ->with('kernel')
             ->willReturn(false);
-        
+
         // Use reflection to test private method
         $reflection = new \ReflectionClass($this->command);
         $scanMethod = $reflection->getMethod('scanDocumentClasses');
         $scanMethod->setAccessible(true);
-        
+
         // When project root is not found, it should return empty array
         // This is tested indirectly through the path not existing test
         $result = $scanMethod->invoke($this->command, '/nonexistent/path');
-        
+
         $this->assertIsArray($result);
         $this->assertEmpty($result);
     }
