@@ -6,7 +6,9 @@ This guide covers how to use the Anonymize Bundle in your Symfony application.
 
 ## Basic Setup
 
-1. **Mark an entity for anonymization** with the `#[Anonymize]` attribute:
+### Using FakerType Enum (Recommended)
+
+For better type safety and IDE autocompletion, you can use the `FakerType` enum instead of strings:
 
 ```php
 <?php
@@ -16,6 +18,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
+use Nowo\AnonymizeBundle\Enum\FakerType;
 
 #[ORM\Entity]
 #[Anonymize]
@@ -27,33 +30,65 @@ class User
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[AnonymizeProperty(type: 'email', weight: 1)]
+    #[AnonymizeProperty(type: FakerType::EMAIL, weight: 1)]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
-    #[AnonymizeProperty(type: 'name', weight: 2)]
+    #[AnonymizeProperty(type: FakerType::NAME, weight: 2)]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]
-    #[AnonymizeProperty(type: 'surname', weight: 3)]
+    #[AnonymizeProperty(type: FakerType::SURNAME, weight: 3)]
     private ?string $lastName = null;
 
     #[ORM\Column]
-    #[AnonymizeProperty(type: 'age', weight: 4, options: ['min' => 18, 'max' => 100])]
+    #[AnonymizeProperty(type: FakerType::AGE, weight: 4, options: ['min' => 18, 'max' => 100])]
     private ?int $age = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[AnonymizeProperty(type: 'phone', weight: 5)]
+    #[AnonymizeProperty(type: FakerType::PHONE, weight: 5)]
     private ?string $phone = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 30, nullable: true)]
     #[AnonymizeProperty(
-        type: 'email',
+        type: FakerType::DNI_CIF,
         weight: 6,
-        options: ['nullable' => true, 'null_probability' => 20]
+        options: [
+            'type' => 'dni',
+            'preserve_null' => true,
+        ]
     )]
-    private ?string $optionalEmail = null; // 20% chance of being null
+    private ?string $legalId = null;
 }
+```
+
+**Benefits of using FakerType enum:**
+- ✅ Type safety: IDE autocompletion and type checking
+- ✅ No typos: Compile-time validation
+- ✅ Better refactoring: IDE can find all usages
+- ✅ Self-documenting: All available types in one place
+
+**Backward compatibility:** Strings still work, so existing code doesn't need to change.
+
+### Using Strings (Still Supported)
+
+You can still use strings if you prefer:
+
+```php
+#[ORM\Column(length: 255)]
+#[AnonymizeProperty(type: 'email', weight: 1)]
+private ?string $email = null;
+
+#[ORM\Column(type: Types::STRING, length: 30, nullable: true)]
+#[AnonymizeProperty(
+    type: 'dni_cif',
+    weight: 4,
+    options: [
+        'type' => 'dni',
+        'preserve_null' => true,
+    ]
+)]
+private ?string $legalId = null;
 ```
 
 2. **Run the anonymization command**:
@@ -322,11 +357,165 @@ class Order
 
 ### Custom Service Faker
 
-You can use a custom service for anonymization:
+You can create custom faker services by implementing `FakerInterface`. The bundle includes a comprehensive example faker that demonstrates best practices.
+
+#### Example Custom Faker
+
+The bundle provides `ExampleCustomFaker` as a reference implementation located at:
+```
+src/Faker/Example/ExampleCustomFaker.php
+```
+
+This example demonstrates:
+- How to preserve the original value (useful for testing events)
+- How to access other fields from the current record
+- How to access related entities using EntityManager
+- How to implement custom anonymization logic
+
+**To use it as a reference:**
+1. Copy `src/Faker/Example/ExampleCustomFaker.php` to your project (e.g., `src/Service/YourCustomFaker.php`)
+2. Change the namespace to match your project (e.g., `App\Service`)
+3. Update the class name if needed
+4. Implement your custom logic in the `generate()` method
+5. Register the service in `services.yaml` or use `#[Autoconfigure(public: true)]`
+6. Use it in your entity:
 
 ```php
-#[AnonymizeProperty(type: 'service', service: 'app.custom_anonymizer')]
+use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
+
+#[AnonymizeProperty(
+    type: 'service',
+    service: 'App\Service\YourCustomFaker',
+    weight: 1,
+    options: [
+        'preserve_original' => false,  // Set to true to preserve original value
+        'custom_option' => 'value'
+    ]
+)]
+#[ORM\Column(type: Types::STRING, length: 255)]
 private ?string $customField = null;
+```
+
+**Accessing Data:**
+
+The `$options` array in `generate()` contains:
+- `original_value` (mixed): The original value of the field being anonymized (always provided)
+- `record` (array): The full database record with all fields of the current entity (always provided)
+- Any custom options passed via the `options` parameter in `#[AnonymizeProperty]`
+
+**Example: Accessing other fields from the record**
+
+```php
+public function generate(array $options = []): mixed
+{
+    $originalValue = $options['original_value'] ?? null;
+    $record = $options['record'] ?? [];
+    
+    // Access other fields from the current entity
+    $otherField = $record['other_field'] ?? null;
+    $relatedId = $record['related_entity_id'] ?? null;
+    
+    // Your custom anonymization logic
+    return 'anonymized_value';
+}
+```
+
+**Example: Accessing related entities**
+
+```php
+use Doctrine\ORM\EntityManagerInterface;
+use Nowo\AnonymizeBundle\Faker\FakerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+
+#[Autoconfigure(public: true)]
+class CustomFaker implements FakerInterface
+{
+    public function __construct(
+        private EntityManagerInterface $entityManager
+    ) {}
+    
+    public function generate(array $options = []): mixed
+    {
+        $record = $options['record'] ?? [];
+        $relatedId = $record['related_entity_id'] ?? null;
+        
+        if ($relatedId) {
+            $relatedEntity = $this->entityManager
+                ->getRepository(RelatedEntity::class)
+                ->find($relatedId);
+            
+            // Use related entity data in your anonymization logic
+        }
+        
+        return 'anonymized_value';
+    }
+}
+```
+
+**Events:**
+
+The bundle dispatches events that you can listen to for advanced customization:
+
+- **AnonymizePropertyEvent**: Dispatched before anonymizing each property
+  - Access via: `$event->getOriginalValue()`, `$event->getRecord()`, `$event->getEntityManager()`
+  - Modify via: `$event->setAnonymizedValue($newValue)`
+  - Skip via: `$event->setSkipAnonymization(true)`
+
+- **BeforeAnonymizeEvent**: Dispatched before starting anonymization
+- **AfterAnonymizeEvent**: Dispatched after completing anonymization
+- **BeforeEntityAnonymizeEvent**: Dispatched before anonymizing an entity class
+- **AfterEntityAnonymizeEvent**: Dispatched after anonymizing an entity class
+
+**Example Event Listener:**
+
+```php
+use Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+
+#[AsEventListener(event: AnonymizePropertyEvent::class)]
+class CustomAnonymizeListener
+{
+    public function onAnonymizeProperty(AnonymizePropertyEvent $event): void
+    {
+        // Access original value
+        $originalValue = $event->getOriginalValue();
+        
+        // Access full record
+        $record = $event->getRecord();
+        
+        // Access EntityManager for related entities
+        $entityManager = $event->getEntityManager();
+        
+        // Modify the anonymized value
+        $event->setAnonymizedValue('custom_value');
+        
+        // Or skip anonymization
+        // $event->setSkipAnonymization(true);
+    }
+}
+```
+
+**Basic Custom Faker Implementation:**
+
+If you don't need the advanced features, you can create a simple custom faker:
+
+```php
+use Nowo\AnonymizeBundle\Faker\FakerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+
+#[Autoconfigure(public: true)]
+class CustomFaker implements FakerInterface
+{
+    public function generate(array $options = []): mixed
+    {
+        // Your custom anonymization logic
+        $originalValue = $options['original_value'] ?? null;
+        $record = $options['record'] ?? [];
+        
+        // Return anonymized value
+        return 'anonymized_value';
+    }
+}
 ```
 
 The service must implement `FakerInterface` or have a `generate()` method.
@@ -736,6 +925,117 @@ class User
 - The `source_field` value in the record will be the **anonymized** value if it was already processed
 - If the pattern doesn't match, no pattern is appended (just the source field value)
 - The faker automatically receives the full record with already anonymized values
+
+### UTM Faker
+
+The `utm` faker generates anonymized UTM (Urchin Tracking Module) parameters for marketing campaign tracking. Perfect for anonymizing campaign tracking data while maintaining realistic parameter formats.
+
+**Use Case**: Anonymizing marketing campaign tracking parameters (utm_source, utm_medium, utm_campaign, utm_term, utm_content) in analytics databases.
+
+**Example**:
+
+```php
+#[ORM\Entity]
+#[Anonymize]
+class MarketingCampaign
+{
+    #[AnonymizeProperty(
+        type: 'utm',
+        weight: 1,
+        options: [
+            'type' => 'source',  // utm_source
+            'format' => 'snake_case',
+        ]
+    )]
+    #[ORM\Column(length: 100)]
+    private ?string $utmSource = null;
+
+    #[AnonymizeProperty(
+        type: 'utm',
+        weight: 2,
+        options: [
+            'type' => 'medium',  // utm_medium
+            'format' => 'snake_case',
+        ]
+    )]
+    #[ORM\Column(length: 100)]
+    private ?string $utmMedium = null;
+
+    #[AnonymizeProperty(
+        type: 'utm',
+        weight: 3,
+        options: [
+            'type' => 'campaign',  // utm_campaign
+            'format' => 'snake_case',
+            'min_length' => 5,
+            'max_length' => 30,
+        ]
+    )]
+    #[ORM\Column(length: 255)]
+    private ?string $utmCampaign = null;
+
+    #[AnonymizeProperty(
+        type: 'utm',
+        weight: 4,
+        options: [
+            'type' => 'term',  // utm_term (search term)
+            'format' => 'snake_case',
+            'min_length' => 3,
+            'max_length' => 20,
+        ]
+    )]
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $utmTerm = null;
+
+    #[AnonymizeProperty(
+        type: 'utm',
+        weight: 5,
+        options: [
+            'type' => 'content',  // utm_content
+            'format' => 'snake_case',
+        ]
+    )]
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $utmContent = null;
+}
+```
+
+**Options**:
+
+- `type` (string, required): UTM parameter type - `'source'`, `'medium'`, `'campaign'`, `'term'`, or `'content'` (default: `'source'`)
+- `format` (string): Format style - `'snake_case'`, `'kebab-case'`, `'camelCase'`, `'lowercase'`, or `'PascalCase'` (default: `'snake_case'`)
+- `custom_sources` (array): Custom list of sources to use instead of defaults (for `type: 'source'`)
+- `custom_mediums` (array): Custom list of mediums to use instead of defaults (for `type: 'medium'`)
+- `custom_campaigns` (array): Custom list of campaign patterns to use instead of defaults (for `type: 'campaign'`)
+- `prefix` (string): Optional prefix to add to the generated value
+- `suffix` (string): Optional suffix to add to the generated value
+- `min_length` (int): Minimum length for generated values (for campaign/term/content)
+- `max_length` (int): Maximum length for generated values (for campaign/term/content)
+
+**Default Values**:
+
+- **Sources**: google, facebook, twitter, linkedin, instagram, youtube, newsletter, direct, referral, bing, yahoo, reddit, pinterest, tiktok, snapchat
+- **Mediums**: cpc, cpm, email, social, organic, referral, affiliate, display, banner, retargeting, newsletter, sms, push, in-app, video, audio, print
+- **Campaigns**: Uses predefined patterns (spring_sale, product_launch, etc.) or generates random campaign names
+
+**Examples**:
+
+```php
+// UTM source with default format
+#[AnonymizeProperty(type: 'utm', options: ['type' => 'source'])]
+
+// UTM medium with kebab-case format
+#[AnonymizeProperty(type: 'utm', options: ['type' => 'medium', 'format' => 'kebab-case'])]
+
+// UTM campaign with custom length
+#[AnonymizeProperty(type: 'utm', options: ['type' => 'campaign', 'min_length' => 10, 'max_length' => 25])]
+
+// UTM source with custom sources list
+#[AnonymizeProperty(type: 'utm', options: ['type' => 'source', 'custom_sources' => ['partner_a', 'partner_b', 'partner_c']])]
+
+// UTM term with prefix
+#[AnonymizeProperty(type: 'utm', options: ['type' => 'term', 'prefix' => 'kw_'])]
+```
 
 ### Copy Faker
 

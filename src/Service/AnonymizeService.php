@@ -192,10 +192,11 @@ final class AnonymizeService
             $processed++;
 
             // Check entity-level inclusion/exclusion patterns first
+            $isEntityExcluded = false;
             if ($entityAttribute !== null) {
                 if (!$this->patternMatcher->matches($record, $entityAttribute->includePatterns, $entityAttribute->excludePatterns)) {
-                    // Skip this record if it doesn't match entity-level patterns
-                    continue;
+                    // Record is excluded at entity level
+                    $isEntityExcluded = true;
                 }
             }
 
@@ -224,9 +225,19 @@ final class AnonymizeService
                     continue;
                 }
 
-                // Check inclusion/exclusion patterns
-                if (!$this->patternMatcher->matches($record, $attribute->includePatterns, $attribute->excludePatterns)) {
+                // Check if this field should bypass entity exclusion
+                $bypassEntityExclusion = $attribute->options['bypass_entity_exclusion'] ?? false;
+
+                // If entity is excluded and this field doesn't bypass exclusion, skip it
+                if ($isEntityExcluded && !$bypassEntityExclusion) {
                     continue;
+                }
+
+                // Check inclusion/exclusion patterns (only if not bypassing entity exclusion or entity is not excluded)
+                if (!$bypassEntityExclusion || !$isEntityExcluded) {
+                    if (!$this->patternMatcher->matches($record, $attribute->includePatterns, $attribute->excludePatterns)) {
+                        continue;
+                    }
                 }
 
                 // Generate anonymized value

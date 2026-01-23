@@ -69,6 +69,8 @@ class ProtectedUserFixtures extends Fixture
             $user->setRole($userData['role']);
             $user->setStatus($userData['status']);
             $user->setAddress($userData['address']);
+            // Set sensitive notes (will be nullified even if record is excluded)
+            $user->setSensitiveNotes('Sensitive notes for user ' . ($index + 1));
             $user->setAnonymized(false);
 
             $manager->persist($user);

@@ -85,6 +85,8 @@ final class FakerFactory
                 'html' => 'nowo_anonymize.faker.html',
                 'pattern_based' => 'nowo_anonymize.faker.pattern_based',
                 'copy' => 'nowo_anonymize.faker.copy',
+                'null' => 'nowo_anonymize.faker.null',
+                'utm' => 'nowo_anonymize.faker.utm',
                 default => null,
             };
 
@@ -131,6 +133,8 @@ final class FakerFactory
             'html' => new HtmlFaker($this->locale),
             'pattern_based' => new PatternBasedFaker($this->locale),
             'copy' => new CopyFaker(),
+            'null' => new NullFaker(),
+            'utm' => new UtmFaker($this->locale),
             'service' => new ServiceFaker($this->container, $serviceName ?? ''),
             default => throw new \InvalidArgumentException(sprintf('Unsupported faker type: %s', $type)),
         };

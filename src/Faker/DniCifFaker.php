@@ -20,6 +20,11 @@ final class DniCifFaker implements FakerInterface
 {
     private FakerGenerator $faker;
 
+    public const DNI_TYPE = 'dni';
+    public const CIF_TYPE = 'cif';
+    public const NIF_TYPE = 'nif';
+    public const AUTO_TYPE = 'auto';
+
     /**
      * Letters used for DNI/NIF checksum calculation (mod 23).
      */

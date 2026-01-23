@@ -2096,4 +2096,88 @@ class AnonymizeServiceTest extends TestCase
         $this->assertEquals(1, $result['updated']);
     }
 
+    /**
+     * Test that anonymizeEntity processes fields with bypass_entity_exclusion even when record is excluded.
+     */
+    public function testAnonymizeEntityBypassesEntityExclusion(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        
+        $testEntity = new class {
+            #[AnonymizeProperty(
+                type: 'null',
+                options: ['bypass_entity_exclusion' => true]
+            )]
+            public ?string $sensitiveNotes = 'Sensitive data';
+        };
+        $reflection = new ReflectionClass($testEntity);
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+        $metadata->method('hasField')
+            ->with('sensitiveNotes')
+            ->willReturn(true);
+        $metadata->method('hasAssociation')
+            ->willReturn(false);
+        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('sensitiveNotes', 'text', 'sensitive_notes');
+        $metadata->method('getFieldMapping')
+            ->with('sensitiveNotes')
+            ->willReturn($fieldMapping);
+        $metadata->method('getFieldNames')
+            ->willReturn(['sensitiveNotes']);
+        $metadata->method('getIdentifierColumnNames')
+            ->willReturn(['id']);
+
+        // Record that matches entity exclusion pattern (will be excluded)
+        $connection->method('fetchAllAssociative')
+            ->willReturn([['id' => 1, 'sensitive_notes' => 'Sensitive data', 'role' => 'admin']]);
+        $connection->method('quoteSingleIdentifier')
+            ->willReturnCallback(fn($id) => '`' . $id . '`');
+        $connection->method('quote')
+            ->willReturnCallback(function ($val) {
+                if ($val === null) {
+                    return 'NULL';
+                }
+                return "'" . (string) $val . "'";
+            });
+        
+        $capturedSql = '';
+        $connection->method('executeStatement')
+            ->willReturnCallback(function ($sql) use (&$capturedSql) {
+                $capturedSql = $sql;
+                return 1;
+            });
+
+        $property = $reflection->getProperty('sensitiveNotes');
+        $properties = [
+            [
+                'property' => $property,
+                'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
+                'weight' => 1,
+            ],
+        ];
+
+        // Entity attribute with exclusion pattern that matches the record
+        $entityAttribute = new Anonymize();
+        $entityAttribute->excludePatterns = ['role' => 'admin'];
+
+        $progressCallback = function ($current, $total, $message) {
+            // Empty callback
+        };
+        $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback, $entityAttribute);
+
+        $this->assertIsArray($result);
+        $this->assertEquals(1, $result['processed']);
+        // Should update because bypass_entity_exclusion is true
+        $this->assertEquals(1, $result['updated'], 'Field with bypass_entity_exclusion should be updated even when record is excluded');
+        // Should set to NULL
+        $this->assertStringContainsString('`sensitive_notes` = NULL', $capturedSql, 'Field should be set to NULL even when record is excluded');
+    }
 }

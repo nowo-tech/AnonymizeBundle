@@ -66,6 +66,18 @@ class ProtectedUser
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $address = null;
 
+    /**
+     * This field will be set to null even if the record is excluded at entity level.
+     * Uses bypass_entity_exclusion option to ensure it's processed regardless of entity exclusion.
+     */
+    #[AnonymizeProperty(
+        type: 'null',
+        weight: 5,
+        options: ['bypass_entity_exclusion' => true]
+    )]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $sensitiveNotes = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -139,6 +151,18 @@ class ProtectedUser
     public function setAddress(?string $address): static
     {
         $this->address = $address;
+
+        return $this;
+    }
+
+    public function getSensitiveNotes(): ?string
+    {
+        return $this->sensitiveNotes;
+    }
+
+    public function setSensitiveNotes(?string $sensitiveNotes): static
+    {
+        $this->sensitiveNotes = $sensitiveNotes;
 
         return $this;
     }

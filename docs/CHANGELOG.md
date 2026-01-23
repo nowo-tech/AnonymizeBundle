@@ -5,6 +5,78 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **New Faker: UTM Faker**: Generate anonymized UTM (Urchin Tracking Module) parameters for marketing campaign tracking
+  - Supports all UTM parameter types: `source`, `medium`, `campaign`, `term`, and `content`
+  - Multiple format options: `snake_case`, `kebab-case`, `camelCase`, `lowercase`, `PascalCase`
+  - Custom lists support: `custom_sources`, `custom_mediums`, `custom_campaigns`
+  - Prefix and suffix options for generated values
+  - Configurable min/max length for campaign, term, and content types
+  - Predefined common sources (google, facebook, twitter, linkedin, etc.)
+  - Predefined common mediums (cpc, email, social, organic, etc.)
+  - Predefined campaign patterns (spring_sale, product_launch, etc.)
+  - Registered as `utm` faker type in `FakerType` enum
+  - Comprehensive test coverage: 25 tests with multiple assertions
+  - Perfect for anonymizing marketing campaign tracking data while maintaining realistic parameter formats
+
+- **Example Custom Faker**: Reference implementation for creating custom faker services
+  - Located at `src/Faker/Example/ExampleCustomFaker.php`
+  - Comprehensive example demonstrating best practices for custom fakers
+  - Shows how to preserve original values (useful for testing events)
+  - Demonstrates accessing other fields from the current record
+  - Shows how to access related entities using EntityManager
+  - Includes extensive documentation with code examples
+  - Perfect reference for users creating their own custom fakers
+  - Can be copied and adapted for project-specific needs
+  - Comprehensive test coverage: 13 tests with 26+ assertions
+
+- **Demo: CustomFakerExample Entity**: New example entity demonstrating `ExampleCustomFaker` usage
+  - Shows how to use custom faker services with `preserve_original` option
+  - Demonstrates accessing record fields and custom options
+  - Includes comprehensive fixtures with 5 records covering various scenarios
+  - Available in all demo projects (Symfony 6, 7, 8)
+  - Perfect reference for understanding custom faker implementation
+
+- **Demo: MarketingCampaign Entity**: New example entity demonstrating `UtmFaker` usage
+  - Shows how to use UTM faker for all parameter types (source, medium, campaign, term, content)
+  - Demonstrates different formats (snake_case, kebab-case)
+  - Shows custom sources and length constraints
+  - Includes comprehensive fixtures with 8 records covering various UTM scenarios
+  - Available in all demo projects (Symfony 6, 7, 8)
+  - Perfect reference for anonymizing marketing campaign data
+
+- **Documentation**: Enhanced documentation for custom fakers and UTM faker
+  - Added comprehensive section in `USAGE.md` about custom service fakers
+  - Detailed examples showing how to use `ExampleCustomFaker` as reference
+  - Complete documentation for UTM faker with all options and examples
+  - Updated `FAKERS.md` with UTM faker description and custom faker reference
+  - All examples include multiple use cases and edge cases
+
+### Changed
+
+- **Total Faker Types**: Increased from 38 to 39 fakers
+  - Added `utm` for generating anonymized UTM parameters
+  - Added `ExampleCustomFaker` as reference implementation (not counted in total, but available)
+
+- **Test Coverage**: Improved test coverage
+  - Added comprehensive tests for `UtmFaker` (25 tests)
+  - Added comprehensive tests for `ExampleCustomFaker` (13 tests, 26+ assertions)
+  - All tests passing successfully
+
+### Technical Details
+
+- **FakerFactory**: Updated to support UTM faker
+  - Added service registration for `utm` faker
+  - Added direct instantiation fallback for `utm` faker
+  - Integrated with existing faker infrastructure
+
+- **FakerType Enum**: Updated to include UTM faker
+  - Added `UTM = 'utm'` case to enum
+  - Maintains type safety and IDE autocompletion
+
 ## [1.0.0] - 2026-01-24
 
 ### Added

@@ -13,6 +13,77 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.1 (Unreleased)
+
+**Release Date**: TBD
+
+#### What's New
+
+- **UTM Faker**: New faker type for anonymizing UTM (Urchin Tracking Module) parameters
+  - Supports all UTM parameter types: `source`, `medium`, `campaign`, `term`, and `content`
+  - Multiple format options: `snake_case`, `kebab-case`, `camelCase`, `lowercase`, `PascalCase`
+  - Custom lists support for sources, mediums, and campaigns
+  - Prefix and suffix options
+  - Configurable min/max length for campaign, term, and content
+  - Perfect for anonymizing marketing campaign tracking data
+  - Example: `#[AnonymizeProperty(type: FakerType::UTM, options: ['type' => 'source', 'format' => 'snake_case'])]`
+
+- **Example Custom Faker**: Reference implementation for creating custom faker services
+  - Located at `src/Faker/Example/ExampleCustomFaker.php`
+  - Comprehensive example showing best practices
+  - Demonstrates preserving original values, accessing record fields, and using EntityManager
+  - Can be copied and adapted for your project
+  - Perfect reference for creating custom fakers
+
+- **New Demo Entities**: 
+  - `CustomFakerExample`: Demonstrates `ExampleCustomFaker` usage
+  - `MarketingCampaign`: Demonstrates `UtmFaker` usage with all parameter types
+
+#### Breaking Changes
+
+None - This is a backward-compatible feature release.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Review new features** (optional):
+   - Check `ExampleCustomFaker` at `src/Faker/Example/ExampleCustomFaker.php` for custom faker reference
+   - Review `CustomFakerExample` and `MarketingCampaign` entities in demo projects
+   - See `USAGE.md` for comprehensive examples of UTM faker and custom fakers
+
+4. **Test your application**:
+   - Verify that existing anonymization functionality works as expected
+   - If you want to use UTM faker, review the `MarketingCampaign` demo for examples
+   - If you want to create custom fakers, use `ExampleCustomFaker` as a reference
+
+#### Migration Notes
+
+This release adds two new features:
+
+1. **UTM Faker**: Use `FakerType::UTM` or `'utm'` as the faker type with `type` option:
+   ```php
+   #[AnonymizeProperty(
+       type: FakerType::UTM,
+       options: ['type' => 'source', 'format' => 'snake_case']
+   )]
+   ```
+
+2. **Example Custom Faker**: Copy `src/Faker/Example/ExampleCustomFaker.php` to your project and adapt it:
+   ```php
+   // Copy to your project (e.g., src/Service/YourCustomFaker.php)
+   // Change namespace to match your project
+   // Implement your custom logic
+   ```
+
 ### Upgrading to 1.0.0
 
 **Release Date**: 2026-01-24

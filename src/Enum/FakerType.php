@@ -122,4 +122,10 @@ enum FakerType: string
 
     /** Copy faker (copies value from another field) */
     case COPY = 'copy';
+
+    /** Null faker (always returns null, can bypass entity exclusion) */
+    case NULL = 'null';
+
+    /** UTM parameter faker (supports source, medium, campaign, term, content types) */
+    case UTM = 'utm';
 }

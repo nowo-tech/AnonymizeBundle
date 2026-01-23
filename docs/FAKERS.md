@@ -2,9 +2,34 @@
 
 > 📋 **Requirements**: This bundle requires **Symfony 6.1 or higher** (Symfony 6.0 is not supported). See [INSTALLATION.md](INSTALLATION.md) for complete requirements.
 
-The bundle supports 35 different faker types for anonymizing various data types.
+The bundle supports 38 different faker types for anonymizing various data types.
 
 > 💡 **Tip**: All fakers support the `nullable` and `null_probability` options to generate null values with a configurable probability. See [USAGE.md](USAGE.md#nullable-option) for details.
+
+## Using FakerType Enum (Recommended)
+
+For better type safety and IDE autocompletion, use the `FakerType` enum instead of strings:
+
+```php
+use Nowo\AnonymizeBundle\Enum\FakerType;
+use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
+
+// Using enum (recommended)
+#[AnonymizeProperty(type: FakerType::DNI_CIF, options: ['type' => 'dni', 'preserve_null' => true])]
+private ?string $legalId = null;
+
+// Using string (still supported for backward compatibility)
+#[AnonymizeProperty(type: 'dni_cif', options: ['type' => 'dni', 'preserve_null' => true])]
+private ?string $legalId = null;
+```
+
+**Benefits of using FakerType enum:**
+- ✅ IDE autocompletion and type checking
+- ✅ Compile-time validation (no typos)
+- ✅ Better refactoring support
+- ✅ Self-documenting (all available types in one place)
+
+**Backward compatibility:** Strings still work, so existing code doesn't need to change.
 
 ## Basic Fakers
 
@@ -74,6 +99,12 @@ The bundle supports 35 different faker types for anonymizing various data types.
   - Simply copies the anonymized value from the source field
   - Example: `['source_field' => 'email']` - copies anonymized email value
 
+- **utm**: Generates anonymized UTM (Urchin Tracking Module) parameters
+  - Options: `type` (source/medium/campaign/term/content), `format` (snake_case/kebab-case/camelCase/lowercase/PascalCase), `custom_sources`, `custom_mediums`, `custom_campaigns`, `prefix`, `suffix`, `min_length`, `max_length`
+  - Perfect for anonymizing marketing campaign tracking parameters
+  - Supports all UTM parameter types: source, medium, campaign, term, and content
+  - Example: `['type' => 'source', 'format' => 'snake_case']` - generates utm_source value
+
 ## Data Preservation Fakers
 
 - **hash_preserve**: Deterministic anonymization using hash functions (maintains referential integrity)
@@ -86,8 +117,14 @@ The bundle supports 35 different faker types for anonymizing various data types.
 ## Custom Fakers
 
 - **service**: Uses a custom service for anonymization (requires `service` option with service name)
-
-The service must implement `FakerInterface` or have a `generate()` method.
+  - The service must implement `FakerInterface` or have a `generate()` method
+  - See [USAGE.md](USAGE.md#custom-service-faker) for detailed examples and best practices
+  - The bundle includes `ExampleCustomFaker` as a reference implementation at `src/Faker/Example/ExampleCustomFaker.php`
+  - This example demonstrates:
+    - How to preserve the original value (useful for testing events)
+    - How to access other fields from the current record
+    - How to access related entities using EntityManager
+    - How to implement custom anonymization logic
 
 ## Enhanced Fakers
 

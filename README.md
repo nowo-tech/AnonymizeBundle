@@ -27,7 +27,9 @@ Looking for: **database anonymization**, **test data generator**, **GDPR complia
 
 - ✅ Attribute-based anonymization configuration
 - ✅ Support for multiple Doctrine connections
-- ✅ Multiple faker types (37 total: email, name, surname, age, phone, IBAN, credit card, address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language, hash_preserve, shuffle, constant, dni_cif, name_fallback, html, pattern_based, copy, custom service)
+- ✅ Multiple faker types (39 total: email, name, surname, age, phone, IBAN, credit card, address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language, hash_preserve, shuffle, constant, dni_cif, name_fallback, html, pattern_based, copy, null, utm, custom service)
+- ✅ **FakerType enum** for type-safe faker selection (recommended) - IDE autocompletion and compile-time validation
+- ✅ String-based faker types still supported (backward compatible)
 - ✅ Weight-based anonymization order
 - ✅ Pattern-based inclusion/exclusion filters
 - ✅ Support for MySQL and PostgreSQL (MongoDB infrastructure ready in demos, ODM support coming soon)
