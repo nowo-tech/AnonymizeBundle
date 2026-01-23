@@ -35,7 +35,7 @@ class UserAccount
     private ?int $id = null;
 
     #[AnonymizeProperty(type: 'email', weight: 1, excludePatterns: [
-        'email' => '%@visitor.com'
+        'email' => '%@visitor.com',
     ])]
     #[Assert\Email(message: 'validator.email.not_valid')]
     #[ORM\Column(type: Types::STRING, length: 180)]
