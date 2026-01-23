@@ -13,9 +13,9 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
-### Upgrading to 1.0.1 (Unreleased)
+### Upgrading to 1.0.1
 
-**Release Date**: TBD
+**Release Date**: 2026-01-27
 
 #### What's New
 
