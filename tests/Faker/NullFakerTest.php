@@ -57,7 +57,7 @@ class NullFakerTest extends TestCase
     public function testGenerateIgnoresOptions(): void
     {
         $faker = new NullFaker();
-        
+
         // Should return null regardless of options
         $result1 = $faker->generate(['value' => 'test']);
         $this->assertNull($result1);

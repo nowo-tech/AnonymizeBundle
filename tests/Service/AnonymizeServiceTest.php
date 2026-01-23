@@ -2106,7 +2106,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(
                 type: 'null',
@@ -2147,7 +2147,7 @@ class AnonymizeServiceTest extends TestCase
                 }
                 return "'" . (string) $val . "'";
             });
-        
+
         $capturedSql = '';
         $connection->method('executeStatement')
             ->willReturnCallback(function ($sql) use (&$capturedSql) {
