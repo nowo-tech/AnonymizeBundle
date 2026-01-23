@@ -62,6 +62,18 @@ The bundle supports 35 different faker types for anonymizing various data types.
   - Signature type includes name, title, company, contact info with optional links
   - Example: `['type' => 'signature', 'include_links' => true, 'include_styles' => false]`
 
+- **pattern_based**: Constructs values from other fields with pattern extraction
+  - Options: `source_field` (required), `pattern` (regex), `pattern_replacement`, `separator`, `fallback_faker`, `fallback_options`
+  - Perfect for fields derived from other fields that need to preserve patterns (e.g., username from email with number suffix)
+  - Extracts a pattern from the original value and appends it to the anonymized source field value
+  - Example: `['source_field' => 'email', 'pattern' => '/(\\(\\d+\\))$/']` - preserves number in parentheses
+
+- **copy**: Copies value from another field
+  - Options: `source_field` (required), `fallback_faker`, `fallback_options`
+  - Perfect for fields that should be identical after anonymization (e.g., email and emailCanonical)
+  - Simply copies the anonymized value from the source field
+  - Example: `['source_field' => 'email']` - copies anonymized email value
+
 ## Data Preservation Fakers
 
 - **hash_preserve**: Deterministic anonymization using hash functions (maintains referential integrity)

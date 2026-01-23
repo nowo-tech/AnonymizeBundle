@@ -13,6 +13,165 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.0
+
+**Release Date**: 2026-01-24
+
+#### What's New
+
+- **Demo: ProtectedUser Entity**: Comprehensive example demonstrating entity-level `excludePatterns`
+  - Shows how to exclude entire records from anonymization using multiple exclusion patterns
+  - Demonstrates email pattern matching, role-based exclusion, ID ranges, and status-based exclusion
+  - Includes 25+ fixture records covering all scenarios
+  - Perfect reference for understanding how to protect specific records from anonymization
+
+- **Documentation**: Enhanced documentation for entity-level pattern filtering
+  - Clarified how `excludePatterns` work at entity level
+  - Added comprehensive examples and use cases
+
+#### Breaking Changes
+
+None - This is a backward-compatible release. The bundle is now considered stable and production-ready for development environments.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Review new demo** (optional):
+   - Check `ProtectedUser` entity in demo projects for comprehensive `excludePatterns` examples
+   - Review `ProtectedUserFixtures` for detailed exclusion pattern scenarios
+
+4. **Test your application**:
+   - Verify that existing anonymization functionality works as expected
+   - If you want to use entity-level `excludePatterns`, review the `ProtectedUser` demo for examples
+
+#### Migration Notes
+
+This release marks the **1.0.0 milestone**, indicating that the bundle is stable and feature-complete for development use. All core functionality is well-tested and documented.
+
+If you're using entity-level `excludePatterns`, the `ProtectedUser` demo provides comprehensive examples of:
+- Excluding records by email patterns (e.g., `'%@visitor.com'`)
+- Excluding records by role (e.g., `'admin'`)
+- Excluding records by ID ranges (e.g., `'<=100'`)
+- Excluding records by status with OR operator (e.g., `'archived|deleted'`)
+- Multiple exclusion patterns working together
+
+### Upgrading to 0.0.29
+
+**Release Date**: 2026-01-24
+
+#### What's New
+
+- **Pattern-Based Faker**: Construct values from other fields while preserving patterns
+  - New faker type: `pattern_based`
+  - Perfect for fields derived from other fields (e.g., username from email with number suffix)
+  - Extracts patterns from original values and appends them to anonymized source field values
+  - Options: `source_field` (required), `pattern` (regex), `pattern_replacement`, `separator`, `fallback_faker`, `fallback_options`
+  - Example: `#[AnonymizeProperty(type: 'pattern_based', options: ['source_field' => 'email', 'pattern' => '/(\\(\\d+\\))$/'])]`
+  - Automatically receives the full record with already anonymized values
+  - See [EXAMPLES_PATTERN_BASED.md](EXAMPLES_PATTERN_BASED.md) for detailed examples
+
+- **Copy Faker**: Copy values from other fields
+  - New faker type: `copy`
+  - Perfect for fields that should be identical after anonymization (e.g., email and emailCanonical)
+  - Simply copies the anonymized value from the source field
+  - Options: `source_field` (required), `fallback_faker`, `fallback_options`
+  - Example: `#[AnonymizeProperty(type: 'copy', options: ['source_field' => 'email'])]`
+  - Automatically receives the full record with already anonymized values
+
+- **Demo: UserAccount Entity**: New example entity demonstrating `copy` and `pattern_based` fakers
+  - Shows complete workflow: email → username (with pattern) → usernameCanonical (same) → emailCanonical (copy)
+  - Available in all demo projects (Symfony 6, 7, 8)
+
+#### Breaking Changes
+
+None - This is a backward-compatible feature release.
+
+#### Upgrade Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Review new fakers** (optional):
+   - Check [EXAMPLES_PATTERN_BASED.md](EXAMPLES_PATTERN_BASED.md) for usage examples
+   - Review [USAGE.md](USAGE.md) for complete documentation
+   - See [FAKERS.md](FAKERS.md) for faker descriptions
+
+4. **Test your application**:
+   - Verify that existing anonymization functionality works as expected
+   - If you want to use the new fakers, update your entity attributes accordingly
+
+#### Migration Example
+
+If you have fields that are derived from other fields and want to preserve patterns:
+
+**Before** (using separate fakers):
+```php
+#[AnonymizeProperty(type: 'email', weight: 1)]
+public string $email;
+
+#[AnonymizeProperty(type: 'username', weight: 2)]
+public string $username;  // Loses pattern from original
+```
+
+**After** (using pattern_based):
+```php
+#[AnonymizeProperty(type: 'email', weight: 1)]
+public string $email;
+
+#[AnonymizeProperty(
+    type: 'pattern_based',
+    weight: 2,
+    options: [
+        'source_field' => 'email',
+        'pattern' => '/(\\(\\d+\\))$/',  // Preserves (15) pattern
+        'pattern_replacement' => '$1',
+    ]
+)]
+public string $username;  // Preserves pattern: email@domain.com(15)
+```
+
+If you have fields that should be identical:
+
+**Before** (using same faker type):
+```php
+#[AnonymizeProperty(type: 'email', weight: 1)]
+public string $email;
+
+#[AnonymizeProperty(type: 'email', weight: 2)]
+public string $emailCanonical;  // May generate different value
+```
+
+**After** (using copy):
+```php
+#[AnonymizeProperty(type: 'email', weight: 1)]
+public string $email;
+
+#[AnonymizeProperty(
+    type: 'copy',
+    weight: 2,
+    options: [
+        'source_field' => 'email',
+    ]
+)]
+public string $emailCanonical;  // Always same as email
+```
+
 ### Upgrading to 0.0.28
 
 **Release Date**: 2026-01-23

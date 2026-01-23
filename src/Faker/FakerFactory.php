@@ -83,6 +83,8 @@ final class FakerFactory
                 'dni_cif' => 'nowo_anonymize.faker.dni_cif',
                 'name_fallback' => 'nowo_anonymize.faker.name_fallback',
                 'html' => 'nowo_anonymize.faker.html',
+                'pattern_based' => 'nowo_anonymize.faker.pattern_based',
+                'copy' => 'nowo_anonymize.faker.copy',
                 default => null,
             };
 
@@ -127,6 +129,8 @@ final class FakerFactory
             'dni_cif' => new DniCifFaker($this->locale),
             'name_fallback' => new NameFallbackFaker($this->locale),
             'html' => new HtmlFaker($this->locale),
+            'pattern_based' => new PatternBasedFaker($this->locale),
+            'copy' => new CopyFaker(),
             'service' => new ServiceFaker($this->container, $serviceName ?? ''),
             default => throw new \InvalidArgumentException(sprintf('Unsupported faker type: %s', $type)),
         };

@@ -5,6 +5,103 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-01-24
+
+### Added
+
+- **Demo: ProtectedUser Entity**: New comprehensive example entity demonstrating `excludePatterns` at entity level
+  - Shows how to exclude entire records from anonymization when fields match specific patterns
+  - Demonstrates multiple exclusion patterns working together:
+    - Email pattern matching: `'email' => '%@visitor.com'`
+    - Role-based exclusion: `'role' => 'admin'`
+    - ID range exclusion: `'id' => '<=100'`
+    - Status-based exclusion with OR operator: `'status' => 'archived|deleted'`
+  - Includes comprehensive fixtures with 25+ records covering all exclusion scenarios
+  - Demonstrates edge cases (records matching multiple exclusion patterns)
+  - Available in all demo projects (Symfony 6, 7, 8)
+  - Perfect reference for understanding entity-level pattern filtering
+
+- **Documentation**: Enhanced documentation for entity-level `excludePatterns`
+  - Clarified how `excludePatterns` work at entity level to exclude entire records
+  - Added comprehensive examples in `ProtectedUser` entity
+  - Updated usage examples to show multiple exclusion patterns
+
+### Changed
+
+- **Demo Coverage**: Improved demo coverage for pattern-based filtering
+  - Existing demos (Order, Employee, Customer) already demonstrate `excludePatterns`
+  - New `ProtectedUser` demo provides comprehensive multi-pattern examples
+  - All demos include detailed comments in fixtures explaining exclusion logic
+
+### Documentation
+
+- Enhanced examples showing how to exclude records based on multiple criteria
+- Clarified the difference between entity-level and property-level pattern filtering
+- Added comprehensive use cases for `excludePatterns` at entity level
+
+## [0.0.29] - 2026-01-24
+
+### Added
+
+- **New Faker: Pattern-Based Faker**: Constructs values from other fields with pattern extraction
+  - Perfect for fields derived from other fields that need to preserve patterns (e.g., username from email with number suffix)
+  - Extracts a pattern from the original value and appends it to the anonymized source field value
+  - Options: `source_field` (required), `pattern` (regex), `pattern_replacement`, `separator`, `fallback_faker`, `fallback_options`
+  - Example: `['source_field' => 'email', 'pattern' => '/(\\(\\d+\\))$/']` preserves number in parentheses
+  - Automatically receives the full record with already anonymized values
+  - Registered as `pattern_based` faker type
+  - Comprehensive test coverage: 13 tests with 26 assertions
+
+- **New Faker: Copy Faker**: Copies values from other fields
+  - Perfect for fields that should be identical after anonymization (e.g., email and emailCanonical)
+  - Simply copies the anonymized value from the source field
+  - Options: `source_field` (required), `fallback_faker`, `fallback_options`
+  - Example: `['source_field' => 'email']` copies anonymized email value
+  - Automatically receives the full record with already anonymized values
+  - Registered as `copy` faker type
+  - Comprehensive test coverage: 9 tests with 19 assertions
+
+- **Demo: UserAccount Entity**: New example entity demonstrating `copy` and `pattern_based` fakers together
+  - Shows how to use `copy` to make `emailCanonical` same as `email`
+  - Shows how to use `pattern_based` to construct `username` from `email` while preserving pattern
+  - Includes comprehensive fixtures with 10 records
+  - Demonstrates complete workflow: email → username (with pattern) → usernameCanonical (same) → emailCanonical (copy)
+  - Available in all demo projects (Symfony 6, 7, 8)
+
+- **Documentation**: Enhanced documentation with comprehensive examples
+  - Added `EXAMPLES_PATTERN_BASED.md` with detailed examples of `pattern_based` and `copy` fakers
+  - Updated `USAGE.md` with complete examples showing `pattern_based` and `copy` working together
+  - Updated `FAKERS.md` with descriptions of new fakers
+  - All examples include multiple use cases and edge cases
+
+### Changed
+
+- **Total Faker Types**: Increased from 35 to 37 fakers
+  - Added `pattern_based` for constructing values from other fields with pattern extraction
+  - Added `copy` for copying values from other fields
+
+- **Test Coverage**: Improved test coverage
+  - **Total tests**: 788 tests with 2166 assertions (increased from 766 tests)
+  - **Code coverage metrics**:
+    - Classes: 67.69% (44/65)
+    - Methods: 75.61% (186/246)
+    - Lines: 61.79% (1942/3143)
+  - Added comprehensive tests for `pattern_based` faker (13 tests, 26 assertions)
+  - Added comprehensive tests for `copy` faker (9 tests, 19 assertions)
+  - All tests passing successfully
+
+### Technical Details
+
+- **AnonymizeService**: Enhanced to support `pattern_based` and `copy` fakers
+  - Modified to pass merged record (original + anonymized values) to these fakers
+  - Ensures `source_field` contains the anonymized value if it was processed earlier
+  - Maintains correct processing order based on `weight` attribute
+
+- **FakerFactory**: Updated to support new faker types
+  - Added service registration for `pattern_based` and `copy` fakers
+  - Added direct instantiation fallback for both fakers
+  - Integrated with existing faker infrastructure
+
 ## [0.0.28] - 2026-01-23
 
 ### Added

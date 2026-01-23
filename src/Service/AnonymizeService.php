@@ -260,6 +260,15 @@ final class AnonymizeService
                     $fakerOptions['record'] = $record;
                 }
 
+                // For pattern_based and copy fakers, pass the record with already anonymized values merged
+                // This allows them to use anonymized values from other fields (e.g., email)
+                if (in_array($attribute->type, ['pattern_based', 'copy']) && !isset($fakerOptions['record'])) {
+                    // Merge original record with already anonymized values from $updates
+                    // This ensures these fakers can access the anonymized value of source_field
+                    $mergedRecord = array_merge($record, $updates);
+                    $fakerOptions['record'] = $mergedRecord;
+                }
+
                 // Check if value should be null based on nullable option
                 $nullable = $fakerOptions['nullable'] ?? false;
                 $nullProbability = (int) ($fakerOptions['null_probability'] ?? 0);

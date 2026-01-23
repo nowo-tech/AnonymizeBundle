@@ -664,6 +664,167 @@ class User
 
 **Note**: The `preserve_null` option works with all faker types and takes precedence over `nullable` option. If `preserve_null` is `true` and the original value is null, the field is skipped entirely (not added to updates).
 
+### Pattern-Based Faker
+
+The `pattern_based` faker allows you to construct values based on other fields while preserving patterns from the original value. Perfect for cases where fields are derived from other fields but need to maintain certain patterns.
+
+**Use Case**: When you have fields that are constructed from other fields (e.g., `username` from `email`) but need to preserve patterns from the original value (e.g., a number in parentheses).
+
+**Example**:
+```php
+#[ORM\Entity]
+#[Anonymize]
+class User
+{
+    #[AnonymizeProperty(type: 'email', weight: 1)]
+    public string $email;
+
+    #[AnonymizeProperty(
+        type: 'pattern_based',
+        weight: 2,
+        options: [
+            'source_field' => 'email',  // Use anonymized email as base
+            'pattern' => '/(\\(\\d+\\))$/',  // Extract (number) at the end
+            'pattern_replacement' => '$1',  // Keep the extracted pattern
+        ]
+    )]
+    public string $username;  // Original: "hola@pepe.com(15)" → Anonymized: "john@example.com(15)"
+
+    #[AnonymizeProperty(
+        type: 'pattern_based',
+        weight: 3,
+        options: [
+            'source_field' => 'email',
+            'pattern' => '/(\\(\\d+\\))$/',
+            'pattern_replacement' => '$1',
+        ]
+    )]
+    public string $usernameCanonical;  // Same pattern as username
+}
+```
+
+**Options**:
+- `source_field` (string, required): Name of the field to use as base (e.g., 'email')
+- `pattern` (string): Regex pattern to extract from original_value (default: `'/(\\(\\d+\\))$/'` for parentheses with number)
+- `pattern_replacement` (string): Replacement pattern for extracted value (default: `'$1'` to keep as-is)
+- `separator` (string): Separator between source field and pattern (default: `''`)
+- `fallback_faker` (string): Faker type to use if source field is null (default: `'username'`)
+- `fallback_options` (array): Options for fallback faker (default: `[]`)
+
+**Behavior**:
+- Extracts a pattern from the original value using the regex pattern
+- Uses the anonymized value of `source_field` as the base
+- Appends the extracted pattern to create the new value
+- If `source_field` is null, uses `fallback_faker` instead
+
+**Pattern Examples**:
+```php
+// Extract number in parentheses: "email@test.com(15)" → "(15)"
+'pattern' => '/(\\(\\d+\\))$/'
+
+// Extract ID suffix: "user@test.com-ID123" → "-ID123"
+'pattern' => '/-ID(\\d+)$/'
+'pattern_replacement' => '-ID$1'
+
+// Extract custom suffix: "email@test.com-user-42" → "-user-42"
+'pattern' => '/-user-(\\d+)$/'
+'pattern_replacement' => '-user-$1'
+```
+
+**Important Notes**:
+- The `source_field` must be processed **before** the pattern_based field (use `weight` to control order)
+- The `source_field` value in the record will be the **anonymized** value if it was already processed
+- If the pattern doesn't match, no pattern is appended (just the source field value)
+- The faker automatically receives the full record with already anonymized values
+
+### Copy Faker
+
+The `copy` faker allows you to copy the anonymized value from another field. Perfect for cases where multiple fields should have the same anonymized value (e.g., `email` and `emailCanonical`).
+
+**Use Case**: When you have fields that should be identical after anonymization (e.g., canonical versions of fields).
+
+**Example**:
+```php
+#[ORM\Entity]
+#[Anonymize]
+class User
+{
+    #[AnonymizeProperty(type: 'email', weight: 1)]
+    public string $email;
+
+    #[AnonymizeProperty(
+        type: 'copy',
+        weight: 2,
+        options: [
+            'source_field' => 'email',  // Copy from anonymized email
+        ]
+    )]
+    public string $emailCanonical;  // Will be same as email after anonymization
+}
+```
+
+**Options**:
+- `source_field` (string, required): Name of the field to copy from (e.g., 'email')
+- `fallback_faker` (string): Faker type to use if source field is null (default: 'email')
+- `fallback_options` (array): Options for fallback faker (default: `[]`)
+
+**Behavior**:
+- Copies the anonymized value from `source_field`
+- If `source_field` is null, uses `fallback_faker` to generate a value
+- The `source_field` must be processed **before** the copy field (use `weight` to control order)
+
+**Complete Example: Email and Username with Patterns**:
+```php
+#[ORM\Entity]
+#[Anonymize]
+class UserAccount
+{
+    // Email is anonymized first
+    #[AnonymizeProperty(type: 'email', weight: 1)]
+    public string $email;
+
+    // Username is constructed from email + pattern from original username
+    #[AnonymizeProperty(
+        type: 'pattern_based',
+        weight: 2,
+        options: [
+            'source_field' => 'email',
+            'pattern' => '/(\\(\\d+\\))$/',  // Extract (15) from original
+            'pattern_replacement' => '$1',
+        ]
+    )]
+    public string $username;  // Original: "hola@pepe.com(15)" → "john@example.com(15)"
+
+    // UsernameCanonical is same as username (same pattern)
+    #[AnonymizeProperty(
+        type: 'pattern_based',
+        weight: 3,
+        options: [
+            'source_field' => 'email',
+            'pattern' => '/(\\(\\d+\\))$/',
+            'pattern_replacement' => '$1',
+        ]
+    )]
+    public string $usernameCanonical;  // Same as username
+
+    // EmailCanonical is same as email (copied)
+    #[AnonymizeProperty(
+        type: 'copy',
+        weight: 4,
+        options: [
+            'source_field' => 'email',
+        ]
+    )]
+    public string $emailCanonical;  // Same as email
+}
+```
+
+**Result after anonymization**:
+- `email`: `hola@pepe.com` → `john@example.com`
+- `emailCanonical`: `hola@pepe.com` → `john@example.com` (same as email)
+- `username`: `hola@pepe.com(15)` → `john@example.com(15)` (email + pattern)
+- `usernameCanonical`: `hola@pepe.com(15)` → `john@example.com(15)` (same as username)
+
 ## Event System
 
 The bundle provides a comprehensive event system for extensibility. You can listen to events to customize the anonymization process, modify anonymized values, or skip anonymization for specific conditions.

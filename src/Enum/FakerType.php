@@ -116,4 +116,10 @@ enum FakerType: string
 
     /** HTML faker (generates HTML with lorem ipsum, perfect for email signatures) */
     case HTML = 'html';
+
+    /** Pattern-based faker (constructs values from other fields with pattern extraction) */
+    case PATTERN_BASED = 'pattern_based';
+
+    /** Copy faker (copies value from another field) */
+    case COPY = 'copy';
 }
