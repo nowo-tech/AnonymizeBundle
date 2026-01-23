@@ -2180,4 +2180,382 @@ class AnonymizeServiceTest extends TestCase
         // Should set to NULL
         $this->assertStringContainsString('`sensitive_notes` = NULL', $capturedSql, 'Field should be set to NULL even when record is excluded');
     }
+
+    /**
+     * Test that truncateTables returns empty array when no entities have truncate=true.
+     */
+    public function testTruncateTablesReturnsEmptyWhenNoTruncateEntities(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $testEntity = new class {
+            #[Anonymize]
+            public string $email = 'test@example.com';
+        };
+        $reflection = new ReflectionClass($testEntity);
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+
+        $entities = [
+            'TestEntity' => [
+                'metadata' => $metadata,
+                'reflection' => $reflection,
+                'attribute' => new Anonymize(truncate: false),
+            ],
+        ];
+
+        $result = $this->service->truncateTables($em, $entities, false);
+
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
+    }
+
+    /**
+     * Test that truncateTables truncates tables with truncate=true for MySQL.
+     */
+    public function testTruncateTablesTruncatesForMySQL(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $testEntity = new class {
+            #[Anonymize(truncate: true)]
+            public string $email = 'test@example.com';
+        };
+        $reflection = new ReflectionClass($testEntity);
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+
+        // Mock driver to return MySQL
+        $driver = $this->createMock(\Doctrine\DBAL\Driver::class);
+        $connection->method('getDriver')
+            ->willReturn($driver);
+
+        // Mock platform to return MySQL platform
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $connection->method('getDatabasePlatform')
+            ->willReturn($platform);
+
+        $connection->method('quoteSingleIdentifier')
+            ->willReturnCallback(fn($id) => '`' . $id . '`');
+
+        $executedStatements = [];
+        $connection->method('executeStatement')
+            ->willReturnCallback(function ($sql) use (&$executedStatements) {
+                $executedStatements[] = $sql;
+                return 0;
+            });
+
+        $entities = [
+            'TestEntity' => [
+                'metadata' => $metadata,
+                'reflection' => $reflection,
+                'attribute' => new Anonymize(truncate: true),
+            ],
+        ];
+
+        $result = $this->service->truncateTables($em, $entities, false);
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('test_table', $result);
+        $this->assertContains('SET FOREIGN_KEY_CHECKS = 0', $executedStatements);
+        $this->assertContains('TRUNCATE TABLE `test_table`', $executedStatements);
+        $this->assertContains('SET FOREIGN_KEY_CHECKS = 1', $executedStatements);
+    }
+
+    /**
+     * Test that truncateTables orders tables by truncate_order.
+     */
+    public function testTruncateTablesOrdersByTruncateOrder(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata1 = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $metadata2 = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $metadata3 = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata1->method('getTableName')
+            ->willReturn('table_c');
+        $metadata2->method('getTableName')
+            ->willReturn('table_a');
+        $metadata3->method('getTableName')
+            ->willReturn('table_b');
+
+        // Mock driver to return MySQL
+        $driver = $this->createMock(\Doctrine\DBAL\Driver::class);
+        $connection->method('getDriver')
+            ->willReturn($driver);
+
+        // Mock platform to return MySQL platform
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $connection->method('getDatabasePlatform')
+            ->willReturn($platform);
+
+        $connection->method('quoteSingleIdentifier')
+            ->willReturnCallback(fn($id) => '`' . $id . '`');
+
+        $truncateStatements = [];
+        $connection->method('executeStatement')
+            ->willReturnCallback(function ($sql) use (&$truncateStatements) {
+                if (str_contains($sql, 'TRUNCATE TABLE')) {
+                    $truncateStatements[] = $sql;
+                }
+                return 0;
+            });
+
+        $entities = [
+            'Entity1' => [
+                'metadata' => $metadata1,
+                'reflection' => $this->createMock(ReflectionClass::class),
+                'attribute' => new Anonymize(truncate: true, truncate_order: 3), // Last
+            ],
+            'Entity2' => [
+                'metadata' => $metadata2,
+                'reflection' => $this->createMock(ReflectionClass::class),
+                'attribute' => new Anonymize(truncate: true, truncate_order: 1), // First
+            ],
+            'Entity3' => [
+                'metadata' => $metadata3,
+                'reflection' => $this->createMock(ReflectionClass::class),
+                'attribute' => new Anonymize(truncate: true, truncate_order: null), // After explicit orders
+            ],
+        ];
+
+        $result = $this->service->truncateTables($em, $entities, false);
+
+        $this->assertIsArray($result);
+        $this->assertCount(3, $result);
+        // Check order: table_a (order 1), table_b (order null), table_c (order 3)
+        $this->assertStringContainsString('`table_a`', $truncateStatements[0]);
+        $this->assertStringContainsString('`table_b`', $truncateStatements[1]);
+        $this->assertStringContainsString('`table_c`', $truncateStatements[2]);
+    }
+
+    /**
+     * Test that truncateTables handles dry-run mode.
+     */
+    public function testTruncateTablesHandlesDryRun(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+
+        $connection->method('quoteSingleIdentifier')
+            ->willReturnCallback(fn($id) => '`' . $id . '`');
+        $connection->method('fetchOne')
+            ->willReturn('10'); // 10 records would be deleted
+
+        $entities = [
+            'TestEntity' => [
+                'metadata' => $metadata,
+                'reflection' => $this->createMock(ReflectionClass::class),
+                'attribute' => new Anonymize(truncate: true),
+            ],
+        ];
+
+        $result = $this->service->truncateTables($em, $entities, true); // dry-run
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('test_table', $result);
+        $this->assertEquals(10, $result['test_table']);
+    }
+
+    /**
+     * Test that truncateTables handles PostgreSQL with CASCADE.
+     */
+    public function testTruncateTablesHandlesPostgreSQL(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+
+        // Mock driver to return PostgreSQL
+        $driver = $this->createMock(\Doctrine\DBAL\Driver::class);
+        $connection->method('getDriver')
+            ->willReturn($driver);
+
+        // Mock platform to return PostgreSQL platform
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\PostgreSQLPlatform::class);
+        $connection->method('getDatabasePlatform')
+            ->willReturn($platform);
+
+        $connection->method('quoteSingleIdentifier')
+            ->willReturnCallback(fn($id) => '"' . $id . '"');
+
+        $executedStatements = [];
+        $connection->method('executeStatement')
+            ->willReturnCallback(function ($sql) use (&$executedStatements) {
+                $executedStatements[] = $sql;
+                return 0;
+            });
+
+        $entities = [
+            'TestEntity' => [
+                'metadata' => $metadata,
+                'reflection' => $this->createMock(ReflectionClass::class),
+                'attribute' => new Anonymize(truncate: true),
+            ],
+        ];
+
+        $result = $this->service->truncateTables($em, $entities, false);
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('test_table', $result);
+        // PostgreSQL should use TRUNCATE TABLE ... CASCADE
+        $this->assertTrue(
+            in_array('TRUNCATE TABLE "test_table" CASCADE', $executedStatements, true) ||
+            str_contains(implode(' ', $executedStatements), 'TRUNCATE') &&
+            str_contains(implode(' ', $executedStatements), 'CASCADE')
+        );
+    }
+
+    /**
+     * Test that truncateTables handles SQLite with DELETE FROM.
+     */
+    public function testTruncateTablesHandlesSQLite(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+
+        // Mock driver to return SQLite
+        $driver = $this->createMock(\Doctrine\DBAL\Driver::class);
+        $connection->method('getDriver')
+            ->willReturn($driver);
+
+        // Mock platform to return SQLite platform
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\SqlitePlatform::class);
+        $connection->method('getDatabasePlatform')
+            ->willReturn($platform);
+
+        $connection->method('quoteSingleIdentifier')
+            ->willReturnCallback(fn($id) => '"' . $id . '"');
+        $connection->method('quote')
+            ->willReturnCallback(fn($val) => "'" . $val . "'");
+
+        $executedStatements = [];
+        $connection->method('executeStatement')
+            ->willReturnCallback(function ($sql) use (&$executedStatements) {
+                $executedStatements[] = $sql;
+                return 0;
+            });
+
+        $entities = [
+            'TestEntity' => [
+                'metadata' => $metadata,
+                'reflection' => $this->createMock(ReflectionClass::class),
+                'attribute' => new Anonymize(truncate: true),
+            ],
+        ];
+
+        $result = $this->service->truncateTables($em, $entities, false);
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('test_table', $result);
+        // SQLite should use DELETE FROM and PRAGMA
+        $this->assertContains('PRAGMA foreign_keys = OFF', $executedStatements);
+        $this->assertContains('DELETE FROM "test_table"', $executedStatements);
+        $this->assertContains('PRAGMA foreign_keys = ON', $executedStatements);
+    }
+
+    /**
+     * Test that truncateTables calls progress callback.
+     */
+    public function testTruncateTablesCallsProgressCallback(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+
+        // Mock driver to return MySQL
+        $driver = $this->createMock(\Doctrine\DBAL\Driver::class);
+        $connection->method('getDriver')
+            ->willReturn($driver);
+
+        // Mock platform to return MySQL platform
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $connection->method('getDatabasePlatform')
+            ->willReturn($platform);
+
+        $connection->method('quoteSingleIdentifier')
+            ->willReturnCallback(fn($id) => '`' . $id . '`');
+        $connection->method('executeStatement')
+            ->willReturn(0);
+
+        $callbackCalled = false;
+        $callbackTable = '';
+        $progressCallback = function (string $tableName, string $message) use (&$callbackCalled, &$callbackTable): void {
+            $callbackCalled = true;
+            $callbackTable = $tableName;
+        };
+
+        $entities = [
+            'TestEntity' => [
+                'metadata' => $metadata,
+                'reflection' => $this->createMock(ReflectionClass::class),
+                'attribute' => new Anonymize(truncate: true),
+            ],
+        ];
+
+        $this->service->truncateTables($em, $entities, false, $progressCallback);
+
+        $this->assertTrue($callbackCalled);
+        $this->assertEquals('test_table', $callbackTable);
+    }
 }

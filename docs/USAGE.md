@@ -21,7 +21,7 @@ use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
 use Nowo\AnonymizeBundle\Enum\FakerType;
 
 #[ORM\Entity]
-#[Anonymize]
+#[Anonymize]  // Entity-level attribute - marks this entity for anonymization
 class User
 {
     #[ORM\Id]
@@ -292,6 +292,122 @@ class User
     #[AnonymizeProperty(type: 'email', includePatterns: ['email' => '%@old-domain.com'])]  // Old domain emails
     #[AnonymizeProperty(type: 'phone', includePatterns: ['country' => 'US|CA'])]  // US/Canada phones
 }
+```
+
+### Truncating Tables (Emptying Before Anonymization)
+
+You can configure entities to have their tables **emptied (truncated) before anonymization**. This is useful for:
+- Temporary data tables
+- Cache tables
+- Log tables
+- Tables that should be completely cleared
+
+**Important**: Table truncation is executed **BEFORE** any anonymization, regardless of entity processing order.
+
+#### Basic Usage
+
+```php
+#[ORM\Entity]
+#[Anonymize(truncate: true)]  // Table will be emptied before anonymization
+class TempData
+{
+    #[AnonymizeProperty(type: FakerType::EMAIL, weight: 1)]
+    private ?string $email = null;
+}
+```
+
+#### Ordering Truncation
+
+When you have multiple tables with dependencies, you can control the truncation order using `truncate_order`:
+
+```php
+#[ORM\Entity]
+#[Anonymize(
+    truncate: true,
+    truncate_order: 1  // Lower numbers = earlier execution
+)]
+class TempData
+{
+    // This table will be truncated first
+}
+
+#[ORM\Entity]
+#[Anonymize(
+    truncate: true,
+    truncate_order: 2  // This table will be truncated second
+)]
+class CacheData
+{
+    // This table will be truncated after TempData
+}
+
+#[ORM\Entity]
+#[Anonymize(
+    truncate: true,
+    truncate_order: null  // No explicit order - truncated alphabetically after explicit orders
+)]
+class LogEntry
+{
+    // This table will be truncated last (alphabetically)
+}
+```
+
+**Ordering Rules**:
+1. Tables with explicit `truncate_order` are truncated first (lower numbers = earlier)
+2. Tables without `truncate_order` (null) are truncated last, in alphabetical order
+3. If multiple tables have the same `truncate_order`, they are truncated alphabetically
+
+#### Database Support
+
+The bundle handles foreign key constraints automatically:
+- **MySQL**: Temporarily disables foreign key checks
+- **PostgreSQL**: Uses `TRUNCATE TABLE ... CASCADE` to handle dependencies
+- **SQLite**: Temporarily disables foreign key checks and resets auto-increment
+
+#### Example: Complete Truncation Scenario
+
+```php
+// Step 1: Truncate dependent tables first
+#[ORM\Entity]
+#[Anonymize(truncate: true, truncate_order: 1)]
+class OrderItem
+{
+    // Truncated first (order 1)
+}
+
+// Step 2: Truncate parent tables
+#[ORM\Entity]
+#[Anonymize(truncate: true, truncate_order: 2)]
+class Order
+{
+    // Truncated second (order 2)
+}
+
+// Step 3: Truncate other tables alphabetically
+#[ORM\Entity]
+#[Anonymize(truncate: true, truncate_order: null)]
+class LogEntry
+{
+    // Truncated last (alphabetically)
+}
+```
+
+**Execution Order**:
+1. `OrderItem` (order: 1)
+2. `Order` (order: 2)
+3. `LogEntry` (order: null, alphabetical)
+
+#### Demo Fixtures
+
+The bundle includes demo fixtures for testing truncation functionality:
+
+- **TempDataFixtures**: 8 records of temporary data with emails, names, and phones
+- **CacheDataFixtures**: 6 records of cache data with complex JSON structures
+- **LogEntryFixtures**: 10 records of log entries with messages, IP addresses, and timestamps
+
+These fixtures are available in all demo projects (Symfony 6, 7, and 8) and can be loaded using:
+```bash
+php bin/console doctrine:fixtures:load
 ```
 
 ### Weight-based Ordering

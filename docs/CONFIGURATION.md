@@ -213,7 +213,9 @@ Defined in the `#[Anonymize]` attribute, these patterns determine if a **record*
 ```php
 #[Anonymize(
     includePatterns: ['column' => 'pattern'],
-    excludePatterns: ['column' => 'pattern']
+    excludePatterns: ['column' => 'pattern'],
+    truncate: false,           // Optional: empty table before anonymization
+    truncate_order: null        // Optional: order for truncation (lower = earlier)
 )]
 ```
 
@@ -221,6 +223,9 @@ Defined in the `#[Anonymize]` attribute, these patterns determine if a **record*
 - If patterns match → Record is a candidate (properties are evaluated)
 - If patterns don't match → **Entire record is skipped** (nothing is anonymized)
 - If no patterns defined → All records are candidates
+- If `truncate: true` → Table is emptied **BEFORE** anonymization (executed first)
+- If `truncate_order` is set → Tables are truncated in order (lower numbers = earlier)
+- If `truncate_order` is null → Tables are truncated alphabetically after explicit orders
 
 ### Property-Level Patterns
 

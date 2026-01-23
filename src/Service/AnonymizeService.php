@@ -132,6 +132,124 @@ final class AnonymizeService
     }
 
     /**
+     * Truncates (empties) tables for entities marked with truncate=true.
+     *
+     * This method should be called BEFORE anonymization to empty tables that need to be cleared.
+     * Tables are processed in order: first by truncate_order (if defined), then alphabetically.
+     *
+     * @param EntityManagerInterface $em The entity manager
+     * @param array<string, array{metadata: ClassMetadata, reflection: ReflectionClass, attribute: Anonymize}> $entities Array of entities with their metadata
+     * @param bool $dryRun If true, only show what would be truncated without making changes
+     * @param callable|null $progressCallback Optional progress callback (tableName, message)
+     * @return array<string, int> Array of table names and number of records deleted (or would be deleted in dry-run)
+     */
+    public function truncateTables(
+        EntityManagerInterface $em,
+        array $entities,
+        bool $dryRun = false,
+        ?callable $progressCallback = null
+    ): array {
+        $connection = $em->getConnection();
+        $driverName = \Nowo\AnonymizeBundle\Helper\DbalHelper::getDriverName($connection);
+        $results = [];
+
+        // Filter entities that have truncate=true
+        $tablesToTruncate = [];
+        foreach ($entities as $className => $entityData) {
+            $attribute = $entityData['attribute'];
+            if ($attribute->truncate) {
+                $metadata = $entityData['metadata'];
+                $tableName = $metadata->getTableName();
+                $tablesToTruncate[] = [
+                    'className' => $className,
+                    'tableName' => $tableName,
+                    'order' => $attribute->truncate_order ?? PHP_INT_MAX, // null = last
+                ];
+            }
+        }
+
+        if (empty($tablesToTruncate)) {
+            return $results;
+        }
+
+        // Sort by order (lower first), then alphabetically by table name
+        usort($tablesToTruncate, function ($a, $b) {
+            if ($a['order'] !== $b['order']) {
+                return $a['order'] <=> $b['order'];
+            }
+            return strcmp($a['tableName'], $b['tableName']);
+        });
+
+        // Handle foreign keys based on database type
+        $foreignKeysDisabled = false;
+        if ($driverName === 'pdo_mysql') {
+            // MySQL: Disable foreign key checks temporarily
+            if (!$dryRun) {
+                $connection->executeStatement('SET FOREIGN_KEY_CHECKS = 0');
+                $foreignKeysDisabled = true;
+            }
+        } elseif ($driverName === 'pdo_sqlite') {
+            // SQLite: Disable foreign key checks temporarily
+            if (!$dryRun) {
+                $connection->executeStatement('PRAGMA foreign_keys = OFF');
+                $foreignKeysDisabled = true;
+            }
+        }
+        // PostgreSQL: TRUNCATE CASCADE handles foreign keys automatically
+
+        try {
+            foreach ($tablesToTruncate as $tableData) {
+                $tableName = $tableData['tableName'];
+                $className = $tableData['className'];
+                $quotedTableName = \Nowo\AnonymizeBundle\Helper\DbalHelper::quoteIdentifier($connection, $tableName);
+
+                if ($progressCallback !== null) {
+                    $progressCallback($tableName, sprintf('Truncating table %s...', $tableName));
+                }
+
+                if ($dryRun) {
+                    // In dry-run, count records that would be deleted
+                    $countQuery = sprintf('SELECT COUNT(*) as total FROM %s', $quotedTableName);
+                    $count = (int) $connection->fetchOne($countQuery);
+                    $results[$tableName] = $count;
+                } else {
+                    // Execute TRUNCATE or DELETE based on database type
+                    if ($driverName === 'pdo_mysql') {
+                        // MySQL: Use TRUNCATE TABLE
+                        $connection->executeStatement(sprintf('TRUNCATE TABLE %s', $quotedTableName));
+                        $results[$tableName] = 0; // TRUNCATE doesn't return count
+                    } elseif ($driverName === 'pdo_pgsql') {
+                        // PostgreSQL: Use TRUNCATE TABLE CASCADE to handle foreign keys
+                        $connection->executeStatement(sprintf('TRUNCATE TABLE %s CASCADE', $quotedTableName));
+                        $results[$tableName] = 0; // TRUNCATE doesn't return count
+                    } elseif ($driverName === 'pdo_sqlite') {
+                        // SQLite: Use DELETE FROM (TRUNCATE not supported)
+                        $connection->executeStatement(sprintf('DELETE FROM %s', $quotedTableName));
+                        // Reset auto-increment
+                        $connection->executeStatement(sprintf('DELETE FROM sqlite_sequence WHERE name = %s', $connection->quote($tableName)));
+                        $results[$tableName] = 0; // DELETE doesn't return count easily
+                    } else {
+                        // Fallback: Use DELETE FROM
+                        $connection->executeStatement(sprintf('DELETE FROM %s', $quotedTableName));
+                        $results[$tableName] = 0;
+                    }
+                }
+            }
+        } finally {
+            // Re-enable foreign key checks
+            if ($foreignKeysDisabled) {
+                if ($driverName === 'pdo_mysql') {
+                    $connection->executeStatement('SET FOREIGN_KEY_CHECKS = 1');
+                } elseif ($driverName === 'pdo_sqlite') {
+                    $connection->executeStatement('PRAGMA foreign_keys = ON');
+                }
+            }
+        }
+
+        return $results;
+    }
+
+    /**
      * Anonymizes records for a given entity.
      *
      * @param EntityManagerInterface $em The entity manager

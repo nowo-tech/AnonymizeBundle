@@ -27,6 +27,18 @@ final class UtmFaker implements FakerInterface
 {
     private FakerGenerator $faker;
 
+    public const SOURCE_TYPE = 'source';
+    public const MEDIUM_TYPE = 'medium';
+    public const CAMPAIGN_TYPE = 'campaign';
+    public const TERM_TYPE = 'term';
+    public const CONTENT_TYPE = 'content';
+
+    public const SNAKE_CASE_FORMAT = 'snake_case';
+    public const KEBAB_CASE_FORMAT = 'kebab-case';
+    public const CAMEL_CASE_FORMAT = 'camelCase';
+    public const LOWERCASE_FORMAT = 'lowercase';
+    public const PASCAL_CASE_FORMAT = 'PascalCase';
+
     /**
      * Common UTM sources.
      *
@@ -90,8 +102,8 @@ final class UtmFaker implements FakerInterface
      */
     public function generate(array $options = []): string
     {
-        $type = $options['type'] ?? 'source';
-        $format = $options['format'] ?? 'snake_case';
+        $type = $options['type'] ?? self::SOURCE_TYPE;
+        $format = $options['format'] ?? self::SNAKE_CASE_FORMAT;
         $prefix = $options['prefix'] ?? '';
         $suffix = $options['suffix'] ?? '';
 
@@ -260,11 +272,11 @@ final class UtmFaker implements FakerInterface
     private function applyFormat(string $value, string $format): string
     {
         return match ($format) {
-            'snake_case' => $value, // Already in snake_case
-            'kebab-case' => str_replace('_', '-', $value),
-            'camelCase' => $this->toCamelCase($value),
-            'lowercase' => str_replace('_', '', strtolower($value)),
-            'PascalCase' => $this->toPascalCase($value),
+            self::SNAKE_CASE_FORMAT => $value, // Already in snake_case
+            self::KEBAB_CASE_FORMAT => str_replace('_', '-', $value),
+            self::CAMEL_CASE_FORMAT => $this->toCamelCase($value),
+            self::LOWERCASE_FORMAT => str_replace('_', '', strtolower($value)),
+            self::PASCAL_CASE_FORMAT => $this->toPascalCase($value),
             default => $value,
         };
     }

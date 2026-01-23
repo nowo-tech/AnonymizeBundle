@@ -44,6 +44,7 @@ Looking for: **database anonymization**, **test data generator**, **GDPR complia
 - ✅ Enhanced reporting: Export statistics to JSON/CSV with success rates
 - ✅ Database export: Export databases to files with optional compression
 - ✅ Configurable output directories: Customize where statistics and exports are saved
+- ✅ Table truncation: Empty tables before anonymization with configurable execution order
 
 ## Installation
 

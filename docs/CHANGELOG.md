@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-01-27
+
+### Added
+
+- **Table Truncation Support**: Added `truncate` and `truncate_order` options to `#[Anonymize]` attribute
+  - Tables can now be emptied (truncated) before anonymization
+  - `truncate_order` allows controlling the order of truncation for tables with dependencies
+  - Tables without explicit order are truncated alphabetically after those with orders
+  - Automatic handling of foreign key constraints (MySQL, PostgreSQL, SQLite)
+  - Support for dry-run mode to preview truncation
+  - New demo entities: `TempData`, `CacheData`, `LogEntry` demonstrating truncation scenarios
+  - New demo fixtures: `TempDataFixtures` (8 records), `CacheDataFixtures` (6 records), `LogEntryFixtures` (10 records) for testing truncation functionality
+
 ## [1.0.1] - 2026-01-27
 
 ### Added

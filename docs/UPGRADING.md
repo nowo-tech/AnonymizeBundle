@@ -13,6 +13,60 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.2
+
+**Release Date**: 2026-01-27
+
+#### What's New
+
+This release adds support for **table truncation** (emptying tables before anonymization) with configurable execution order.
+
+#### New Features
+
+1. **Table Truncation**: You can now configure entities to have their tables emptied before anonymization using the `truncate` option in `#[Anonymize]`.
+
+2. **Truncation Ordering**: Use `truncate_order` to control the order in which tables are truncated, important for handling foreign key dependencies.
+
+#### Migration Steps
+
+No breaking changes. The new options are optional and default to `false` and `null` respectively.
+
+**Example Usage**:
+
+```php
+// Before (no truncation)
+#[Anonymize]
+class TempData
+{
+    // ...
+}
+
+// After (with truncation)
+#[Anonymize(truncate: true, truncate_order: 1)]
+class TempData
+{
+    // ...
+}
+```
+
+**Key Points**:
+- Truncation is executed **BEFORE** anonymization, regardless of entity processing order
+- Tables with explicit `truncate_order` are truncated first (lower numbers = earlier)
+- Tables without `truncate_order` are truncated alphabetically after explicit orders
+- Foreign key constraints are handled automatically (MySQL, PostgreSQL, SQLite)
+
+**Demo Fixtures**:
+- `TempDataFixtures`: 8 records of temporary data (emails, names, phones)
+- `CacheDataFixtures`: 6 records of cache data with complex JSON values
+- `LogEntryFixtures`: 10 records of log entries with messages, IPs, and dates
+
+These fixtures are available in all demo projects (Symfony 6, 7, and 8) and can be loaded using:
+```bash
+php bin/console doctrine:fixtures:load
+```
+
+See [USAGE.md](USAGE.md#truncating-tables-emptying-before-anonymization) for detailed documentation and examples.
+
 ### Upgrading to 1.0.1
 
 **Release Date**: 2026-01-27

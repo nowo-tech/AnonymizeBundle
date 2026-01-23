@@ -508,6 +508,83 @@ final class AnonymizeCommand extends AbstractCommand
             }
         }
 
+        // Truncate tables BEFORE anonymization (if any entity has truncate=true)
+        $tablesToTruncate = [];
+        foreach ($entities as $entityData) {
+            if ($entityData['attribute']->truncate) {
+                $tablesToTruncate[] = $entityData['metadata']->getTableName();
+            }
+        }
+
+        if (!empty($tablesToTruncate)) {
+            if (!$statsOnly) {
+                $io->section('Truncating tables (emptying before anonymization)');
+                $io->writeln(sprintf('Found <info>%d</info> table(s) to truncate:', count($tablesToTruncate)));
+                foreach ($tablesToTruncate as $tableName) {
+                    $io->writeln(sprintf('  - <comment>%s</comment>', $tableName));
+                }
+                $io->newLine();
+            }
+
+            // Interactive confirmation for truncation
+            if ($interactive && !$statsOnly) {
+                if (!$io->confirm('Do you want to truncate (empty) these tables?', true)) {
+                    $io->note('Skipping table truncation');
+                } else {
+                    $truncateCallback = function (string $tableName, string $message) use ($io, $verbose): void {
+                        if ($verbose) {
+                            $io->writeln(sprintf('  %s', $message));
+                        }
+                    };
+
+                    $truncateResults = $anonymizeService->truncateTables($em, $entities, $dryRun, $truncateCallback);
+
+                    if (!$statsOnly) {
+                        if ($dryRun) {
+                            $io->note('Dry-run mode: Tables would be truncated');
+                            foreach ($truncateResults as $tableName => $count) {
+                                $io->writeln(sprintf('  - <comment>%s</comment>: <info>%d</info> record(s) would be deleted', $tableName, $count));
+                            }
+                        } else {
+                            $io->success(sprintf('Truncated %d table(s)', count($truncateResults)));
+                            if ($verbose) {
+                                foreach ($truncateResults as $tableName => $count) {
+                                    $io->writeln(sprintf('  - <comment>%s</comment>: emptied', $tableName));
+                                }
+                            }
+                        }
+                        $io->newLine();
+                    }
+                }
+            } else {
+                // Non-interactive: execute truncation
+                $truncateCallback = function (string $tableName, string $message) use ($io, $verbose, $statsOnly): void {
+                    if (!$statsOnly && $verbose) {
+                        $io->writeln(sprintf('  %s', $message));
+                    }
+                };
+
+                $truncateResults = $anonymizeService->truncateTables($em, $entities, $dryRun, $truncateCallback);
+
+                if (!$statsOnly) {
+                    if ($dryRun) {
+                        $io->note('Dry-run mode: Tables would be truncated');
+                        foreach ($truncateResults as $tableName => $count) {
+                            $io->writeln(sprintf('  - <comment>%s</comment>: <info>%d</info> record(s) would be deleted', $tableName, $count));
+                        }
+                    } else {
+                        $io->success(sprintf('Truncated %d table(s)', count($truncateResults)));
+                        if ($verbose) {
+                            foreach ($truncateResults as $tableName => $count) {
+                                $io->writeln(sprintf('  - <comment>%s</comment>: emptied', $tableName));
+                            }
+                        }
+                    }
+                    $io->newLine();
+                }
+            }
+        }
+
         $totalProcessed = 0;
         $totalUpdated = 0;
 
