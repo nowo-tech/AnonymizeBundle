@@ -42,7 +42,7 @@ class Contact
         weight: 2,
         options: [
             'nullable' => true,
-            'null_probability' => 20  // 20% chance of being null
+            'null_probability' => 20,  // 20% chance of being null
         ]
     )]
     private ?string $email = null;
@@ -52,7 +52,7 @@ class Contact
         type: 'phone',
         weight: 3,
         options: [
-            'preserve_null' => true  // Only anonymize if phone has a value
+            'preserve_null' => true,  // Only anonymize if phone has a value
         ]
     )]
     private ?string $phone = null;
@@ -63,7 +63,7 @@ class Contact
         weight: 4,
         options: [
             'type' => 'dni',
-            'preserve_null' => true  // Only anonymize if legalId has a value
+            'preserve_null' => true,  // Only anonymize if legalId has a value
         ]
     )]
     private ?string $legalId = null;
@@ -74,7 +74,7 @@ class Contact
         weight: 5,
         options: [
             'nullable' => true,
-            'null_probability' => 30  // 30% chance of being null
+            'null_probability' => 30,  // 30% chance of being null
         ]
     )]
     private ?string $address = null;
@@ -86,7 +86,7 @@ class Contact
         options: [
             'type' => 'signature',
             'include_links' => true,
-            'preserve_null' => true  // Only anonymize if signature has a value
+            'preserve_null' => true,  // Only anonymize if signature has a value
         ]
     )]
     private ?string $emailSignature = null;

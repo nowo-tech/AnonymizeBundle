@@ -93,7 +93,7 @@ final class DniCifFaker implements FakerInterface
     {
         // Generate 8 random digits
         $number = $this->faker->numberBetween(10000000, 99999999);
-        
+
         // Calculate checksum letter (mod 23)
         $letterIndex = $number % 23;
         $letter = self::DNI_LETTERS[$letterIndex];

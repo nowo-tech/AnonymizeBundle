@@ -263,7 +263,7 @@ final class AnonymizeService
                 // Check if value should be null based on nullable option
                 $nullable = $fakerOptions['nullable'] ?? false;
                 $nullProbability = (int) ($fakerOptions['null_probability'] ?? 0);
-                
+
                 // If nullable is enabled and random chance determines it should be null
                 if ($nullable && $nullProbability > 0) {
                     // Generate random number 0-99 and check if it's below the probability threshold

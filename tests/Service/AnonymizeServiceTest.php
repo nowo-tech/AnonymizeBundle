@@ -1782,7 +1782,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', options: ['nullable' => true, 'null_probability' => 100])]
             public ?string $email = 'test@example.com';
@@ -1819,7 +1819,7 @@ class AnonymizeServiceTest extends TestCase
                 }
                 return "'" . (string) $val . "'";
             });
-        
+
         // Track if null was used in SQL and capture SQL for debugging
         $nullUsed = false;
         $capturedSql = '';
@@ -1866,7 +1866,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', options: ['nullable' => true, 'null_probability' => 0])]
             public ?string $email = 'test@example.com';
@@ -1903,7 +1903,7 @@ class AnonymizeServiceTest extends TestCase
                 }
                 return "'" . (string) $val . "'";
             });
-        
+
         // Track if null was used in SQL
         $nullUsed = false;
         $connection->method('executeStatement')
@@ -1927,13 +1927,13 @@ class AnonymizeServiceTest extends TestCase
         $progressCallback = function ($current, $total, $message) {
             // Empty callback
         };
-        
+
         // Run multiple times to ensure 0% null probability never returns null
         $neverNull = true;
         for ($i = 0; $i < 10; $i++) {
             $nullUsed = false;
             $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
-            
+
             if ($nullUsed) {
                 $neverNull = false;
                 break;
@@ -1957,7 +1957,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', options: ['preserve_null' => true])]
             public ?string $email = null;
@@ -1995,7 +1995,7 @@ class AnonymizeServiceTest extends TestCase
                 }
                 return "'" . (string) $val . "'";
             });
-        
+
         // Track if SQL was executed (should NOT be executed when preserve_null is true and value is null)
         $sqlExecuted = false;
         $connection->method('executeStatement')
@@ -2035,7 +2035,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', options: ['preserve_null' => true])]
             public ?string $email = null;

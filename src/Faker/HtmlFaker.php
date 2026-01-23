@@ -129,7 +129,7 @@ final class HtmlFaker implements FakerInterface
 
         for ($i = 0; $i < $numParagraphs; $i++) {
             $text = $this->faker->paragraph(3);
-            
+
             if ($includeLinks && $this->faker->boolean(30)) {
                 // Add a link in the paragraph
                 $words = explode(' ', $text);
@@ -160,7 +160,7 @@ final class HtmlFaker implements FakerInterface
 
         for ($i = 0; $i < $numItems; $i++) {
             $text = $this->faker->sentence(4);
-            
+
             if ($includeLinks && $this->faker->boolean(40)) {
                 $text = '<a href="' . htmlspecialchars($this->faker->url()) . '">' . htmlspecialchars($text) . '</a>';
             } else {
@@ -190,7 +190,7 @@ final class HtmlFaker implements FakerInterface
     {
         $html = '';
         $style = $includeStyles ? ' style="font-family: Arial, sans-serif;"' : '';
-        
+
         if ($style) {
             $html .= '<div' . $style . '>';
         }

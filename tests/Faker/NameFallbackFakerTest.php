@@ -155,7 +155,7 @@ class NameFallbackFakerTest extends TestCase
     public function testGenerateWithDifferentFieldNameVariations(): void
     {
         $faker = new NameFallbackFaker('en_US');
-        
+
         // Test with lowercase field name
         $name1 = $faker->generate([
             'original_value' => null,

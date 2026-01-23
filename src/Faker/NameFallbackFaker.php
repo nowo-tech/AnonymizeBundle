@@ -60,7 +60,7 @@ final class NameFallbackFaker implements FakerInterface
         if ($fallbackField !== null && !empty($record)) {
             // Try to get from record by field name or column name
             $relatedValue = $record[$fallbackField] ?? null;
-            
+
             // If not found, try common column name variations
             if ($relatedValue === null) {
                 $relatedValue = $record[strtolower($fallbackField)] ?? null;
