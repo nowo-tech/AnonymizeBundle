@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Person Details - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Person', connection: connection, routePrefix: 'person', currentPage: 'Show'} %}
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Person Details <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+        <div class="btn-group">
+            <a href="{{ path('person_edit', {connection: connection, id: person.id}) }}" class="btn btn-primary">Edit</a>
+            <a href="{{ path('person_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">{{ person.id }}</dd>
+            {% for field in person|keys %}
+                {% if field != 'id' and field != 'anonymized' %}
+                <dt class="col-sm-3">{{ field|replace({'_': ' '})|title }}</dt>
+                <dd class="col-sm-9">{{ person[field] ?? '-' }}</dd>
+                {% endif %}
+            {% endfor %}
+            {% if hasAnonymizedColumn|default(false) %}
+            <dt class="col-sm-3">Anonymized</dt>
+            <dd class="col-sm-9">
+                {% if person.anonymized|default(false) %}
+                {% include '_anonymized_badge.html.twig' with {value: person.anonymized|default(false)} %}
+                {% endif %}
+            </dd>
+            {% endif %}
+        </dl>
+
+        <div class="mt-4">
+            <form method="post" action="{{ path('person_delete', {connection: connection, id: person.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this person?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ person.id) }}">
+                <button type="submit" class="btn btn-danger">Delete Person</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

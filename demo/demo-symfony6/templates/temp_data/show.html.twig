@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Temp Data Details - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Temp Data', connection: connection, routePrefix: 'temp_data', currentPage: 'Show'} %}
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Temp Data Details <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+        <div class="btn-group">
+            <a href="{{ path('temp_data_edit', {connection: connection, id: temp_data.id}) }}" class="btn btn-primary">Edit</a>
+            <a href="{{ path('temp_data_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">{{ temp_data.id }}</dd>
+
+            <dt class="col-sm-3">Email</dt>
+            <dd class="col-sm-9">{{ temp_data.email }}</dd>
+
+            <dt class="col-sm-3">Name</dt>
+            <dd class="col-sm-9">{{ temp_data.name }}</dd>
+
+            <dt class="col-sm-3">Phone</dt>
+            <dd class="col-sm-9">{{ temp_data.phone ?? '-' }}</dd>
+
+            <dt class="col-sm-3">Created At</dt>
+            <dd class="col-sm-9">{{ temp_data.createdAt ? temp_data.createdAt|date('Y-m-d H:i:s') : '-' }}</dd>
+
+            {% if hasAnonymizedColumn|default(false) %}
+            <dt class="col-sm-3">Anonymized</dt>
+            <dd class="col-sm-9">
+                {% if temp_data.anonymized|default(false) %}
+                {% include '_anonymized_badge.html.twig' with {value: temp_data.anonymized|default(false)} %}
+                {% endif %}
+            </dd>
+            {% endif %}
+        </dl>
+
+        <div class="mt-4">
+            <form method="post" action="{{ path('temp_data_delete', {connection: connection, id: temp_data.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this temp data?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ temp_data.id) }}">
+                <button type="submit" class="btn btn-danger">Delete Temp Data</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

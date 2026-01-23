@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Log Entries - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Log Entries', connection: connection, routePrefix: 'log_entry', currentPage: 'List'} %}
+
+{% if not hasAnonymizedColumn|default(false) %}
+<div class="alert alert-warning" role="alert">
+    <strong>⚠️ Column "anonymized" not found</strong><br>
+    To add the anonymization tracking column, run:<br>
+    <code class="d-inline-block mt-2 p-2 bg-light rounded">
+        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+    </code>
+</div>
+{% endif %}
+
+<div class="alert alert-info" role="alert">
+    <strong>ℹ️ Truncate Feature</strong><br>
+    This entity is configured with <code>truncate: true, truncate_order: null</code>.
+    The table will be emptied before anonymization runs (alphabetically after explicit orders).
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Log Entries <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+        <a href="{{ path('log_entry_new', {connection: connection}) }}" class="btn btn-primary">Create New Log Entry</a>
+    </div>
+    <div class="card-body">
+        {% if log_entry_list|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Message</th>
+                            <th>IP Address</th>
+                            <th>Logged At</th>
+                            {% if hasAnonymizedColumn|default(false) %}
+                            <th>Anonymized</th>
+                            {% endif %}
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log_entry in log_entry_list %}
+                            <tr>
+                                <td>{{ log_entry.id ?? log_entry.id }}</td>
+                                <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ log_entry.message ?? '-' }}</td>
+                                <td><code>{{ log_entry.ipAddress ?? '-' }}</code></td>
+                                <td>{{ log_entry.loggedAt ? log_entry.loggedAt|date('Y-m-d H:i:s') : '-' }}</td>
+                                {% if hasAnonymizedColumn|default(false) %}
+                                <td>
+                                    {% if log_entry.anonymized|default(false) %}
+                                    {% include '_anonymized_badge.html.twig' with {value: log_entry.anonymized|default(false)} %}
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ path('log_entry_show', {connection: connection, id: log_entry.id ?? log_entry.id}) }}" class="btn btn-sm btn-outline-secondary">Show</a>
+                                        <a href="{{ path('log_entry_edit', {connection: connection, id: log_entry.id ?? log_entry.id}) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                        <form method="post" action="{{ path('log_entry_delete', {connection: connection, id: log_entry.id ?? log_entry.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure?')">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ (log_entry.id ?? log_entry.id)) }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">No log entries found. <a href="{{ path('log_entry_new', {connection: connection}) }}">Create the first one</a>.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

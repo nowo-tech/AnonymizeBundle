@@ -2349,10 +2349,10 @@ class AnonymizeServiceTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertCount(3, $result);
-        // Check order: table_a (order 1), table_b (order null), table_c (order 3)
+        // Check order: table_a (order 1), table_c (order 3), table_b (order null = PHP_INT_MAX, last)
         $this->assertStringContainsString('`table_a`', $truncateStatements[0]);
-        $this->assertStringContainsString('`table_b`', $truncateStatements[1]);
-        $this->assertStringContainsString('`table_c`', $truncateStatements[2]);
+        $this->assertStringContainsString('`table_c`', $truncateStatements[1]);
+        $this->assertStringContainsString('`table_b`', $truncateStatements[2]);
     }
 
     /**
@@ -2471,10 +2471,14 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('getDriver')
             ->willReturn($driver);
 
-        // Mock platform to return SQLite platform
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\SqlitePlatform::class);
+        // Mock platform to return SQLite platform (use AbstractPlatform and configure params)
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
         $connection->method('getDatabasePlatform')
             ->willReturn($platform);
+        
+        // Configure connection params so DbalHelper::getDriverName returns 'pdo_sqlite'
+        $connection->method('getParams')
+            ->willReturn(['driver' => 'pdo_sqlite']);
 
         $connection->method('quoteSingleIdentifier')
             ->willReturnCallback(fn($id) => '"' . $id . '"');

@@ -123,6 +123,92 @@
                             <li><a href="{{ path('system_log_index', {connection: 'sqlite'}) }}" class="text-decoration-none">System Logs in SQLite</a></li>
                         </ul>
                     </div>
+                    <div class="col-md-6 mb-3">
+                        <h5>Temp Data <span class="badge bg-info">Truncate Order: 1</span></h5>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ path('temp_data_index', {connection: 'default'}) }}" class="text-decoration-none">Temp Data in MySQL</a></li>
+                            <li><a href="{{ path('temp_data_index', {connection: 'postgres'}) }}" class="text-decoration-none">Temp Data in PostgreSQL</a></li>
+                            <li><a href="{{ path('temp_data_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Temp Data in SQLite</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h5>Cache Data <span class="badge bg-info">Truncate Order: 2</span></h5>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ path('cache_data_index', {connection: 'default'}) }}" class="text-decoration-none">Cache Data in MySQL</a></li>
+                            <li><a href="{{ path('cache_data_index', {connection: 'postgres'}) }}" class="text-decoration-none">Cache Data in PostgreSQL</a></li>
+                            <li><a href="{{ path('cache_data_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Cache Data in SQLite</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h5>Log Entries <span class="badge bg-secondary">Truncate Order: null</span></h5>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ path('log_entry_index', {connection: 'default'}) }}" class="text-decoration-none">Log Entries in MySQL</a></li>
+                            <li><a href="{{ path('log_entry_index', {connection: 'postgres'}) }}" class="text-decoration-none">Log Entries in PostgreSQL</a></li>
+                            <li><a href="{{ path('log_entry_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Log Entries in SQLite</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <h4>Advanced Examples</h4>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h5>Contacts</h5>
+                            <ul class="list-unstyled">
+                                <li><a href="{{ path('contact_index', {connection: 'default'}) }}" class="text-decoration-none">Contacts in MySQL</a></li>
+                                <li><a href="{{ path('contact_index', {connection: 'postgres'}) }}" class="text-decoration-none">Contacts in PostgreSQL</a></li>
+                                <li><a href="{{ path('contact_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Contacts in SQLite</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5>Persons</h5>
+                            <ul class="list-unstyled">
+                                <li><a href="{{ path('person_index', {connection: 'default'}) }}" class="text-decoration-none">Persons in MySQL</a></li>
+                                <li><a href="{{ path('person_index', {connection: 'postgres'}) }}" class="text-decoration-none">Persons in PostgreSQL</a></li>
+                                <li><a href="{{ path('person_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Persons in SQLite</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5>Email Signatures</h5>
+                            <ul class="list-unstyled">
+                                <li><a href="{{ path('email_signature_index', {connection: 'default'}) }}" class="text-decoration-none">Email Signatures in MySQL</a></li>
+                                <li><a href="{{ path('email_signature_index', {connection: 'postgres'}) }}" class="text-decoration-none">Email Signatures in PostgreSQL</a></li>
+                                <li><a href="{{ path('email_signature_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Email Signatures in SQLite</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5>User Accounts</h5>
+                            <ul class="list-unstyled">
+                                <li><a href="{{ path('user_account_index', {connection: 'default'}) }}" class="text-decoration-none">User Accounts in MySQL</a></li>
+                                <li><a href="{{ path('user_account_index', {connection: 'postgres'}) }}" class="text-decoration-none">User Accounts in PostgreSQL</a></li>
+                                <li><a href="{{ path('user_account_index', {connection: 'sqlite'}) }}" class="text-decoration-none">User Accounts in SQLite</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5>Custom Faker Examples</h5>
+                            <ul class="list-unstyled">
+                                <li><a href="{{ path('custom_faker_example_index', {connection: 'default'}) }}" class="text-decoration-none">Custom Faker Examples in MySQL</a></li>
+                                <li><a href="{{ path('custom_faker_example_index', {connection: 'postgres'}) }}" class="text-decoration-none">Custom Faker Examples in PostgreSQL</a></li>
+                                <li><a href="{{ path('custom_faker_example_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Custom Faker Examples in SQLite</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5>Faker Type Examples</h5>
+                            <ul class="list-unstyled">
+                                <li><a href="{{ path('faker_type_example_index', {connection: 'default'}) }}" class="text-decoration-none">Faker Type Examples in MySQL</a></li>
+                                <li><a href="{{ path('faker_type_example_index', {connection: 'postgres'}) }}" class="text-decoration-none">Faker Type Examples in PostgreSQL</a></li>
+                                <li><a href="{{ path('faker_type_example_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Faker Type Examples in SQLite</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5>Marketing Campaigns</h5>
+                            <ul class="list-unstyled">
+                                <li><a href="{{ path('marketing_campaign_index', {connection: 'default'}) }}" class="text-decoration-none">Marketing Campaigns in MySQL</a></li>
+                                <li><a href="{{ path('marketing_campaign_index', {connection: 'postgres'}) }}" class="text-decoration-none">Marketing Campaigns in PostgreSQL</a></li>
+                                <li><a href="{{ path('marketing_campaign_index', {connection: 'sqlite'}) }}" class="text-decoration-none">Marketing Campaigns in SQLite</a></li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mt-3">

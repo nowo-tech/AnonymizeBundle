@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Contact - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Contact', connection: connection, routePrefix: 'contact', currentPage: 'List'} %}
+
+{% if not hasAnonymizedColumn|default(false) %}
+<div class="alert alert-warning" role="alert">
+    <strong>⚠️ Column "anonymized" not found</strong><br>
+    To add the anonymization tracking column, run:<br>
+    <code class="d-inline-block mt-2 p-2 bg-light rounded">
+        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+    </code>
+</div>
+{% endif %}
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Contact <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+        <a href="{{ path('contact_new', {connection: connection}) }}" class="btn btn-primary">Create New Contact</a>
+    </div>
+    <div class="card-body">
+        {% if contact_list|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            {% for field in contact_list[0]|keys %}
+                                {% if field != 'id' and field != 'anonymized' %}
+                                <th>{{ field|replace({'_': ' '})|title }}</th>
+                                {% endif %}
+                            {% endfor %}
+                            {% if hasAnonymizedColumn|default(false) %}
+                            <th>Anonymized</th>
+                            {% endif %}
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for contact in contact_list %}
+                            <tr>
+                                <td>{{ contact.id ?? contact.id }}</td>
+                                {% for field in contact_list[0]|keys %}
+                                    {% if field != 'id' and field != 'anonymized' %}
+                                    <td>{{ contact[field] ?? '-' }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if hasAnonymizedColumn|default(false) %}
+                                <td>
+                                    {% if contact.anonymized|default(false) %}
+                                    {% include '_anonymized_badge.html.twig' with {value: contact.anonymized|default(false)} %}
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ path('contact_show', {connection: connection, id: contact.id ?? contact.id}) }}" class="btn btn-sm btn-outline-secondary">Show</a>
+                                        <a href="{{ path('contact_edit', {connection: connection, id: contact.id ?? contact.id}) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                        <form method="post" action="{{ path('contact_delete', {connection: connection, id: contact.id ?? contact.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure?')">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ (contact.id ?? contact.id)) }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">No contact found. <a href="{{ path('contact_new', {connection: connection}) }}">Create the first one</a>.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

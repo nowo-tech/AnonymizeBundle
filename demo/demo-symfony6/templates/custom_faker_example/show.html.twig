@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Custom Faker Example Details - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Custom Faker Example', connection: connection, routePrefix: 'custom_faker_example', currentPage: 'Show'} %}
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Custom Faker Example Details <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+        <div class="btn-group">
+            <a href="{{ path('custom_faker_example_edit', {connection: connection, id: customfakerexample.id}) }}" class="btn btn-primary">Edit</a>
+            <a href="{{ path('custom_faker_example_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">{{ customfakerexample.id }}</dd>
+            {% for field in customfakerexample|keys %}
+                {% if field != 'id' and field != 'anonymized' %}
+                <dt class="col-sm-3">{{ field|replace({'_': ' '})|title }}</dt>
+                <dd class="col-sm-9">{{ customfakerexample[field] ?? '-' }}</dd>
+                {% endif %}
+            {% endfor %}
+            {% if hasAnonymizedColumn|default(false) %}
+            <dt class="col-sm-3">Anonymized</dt>
+            <dd class="col-sm-9">
+                {% if customfakerexample.anonymized|default(false) %}
+                {% include '_anonymized_badge.html.twig' with {value: customfakerexample.anonymized|default(false)} %}
+                {% endif %}
+            </dd>
+            {% endif %}
+        </dl>
+
+        <div class="mt-4">
+            <form method="post" action="{{ path('custom_faker_example_delete', {connection: connection, id: customfakerexample.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this customfakerexample?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ customfakerexample.id) }}">
+                <button type="submit" class="btn btn-danger">Delete Custom Faker Example</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

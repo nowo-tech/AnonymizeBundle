@@ -25,7 +25,7 @@ final class NullFaker implements FakerInterface
      * @param array<string, mixed> $options Options: None required, this faker always returns null
      * @return null Always returns null
      */
-    public function generate(array $options = []): null
+    public function generate(array $options = []): mixed
     {
         return null;
     }

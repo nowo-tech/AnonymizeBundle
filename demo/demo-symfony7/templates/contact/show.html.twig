@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Contact Details - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Contact', connection: connection, routePrefix: 'contact', currentPage: 'Show'} %}
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Contact Details <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+        <div class="btn-group">
+            <a href="{{ path('contact_edit', {connection: connection, id: contact.id}) }}" class="btn btn-primary">Edit</a>
+            <a href="{{ path('contact_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">{{ contact.id }}</dd>
+            {% for field in contact|keys %}
+                {% if field != 'id' and field != 'anonymized' %}
+                <dt class="col-sm-3">{{ field|replace({'_': ' '})|title }}</dt>
+                <dd class="col-sm-9">{{ contact[field] ?? '-' }}</dd>
+                {% endif %}
+            {% endfor %}
+            {% if hasAnonymizedColumn|default(false) %}
+            <dt class="col-sm-3">Anonymized</dt>
+            <dd class="col-sm-9">
+                {% if contact.anonymized|default(false) %}
+                {% include '_anonymized_badge.html.twig' with {value: contact.anonymized|default(false)} %}
+                {% endif %}
+            </dd>
+            {% endif %}
+        </dl>
+
+        <div class="mt-4">
+            <form method="post" action="{{ path('contact_delete', {connection: connection, id: contact.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this contact?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ contact.id) }}">
+                <button type="submit" class="btn btn-danger">Delete Contact</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

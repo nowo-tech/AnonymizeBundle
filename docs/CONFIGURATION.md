@@ -215,7 +215,8 @@ Defined in the `#[Anonymize]` attribute, these patterns determine if a **record*
     includePatterns: ['column' => 'pattern'],
     excludePatterns: ['column' => 'pattern'],
     truncate: false,           // Optional: empty table before anonymization
-    truncate_order: null        // Optional: order for truncation (lower = earlier)
+    truncate_order: null        // Optional: order for truncation (lower = earlier)local_dev_laptop
+    
 )]
 ```
 

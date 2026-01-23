@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Email Signature Details - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Email Signature', connection: connection, routePrefix: 'email_signature', currentPage: 'Show'} %}
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Email Signature Details <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+        <div class="btn-group">
+            <a href="{{ path('email_signature_edit', {connection: connection, id: emailsignature.id}) }}" class="btn btn-primary">Edit</a>
+            <a href="{{ path('email_signature_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">{{ emailsignature.id }}</dd>
+            {% for field in emailsignature|keys %}
+                {% if field != 'id' and field != 'anonymized' %}
+                <dt class="col-sm-3">{{ field|replace({'_': ' '})|title }}</dt>
+                <dd class="col-sm-9">{{ emailsignature[field] ?? '-' }}</dd>
+                {% endif %}
+            {% endfor %}
+            {% if hasAnonymizedColumn|default(false) %}
+            <dt class="col-sm-3">Anonymized</dt>
+            <dd class="col-sm-9">
+                {% if emailsignature.anonymized|default(false) %}
+                {% include '_anonymized_badge.html.twig' with {value: emailsignature.anonymized|default(false)} %}
+                {% endif %}
+            </dd>
+            {% endif %}
+        </dl>
+
+        <div class="mt-4">
+            <form method="post" action="{{ path('email_signature_delete', {connection: connection, id: emailsignature.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this emailsignature?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ emailsignature.id) }}">
+                <button type="submit" class="btn btn-danger">Delete Email Signature</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

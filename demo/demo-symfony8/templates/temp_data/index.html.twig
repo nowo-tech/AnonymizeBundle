@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Temp Data - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Temp Data', connection: connection, routePrefix: 'temp_data', currentPage: 'List'} %}
+
+{% if not hasAnonymizedColumn|default(false) %}
+<div class="alert alert-warning" role="alert">
+    <strong>⚠️ Column "anonymized" not found</strong><br>
+    To add the anonymization tracking column, run:<br>
+    <code class="d-inline-block mt-2 p-2 bg-light rounded">
+        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+    </code>
+</div>
+{% endif %}
+
+<div class="alert alert-info" role="alert">
+    <strong>ℹ️ Truncate Feature</strong><br>
+    This entity is configured with <code>truncate: true, truncate_order: 1</code>.
+    The table will be emptied before anonymization runs.
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Temp Data <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+        <a href="{{ path('temp_data_new', {connection: connection}) }}" class="btn btn-primary">Create New Temp Data</a>
+    </div>
+    <div class="card-body">
+        {% if temp_data_list|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Email</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Created At</th>
+                            {% if hasAnonymizedColumn|default(false) %}
+                            <th>Anonymized</th>
+                            {% endif %}
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for temp_data in temp_data_list %}
+                            <tr>
+                                <td>{{ temp_data.id ?? temp_data.id }}</td>
+                                <td>{{ temp_data.email ?? '-' }}</td>
+                                <td>{{ temp_data.name ?? '-' }}</td>
+                                <td>{{ temp_data.phone ?? '-' }}</td>
+                                <td>{{ temp_data.createdAt ? temp_data.createdAt|date('Y-m-d H:i:s') : '-' }}</td>
+                                {% if hasAnonymizedColumn|default(false) %}
+                                <td>
+                                    {% if temp_data.anonymized|default(false) %}
+                                    {% include '_anonymized_badge.html.twig' with {value: temp_data.anonymized|default(false)} %}
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ path('temp_data_show', {connection: connection, id: temp_data.id ?? temp_data.id}) }}" class="btn btn-sm btn-outline-secondary">Show</a>
+                                        <a href="{{ path('temp_data_edit', {connection: connection, id: temp_data.id ?? temp_data.id}) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                        <form method="post" action="{{ path('temp_data_delete', {connection: connection, id: temp_data.id ?? temp_data.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure?')">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ (temp_data.id ?? temp_data.id)) }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">No temp data found. <a href="{{ path('temp_data_new', {connection: connection}) }}">Create the first one</a>.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

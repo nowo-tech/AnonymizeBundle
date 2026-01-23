@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Marketing Campaign Details - {{ connection|upper }}{% endblock %}
+
+{% block body %}
+{% include '_breadcrumbs.html.twig' with {entityName: 'Marketing Campaign', connection: connection, routePrefix: 'marketing_campaign', currentPage: 'Show'} %}
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Marketing Campaign Details <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+        <div class="btn-group">
+            <a href="{{ path('marketing_campaign_edit', {connection: connection, id: marketingcampaign.id}) }}" class="btn btn-primary">Edit</a>
+            <a href="{{ path('marketing_campaign_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">{{ marketingcampaign.id }}</dd>
+            {% for field in marketingcampaign|keys %}
+                {% if field != 'id' and field != 'anonymized' %}
+                <dt class="col-sm-3">{{ field|replace({'_': ' '})|title }}</dt>
+                <dd class="col-sm-9">{{ marketingcampaign[field] ?? '-' }}</dd>
+                {% endif %}
+            {% endfor %}
+            {% if hasAnonymizedColumn|default(false) %}
+            <dt class="col-sm-3">Anonymized</dt>
+            <dd class="col-sm-9">
+                {% if marketingcampaign.anonymized|default(false) %}
+                {% include '_anonymized_badge.html.twig' with {value: marketingcampaign.anonymized|default(false)} %}
+                {% endif %}
+            </dd>
+            {% endif %}
+        </dl>
+
+        <div class="mt-4">
+            <form method="post" action="{{ path('marketing_campaign_delete', {connection: connection, id: marketingcampaign.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this marketingcampaign?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ marketingcampaign.id) }}">
+                <button type="submit" class="btn btn-danger">Delete Marketing Campaign</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
