@@ -224,9 +224,13 @@ The data should be anonymized according to the attributes defined in the entitie
 
 All demos are functionally identical in terms of features, only the Symfony version used changes.
 
+## Bundle code from the repo (development)
+
+When you run the demos with Docker from this repository, they use the **bundle code from the repo** (not the published Packagist version). The PHP container mounts the bundle root at `/bundles`, and each demo's `composer.json` has a path repository `"url": "/bundles"` with `"nowo-tech/anonymize-bundle": "*"`. So after `make up` and `make install` (or `make setup`), the demo runs with the local bundle—ideal for testing changes like the new `excludePatterns` (array value and multiple configs).
+
 ## Important Notes
 
-- **Bundle included**: The bundle is included as a dependency in each demo's `composer.json` and will be installed automatically with `make install`.
+- **Bundle from repo**: With Docker, the bundle is resolved from the path `/bundles` (repo root). Run `make install` or `make setup` inside the demo so Composer installs/links the bundle from that path.
 - **Test data**: Fixtures are automatically loaded in all SQL connections (MySQL, PostgreSQL, SQLite) when running `make setup`.
 - **SQLite**: File-based database at `var/data/anonymize_demo.sqlite`, perfect for local development and testing.
 - **MongoDB**: MongoDB infrastructure is ready with Mongo Express for management. Documents are prepared for when the bundle supports MongoDB ODM.
