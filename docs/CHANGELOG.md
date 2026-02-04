@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-02-04
+
+### Added
+
+- **excludePatterns / includePatterns: array value (OR for one field)**  
+  Pattern values can be an array of strings; the record matches if the field value matches any option.
+  - Example: `'email' => ['%@nowo.tech', 'operador@example.com']` — exclude when email matches any option.
+  - Same syntax for `includePatterns`. Backward compatible: string values (and `|` within string) still work.
+
+- **excludePatterns / includePatterns: multiple configs (OR between configs)**  
+  You can pass a list of pattern sets; the record is excluded (or included) when **any** config matches.
+  - Example: `[ ['role' => 'admin', 'email' => '%@nowo.tech'], ['status' => 'deleted'], ['id' => '<=100'] ]` — exclude when (config1) OR (config2) OR (config3).
+  - Within each config all fields are AND; between configs the logic is OR.
+  - Same for `includePatterns`. Documented in CONFIGURATION.md and USAGE.md.
+
+- **Demos: bundle from repo**  
+  Demos now use the bundle code from the repository via path repository (`/bundles`) when run with Docker, so you can test local changes (e.g. new excludePatterns) without publishing. See `demo/README.md`.
+
+### Changed
+
+- **ProtectedUser demo**  
+  Uses the new multiple-configs syntax for `excludePatterns` (list of configs) for clearer examples.
+
+- **UserAccount demo**  
+  Uses array value for `excludePatterns` on email: `'email' => ['%@visitor.com', '%@internal.com']`.
+
+- **PatternMatcher**  
+  Supports pattern value as string or array (OR), and patterns as single config or list of configs (OR between configs).
+
+- **AnonymizeService**  
+  Uses `getPatternFieldNames()` so entity/property patterns work correctly when using list of configs (all field names collected for query building).
+
+- **PreFlightCheckService**  
+  Validates both array values and list-of-configs for `includePatterns` and `excludePatterns`.
+
+### Documentation
+
+- **CONFIGURATION.md**: "Array of options" and "Multiple configs (OR between sets)" with examples.
+- **USAGE.md**: Examples 4 (array value) and 5 (multiple configs).
+- **EXAMPLES_PATTERN_BASED.md**: excludePatterns with array of options.
+- **demo/README.md**: "Bundle code from the repo" explains path repo usage.
+
 ## [1.0.2] - 2026-01-27
 
 ### Added

@@ -13,6 +13,44 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.3
+
+**Release Date**: 2026-02-04
+
+#### What's New
+
+This release extends **excludePatterns** and **includePatterns** with two backward-compatible options:
+
+1. **Array value (OR for one field)**  
+   You can use an array of values for a single field instead of `|` in a string.  
+   Example: `'email' => ['%@nowo.tech', 'user@example.com']` (equivalent to `'email' => '%@nowo.tech|user@example.com'`).
+
+2. **Multiple configs (OR between configs)**  
+   You can pass a list of pattern sets; the record is excluded (or included) when **any** set matches.  
+   Example: `excludePatterns: [ ['role' => 'admin'], ['status' => 'deleted'] ]` — exclude when role=admin **or** status=deleted.
+
+#### Breaking Changes
+
+None. Existing single-config and string values (including `|`) continue to work as before.
+
+#### Migration Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Optional: adopt new syntax**
+   - Use array value for one field: `'field' => ['value1', 'value2']` instead of `'field' => 'value1|value2'`.
+   - Use multiple configs: `excludePatterns: [ ['role' => 'admin'], ['status' => 'deleted'] ]` for OR between conditions.
+
+See [CONFIGURATION.md](CONFIGURATION.md#multiple-configs-or-between-sets) and [USAGE.md](USAGE.md) for examples.
+
 ### Upgrading to 1.0.2
 
 **Release Date**: 2026-01-27
