@@ -29,8 +29,8 @@ final class AnonymizeProperty
      *   enum, country, language, hash_preserve, shuffle, constant, service, dni_cif, name_fallback, html, pattern_based,
      *   copy, null
      * @param int|null $weight The weight for ordering anonymization. Lower weights are processed first. If null, processed last alphabetically
-     * @param array<string> $includePatterns Array of patterns to include (e.g., ['id' => '>100']). If empty, all records are included
-     * @param array<string> $excludePatterns Array of patterns to exclude (e.g., ['id' => '<=100']). Exclusions take precedence over inclusions
+     * @param array<string|array<string>|array<int, array<string, string|array<string>>>> $includePatterns Single config (field=>pattern) or list of configs (OR between them). If empty, all records are included
+     * @param array<string|array<string>|array<int, array<string, string|array<string>>>> $excludePatterns Single config (field=>pattern) or list of configs (OR between them). E.g. ['id' => '<=100'] or [ ['role'=>'admin'], ['status'=>'deleted'] ]. Exclusions take precedence over inclusions
      * @param string|null $service If type is 'service', the service name to use for anonymization
      * @param array<string, mixed> $options Additional options for the faker (e.g., ['min' => 18, 'max' => 65] for age)
      */

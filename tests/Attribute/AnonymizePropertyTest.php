@@ -69,6 +69,31 @@ class AnonymizePropertyTest extends TestCase
     }
 
     /**
+     * Test that AnonymizeProperty attribute accepts exclude patterns with array value (OR for one field).
+     */
+    public function testAnonymizePropertyCanBeInstantiatedWithExcludePatternsArrayValue(): void
+    {
+        $excludePatterns = ['email' => ['%@nowo.tech', 'operador@example.com']];
+        $attribute = new AnonymizeProperty(type: 'email', excludePatterns: $excludePatterns);
+
+        $this->assertEquals($excludePatterns, $attribute->excludePatterns);
+    }
+
+    /**
+     * Test that AnonymizeProperty attribute accepts multiple exclude configs (list of pattern sets).
+     */
+    public function testAnonymizePropertyCanBeInstantiatedWithMultipleExcludeConfigs(): void
+    {
+        $excludePatterns = [
+            ['role' => 'admin'],
+            ['status' => 'deleted'],
+        ];
+        $attribute = new AnonymizeProperty(type: 'email', excludePatterns: $excludePatterns);
+
+        $this->assertEquals($excludePatterns, $attribute->excludePatterns);
+    }
+
+    /**
      * Test that AnonymizeProperty attribute can be instantiated with service.
      */
     public function testAnonymizePropertyCanBeInstantiatedWithService(): void

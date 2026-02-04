@@ -284,16 +284,16 @@ final class AnonymizeService
         $allPatterns = [];
         if ($entityAttribute !== null) {
             $allPatterns = array_merge(
-                array_keys($entityAttribute->includePatterns),
-                array_keys($entityAttribute->excludePatterns)
+                $this->getPatternFieldNames($entityAttribute->includePatterns),
+                $this->getPatternFieldNames($entityAttribute->excludePatterns)
             );
         }
         foreach ($properties as $propertyData) {
             $attr = $propertyData['attribute'];
             $allPatterns = array_merge(
                 $allPatterns,
-                array_keys($attr->includePatterns),
-                array_keys($attr->excludePatterns)
+                $this->getPatternFieldNames($attr->includePatterns),
+                $this->getPatternFieldNames($attr->excludePatterns)
             );
         }
 
@@ -482,7 +482,7 @@ final class AnonymizeService
             }
 
             // Update progress
-            if ($progressCallback !== null && ($index + 1) % max(1, (int) ($totalRecords / 100)) === 0 || $index + 1 === $totalRecords) {
+            if ($progressCallback !== null && (($index + 1) % max(1, (int) ($totalRecords / 100)) === 0 || $index + 1 === $totalRecords)) {
                 $progressCallback($index + 1, $totalRecords, sprintf('Processed %d/%d records (%d updated)', $index + 1, $totalRecords, $updated));
             }
         }
@@ -640,6 +640,40 @@ final class AnonymizeService
         }
 
         return false;
+    }
+
+    /**
+     * Extracts all field names from a patterns array (single config or list of configs).
+     *
+     * @param array<string|array<string>|array<int, array<string, string|array<string>>>> $patterns
+     * @return array<int, string>
+     */
+    private function getPatternFieldNames(array $patterns): array
+    {
+        if ($patterns === []) {
+            return [];
+        }
+        if ($this->isListOfPatternSets($patterns)) {
+            $names = [];
+            foreach ($patterns as $set) {
+                $names = array_merge($names, array_keys($set));
+            }
+            return array_values(array_unique($names));
+        }
+        return array_keys($patterns);
+    }
+
+    private function isListOfPatternSets(array $patterns): bool
+    {
+        if ($patterns === [] || !array_is_list($patterns)) {
+            return false;
+        }
+        foreach ($patterns as $item) {
+            if (!is_array($item)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

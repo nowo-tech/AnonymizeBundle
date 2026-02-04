@@ -260,21 +260,83 @@ final class PreFlightCheckService
     {
         $errors = [];
 
-        // Validate include patterns
-        foreach ($attribute->includePatterns as $field => $pattern) {
-            if (empty($field) || empty($pattern)) {
-                $errors[] = sprintf('Invalid include pattern: field and pattern must not be empty');
-            }
-        }
+        // Validate include patterns (single config or list of configs)
+        $errors = array_merge($errors, $this->validatePatternConfig($attribute->includePatterns, 'include'));
 
-        // Validate exclude patterns
-        foreach ($attribute->excludePatterns as $field => $pattern) {
-            if (empty($field) || empty($pattern)) {
-                $errors[] = sprintf('Invalid exclude pattern: field and pattern must not be empty');
-            }
-        }
+        // Validate exclude patterns (single config or list of configs)
+        $errors = array_merge($errors, $this->validatePatternConfig($attribute->excludePatterns, 'exclude'));
 
         return $errors;
+    }
+
+    /**
+     * Validates a pattern config: either single set (field=>pattern) or list of sets (OR between configs).
+     *
+     * @param array<string|array<string>|array<int, array<string, string|array<string>>>> $config
+     * @return array<string>
+     */
+    private function validatePatternConfig(array $config, string $type): array
+    {
+        $errors = [];
+        $label = $type === 'include' ? 'include' : 'exclude';
+
+        if ($this->isListOfPatternSets($config)) {
+            foreach ($config as $index => $set) {
+                foreach ($set as $field => $pattern) {
+                    $err = $this->validateOnePatternEntry($field, $pattern, $label);
+                    if ($err !== null) {
+                        $errors[] = sprintf('%s (config #%d)', $err, $index + 1);
+                    }
+                }
+            }
+            return $errors;
+        }
+
+        foreach ($config as $field => $pattern) {
+            $err = $this->validateOnePatternEntry($field, $pattern, $label);
+            if ($err !== null) {
+                $errors[] = $err;
+            }
+        }
+        return $errors;
+    }
+
+    private function isListOfPatternSets(array $config): bool
+    {
+        if ($config === [] || !array_is_list($config)) {
+            return false;
+        }
+        foreach ($config as $item) {
+            if (!is_array($item)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private function validateOnePatternEntry(mixed $field, mixed $pattern, string $label): ?string
+    {
+        if ($field === '' || $field === null || (is_int($field) && $field < 0)) {
+            return sprintf('Invalid %s pattern: field must not be empty', $label);
+        }
+        if (!is_string($field) && !is_int($field)) {
+            return sprintf('Invalid %s pattern: field must be string', $label);
+        }
+        if (is_array($pattern)) {
+            if ($pattern === []) {
+                return sprintf('Invalid %s pattern: pattern array must not be empty for field "%s"', $label, (string) $field);
+            }
+            foreach ($pattern as $p) {
+                if ($p === '' && $p !== 0) {
+                    return sprintf('Invalid %s pattern: pattern option must not be empty for field "%s"', $label, (string) $field);
+                }
+            }
+            return null;
+        }
+        if ($pattern === '' && $pattern !== 0) {
+            return sprintf('Invalid %s pattern: pattern must not be empty for field "%s"', $label, (string) $field);
+        }
+        return null;
     }
 
     /**

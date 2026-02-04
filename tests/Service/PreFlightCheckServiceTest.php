@@ -818,6 +818,133 @@ class PreFlightCheckServiceTest extends TestCase
     }
 
     /**
+     * Test that validatePatterns accepts valid exclude patterns as list of configs (multiple configs).
+     */
+    public function testValidatePatternsHandlesValidExcludePatternsListOfConfigs(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $connection->method('executeQuery')
+            ->with('SELECT 1')
+            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+
+        $connection->method('createSchemaManager')
+            ->willReturn($schemaManager);
+
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $metadata->isMappedSuperclass = false;
+        $metadata->isEmbeddedClass = false;
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+        $metadata->method('hasField')
+            ->willReturn(true);
+        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $metadata->method('getFieldMapping')
+            ->willReturn($fieldMapping);
+
+        $schemaManager->method('tablesExist')
+            ->willReturn(true);
+
+        $column = $this->createMock(Column::class);
+        $column->method('getName')
+            ->willReturn('test_column');
+
+        $schemaManager->method('listTableColumns')
+            ->willReturn(['test_column' => $column]);
+
+        $testEntity = new class {
+            #[AnonymizeProperty(type: 'email', weight: 1, excludePatterns: [
+                ['role' => 'admin'],
+                ['status' => 'deleted'],
+            ])]
+            private string $testProperty;
+        };
+        $reflection = new ReflectionClass($testEntity);
+
+        $attribute = new Anonymize();
+
+        $entities = [
+            'TestEntity' => [
+                'metadata' => $metadata,
+                'reflection' => $reflection,
+                'attribute' => $attribute,
+            ],
+        ];
+
+        $errors = $this->service->performChecks($em, $entities);
+        $this->assertEmpty($errors);
+    }
+
+    /**
+     * Test that validatePatterns accepts valid exclude patterns with array value (OR for one field).
+     */
+    public function testValidatePatternsHandlesValidExcludePatternsArrayValue(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $connection->method('executeQuery')
+            ->with('SELECT 1')
+            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+
+        $connection->method('createSchemaManager')
+            ->willReturn($schemaManager);
+
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $metadata->isMappedSuperclass = false;
+        $metadata->isEmbeddedClass = false;
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+        $metadata->method('hasField')
+            ->willReturn(true);
+        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $metadata->method('getFieldMapping')
+            ->willReturn($fieldMapping);
+
+        $schemaManager->method('tablesExist')
+            ->willReturn(true);
+
+        $column = $this->createMock(Column::class);
+        $column->method('getName')
+            ->willReturn('test_column');
+
+        $schemaManager->method('listTableColumns')
+            ->willReturn(['test_column' => $column]);
+
+        $testEntity = new class {
+            #[AnonymizeProperty(type: 'email', weight: 1, excludePatterns: ['email' => ['%@nowo.tech', 'operador@example.com']])]
+            private string $testProperty;
+        };
+        $reflection = new ReflectionClass($testEntity);
+
+        $attribute = new Anonymize();
+
+        $entities = [
+            'TestEntity' => [
+                'metadata' => $metadata,
+                'reflection' => $reflection,
+                'attribute' => $attribute,
+            ],
+        ];
+
+        $errors = $this->service->performChecks($em, $entities);
+        $this->assertEmpty($errors);
+    }
+
+    /**
      * Test that validateFakerType handles enum faker with values option.
      */
     public function testValidateFakerTypeHandlesEnumFaker(): void

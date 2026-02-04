@@ -30,7 +30,7 @@ class User
     private ?int $id = null;
 
     #[AnonymizeProperty(type: 'email', weight: 1, excludePatterns: [
-        'email' => '%@visitor.com'
+        'email' => ['%@visitor.com', '%@internal.com'],  // Array value: exclude when email matches any option
     ])]
     #[ORM\Column(type: Types::STRING, length: 180)]
     public string $email;

@@ -203,6 +203,29 @@ class User
 }
 ```
 
+**Example 4: Array value (OR within one field)**
+
+```php
+#[AnonymizeProperty(
+    type: 'email',
+    excludePatterns: ['email' => ['%@nowo.tech', 'operador@example.com']]  // Exclude when email matches any option
+)]
+private ?string $email = null;
+```
+
+**Example 5: Multiple configs (OR between configs)**
+
+```php
+#[Anonymize(
+    excludePatterns: [
+        ['role' => 'admin', 'email' => '%@nowo.tech'],  // Config 1: exclude when both match
+        ['status' => 'deleted'],                         // Config 2: exclude when status=deleted
+        ['id' => '<=100'],                               // Config 3: exclude first 100 records
+    ]
+)]
+class User { ... }
+```
+
 **Result** (all conditions must be met):
 
 | Record Conditions | Entity Match? | email Anonymized? | firstName Anonymized? |

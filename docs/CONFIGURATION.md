@@ -273,8 +273,33 @@ The anonymization decision follows this flow:
 
 - **Comparison**: `>`, `>=`, `<`, `<=`, `=`, `!=`, `<>`
 - **SQL LIKE**: `%` wildcard (e.g., `'%@example.com'`)
-- **OR Operator**: `|` for multiple values (e.g., `'active|inactive'`)
+- **OR Operator**: `|` for multiple values in a string (e.g., `'active|inactive'`)
+- **Array of options**: value can be an array of strings (OR: match if any option matches), e.g. `'email' => ['%@nowo.tech', 'operador@example.com']`
 - **Relationship Access**: Dot notation for related entities (e.g., `'type.name'`, `'customer.status'`)
+
+### Multiple configs (OR between sets)
+
+You can pass **several configs** so that the record is excluded (or included) when **any** config matches. Each config is an AND-clause; configs are combined with OR.
+
+**Syntax**: use an **indexed array of associative arrays** (list of pattern sets):
+
+```php
+#[Anonymize(
+    excludePatterns: [
+        // Config 1: exclude when role=admin AND email ends with @nowo.tech
+        ['role' => 'admin', 'email' => '%@nowo.tech'],
+        // Config 2: exclude when status=deleted
+        ['status' => 'deleted'],
+        // Config 3: exclude when id <= 100
+        ['id' => '<=100'],
+    ]
+)]
+```
+
+- **Within each config**: all fields must match (AND).
+- **Between configs**: if any config matches, the record is excluded (OR).
+
+Same for `includePatterns`: include when (config1) OR (config2) OR …
 
 ### Relationship Patterns
 

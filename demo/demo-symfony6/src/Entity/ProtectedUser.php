@@ -13,14 +13,9 @@ use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 /**
  * ProtectedUser entity demonstrating excludePatterns at entity level.
  *
- * This entity shows how to exclude entire records from anonymization
- * when certain fields match specific patterns.
- *
- * Examples:
- * - Exclude users with email ending in @visitor.com
- * - Exclude users with role = 'admin'
- * - Exclude users with id <= 100
- * - Exclude users with status = 'archived|deleted'
+ * Shows two syntaxes:
+ * - Multiple configs (OR between configs): exclude when ANY config matches.
+ * - Array value for one field (OR within field): e.g. 'status' => ['archived', 'deleted'].
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
@@ -29,10 +24,10 @@ use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 #[ORM\Table(name: 'protected_users')]
 #[Anonymize(
     excludePatterns: [
-        'email' => '%@visitor.com',        // Exclude emails ending in @visitor.com
-        'role' => 'admin',                 // Exclude admin users
-        'id' => '<=100',                   // Exclude first 100 records
-        'status' => 'archived|deleted',    // Exclude archived or deleted users
+        ['email' => '%@visitor.com'],           // Config 1: exclude emails ending in @visitor.com
+        ['role' => 'admin'],                    // Config 2: exclude admin users
+        ['id' => '<=100'],                      // Config 3: exclude first 100 records
+        ['status' => 'archived|deleted'],       // Config 4: exclude archived or deleted (| = OR within field)
     ]
 )]
 class ProtectedUser

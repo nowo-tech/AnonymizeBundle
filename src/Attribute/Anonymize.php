@@ -21,8 +21,8 @@ final class Anonymize
 {
     /**
      * @param string|null $connection The Doctrine connection name. If null, all connections will be checked
-     * @param array<string> $includePatterns Array of patterns to include (e.g., ['id' => '>100']). If empty, all records are included
-     * @param array<string> $excludePatterns Array of patterns to exclude (e.g., ['id' => '<=100']). Exclusions take precedence over inclusions
+     * @param array<string|array<string>|array<int, array<string, string|array<string>>>> $includePatterns Single config (field=>pattern) or list of configs (OR between them). If empty, all records are included
+     * @param array<string|array<string>|array<int, array<string, string|array<string>>>> $excludePatterns Single config (field=>pattern) or list of configs (OR between them). E.g. ['id' => '<=100'] or [ ['role'=>'admin','email'=>'%@nowo.tech'], ['status'=>'deleted'] ]. Exclusions take precedence over inclusions
      * @param bool $truncate If true, the table will be truncated (emptied) before anonymization. This is executed first, before any anonymization
      * @param int|null $truncate_order Order for truncating tables. Lower numbers are executed first. If null, tables are truncated in alphabetical order after those with explicit order
      */

@@ -27,13 +27,13 @@ final class PatternMatcher
     public function matches(array $record, array $includePatterns = [], array $excludePatterns = []): bool
     {
         // If exclusion patterns exist and match, exclude
-        if (!empty($excludePatterns) && $this->matchesPatterns($record, $excludePatterns)) {
+        if (!empty($excludePatterns) && $this->matchesExcludePatterns($record, $excludePatterns)) {
             return false;
         }
 
         // If inclusion patterns exist, check if they match
         if (!empty($includePatterns)) {
-            return $this->matchesPatterns($record, $includePatterns);
+            return $this->matchesIncludePatterns($record, $includePatterns);
         }
 
         // If no patterns, include by default
@@ -41,101 +41,160 @@ final class PatternMatcher
     }
 
     /**
+     * Returns true if the record matches exclusion (exclude when any config matches).
+     *
+     * @param array<string, mixed> $record
+     * @param array<string|array<string>|array<int, array<string, string|array<string>>>> $excludePatterns Single AND-clause or list of AND-clauses (OR between them)
+     */
+    private function matchesExcludePatterns(array $record, array $excludePatterns): bool
+    {
+        if ($this->isListOfPatternSets($excludePatterns)) {
+            foreach ($excludePatterns as $set) {
+                if ($this->matchesPatterns($record, $set)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return $this->matchesPatterns($record, $excludePatterns);
+    }
+
+    /**
+     * Returns true if the record matches inclusion (include when any config matches, when using list of sets).
+     *
+     * @param array<string, mixed> $record
+     * @param array<string|array<string>|array<int, array<string, string|array<string>>>> $includePatterns Single AND-clause or list of AND-clauses (OR between them)
+     */
+    private function matchesIncludePatterns(array $record, array $includePatterns): bool
+    {
+        if ($this->isListOfPatternSets($includePatterns)) {
+            foreach ($includePatterns as $set) {
+                if ($this->matchesPatterns($record, $set)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return $this->matchesPatterns($record, $includePatterns);
+    }
+
+    /**
+     * True if the array is a list of pattern sets (OR between configs), e.g. [ ['role'=>'admin'], ['status'=>'deleted'] ].
+     */
+    private function isListOfPatternSets(array $patterns): bool
+    {
+        if ($patterns === [] || !array_is_list($patterns)) {
+            return false;
+        }
+        foreach ($patterns as $item) {
+            if (!is_array($item)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Checks if a record matches all given patterns.
      *
      * Supports comparison operators: >, >=, <, <=, =, !=, <>, and SQL LIKE patterns (%).
+     * Pattern values can be a string or an array of strings (OR: match if any option matches).
      * All patterns must match for the method to return true.
      *
      * @param array<string, mixed> $record The record to check
-     * @param array<string> $patterns Array of patterns (e.g., ['id' => '>100', 'status' => 'active'])
+     * @param array<string|array<string>> $patterns Array of patterns (e.g., ['id' => '>100', 'status' => 'active', 'email' => ['%@a.com', 'b@b.com']])
      * @return bool True if all patterns match
      */
     private function matchesPatterns(array $record, array $patterns): bool
     {
         foreach ($patterns as $field => $pattern) {
-            // Support for relationship patterns (e.g., 'type.name')
-            $value = $this->getNestedValue($record, $field);
+            // Normalize: allow value to be array of options (OR)
+            $options = is_array($pattern) ? $pattern : [$pattern];
+            $fieldMatched = false;
 
-            if ($value === null && !isset($record[$field])) {
-                return false;
+            foreach ($options as $option) {
+                $option = is_string($option) ? $option : (string) $option;
+                if ($this->patternMatchesValue($record, $field, $option)) {
+                    $fieldMatched = true;
+                    break;
+                }
             }
 
-            // Handle comparison operators
-            if (str_starts_with($pattern, '>=')) {
-                $threshold = (float) substr($pattern, 2);
-                if (!($value >= $threshold)) {
-                    return false;
-                }
-            } elseif (str_starts_with($pattern, '<=')) {
-                $threshold = (float) substr($pattern, 2);
-                if (!($value <= $threshold)) {
-                    return false;
-                }
-            } elseif (str_starts_with($pattern, '>')) {
-                $threshold = (float) substr($pattern, 1);
-                if (!($value > $threshold)) {
-                    return false;
-                }
-            } elseif (str_starts_with($pattern, '<')) {
-                $threshold = (float) substr($pattern, 1);
-                if (!($value < $threshold)) {
-                    return false;
-                }
-            } elseif (str_starts_with($pattern, '!=') || str_starts_with($pattern, '<>')) {
-                $expected = substr($pattern, 2);
-                if ($value == $expected) {
-                    return false;
-                }
-            } elseif (str_starts_with($pattern, '=')) {
-                $expected = substr($pattern, 1);
-                if ($value != $expected) {
-                    return false;
-                }
-            } else {
-                // Exact match, contains, or multiple values with | (OR)
-                if (is_string($value) && is_string($pattern)) {
-                    if (str_contains($pattern, '%')) {
-                        // SQL LIKE pattern
-                        $regex = '/^' . str_replace(['%', '_'], ['.*', '.'], preg_quote($pattern, '/')) . '$/i';
-                        if (!preg_match($regex, $value)) {
-                            return false;
-                        }
-                    } elseif (str_contains($pattern, '|')) {
-                        // Multiple values with OR operator (e.g., 'value1|value2|value3')
-                        $options = explode('|', $pattern);
-                        $matched = false;
-                        foreach ($options as $option) {
-                            $option = trim($option);
-                            if (str_contains($option, '%')) {
-                                // SQL LIKE pattern within OR
-                                $regex = '/^' . str_replace(['%', '_'], ['.*', '.'], preg_quote($option, '/')) . '$/i';
-                                if (preg_match($regex, $value)) {
-                                    $matched = true;
-                                    break;
-                                }
-                            } elseif (str_contains($value, $option)) {
-                                // Contains check (useful for email domains)
-                                $matched = true;
-                                break;
-                            } elseif ($value === $option) {
-                                // Exact match
-                                $matched = true;
-                                break;
-                            }
-                        }
-                        if (!$matched) {
-                            return false;
-                        }
-                    } elseif ($value !== $pattern) {
-                        return false;
-                    }
-                } elseif ($value != $pattern) {
-                    return false;
-                }
+            if (!$fieldMatched) {
+                return false;
             }
         }
 
         return true;
+    }
+
+    /**
+     * Checks if the value of a field in the record matches a single pattern.
+     *
+     * @param array<string, mixed> $record The record to check
+     * @param string $field The field name (supports dot notation)
+     * @param string $pattern Single pattern string
+     * @return bool True if the field value matches the pattern
+     */
+    private function patternMatchesValue(array $record, string $field, string $pattern): bool
+    {
+        $value = $this->getNestedValue($record, $field);
+
+        if ($value === null && !isset($record[$field])) {
+            return false;
+        }
+
+        // Handle comparison operators
+        if (str_starts_with($pattern, '>=')) {
+            $threshold = (float) substr($pattern, 2);
+            return $value >= $threshold;
+        }
+        if (str_starts_with($pattern, '<=')) {
+            $threshold = (float) substr($pattern, 2);
+            return $value <= $threshold;
+        }
+        if (str_starts_with($pattern, '>')) {
+            $threshold = (float) substr($pattern, 1);
+            return $value > $threshold;
+        }
+        if (str_starts_with($pattern, '<')) {
+            $threshold = (float) substr($pattern, 1);
+            return $value < $threshold;
+        }
+        if (str_starts_with($pattern, '!=') || str_starts_with($pattern, '<>')) {
+            $expected = substr($pattern, 2);
+            return $value != $expected;
+        }
+        if (str_starts_with($pattern, '=')) {
+            $expected = substr($pattern, 1);
+            return $value == $expected;
+        }
+
+        // Exact match, contains, or multiple values with | (OR)
+        if (is_string($value) && is_string($pattern)) {
+            if (str_contains($pattern, '%')) {
+                $regex = '/^' . str_replace(['%', '_'], ['.*', '.'], preg_quote($pattern, '/')) . '$/i';
+                return (bool) preg_match($regex, $value);
+            }
+            if (str_contains($pattern, '|')) {
+                $orOptions = explode('|', $pattern);
+                foreach ($orOptions as $option) {
+                    $option = trim($option);
+                    if (str_contains($option, '%')) {
+                        $regex = '/^' . str_replace(['%', '_'], ['.*', '.'], preg_quote($option, '/')) . '$/i';
+                        if (preg_match($regex, $value)) {
+                            return true;
+                        }
+                    } elseif (str_contains($value, $option) || $value === $option) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            return $value === $pattern;
+        }
+
+        return $value == $pattern;
     }
 
     /**

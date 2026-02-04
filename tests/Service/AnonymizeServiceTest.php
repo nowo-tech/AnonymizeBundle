@@ -621,6 +621,85 @@ class AnonymizeServiceTest extends TestCase
     }
 
     /**
+     * Test that anonymizeEntity handles entity-level exclude patterns with multiple configs (OR between configs).
+     */
+    public function testAnonymizeEntityHandlesEntityLevelMultipleExcludeConfigs(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $reflection = $this->createMock(ReflectionClass::class);
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+        $metadata->method('getFieldNames')
+            ->willReturn([]);
+        $metadata->method('getIdentifierColumnNames')
+            ->willReturn(['id']);
+
+        $connection->method('fetchAllAssociative')
+            ->willReturn([['id' => 1, 'role' => 'admin', 'status' => 'active']]);
+        $connection->method('quoteSingleIdentifier')
+            ->willReturnCallback(fn($id) => '`' . $id . '`');
+
+        $entityAttribute = new Anonymize();
+        $entityAttribute->excludePatterns = [
+            ['status' => 'deleted'],
+            ['role' => 'admin'],
+        ];
+
+        $properties = [];
+        $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, null, $entityAttribute);
+
+        $this->assertIsArray($result);
+        $this->assertEquals(1, $result['processed'], 'Record was iterated');
+        $this->assertEquals(0, $result['updated'], 'Excluded record must not be anonymized');
+    }
+
+    /**
+     * Test that anonymizeEntity handles entity-level exclude patterns with array value (OR for one field).
+     */
+    public function testAnonymizeEntityHandlesEntityLevelExcludePatternsArrayValue(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $reflection = $this->createMock(ReflectionClass::class);
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+        $metadata->method('getFieldNames')
+            ->willReturn([]);
+        $metadata->method('getIdentifierColumnNames')
+            ->willReturn(['id']);
+
+        $connection->method('fetchAllAssociative')
+            ->willReturn([['id' => 1, 'email' => 'user@nowo.tech']]);
+        $connection->method('quoteSingleIdentifier')
+            ->willReturnCallback(fn($id) => '`' . $id . '`');
+
+        $entityAttribute = new Anonymize();
+        $entityAttribute->excludePatterns = ['email' => ['%@nowo.tech', 'operador@example.com']];
+
+        $properties = [];
+        $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, null, $entityAttribute);
+
+        $this->assertIsArray($result);
+        $this->assertEquals(1, $result['processed'], 'Record was iterated');
+        $this->assertEquals(0, $result['updated'], 'Excluded record must not be anonymized');
+    }
+
+    /**
      * Test that anonymizeEntity handles properties with include patterns.
      */
     public function testAnonymizeEntityHandlesPropertyIncludePatterns(): void

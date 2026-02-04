@@ -66,6 +66,78 @@ class PatternMatcherTest extends TestCase
     }
 
     /**
+     * Test that pattern value can be an array of options (OR: match if any option matches).
+     */
+    public function testMatchesWithArrayPatternValue(): void
+    {
+        // Include: email matches any of the options
+        $record = ['email' => 'user@nowo.tech'];
+        $this->assertTrue($this->matcher->matches($record, ['email' => ['%@nowo.tech', 'operador.nowotech@gmail.com']]));
+
+        $record = ['email' => 'operador.nowotech@gmail.com'];
+        $this->assertTrue($this->matcher->matches($record, ['email' => ['%@nowo.tech', 'operador.nowotech@gmail.com']]));
+
+        $record = ['email' => 'other@gmail.com'];
+        $this->assertFalse($this->matcher->matches($record, ['email' => ['%@nowo.tech', 'operador.nowotech@gmail.com']]));
+
+        // Exclude: same array syntax
+        $record = ['email' => 'user@nowo.tech'];
+        $this->assertFalse($this->matcher->matches($record, [], ['email' => ['%@nowo.tech', 'operador.nowotech@gmail.com']]));
+    }
+
+    /**
+     * Test multiple exclude configs (OR between configs): exclude when (config1) OR (config2).
+     */
+    public function testMatchesWithMultipleExcludeConfigs(): void
+    {
+        // excludePatterns as list of sets: exclude when (role=admin AND email LIKE %@nowo.tech) OR (status=deleted)
+        $excludePatterns = [
+            ['role' => 'admin', 'email' => '%@nowo.tech'],
+            ['status' => 'deleted'],
+        ];
+
+        $this->assertFalse($this->matcher->matches(
+            ['role' => 'admin', 'email' => 'u@nowo.tech', 'status' => 'active'],
+            [],
+            $excludePatterns
+        ));
+        $this->assertFalse($this->matcher->matches(
+            ['role' => 'user', 'email' => 'a@other.com', 'status' => 'deleted'],
+            [],
+            $excludePatterns
+        ));
+        $this->assertTrue($this->matcher->matches(
+            ['role' => 'user', 'email' => 'a@other.com', 'status' => 'active'],
+            [],
+            $excludePatterns
+        ));
+    }
+
+    /**
+     * Test multiple include configs (OR between configs): include when (config1) OR (config2).
+     */
+    public function testMatchesWithMultipleIncludeConfigs(): void
+    {
+        $includePatterns = [
+            ['role' => 'admin'],
+            ['status' => 'active', 'department' => 'HR'],
+        ];
+
+        $this->assertTrue($this->matcher->matches(
+            ['role' => 'admin', 'status' => 'inactive', 'department' => 'IT'],
+            $includePatterns
+        ));
+        $this->assertTrue($this->matcher->matches(
+            ['role' => 'user', 'status' => 'active', 'department' => 'HR'],
+            $includePatterns
+        ));
+        $this->assertFalse($this->matcher->matches(
+            ['role' => 'user', 'status' => 'inactive', 'department' => 'IT'],
+            $includePatterns
+        ));
+    }
+
+    /**
      * Test comparison operators: greater than.
      */
     public function testMatchesWithGreaterThan(): void
