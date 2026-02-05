@@ -2554,7 +2554,7 @@ class AnonymizeServiceTest extends TestCase
         $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
         $connection->method('getDatabasePlatform')
             ->willReturn($platform);
-        
+
         // Configure connection params so DbalHelper::getDriverName returns 'pdo_sqlite'
         $connection->method('getParams')
             ->willReturn(['driver' => 'pdo_sqlite']);
