@@ -2,7 +2,7 @@
 
 > 📋 **Requirements**: This bundle requires **Symfony 6.1 or higher** (Symfony 6.0 is not supported). See [INSTALLATION.md](INSTALLATION.md) for complete requirements.
 
-The bundle supports 38 different faker types for anonymizing various data types.
+The bundle supports 39 different faker types for anonymizing various data types.
 
 > 💡 **Tip**: All fakers support the `nullable` and `null_probability` options to generate null values with a configurable probability. See [USAGE.md](USAGE.md#nullable-option) for details.
 
@@ -113,6 +113,11 @@ private ?string $legalId = null;
   - Options: `values` (required), `seed` (for reproducibility), `exclude`
 - **constant**: Replace with constant value
   - Options: `value` (required, can be any type including null)
+
+- **map**: Replace values using a mapping ("if value is X, put Y")
+  - Options: `map` (required, associative array `original_value => replacement_value`), `default` (optional, value when original is not in map; if omitted, unmapped values are left as-is)
+  - Use when you want to anonymize by substituting each original value with a fixed replacement (e.g. status 'active' → 'status_a', 'inactive' → 'status_b')
+  - Example: `['map' => ['active' => 'status_a', 'inactive' => 'status_b', 'pending' => 'status_c'], 'default' => 'status_unknown']`
 
 ## Custom Fakers
 

@@ -128,4 +128,7 @@ enum FakerType: string
 
     /** UTM parameter faker (supports source, medium, campaign, term, content types) */
     case UTM = 'utm';
+
+    /** Map faker (if value is X put Y, with multiple pairs) */
+    case MAP = 'map';
 }

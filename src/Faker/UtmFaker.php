@@ -211,21 +211,23 @@ final class UtmFaker implements FakerInterface
         $minLength = (int) ($options['min_length'] ?? 3);
         $maxLength = (int) ($options['max_length'] ?? 20);
 
-        // Generate a search term (usually 1-3 words)
+        // Generate a search term (1-3 words), then enforce min_length and max_length
         $wordCount = $this->faker->numberBetween(1, 3);
         $words = [];
-        $currentLength = 0;
-        $targetLength = $this->faker->numberBetween($minLength, $maxLength);
+        for ($i = 0; $i < $wordCount; $i++) {
+            $words[] = $this->faker->word();
+        }
+        $value = implode('_', $words);
 
-        for ($i = 0; $i < $wordCount && $currentLength < $targetLength; $i++) {
-            $word = $this->faker->word();
-            if ($currentLength + strlen($word) + 1 <= $targetLength) {
-                $words[] = $word;
-                $currentLength += strlen($word) + 1;
-            }
+        // Ensure minimum length (e.g. single short word like "up" or "no")
+        while (strlen($value) < $minLength) {
+            $value .= '_' . $this->faker->word();
+        }
+        if (strlen($value) > $maxLength) {
+            $value = substr($value, 0, $maxLength);
         }
 
-        return implode('_', $words ?: [$this->faker->word()]);
+        return $value;
     }
 
     /**

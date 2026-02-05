@@ -100,6 +100,20 @@ class FakerTypeExample
     #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $name = null;
 
+    /**
+     * Example using map faker: if value is X, replace with Y (e.g. status anonymization).
+     */
+    #[AnonymizeProperty(
+        type: FakerType::MAP,
+        weight: 7,
+        options: [
+            'map' => ['active' => 'status_a', 'inactive' => 'status_b', 'pending' => 'status_c'],
+            'default' => 'status_unknown',
+        ]
+    )]
+    #[ORM\Column(type: Types::STRING, length: 50, nullable: true)]
+    private ?string $status = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -173,6 +187,18 @@ class FakerTypeExample
     public function setName(?string $name): static
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?string $status): static
+    {
+        $this->status = $status;
 
         return $this;
     }

@@ -20,6 +20,7 @@ class FakerTypeExampleFixtures extends Fixture
                 'username' => 'user1@example.com(15)',
                 'sensitiveNotes' => 'Sensitive notes for user 1',
                 'name' => 'User One',
+                'status' => 'active',
             ],
             [
                 'email' => 'user2@example.com',
@@ -28,6 +29,7 @@ class FakerTypeExampleFixtures extends Fixture
                 'username' => 'user2@example.com(42)',
                 'sensitiveNotes' => 'Sensitive notes for user 2',
                 'name' => 'User Two',
+                'status' => 'inactive',
             ],
             [
                 'email' => 'user3@example.com',
@@ -36,6 +38,7 @@ class FakerTypeExampleFixtures extends Fixture
                 'username' => 'user3@example.com(7)',
                 'sensitiveNotes' => 'Sensitive notes for user 3',
                 'name' => 'User Three',
+                'status' => 'pending',
             ],
             [
                 'email' => 'user4@example.com',
@@ -44,6 +47,7 @@ class FakerTypeExampleFixtures extends Fixture
                 'username' => 'user4@example.com(99)',
                 'sensitiveNotes' => 'Sensitive notes for user 4',
                 'name' => 'User Four',
+                'status' => 'active',
             ],
             [
                 'email' => 'user5@example.com',
@@ -52,6 +56,7 @@ class FakerTypeExampleFixtures extends Fixture
                 'username' => 'user5@example.com(123)',
                 'sensitiveNotes' => null,  // Will be set to null by null faker
                 'name' => 'User Five',
+                'status' => 'unknown',  // Not in map -> anonymized to default 'status_unknown'
             ],
         ];
 
@@ -63,6 +68,7 @@ class FakerTypeExampleFixtures extends Fixture
             $example->setUsername($exampleData['username']);
             $example->setSensitiveNotes($exampleData['sensitiveNotes']);
             $example->setName($exampleData['name']);
+            $example->setStatus($exampleData['status']);
             $example->setAnonymized(false);
 
             $manager->persist($example);

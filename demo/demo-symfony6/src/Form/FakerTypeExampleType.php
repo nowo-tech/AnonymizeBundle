@@ -45,6 +45,10 @@ class FakerTypeExampleType extends AbstractType
             ->add('name', TextType::class, [
                 'required' => true,
                 'help' => 'Uses string (backward compatibility)',
+            ])
+            ->add('status', TextType::class, [
+                'required' => false,
+                'help' => 'Uses FakerType::MAP (active→status_a, inactive→status_b, pending→status_c, else status_unknown)',
             ]);
     }
 

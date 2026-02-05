@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-02-04
+
+### Added
+
+- **Map Faker**: New faker type for value substitution ("if value is X, put Y")
+  - Options: `map` (required, associative array `original_value => replacement_value`), `default` (optional; if omitted, unmapped values are left as-is).
+  - Use case: anonymize status/role fields by mapping each original value to a fixed replacement (e.g. `active` → `status_a`, `inactive` → `status_b`).
+  - Registered as `map` in `FakerType` and `FakerFactory`. Documented in `FAKERS.md`.
+  - Tests: `MapFakerTest`. Demo: `FakerTypeExample` entity with `status` field in all demos (Symfony 6, 7, 8).
+
+- **Demos: AnonymizePropertySubscriber**: Example listener for `AnonymizePropertyEvent`
+  - Dispatched before each property is anonymized; allows pre-processing (e.g. migrate files from Amazon S3 to another storage before replacing the field).
+  - Declared with `#[AsEventListener(event: AnonymizePropertyEvent::class)]` (Symfony 6.3+).
+  - Located in `demo/*/src/EventSubscriber/AnonymizePropertySubscriber.php` with commented S3 migration example.
+
+- **Tests: AnonymizePropertyListenerTest**: Tests for the listener pattern on `AnonymizePropertyEvent`
+  - Covers: listener no-op, `setAnonymizedValue()`, `setSkipAnonymization()`, reading `getRecord()`.
+
+### Changed
+
+- **FakerFactory**: Match keys now use `FakerType::CONSTANT->value` instead of string literals for consistency with the enum and easier maintenance.
+
+### Fixed
+
+- **UtmFaker**: `generateTerm()` now enforces `min_length` and `max_length`; previously a single short word could yield a result shorter than `min_length` (e.g. 2 chars when min was 5).
+
+### Documentation
+
+- Map faker already documented in `FAKERS.md`. Event listener example with `AsEventListener` in `USAGE.md`.
+
 ## [1.0.3] - 2026-02-04
 
 ### Added

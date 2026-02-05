@@ -13,6 +13,40 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.4
+
+**Release Date**: 2026-02-04
+
+#### What's New
+
+- **Map Faker**: New faker type for value substitution (if value is X, put Y).
+  - Options: `map` (required), `default` (optional). See [FAKERS.md](FAKERS.md).
+  - Example: `#[AnonymizeProperty(type: FakerType::MAP, options: ['map' => ['active' => 'status_a', 'inactive' => 'status_b'], 'default' => 'status_unknown'])]`
+
+- **Demos: AnonymizePropertySubscriber**: Example listener for `AnonymizePropertyEvent` (e.g. pre-process files before anonymizing a field), declared with `#[AsEventListener]` (Symfony 6.3+).
+
+#### What's Fixed
+
+- **UtmFaker**: `generateTerm()` now respects `min_length` and `max_length`; previously a single short word could produce a string shorter than `min_length`.
+
+#### Breaking Changes
+
+None. Fully backward compatible.
+
+#### Migration Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Optional**: Use the new map faker for status/role-style fields; see demos `FakerTypeExample` (status field) and [FAKERS.md](FAKERS.md).
+
 ### Upgrading to 1.0.3
 
 **Release Date**: 2026-02-04
@@ -1729,6 +1763,7 @@ If you encounter issues during upgrade:
 
 | Bundle Version | Symfony Version | PHP Version | Doctrine Bundle | Features |
 |---------------|-----------------|-------------|-----------------|----------|
+| 1.0.4+        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Map faker, demo AnonymizePropertySubscriber, FakerFactory FakerType keys, UtmFaker term min_length fix |
 | 0.0.25+       | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Fixed FakerFactory autowiring error |
 | 0.0.24        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Simplified services.yaml, complete documentation update |
 | 0.0.23        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Standardized faker API with original_value, #[Autowire] attributes |

@@ -20,6 +20,7 @@ services:
             - '../../Faker/HashPreserveFaker.php'
             - '../../Faker/ShuffleFaker.php'
             - '../../Faker/ConstantFaker.php'
+            - '../../Faker/MapFaker.php'
 
     # Fakers that don't need locale parameter are auto-registered
     # They use #[Autoconfigure(public: true)] in their classes to be public
@@ -28,6 +29,7 @@ services:
     Nowo\AnonymizeBundle\Faker\HashPreserveFaker: ~
     Nowo\AnonymizeBundle\Faker\ShuffleFaker: ~
     Nowo\AnonymizeBundle\Faker\ConstantFaker: ~
+    Nowo\AnonymizeBundle\Faker\MapFaker: ~
 
     # FakerFactory is excluded from autowiring pattern but needed by services
     # It requires locale parameter and optional ContainerInterface
