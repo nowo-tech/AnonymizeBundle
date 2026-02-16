@@ -300,7 +300,7 @@ final class AnonymizeService
         if (is_array($discCol)) {
             $columnName = $discCol['name'] ?? $discCol['columnName'] ?? null;
         } elseif (is_object($discCol)) {
-            $columnName = $discCol->name ?? (isset($discCol['name']) ? $discCol['name'] : null);
+            $columnName = $discCol->name ?? ($discCol['name'] ?? null);
         }
         if ($columnName === null || $columnName === '') {
             return ['column' => null, 'value' => null];

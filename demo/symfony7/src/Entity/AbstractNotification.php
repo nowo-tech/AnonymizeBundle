@@ -25,8 +25,8 @@ use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 #[ORM\InheritanceType('SINGLE_TABLE')]
 #[ORM\DiscriminatorColumn(name: 'type', type: 'string', length: 20)]
 #[ORM\DiscriminatorMap([
-    'email' => EmailNotification::class, 
-    'sms' => SmsNotification::class
+    'email' => EmailNotification::class,
+    'sms' => SmsNotification::class,
 ])]
 abstract class AbstractNotification
 {
