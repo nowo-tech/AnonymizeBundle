@@ -1,0 +1,29 @@
+{# Breadcrumbs component #}
+{# Usage: {% include '_breadcrumbs.html.twig' with {entityName: 'Users', connection: connection, currentPage: 'List'} %} #}
+{# For MongoDB: {% include '_breadcrumbs.html.twig' with {entityName: 'User Activities', isMongo: true, currentPage: 'List'} %} #}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{{ path('home') }}">Home</a>
+        </li>
+        {# Ruta del listado. Notifications: literal notification_index. #}
+        {% set _route = listRoute|default(indexRoute|default(routePrefix|default('') ~ '_index')) %}
+        {% set _route = _route == 'notification_index_index' ? 'notification_index' : _route %}
+        {% if entityName is defined and ('Notification' in entityName) %}
+            {% set _route = 'notification_index' %}
+        {% endif %}
+        {% if isMongo|default(false) %}
+            <li class="breadcrumb-item">
+                <a href="{{ path(_route) }}">{{ entityName }}</a>
+            </li>
+        {% else %}
+            <li class="breadcrumb-item">
+                <a href="{{ path(_route, {connection: connection}) }}">{{ entityName }} <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></a>
+            </li>
+        {% endif %}
+        {% if currentPage is defined and currentPage != 'List' %}
+            <li class="breadcrumb-item active" aria-current="page">{{ currentPage }}</li>
+        {% endif %}
+    </ol>
+</nav>

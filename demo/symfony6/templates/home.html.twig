@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Home - Anonymize Bundle Demo{% endblock %}
+
+{% block body %}
+{% set connectionList = [
+    { id: 'default', label: 'MySQL' },
+    { id: 'postgres', label: 'PostgreSQL' },
+    { id: 'sqlite', label: 'SQLite' }
+] %}
+
+{% set crudSections = [
+    {
+        title: null,
+        items: [
+            { name: 'Users', route: 'user_index' },
+            { name: 'Customers', route: 'customer_index' },
+            { name: 'Products', route: 'product_index' },
+            { name: 'Orders', route: 'order_index' },
+            { name: 'Invoices', route: 'invoice_index' },
+            { name: 'Employees', route: 'employee_index' },
+            { name: 'Email Subscriptions', route: 'email_subscription_index' },
+            { name: 'System Logs', route: 'system_log_index' },
+            { name: 'Temp Data', route: 'temp_data_index', badge: { text: 'Truncate Order: 1', class: 'bg-info' } },
+            { name: 'Cache Data', route: 'cache_data_index', badge: { text: 'Truncate Order: 2', class: 'bg-info' } },
+            { name: 'Log Entries', route: 'log_entry_index', badge: { text: 'Truncate Order: null', class: 'bg-secondary' } },
+            { name: 'Notifications', route: 'notification_index', badge: { text: 'Polymorphic STI', class: 'bg-warning text-dark' }, hint: 'Single table inheritance: truncate deletes by discriminator (email / sms).' }
+        ]
+    },
+    {
+        title: 'Advanced Examples',
+        items: [
+            { name: 'Contacts', route: 'contact_index' },
+            { name: 'Persons', route: 'person_index' },
+            { name: 'Email Signatures', route: 'email_signature_index' },
+            { name: 'User Accounts', route: 'user_account_index' },
+            { name: 'Custom Faker Examples', route: 'custom_faker_example_index' },
+            { name: 'Faker Type Examples', route: 'faker_type_example_index' },
+            { name: 'Marketing Campaigns', route: 'marketing_campaign_index' }
+        ]
+    }
+] %}
+
+{% set mongoItems = [
+    { name: 'User Activities', route: 'mongodb_user_activity_index' },
+    { name: 'Customer Profiles', route: 'mongodb_customer_profile_index' },
+    { name: 'Transaction Logs', route: 'mongodb_transaction_log_index' },
+    { name: 'Device Infos', route: 'mongodb_device_info_index' },
+    { name: 'Analytics Events', route: 'mongodb_analytics_event_index' }
+] %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h2 class="mb-0">Welcome to the Anonymize Bundle Demo</h2>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">This demo shows how to use the AnonymizeBundle with multiple database connections.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h3 class="mb-0">Available Connections</h3>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2"><strong>default</strong> - MySQL 8.0 (Port 33063)</li>
+                    <li class="mb-2"><strong>postgres</strong> - PostgreSQL 16 (Port 54323)</li>
+                    <li class="mb-2"><strong>sqlite</strong> - SQLite (File-based)</li>
+                    <li class="mb-0"><strong>mongodb</strong> - MongoDB 7.0 (Port 27018)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h3 class="mb-0">Database Interfaces</h3>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2"><a href="http://localhost:8084" target="_blank" class="text-decoration-none">phpMyAdmin (MySQL)</a></li>
+                    <li class="mb-2"><a href="http://localhost:8085" target="_blank" class="text-decoration-none">pgAdmin (PostgreSQL)</a></li>
+                    <li class="mb-0"><a href="http://localhost:8086" target="_blank" class="text-decoration-none">Mongo Express (MongoDB)</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h3 class="mb-0">CRUD by Connection</h3>
+            </div>
+            <div class="card-body">
+                <p>You can manage entities in each connection:</p>
+
+                {% for section in crudSections %}
+                <div class="{{ section.title ? 'mt-4' : '' }}">
+                    {% if section.title %}
+                    <h4>{{ section.title }}</h4>
+                    {% endif %}
+                    <div class="row">
+                        {% for item in section.items %}
+                        <div class="col-md-6 mb-3">
+                            <h5>
+                                {{ item.name }}
+                                {% if item.badge is defined %}
+                                <span class="badge {{ item.badge.class }}">{{ item.badge.text }}</span>
+                                {% endif %}
+                            </h5>
+                            <ul class="list-unstyled">
+                                {% for conn in connectionList %}
+                                <li><a href="{{ path(item.route, {connection: conn.id}) }}" class="text-decoration-none">{{ item.name }} in {{ conn.label }}</a></li>
+                                {% endfor %}
+                            </ul>
+                            {% if item.hint is defined %}
+                            <small class="text-muted">{{ item.hint }}</small>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="mt-3">
+                    <h5>MongoDB Collections</h5>
+                    <div class="row">
+                        {% for column in mongoItems|batch(3) %}
+                        <div class="col-md-6 mb-3">
+                            <ul class="list-unstyled">
+                                {% for item in column %}
+                                <li><a href="{{ path(item.route) }}" class="text-decoration-none">{{ item.name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

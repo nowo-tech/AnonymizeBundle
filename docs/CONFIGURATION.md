@@ -214,17 +214,18 @@ Defined in the `#[Anonymize]` attribute, these patterns determine if a **record*
 #[Anonymize(
     includePatterns: ['column' => 'pattern'],
     excludePatterns: ['column' => 'pattern'],
-    truncate: false,           // Optional: empty table before anonymization
-    truncate_order: null        // Optional: order for truncation (lower = earlier)local_dev_laptop
-    
+    anonymizeService: null,    // Optional: service id implementing EntityAnonymizerServiceInterface
+    truncate: false,          // Optional: empty table before anonymization
+    truncate_order: null      // Optional: order for truncation (lower = earlier)
 )]
 ```
 
 **Behavior**:
-- If patterns match → Record is a candidate (properties are evaluated)
+- If patterns match → Record is a candidate (properties are evaluated, or service is called if `anonymizeService` is set)
 - If patterns don't match → **Entire record is skipped** (nothing is anonymized)
 - If no patterns defined → All records are candidates
-- If `truncate: true` → Table is emptied **BEFORE** anonymization (executed first)
+- If `anonymizeService` is set → The given service is called for each record instead of applying `AnonymizeProperty`; the service must implement `EntityAnonymizerServiceInterface` and return `[ column => value ]` for updates. See [USAGE.md](USAGE.md#anonymizing-via-a-custom-service-anonymizeservice).
+- If `truncate: true` → Table (or for polymorphic entities only rows with this entity's discriminator) is emptied **BEFORE** anonymization (executed first). For Doctrine STI/CTI, only rows matching the entity's discriminator value are deleted; for normal entities the whole table is truncated.
 - If `truncate_order` is set → Tables are truncated in order (lower numbers = earlier)
 - If `truncate_order` is null → Tables are truncated alphabetically after explicit orders
 

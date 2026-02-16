@@ -27,6 +27,19 @@ class AnonymizeTest extends TestCase
         $this->assertEmpty($attribute->includePatterns);
         $this->assertIsArray($attribute->excludePatterns);
         $this->assertEmpty($attribute->excludePatterns);
+        $this->assertNull($attribute->anonymizeService);
+        $this->assertFalse($attribute->truncate);
+        $this->assertNull($attribute->truncate_order);
+    }
+
+    /**
+     * Test that Anonymize attribute can be instantiated with anonymizeService (custom service for entity).
+     */
+    public function testAnonymizeCanBeInstantiatedWithAnonymizeService(): void
+    {
+        $attribute = new Anonymize(anonymizeService: 'App\Service\MyAnonymizerService');
+
+        $this->assertEquals('App\Service\MyAnonymizerService', $attribute->anonymizeService);
     }
 
     /**
@@ -107,12 +120,16 @@ class AnonymizeTest extends TestCase
         $attribute = new Anonymize(
             connection: 'custom',
             includePatterns: $includePatterns,
-            excludePatterns: $excludePatterns
+            excludePatterns: $excludePatterns,
+            truncate: true,
+            truncate_order: 5
         );
 
         $this->assertEquals('custom', $attribute->connection);
         $this->assertEquals($includePatterns, $attribute->includePatterns);
         $this->assertEquals($excludePatterns, $attribute->excludePatterns);
+        $this->assertTrue($attribute->truncate);
+        $this->assertEquals(5, $attribute->truncate_order);
     }
 
     /**
@@ -122,9 +139,11 @@ class AnonymizeTest extends TestCase
     {
         $attribute = new Anonymize(connection: 'test');
 
-        $this->assertTrue(isset($attribute->connection));
-        $this->assertTrue(isset($attribute->includePatterns));
-        $this->assertTrue(isset($attribute->excludePatterns));
+        $this->assertTrue(property_exists($attribute, 'connection'));
+        $this->assertTrue(property_exists($attribute, 'includePatterns'));
+        $this->assertTrue(property_exists($attribute, 'excludePatterns'));
+        $this->assertTrue(property_exists($attribute, 'truncate'));
+        $this->assertTrue(property_exists($attribute, 'truncate_order'));
 
         $attribute->connection = 'modified';
         $this->assertEquals('modified', $attribute->connection);

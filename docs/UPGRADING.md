@@ -13,6 +13,50 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.5
+
+**Release Date**: 2026-02-16
+
+#### What's New
+
+- **Anonymization via custom service (`anonymizeService`)**: You can delegate the anonymization of an entity to a service (e.g. for polymorphic subtypes or custom logic).
+  - Add `anonymizeService: 'your_service_id'` to `#[Anonymize]`.
+  - The service must implement `Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface` and implement `anonymize($em, $metadata, $record, $dryRun)` returning `[ column => value ]` for columns to update.
+  - When `anonymizeService` is set, `AnonymizeProperty` attributes on that entity are ignored; the service is responsible for all updates. See demos: `SmsNotification` + `SmsNotificationAnonymizerService`.
+
+- **Truncate by discriminator (polymorphic entities)**: For entities using Doctrine Single Table Inheritance (STI) or Class Table Inheritance (CTI), when `truncate: true` the bundle now deletes only the rows belonging to that entity's discriminator value instead of truncating the whole table.
+  - No configuration change: the bundle detects inheritance from metadata and uses `DELETE FROM table WHERE discriminator_column = value` for polymorphic entities, and full truncate for normal entities.
+  - When anonymizing, only records matching the entity's discriminator are loaded and updated.
+
+#### Breaking Changes
+
+None. Fully backward compatible.
+
+#### Migration Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. **Optional**: Use `anonymizeService` for entities that need custom anonymization logic; implement `EntityAnonymizerServiceInterface` and register your service. See [USAGE.md](USAGE.md) and demo entities `SmsNotification` / `SmsNotificationAnonymizerService`.
+
+4. **Optional**: If you use STI/CTI entities with `truncate: true`, no change needed; truncation will now only remove rows for that subtype.
+
+#### What's Fixed
+
+- **Doctrine ORM 3**: Discriminator metadata is read correctly when using Doctrine ORM 3.x (`DiscriminatorColumnMapping`). No action required.
+- **UtmFaker**: Campaign generation now respects `min_length`/`max_length` in all cases.
+
+#### Demo fixes (if you run the demos)
+
+- **Notification list/detail pages**: Breadcrumb and notification templates were updated so the list route is always `notification_index` (never `notification_index_index`). No action needed unless you copied demo templates; in that case use `listRoute: 'notification_index'` and `routePrefix: 'notification'` when including `_breadcrumbs.html.twig` for notification pages, and ensure `_breadcrumbs.html.twig` uses the shared `_route` logic (see demo `templates/_breadcrumbs.html.twig`).
+
 ### Upgrading to 1.0.4
 
 **Release Date**: 2026-02-04
@@ -1763,7 +1807,8 @@ If you encounter issues during upgrade:
 
 | Bundle Version | Symfony Version | PHP Version | Doctrine Bundle | Features |
 |---------------|-----------------|-------------|-----------------|----------|
-| 1.0.4+        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Map faker, demo AnonymizePropertySubscriber, FakerFactory FakerType keys, UtmFaker term min_length fix |
+| 1.0.5+        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | anonymizeService, truncate by discriminator, Doctrine ORM 3 discriminatorColumn, UtmFaker campaign min_length, demo notification breadcrumb fix |
+| 1.0.4         | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Map faker, demo AnonymizePropertySubscriber, FakerFactory FakerType keys, UtmFaker term min_length fix |
 | 0.0.25+       | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Fixed FakerFactory autowiring error |
 | 0.0.24        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Simplified services.yaml, complete documentation update |
 | 0.0.23        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Standardized faker API with original_value, #[Autowire] attributes |

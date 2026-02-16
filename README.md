@@ -44,7 +44,8 @@ Looking for: **database anonymization**, **test data generator**, **GDPR complia
 - ✅ Enhanced reporting: Export statistics to JSON/CSV with success rates
 - ✅ Database export: Export databases to files with optional compression
 - ✅ Configurable output directories: Customize where statistics and exports are saved
-- ✅ Table truncation: Empty tables before anonymization with configurable execution order
+- ✅ Table truncation: Empty tables before anonymization with configurable execution order (for polymorphic entities, only rows of that discriminator are deleted)
+- ✅ Custom entity anonymizer: Delegate anonymization to a service per entity via `anonymizeService` (`EntityAnonymizerServiceInterface`)
 
 ## Installation
 
@@ -143,7 +144,7 @@ See [COMMANDS.md](docs/COMMANDS.md) for detailed command documentation and examp
 
 ## Faker Types
 
-The bundle supports **35 faker types** for anonymizing various data types, including:
+The bundle supports **39 faker types** for anonymizing various data types, including:
 
 - **Basic**: email, name, surname, age, phone, IBAN, credit_card
 - **Advanced**: address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language
@@ -156,8 +157,9 @@ See [FAKERS.md](docs/FAKERS.md) for complete list and configuration options.
 ## Documentation
 
 - [Usage Guide](docs/USAGE.md) - Complete usage examples and patterns
+- [Example: Polymorphism + anonymize service (e.g. AWS path migration)](docs/EXAMPLES_POLYMORPHISM_ANONYMIZE_SERVICE.md) - Step-by-step: STI entity, custom service, migrating file paths (e.g. S3) between buckets
 - [Commands](docs/COMMANDS.md) - Detailed command documentation
-- [Faker Types](docs/FAKERS.md) - Complete list of all 32 faker types
+- [Faker Types](docs/FAKERS.md) - Complete list of all faker types
 - [Configuration Guide](docs/CONFIGURATION.md) - Detailed configuration options
 - [Installation Guide](docs/INSTALLATION.md) - Step-by-step installation instructions
 - [Upgrade Guide](docs/UPGRADING.md) - Instructions for upgrading between versions
@@ -173,10 +175,13 @@ The bundle includes a comprehensive testing script to verify all commands work c
 ./scripts/test-commands.sh all
 
 # Test in a specific demo
-./scripts/test-commands.sh demo-symfony6
+./scripts/test-commands.sh symfony6
 ```
 
 The script tests **31 different command combinations** covering all main options across all database connections. See [TESTING_COMMANDS.md](docs/TESTING_COMMANDS.md) for details.
+
+## More documentation
+
 - [Changelog](docs/CHANGELOG.md) - Complete version history and changes
 - [Roadmap](docs/ROADMAP.md) - Planned features and future enhancements
 - [Branching Strategy](docs/BRANCHING.md) - Git workflow and branching guidelines
@@ -196,10 +201,10 @@ For information about our Git workflow and branching strategy, see [BRANCHING.md
 
 We have an extensive roadmap for future enhancements. See [ROADMAP.md](docs/ROADMAP.md) for details on planned features including:
 
-### Current Status (v0.0.26)
+### Current Status (1.0.5)
 
 - **Phase 1 Progress**: 100% complete (all 21 fakers implemented)
-- **Total Fakers Available**: 32 fakers (all fakers from Phase 1 + Phase 2 data preservation fakers)
+- **Total Fakers Available**: 39 fakers (including map, utm, service, and data preservation fakers)
 - **Test Coverage**: 726 tests, 2011 assertions, 59.57% line coverage (1731/2906 lines)
   - Classes: 73.33% (44/60) - 44 classes with 100% coverage
   - Methods: 75.89% (170/224)

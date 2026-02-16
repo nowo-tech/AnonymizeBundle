@@ -38,12 +38,12 @@ all:
 	@echo "✅ All demos are ready!"
 	@$(MAKE) status
 
-# Start all demos
+# Start all demos (FrankenPHP: one container per demo, no nginx)
 up:
-	@echo "🚀 Starting all demo containers..."
-	@cd demo-symfony6 && docker-compose up -d --build
-	@cd demo-symfony7 && docker-compose up -d --build
-	@cd demo-symfony8 && docker-compose up -d --build
+	@echo "🚀 Starting all demo containers (FrankenPHP)..."
+	@cd symfony6 && docker-compose up -d --build
+	@cd symfony7 && docker-compose up -d --build
+	@cd symfony8 && docker-compose up -d --build
 	@echo "✅ All demos started. Waiting for services to be ready..."
 	@sleep 15
 	@echo "✅ Ready!"
@@ -51,17 +51,17 @@ up:
 # Stop all demos
 down:
 	@echo "🛑 Stopping all demo containers..."
-	@cd demo-symfony6 && docker-compose down
-	@cd demo-symfony7 && docker-compose down
-	@cd demo-symfony8 && docker-compose down
+	@cd symfony6 && docker-compose down
+	@cd symfony7 && docker-compose down
+	@cd symfony8 && docker-compose down
 	@echo "✅ All demos stopped."
 
 # Install dependencies for all demos
 install:
 	@echo "📦 Installing Composer dependencies for all demos..."
-	@cd demo-symfony6 && docker-compose exec -T php composer install --no-interaction
-	@cd demo-symfony7 && docker-compose exec -T php composer install --no-interaction
-	@cd demo-symfony8 && docker-compose exec -T php composer install --no-interaction
+	@cd symfony6 && docker-compose exec -T php composer install --no-interaction
+	@cd symfony7 && docker-compose exec -T php composer install --no-interaction
+	@cd symfony8 && docker-compose exec -T php composer install --no-interaction
 	@echo "✅ Dependencies installed."
 
 # Setup databases and load fixtures for all demos
@@ -75,64 +75,64 @@ setup:
 # Setup Symfony 6 demo
 setup-symfony6:
 	@echo "📊 Setting up Symfony 6 demo..."
-	@cd demo-symfony6 && docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --connection=default 2>&1 | grep -v "already exists" || true
-	@cd demo-symfony6 && docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --connection=postgres 2>&1 | grep -v "already exists" || true
-	@cd demo-symfony6 && docker-compose exec -T php php bin/console doctrine:schema:update --force --em=default 2>&1 | tail -2
-	@cd demo-symfony6 && docker-compose exec -T php php bin/console doctrine:schema:update --force --em=postgres 2>&1 | tail -2
-	@cd demo-symfony6 && docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=default 2>&1 | tail -3
-	@cd demo-symfony6 && docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=postgres 2>&1 | tail -3
+	@cd symfony6 && docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --connection=default 2>&1 | grep -v "already exists" || true
+	@cd symfony6 && docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --connection=postgres 2>&1 | grep -v "already exists" || true
+	@cd symfony6 && docker-compose exec -T php php bin/console doctrine:schema:update --force --em=default 2>&1 | tail -2
+	@cd symfony6 && docker-compose exec -T php php bin/console doctrine:schema:update --force --em=postgres 2>&1 | tail -2
+	@cd symfony6 && docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=default 2>&1 | tail -3
+	@cd symfony6 && docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=postgres 2>&1 | tail -3
 	@echo "✅ Symfony 6 setup complete."
 
 # Setup Symfony 7 demo
 setup-symfony7:
 	@echo "📊 Setting up Symfony 7 demo..."
-	@cd demo-symfony7 && docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --connection=default 2>&1 | grep -v "already exists" || true
-	@cd demo-symfony7 && docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --connection=postgres 2>&1 | grep -v "already exists" || true
-	@cd demo-symfony7 && docker-compose exec -T php php bin/console doctrine:schema:update --force --em=default 2>&1 | tail -2
-	@cd demo-symfony7 && docker-compose exec -T php php bin/console doctrine:schema:update --force --em=postgres 2>&1 | tail -2
-	@cd demo-symfony7 && docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=default 2>&1 | tail -3
-	@cd demo-symfony7 && docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=postgres 2>&1 | tail -3
+	@cd symfony7 && docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --connection=default 2>&1 | grep -v "already exists" || true
+	@cd symfony7 && docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --connection=postgres 2>&1 | grep -v "already exists" || true
+	@cd symfony7 && docker-compose exec -T php php bin/console doctrine:schema:update --force --em=default 2>&1 | tail -2
+	@cd symfony7 && docker-compose exec -T php php bin/console doctrine:schema:update --force --em=postgres 2>&1 | tail -2
+	@cd symfony7 && docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=default 2>&1 | tail -3
+	@cd symfony7 && docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=postgres 2>&1 | tail -3
 	@echo "✅ Symfony 7 setup complete."
 
 # Setup Symfony 8 demo
 setup-symfony8:
 	@echo "📊 Setting up Symfony 8 demo..."
-	@cd demo-symfony8 && docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --connection=default 2>&1 | grep -v "already exists" || true
-	@cd demo-symfony8 && docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --connection=postgres 2>&1 | grep -v "already exists" || true
-	@cd demo-symfony8 && docker-compose exec -T php php bin/console doctrine:schema:update --force --em=default 2>&1 | tail -2
-	@cd demo-symfony8 && docker-compose exec -T php php bin/console doctrine:schema:update --force --em=postgres 2>&1 | tail -2
-	@cd demo-symfony8 && docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=default 2>&1 | tail -3
-	@cd demo-symfony8 && docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=postgres 2>&1 | tail -3
+	@cd symfony8 && docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --connection=default 2>&1 | grep -v "already exists" || true
+	@cd symfony8 && docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --connection=postgres 2>&1 | grep -v "already exists" || true
+	@cd symfony8 && docker-compose exec -T php php bin/console doctrine:schema:update --force --em=default 2>&1 | tail -2
+	@cd symfony8 && docker-compose exec -T php php bin/console doctrine:schema:update --force --em=postgres 2>&1 | tail -2
+	@cd symfony8 && docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=default 2>&1 | tail -3
+	@cd symfony8 && docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=postgres 2>&1 | tail -3
 	@echo "✅ Symfony 8 setup complete."
 
 # Start individual demos
 up-symfony6:
 	@echo "🚀 Starting Symfony 6 demo..."
-	@cd demo-symfony6 && docker-compose up -d --build
+	@cd symfony6 && docker-compose up -d --build
 	@sleep 10
 
 up-symfony7:
 	@echo "🚀 Starting Symfony 7 demo..."
-	@cd demo-symfony7 && docker-compose up -d --build
+	@cd symfony7 && docker-compose up -d --build
 	@sleep 10
 
 up-symfony8:
 	@echo "🚀 Starting Symfony 8 demo..."
-	@cd demo-symfony8 && docker-compose up -d --build
+	@cd symfony8 && docker-compose up -d --build
 	@sleep 10
 
 # Clean all demos
 clean:
 	@echo "🧹 Cleaning all demos..."
-	@cd demo-symfony6 && rm -rf vendor var/cache var/log
-	@cd demo-symfony7 && rm -rf vendor var/cache var/log
-	@cd demo-symfony8 && rm -rf vendor var/cache var/log
+	@cd symfony6 && rm -rf vendor var/cache var/log
+	@cd symfony7 && rm -rf vendor var/cache var/log
+	@cd symfony8 && rm -rf vendor var/cache var/log
 	@echo "✅ Clean complete."
 
 # Show logs
 logs:
 	@echo "📋 Showing logs for all demos..."
-	@docker-compose -f demo-symfony6/docker-compose.yml -f demo-symfony7/docker-compose.yml -f demo-symfony8/docker-compose.yml logs --tail=50
+	@docker-compose -f symfony6/docker-compose.yml -f symfony7/docker-compose.yml -f symfony8/docker-compose.yml logs --tail=50
 
 # Show status
 status:

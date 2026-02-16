@@ -387,6 +387,27 @@ The bundle handles foreign key constraints automatically:
 - **PostgreSQL**: Uses `TRUNCATE TABLE ... CASCADE` to handle dependencies
 - **SQLite**: Temporarily disables foreign key checks and resets auto-increment
 
+#### Polymorphic entities (STI/CTI)
+
+When an entity uses **Doctrine Single Table Inheritance (STI)** or **Class Table Inheritance (CTI)** (discriminator column), truncation and anonymization are **scoped to that entity's discriminator value**:
+
+- **Truncation**: With `truncate: true`, the bundle runs `DELETE FROM table WHERE discriminator_column = value` instead of truncating the whole table. Other subtypes in the same table are left untouched.
+- **Anonymization**: When loading records, only rows matching this entity's discriminator are selected and updated.
+
+No extra configuration is required; the bundle detects inheritance from Doctrine metadata. Example:
+
+```php
+#[ORM\Entity]
+#[ORM\InheritanceType('SINGLE_TABLE')]
+#[ORM\DiscriminatorColumn(name: 'type', type: 'string')]
+#[ORM\DiscriminatorMap(['email' => EmailNotification::class, 'sms' => SmsNotification::class])]
+#[Anonymize(truncate: true, truncate_order: 1)]
+abstract class AbstractNotification { /* ... */ }
+
+#[ORM\DiscriminatorValue('sms')]
+class SmsNotification extends AbstractNotification { /* ... */ }  // Only SMS rows are truncated/anon.
+```
+
 #### Example: Complete Truncation Scenario
 
 ```php
@@ -432,6 +453,55 @@ These fixtures are available in all demo projects (Symfony 6, 7, and 8) and can 
 ```bash
 php bin/console doctrine:fixtures:load
 ```
+
+### Anonymizing via a custom service (anonymizeService)
+
+For some entities you may want to **delegate anonymization to a service** instead of using `AnonymizeProperty` attributes (e.g. polymorphic subtypes with different logic, external APIs, or complex rules). Use the `anonymizeService` option on `#[Anonymize]`:
+
+1. Implement `Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface`:
+
+```php
+namespace App\Service;
+
+use Doctrine\ORM\EntityManagerInterface;
+use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
+
+class SmsNotificationAnonymizerService implements EntityAnonymizerServiceInterface
+{
+    public function anonymize(
+        EntityManagerInterface $em,
+        ClassMetadata $metadata,
+        array $record,
+        bool $dryRun
+    ): array {
+        // Return column => new value for each column to update
+        return [
+            'recipient' => '+34' . random_int(600000000, 699999999),
+            'message'   => 'Anonymized message ' . ($record['id'] ?? ''),
+        ];
+    }
+}
+```
+
+2. Register the service and reference it in the entity:
+
+```php
+#[ORM\Entity]
+#[ORM\DiscriminatorValue('sms')]
+#[Anonymize(anonymizeService: SmsNotificationAnonymizerService::class)]
+class SmsNotification extends AbstractNotification
+{
+    // No AnonymizeProperty needed; the service handles all updates
+}
+```
+
+- When `anonymizeService` is set, **property-level attributes are ignored** for that entity; the service's return value is the only source of updates.
+- Entity-level `includePatterns` / `excludePatterns` still apply: excluded records are skipped and the service is not called.
+- The bundle injects the container so the service can be resolved by id (FQCN or alias). See demo entities `SmsNotification` and `SmsNotificationAnonymizerService` in the demo projects.
+
+**Example: polymorphic entity and migrating file paths (e.g. AWS S3)**  
+If your entity stores **file paths** (e.g. S3 keys) and anonymization should **copy the file from one bucket to another** and update the path in the DB, use a custom service that reads the path from the record, performs the copy (or uploads a placeholder), and returns the new path. See [EXAMPLES_POLYMORPHISM_ANONYMIZE_SERVICE.md](EXAMPLES_POLYMORPHISM_ANONYMIZE_SERVICE.md) for a full step-by-step example (polymorphism + service + flow).
 
 ### Weight-based Ordering
 

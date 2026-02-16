@@ -179,10 +179,16 @@ final class UtmFaker implements FakerInterface
             if ($this->faker->boolean(40)) {
                 $pattern .= '_' . $this->faker->numberBetween(2020, 2025);
             }
-            return $pattern;
+            // Enforce min/max length
+            if (strlen($pattern) < $minLength) {
+                while (strlen($pattern) < $minLength) {
+                    $pattern .= '_' . $this->faker->word();
+                }
+            }
+            return strlen($pattern) <= $maxLength ? $pattern : substr($pattern, 0, $maxLength);
         }
 
-        // Generate random campaign name
+        // Generate random campaign name; ensure at least min_length
         $words = [];
         $currentLength = 0;
         $targetLength = $this->faker->numberBetween($minLength, $maxLength);
@@ -197,7 +203,12 @@ final class UtmFaker implements FakerInterface
             }
         }
 
-        return implode('_', $words ?: [$this->faker->word()]);
+        $result = implode('_', $words ?: [$this->faker->word()]);
+        while (strlen($result) < $minLength) {
+            $result .= '_' . $this->faker->word();
+        }
+
+        return strlen($result) <= $maxLength ? $result : substr($result, 0, $maxLength);
     }
 
     /**

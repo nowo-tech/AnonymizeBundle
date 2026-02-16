@@ -8,7 +8,7 @@ Demos are organized by Symfony version. Each demo includes **multiple database c
 
 ## Available Demos
 
-### 1. Symfony 6 Demo (`demo-symfony6`)
+### 1. Symfony 6 Demo (`symfony6`)
 
 Complete demo with Symfony 6.1+, MySQL 8.0, and PostgreSQL 16.
 
@@ -24,15 +24,15 @@ Complete demo with Symfony 6.1+, MySQL 8.0, and PostgreSQL 16.
 
 **Quick start:**
 ```bash
-cd demo-symfony6
+cd symfony6
 make up      # Start containers
 make setup   # Setup databases and load fixtures
 make anonymize-dry-run  # Test anonymization
 ```
 
-See [complete README](demo-symfony6/README.md) for more details.
+See [complete README](symfony6/README.md) for more details.
 
-### 2. Symfony 7 Demo (`demo-symfony7`)
+### 2. Symfony 7 Demo (`symfony7`)
 
 Complete demo with Symfony 7.0, MySQL 8.0, and PostgreSQL 16.
 
@@ -48,15 +48,15 @@ Complete demo with Symfony 7.0, MySQL 8.0, and PostgreSQL 16.
 
 **Quick start:**
 ```bash
-cd demo-symfony7
+cd symfony7
 make up      # Start containers
 make setup   # Setup databases and load fixtures
 make anonymize-dry-run  # Test anonymization
 ```
 
-See [complete README](demo-symfony7/README.md) for more details.
+See [complete README](symfony7/README.md) for more details.
 
-### 3. Symfony 8 Demo (`demo-symfony8`)
+### 3. Symfony 8 Demo (`symfony8`)
 
 Complete demo with Symfony 8.0, MySQL 8.0, and PostgreSQL 16.
 
@@ -72,17 +72,21 @@ Complete demo with Symfony 8.0, MySQL 8.0, and PostgreSQL 16.
 
 **Quick start:**
 ```bash
-cd demo-symfony8
+cd symfony8
 make up      # Start containers
 make setup   # Setup databases and load fixtures
 make anonymize-dry-run  # Test anonymization
 ```
 
-See [complete README](demo-symfony8/README.md) for more details.
+See [complete README](symfony8/README.md) for more details.
 
 ## Common Features
 
 All demos share the following features:
+
+### Runtime: FrankenPHP
+
+Each demo runs the Symfony app with **[FrankenPHP](https://frankenphp.dev/)** (Caddy + PHP in worker mode) instead of nginx + PHP-FPM. A single container serves HTTP on port 80 (mapped to 8001/8000/8002 per demo) with `public/index.php` as the worker. No separate web server container is required.
 
 ### Multiple Database Connections
 
@@ -243,6 +247,32 @@ When you run the demos with Docker from this repository, they use the **bundle c
 
 - Docker and Docker Compose
 - Make (optional, but recommended for using Makefile commands)
+
+## Verificación rápida (comprobar que las demos funcionan)
+
+Desde la carpeta `demo/`, puedes comprobar que cada demo arranca y que el comando de anonimización está disponible:
+
+```bash
+# Symfony 6
+cd symfony6 && composer install -n 2>/dev/null; php bin/console list nowo 2>&1 | head -5
+cd ..
+
+# Symfony 7
+cd symfony7 && composer install -n 2>/dev/null; php bin/console list nowo 2>&1 | head -5
+cd ..
+
+# Symfony 8
+cd symfony8 && composer install -n 2>/dev/null; php bin/console list nowo 2>&1 | head -5
+```
+
+O con Docker (recomendado; usa el bundle del repo montado en `/bundles`):
+
+```bash
+cd symfony6   # o symfony7 / symfony8
+make up && make setup && make anonymize-dry-run
+```
+
+Si `php bin/console list` muestra los comandos `nowo:anonymize:*`, la aplicación y el bundle están correctamente cargados.
 
 ## Next Steps
 

@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+_(none)_
+
+## [1.0.5] - 2026-02-16
+
+### Added
+
+- **Anonymization via custom service (`anonymizeService`)**: Entity-level option to delegate anonymization to a service instead of `AnonymizeProperty` attributes.
+  - New parameter on `#[Anonymize]`: `anonymizeService` (string, service id). When set, the bundle calls this service for each record instead of applying property-based anonymization.
+  - New interface: `Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface` with method `anonymize(EntityManagerInterface $em, ClassMetadata $metadata, array $record, bool $dryRun): array` (returns column => value for updates).
+  - Useful for polymorphic entities (different logic per subtype), API-based anonymization, or complex rules. Documented in USAGE.md and CONFIGURATION.md.
+  - Demos: `SmsNotification` uses `SmsNotificationAnonymizerService` in all demo projects (symfony6, symfony7, symfony8).
+
+- **Truncate by discriminator (polymorphic entities)**: When an entity uses Doctrine inheritance (STI/CTI) and `truncate: true`, the bundle now deletes only rows for that entity's discriminator value instead of truncating the whole table.
+  - Detection is automatic via `inheritanceType`, `discriminatorColumn`, and `discriminatorValue` in metadata.
+  - No extra configuration: normal entities still get full table truncate; polymorphic entities get `DELETE FROM table WHERE discriminator_column = value`.
+  - When loading records for anonymization, the query is also restricted by discriminator so only rows of that subtype are processed.
+
+### Changed
+
+- **AnonymizeService**: Constructor accepts optional `ContainerInterface $container` to resolve `anonymizeService` by id. Required when any entity uses `anonymizeService` (bundle wiring provides it when available).
+
+### Documentation
+
+- **USAGE.md**: New section "Anonymizing via a custom service (anonymizeService)" with interface and example; truncation section extended with "Polymorphic entities (STI/CTI)".
+- **CONFIGURATION.md**: `#[Anonymize]` syntax updated with `anonymizeService` and polymorphic truncate behavior.
+- **Demo folders**: References updated from `demo-symfony6/7/8` to `symfony6/7/8` in docs and scripts where applicable.
+
+### Demo
+
+- **Notification CRUD (symfony6, 7, 8)**: Fixed breadcrumb route `notification_index_index` → `notification_index` in `_breadcrumbs.html.twig` (use `_route`, `listRoute`/`indexRoute`/`routePrefix`, and entityName fallback for Notifications). Notification index/show templates now pass `listRoute: 'notification_index'` and `routePrefix: 'notification'` with `only` to avoid context leakage. All three demos aligned (same breadcrumb logic and notification includes).
+
+### Fixed
+
+- **Doctrine ORM 3 compatibility**: `AnonymizeService::getDiscriminatorForTruncate()` now accepts both array (ORM 2.x) and `DiscriminatorColumnMapping` object (ORM 3.x) for `discriminatorColumn` metadata. Tests use `DiscriminatorColumnMapping` when available.
+- **UtmFaker**: `generateCampaign()` now enforces `min_length` and `max_length` in all code paths (predefined patterns and random words); previously a single short word could yield a campaign shorter than `min_length`.
+- **AnonymizeTest**: `testAnonymizePropertiesArePublic` now uses `property_exists()` instead of `isset()` so nullable properties (e.g. `truncate_order`) are correctly reported as present.
+
 ## [1.0.4] - 2026-02-04
 
 ### Added
@@ -345,10 +386,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Lines: 61.29% (1884/3074)
   - Added comprehensive tests for `nullable` and `preserve_null` options
   - All tests passing successfully
-
-## [Unreleased]
-
-### Added
 
 ## [0.0.27] - 2026-01-21
 
@@ -1300,9 +1337,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Configuration file created in `config/packages/dev/` by default
 
 - **Demo Projects**: Created three independent demo projects for different Symfony versions
-  - `demo-symfony6` - Demo with Symfony 6.1+, MySQL and PostgreSQL connections
-  - `demo-symfony7` - Demo with Symfony 7.0, MySQL and PostgreSQL connections
-  - `demo-symfony8` - Demo with Symfony 8.0, MySQL and PostgreSQL connections
+  - `symfony6` - Demo with Symfony 6.1+, MySQL and PostgreSQL connections
+  - `symfony7` - Demo with Symfony 7.0, MySQL and PostgreSQL connections
+  - `symfony8` - Demo with Symfony 8.0, MySQL and PostgreSQL connections
   - Each demo includes:
     - Docker Compose with both database types (MySQL and PostgreSQL)
     - Complete Symfony setup with Nginx and PHP-FPM

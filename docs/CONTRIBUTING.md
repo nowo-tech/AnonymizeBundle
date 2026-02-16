@@ -107,7 +107,7 @@ We follow a simplified Git Flow. See [docs/BRANCHING.md](docs/BRANCHING.md) for 
 # Run all tests
 make test
 
-# Run tests with coverage
+# Run tests with coverage (HTML in coverage/, Clover in coverage.xml)
 make test-coverage
 
 # Check code style

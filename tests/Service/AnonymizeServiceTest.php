@@ -7,14 +7,17 @@ namespace Nowo\AnonymizeBundle\Tests\Service;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\DiscriminatorColumnMapping;
 use Doctrine\ORM\Mapping\Driver\AttributeDriver;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
+use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use ReflectionClass;
 
 /**
@@ -581,6 +584,55 @@ class AnonymizeServiceTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertEquals(0, $result['processed']);
+    }
+
+    /**
+     * Test that anonymizeEntity adds WHERE discriminator to query when entity is polymorphic (STI/CTI).
+     */
+    public function testAnonymizeEntityAddsDiscriminatorToQueryWhenPolymorphic(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('notifications');
+        $metadata->method('getFieldNames')
+            ->willReturn(['id', 'message']);
+        $metadata->method('getIdentifierColumnNames')
+            ->willReturn(['id']);
+        $metadata->inheritanceType = 1; // SINGLE_TABLE
+        $metadata->discriminatorColumn = class_exists(DiscriminatorColumnMapping::class)
+            ? new DiscriminatorColumnMapping('string', 'type', 'type')
+            : ['name' => 'type'];
+        $metadata->discriminatorValue = 'sms';
+
+        $connection->method('quoteSingleIdentifier')
+            ->willReturnCallback(fn($id) => '`' . $id . '`');
+        $connection->method('quote')
+            ->willReturnCallback(fn($val) => "'" . str_replace("'", "''", (string) $val) . "'");
+
+        $capturedQuery = null;
+        $connection->method('fetchAllAssociative')
+            ->willReturnCallback(function ($query) use (&$capturedQuery) {
+                $capturedQuery = $query;
+                return [];
+            });
+
+        $reflection = $this->createMock(ReflectionClass::class);
+        $result = $this->service->anonymizeEntity($em, $metadata, $reflection, [], 100, false);
+
+        $this->assertIsArray($result);
+        $this->assertNotNull($capturedQuery, 'Query should have been passed to fetchAllAssociative');
+        $query = (string) $capturedQuery;
+        $this->assertStringContainsString('WHERE', $query);
+        $this->assertStringContainsString('`type`', $query);
+        $this->assertStringContainsString("'sms'", $query);
     }
 
     /**
@@ -2261,6 +2313,201 @@ class AnonymizeServiceTest extends TestCase
     }
 
     /**
+     * Test that anonymizeEntity delegates to anonymizeService when entity has anonymizeService and container is set.
+     */
+    public function testAnonymizeEntityDelegatesToAnonymizeServiceWhenSet(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('notifications');
+        $metadata->method('getIdentifierColumnNames')
+            ->willReturn(['id']);
+        $metadata->method('hasField')
+            ->willReturn(false);
+        $metadata->method('hasAssociation')
+            ->willReturn(false);
+        $metadata->method('getFieldNames')
+            ->willReturn([]);
+
+        $connection->method('quoteSingleIdentifier')
+            ->willReturnCallback(fn($id) => '`' . $id . '`');
+        $connection->method('quote')
+            ->willReturnCallback(fn($val) => "'" . str_replace("'", "''", (string) $val) . "'");
+
+        $record = ['id' => 1, 'recipient' => '+34600000000', 'message' => 'Hello'];
+        $connection->method('fetchAllAssociative')
+            ->willReturn([$record]);
+
+        $capturedSql = null;
+        $connection->method('executeStatement')
+            ->willReturnCallback(function ($sql) use (&$capturedSql) {
+                $capturedSql = $sql;
+                return 1;
+            });
+
+        $anonymizer = $this->createMock(EntityAnonymizerServiceInterface::class);
+        $anonymizer->method('anonymize')
+            ->with($em, $metadata, $record, false)
+            ->willReturn(['recipient' => '+34999111222', 'message' => 'Anonymized']);
+
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('get')
+            ->with('App\Service\SmsAnonymizer')
+            ->willReturn($anonymizer);
+
+        $service = new AnonymizeService($this->fakerFactory, $this->patternMatcher, null, $container);
+
+        $entityAttribute = new Anonymize(anonymizeService: 'App\Service\SmsAnonymizer');
+        $reflection = $this->createMock(ReflectionClass::class);
+        $properties = [];
+
+        $result = $service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, null, $entityAttribute);
+
+        $this->assertIsArray($result);
+        $this->assertEquals(1, $result['processed']);
+        $this->assertEquals(1, $result['updated']);
+        $this->assertNotNull($capturedSql);
+        $sql = (string) $capturedSql;
+        $this->assertStringContainsString('UPDATE', $sql);
+        $this->assertStringContainsString('`recipient`', $sql);
+        $this->assertStringContainsString('`message`', $sql);
+    }
+
+    /**
+     * Test that anonymizeEntity with anonymizeService in dry-run does not execute UPDATE.
+     */
+    public function testAnonymizeEntityDelegatesToAnonymizeServiceDryRun(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('notifications');
+        $metadata->method('getIdentifierColumnNames')
+            ->willReturn(['id']);
+
+        $record = ['id' => 1, 'recipient' => '+34600000000'];
+        $connection->method('fetchAllAssociative')
+            ->willReturn([$record]);
+
+        $connection->method('executeStatement')
+            ->willReturn(1);
+
+        $anonymizer = $this->createMock(EntityAnonymizerServiceInterface::class);
+        $anonymizer->method('anonymize')
+            ->with($em, $metadata, $record, true)
+            ->willReturn(['recipient' => '+34999111222']);
+
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('get')
+            ->with('App\Service\SmsAnonymizer')
+            ->willReturn($anonymizer);
+
+        $service = new AnonymizeService($this->fakerFactory, $this->patternMatcher, null, $container);
+
+        $entityAttribute = new Anonymize(anonymizeService: 'App\Service\SmsAnonymizer');
+        $reflection = $this->createMock(ReflectionClass::class);
+
+        $result = $service->anonymizeEntity($em, $metadata, $reflection, [], 100, true, null, null, $entityAttribute);
+
+        $this->assertEquals(1, $result['processed']);
+        $this->assertEquals(1, $result['updated']);
+        // In dry run, updateRecord is not called so no executeStatement for UPDATE
+    }
+
+    /**
+     * Test that anonymizeEntity throws when anonymizeService id returns a service that does not implement EntityAnonymizerServiceInterface.
+     */
+    public function testAnonymizeEntityThrowsWhenAnonymizeServiceNotImplementInterface(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+        $metadata->method('getTableName')
+            ->willReturn('notifications');
+        $metadata->method('getIdentifierColumnNames')
+            ->willReturn(['id']);
+
+        $connection->method('fetchAllAssociative')
+            ->willReturn([['id' => 1, 'recipient' => '+34600000000']]);
+
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('get')
+            ->with('invalid_service')
+            ->willReturn(new \stdClass());
+
+        $service = new AnonymizeService($this->fakerFactory, $this->patternMatcher, null, $container);
+
+        $entityAttribute = new Anonymize(anonymizeService: 'invalid_service');
+        $reflection = $this->createMock(ReflectionClass::class);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('must implement');
+        $service->anonymizeEntity($em, $metadata, $reflection, [], 100, false, null, null, $entityAttribute);
+    }
+
+    /**
+     * Test that anonymizeEntity skips record when entity is excluded by patterns but anonymizeService is set (no update).
+     */
+    public function testAnonymizeEntityWithAnonymizeServiceSkipsExcludedRecord(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+        $metadata->method('getTableName')
+            ->willReturn('notifications');
+        $metadata->method('getIdentifierColumnNames')
+            ->willReturn(['id']);
+
+        $record = ['id' => 1, 'role' => 'admin'];
+        $connection->method('fetchAllAssociative')
+            ->willReturn([$record]);
+
+        $anonymizer = $this->createMock(EntityAnonymizerServiceInterface::class);
+        $anonymizer->expects($this->never())->method('anonymize');
+
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('get')
+            ->with('App\Service\SmsAnonymizer')
+            ->willReturn($anonymizer);
+
+        $service = new AnonymizeService($this->fakerFactory, $this->patternMatcher, null, $container);
+
+        $entityAttribute = new Anonymize(anonymizeService: 'App\Service\SmsAnonymizer');
+        $entityAttribute->excludePatterns = ['role' => 'admin'];
+        $reflection = $this->createMock(ReflectionClass::class);
+
+        $result = $service->anonymizeEntity($em, $metadata, $reflection, [], 100, false, null, null, $entityAttribute);
+
+        $this->assertEquals(1, $result['processed']);
+        $this->assertEquals(0, $result['updated']);
+    }
+
+    /**
      * Test that truncateTables returns empty array when no entities have truncate=true.
      */
     public function testTruncateTablesReturnsEmptyWhenNoTruncateEntities(): void
@@ -2640,5 +2887,60 @@ class AnonymizeServiceTest extends TestCase
 
         $this->assertTrue($callbackCalled);
         $this->assertEquals('test_table', $callbackTable);
+    }
+
+    /**
+     * Test that truncateTables uses DELETE WHERE discriminator when entity is polymorphic (STI/CTI).
+     */
+    public function testTruncateTablesUsesDeleteByDiscriminatorWhenPolymorphic(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('person');
+
+        // Polymorphic entity: Single Table Inheritance
+        $metadata->inheritanceType = 1; // SINGLE_TABLE
+        $metadata->discriminatorColumn = class_exists(DiscriminatorColumnMapping::class)
+            ? new DiscriminatorColumnMapping('string', 'type', 'type')
+            : ['name' => 'type'];
+        $metadata->discriminatorValue = 'customer';
+
+        $connection->method('quoteSingleIdentifier')
+            ->willReturnCallback(fn($id) => '`' . $id . '`');
+        $connection->method('quote')
+            ->willReturnCallback(fn($val) => "'" . str_replace("'", "''", (string) $val) . "'");
+
+        $executedStatements = [];
+        $connection->method('executeStatement')
+            ->willReturnCallback(function ($sql) use (&$executedStatements) {
+                $executedStatements[] = $sql;
+                return 0;
+            });
+
+        $entities = [
+            'App\Entity\Customer' => [
+                'metadata' => $metadata,
+                'reflection' => $this->createMock(ReflectionClass::class),
+                'attribute' => new Anonymize(truncate: true),
+            ],
+        ];
+
+        $result = $this->service->truncateTables($em, $entities, false);
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('person', $result);
+        $this->assertNotEmpty($executedStatements);
+        $deleteSql = array_values(array_filter($executedStatements, fn($s) => str_contains($s, 'DELETE FROM')));
+        $this->assertCount(1, $deleteSql, 'Should execute one DELETE statement for polymorphic truncate');
+        $this->assertStringContainsString('DELETE FROM `person`', $deleteSql[0]);
+        $this->assertStringContainsString('`type` = \'customer\'', $deleteSql[0]);
     }
 }

@@ -14,8 +14,10 @@ use Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent;
 use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\BeforeEntityAnonymizeEvent;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
+use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
+use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionProperty;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
@@ -39,11 +41,13 @@ final class AnonymizeService
      * @param FakerFactory $fakerFactory The faker factory for creating faker instances
      * @param PatternMatcher $patternMatcher The pattern matcher for inclusion/exclusion patterns
      * @param EventDispatcherInterface|null $eventDispatcher Optional event dispatcher for extensibility
+     * @param ContainerInterface|null $container Optional container to resolve anonymizeService by id (required when using anonymizeService on entities)
      */
     public function __construct(
         private FakerFactory $fakerFactory,
         private PatternMatcher $patternMatcher,
-        private ?EventDispatcherInterface $eventDispatcher = null
+        private ?EventDispatcherInterface $eventDispatcher = null,
+        private ?ContainerInterface $container = null
     ) {}
 
     /**
@@ -134,7 +138,8 @@ final class AnonymizeService
     /**
      * Truncates (empties) tables for entities marked with truncate=true.
      *
-     * This method should be called BEFORE anonymization to empty tables that need to be cleared.
+     * If the entity is polymorphic (Doctrine Single Table or Class Table Inheritance), only rows
+     * matching this entity's discriminator value are deleted. Otherwise the whole table is truncated.
      * Tables are processed in order: first by truncate_order (if defined), then alphabetically.
      *
      * @param EntityManagerInterface $em The entity manager
@@ -153,17 +158,20 @@ final class AnonymizeService
         $driverName = \Nowo\AnonymizeBundle\Helper\DbalHelper::getDriverName($connection);
         $results = [];
 
-        // Filter entities that have truncate=true
+        // Filter entities that have truncate=true; detect polymorphic (inheritance) to truncate only this discriminator's rows
         $tablesToTruncate = [];
         foreach ($entities as $className => $entityData) {
             $attribute = $entityData['attribute'];
             if ($attribute->truncate) {
                 $metadata = $entityData['metadata'];
                 $tableName = $metadata->getTableName();
+                $discriminator = $this->getDiscriminatorForTruncate($metadata);
                 $tablesToTruncate[] = [
                     'className' => $className,
                     'tableName' => $tableName,
                     'order' => $attribute->truncate_order ?? PHP_INT_MAX, // null = last
+                    'discriminatorColumn' => $discriminator['column'],
+                    'discriminatorValue' => $discriminator['value'],
                 ];
             }
         }
@@ -201,37 +209,57 @@ final class AnonymizeService
             foreach ($tablesToTruncate as $tableData) {
                 $tableName = $tableData['tableName'];
                 $className = $tableData['className'];
+                $discCol = $tableData['discriminatorColumn'];
+                $discValue = $tableData['discriminatorValue'];
                 $quotedTableName = \Nowo\AnonymizeBundle\Helper\DbalHelper::quoteIdentifier($connection, $tableName);
+                $isPolymorphicTruncate = $discCol !== null && $discValue !== null;
 
                 if ($progressCallback !== null) {
-                    $progressCallback($tableName, sprintf('Truncating table %s...', $tableName));
+                    $msg = $isPolymorphicTruncate
+                        ? sprintf('Truncating table %s (discriminator %s = %s)...', $tableName, $discCol, $discValue)
+                        : sprintf('Truncating table %s...', $tableName);
+                    $progressCallback($tableName, $msg);
                 }
 
                 if ($dryRun) {
-                    // In dry-run, count records that would be deleted
-                    $countQuery = sprintf('SELECT COUNT(*) as total FROM %s', $quotedTableName);
+                    if ($isPolymorphicTruncate) {
+                        $countQuery = sprintf(
+                            'SELECT COUNT(*) as total FROM %s WHERE %s = %s',
+                            $quotedTableName,
+                            DbalHelper::quoteIdentifier($connection, $discCol),
+                            $connection->quote($discValue)
+                        );
+                    } else {
+                        $countQuery = sprintf('SELECT COUNT(*) as total FROM %s', $quotedTableName);
+                    }
                     $count = (int) $connection->fetchOne($countQuery);
                     $results[$tableName] = $count;
                 } else {
-                    // Execute TRUNCATE or DELETE based on database type
-                    if ($driverName === 'pdo_mysql') {
-                        // MySQL: Use TRUNCATE TABLE
-                        $connection->executeStatement(sprintf('TRUNCATE TABLE %s', $quotedTableName));
-                        $results[$tableName] = 0; // TRUNCATE doesn't return count
-                    } elseif ($driverName === 'pdo_pgsql') {
-                        // PostgreSQL: Use TRUNCATE TABLE CASCADE to handle foreign keys
-                        $connection->executeStatement(sprintf('TRUNCATE TABLE %s CASCADE', $quotedTableName));
-                        $results[$tableName] = 0; // TRUNCATE doesn't return count
-                    } elseif ($driverName === 'pdo_sqlite') {
-                        // SQLite: Use DELETE FROM (TRUNCATE not supported)
-                        $connection->executeStatement(sprintf('DELETE FROM %s', $quotedTableName));
-                        // Reset auto-increment
-                        $connection->executeStatement(sprintf('DELETE FROM sqlite_sequence WHERE name = %s', $connection->quote($tableName)));
-                        $results[$tableName] = 0; // DELETE doesn't return count easily
-                    } else {
-                        // Fallback: Use DELETE FROM
-                        $connection->executeStatement(sprintf('DELETE FROM %s', $quotedTableName));
+                    if ($isPolymorphicTruncate) {
+                        // Polymorphic: delete only rows for this entity's discriminator
+                        $connection->executeStatement(sprintf(
+                            'DELETE FROM %s WHERE %s = %s',
+                            $quotedTableName,
+                            DbalHelper::quoteIdentifier($connection, $discCol),
+                            $connection->quote($discValue)
+                        ));
                         $results[$tableName] = 0;
+                    } else {
+                        // Normal entity: full table truncate
+                        if ($driverName === 'pdo_mysql') {
+                            $connection->executeStatement(sprintf('TRUNCATE TABLE %s', $quotedTableName));
+                            $results[$tableName] = 0;
+                        } elseif ($driverName === 'pdo_pgsql') {
+                            $connection->executeStatement(sprintf('TRUNCATE TABLE %s CASCADE', $quotedTableName));
+                            $results[$tableName] = 0;
+                        } elseif ($driverName === 'pdo_sqlite') {
+                            $connection->executeStatement(sprintf('DELETE FROM %s', $quotedTableName));
+                            $connection->executeStatement(sprintf('DELETE FROM sqlite_sequence WHERE name = %s', $connection->quote($tableName)));
+                            $results[$tableName] = 0;
+                        } else {
+                            $connection->executeStatement(sprintf('DELETE FROM %s', $quotedTableName));
+                            $results[$tableName] = 0;
+                        }
                     }
                 }
             }
@@ -247,6 +275,37 @@ final class AnonymizeService
         }
 
         return $results;
+    }
+
+    /**
+     * Detects if the entity is polymorphic (Doctrine inheritance with discriminator) and returns column + value.
+     * Used to truncate only this entity's rows when truncate=true on a child/root of STI/CTI.
+     * Uses public metadata properties for compatibility with Doctrine ORM 2.x and 3.x.
+     *
+     * @return array{column: string|null, value: string|null}
+     */
+    private function getDiscriminatorForTruncate(ClassMetadata $metadata): array
+    {
+        $none = 0;
+        $inheritanceType = $metadata->inheritanceType ?? $none;
+        if ($inheritanceType === $none) {
+            return ['column' => null, 'value' => null];
+        }
+        $discCol = $metadata->discriminatorColumn ?? null;
+        $discValue = $metadata->discriminatorValue ?? null;
+        if ($discCol === null || $discValue === null) {
+            return ['column' => null, 'value' => null];
+        }
+        $columnName = null;
+        if (is_array($discCol)) {
+            $columnName = $discCol['name'] ?? $discCol['columnName'] ?? null;
+        } elseif (is_object($discCol)) {
+            $columnName = $discCol->name ?? (isset($discCol['name']) ? $discCol['name'] : null);
+        }
+        if ($columnName === null || $columnName === '') {
+            return ['column' => null, 'value' => null];
+        }
+        return ['column' => $columnName, 'value' => (string) $discValue];
     }
 
     /**
@@ -299,6 +358,15 @@ final class AnonymizeService
 
         // Build query with JOINs for relationships
         $query = $this->buildQueryWithRelationships($em, $metadata, $tableName, $allPatterns);
+        // For polymorphic entities, only load rows for this discriminator value
+        $disc = $this->getDiscriminatorForTruncate($metadata);
+        if ($disc['column'] !== null && $disc['value'] !== null) {
+            $query .= sprintf(
+                ' WHERE %s = %s',
+                DbalHelper::quoteIdentifier($connection, $disc['column']),
+                $connection->quote($disc['value'])
+            );
+        }
         $records = $connection->fetchAllAssociative($query);
         $totalRecords = count($records);
 
@@ -316,6 +384,35 @@ final class AnonymizeService
                     // Record is excluded at entity level
                     $isEntityExcluded = true;
                 }
+            }
+
+            // When anonymizeService is set, delegate to the service instead of property-based anonymization
+            if ($entityAttribute !== null && $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '' && $this->container !== null) {
+                if ($isEntityExcluded) {
+                    if ($progressCallback !== null && (($index + 1) % max(1, (int) ($totalRecords / 100)) === 0 || $index + 1 === $totalRecords)) {
+                        $progressCallback($index + 1, $totalRecords, sprintf('Processed %d/%d records (%d updated)', $index + 1, $totalRecords, $updated));
+                    }
+                    continue;
+                }
+                try {
+                    $anonymizer = $this->container->get($entityAttribute->anonymizeService);
+                } catch (\Throwable $e) {
+                    throw new \RuntimeException(sprintf('Cannot get anonymizer service "%s": %s', $entityAttribute->anonymizeService, $e->getMessage()), 0, $e);
+                }
+                if (!$anonymizer instanceof EntityAnonymizerServiceInterface) {
+                    throw new \RuntimeException(sprintf('Service "%s" must implement %s.', $entityAttribute->anonymizeService, EntityAnonymizerServiceInterface::class));
+                }
+                $updates = $anonymizer->anonymize($em, $metadata, $record, $dryRun);
+                if (!empty($updates)) {
+                    if (!$dryRun) {
+                        $this->updateRecord($connection, $tableName, $record, $updates, $metadata);
+                    }
+                    $updated++;
+                }
+                if ($progressCallback !== null && (($index + 1) % max(1, (int) ($totalRecords / 100)) === 0 || $index + 1 === $totalRecords)) {
+                    $progressCallback($index + 1, $totalRecords, sprintf('Processed %d/%d records (%d updated)', $index + 1, $totalRecords, $updated));
+                }
+                continue;
             }
 
             $shouldAnonymize = false;
