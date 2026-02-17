@@ -737,6 +737,20 @@ The bundle automatically processes all Doctrine connections. You can also specif
 php bin/console nowo:anonymize:run --connection default --connection secondary
 ```
 
+### Limiting to specific entities
+
+To run anonymization for only one or a few entities (e.g. to test an entity’s `anonymizeService` or event listeners), use `--entity` with the full entity class name. You can pass it multiple times:
+
+```bash
+# Single entity (e.g. to test SmsNotificationAnonymizerService)
+php bin/console nowo:anonymize:run --entity "App\Entity\SmsNotification" --dry-run
+
+# Multiple entities
+php bin/console nowo:anonymize:run --entity "App\Entity\User" --entity "App\Entity\Customer"
+```
+
+See [COMMANDS.md](COMMANDS.md) for all options.
+
 ### Anonymization Tracking
 
 Track which records have been anonymized using the `AnonymizableTrait`:

@@ -163,6 +163,9 @@ php bin/console nowo:anonymize:run --connection default --dry-run
 php bin/console nowo:anonymize:run --connection postgres --dry-run
 php bin/console nowo:anonymize:run --connection sqlite --dry-run
 
+# Test a single entity (e.g. to verify anonymizeService or event listeners)
+php bin/console nowo:anonymize:run --entity "App\Entity\SmsNotification" --dry-run
+
 # With options
 php bin/console nowo:anonymize:run --connection default --batch-size 50
 php bin/console nowo:anonymize:run --connection default --locale es_ES

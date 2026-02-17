@@ -33,7 +33,8 @@ services:
 
     # FakerFactory is excluded from autowiring pattern but needed by services
     # It requires locale parameter and optional ContainerInterface
-    Nowo\AnonymizeBundle\Faker\FakerFactory:
+    nowo_anonymize.faker_factory:
+        class: Nowo\AnonymizeBundle\Faker\FakerFactory
         arguments:
             $locale: '%nowo_anonymize.locale%'
 
@@ -47,12 +48,14 @@ services:
     Nowo\AnonymizeBundle\Service\AnonymizeService: ~
 
     # AnonymizationHistoryService
-    Nowo\AnonymizeBundle\Service\AnonymizationHistoryService:
+    nowo_anonymize.service.anonymization_history:
+        class: Nowo\AnonymizeBundle\Service\AnonymizationHistoryService
         arguments:
             $historyDir: '%nowo_anonymize.history_dir%'
 
     # DatabaseExportService - must be configured explicitly due to string/bool parameters
-    Nowo\AnonymizeBundle\Service\DatabaseExportService:
+    nowo_anonymize.service.database_export:
+        class: Nowo\AnonymizeBundle\Service\DatabaseExportService
         arguments:
             $outputDir: '%nowo_anonymize.export.output_dir%'
             $filenamePattern: '%nowo_anonymize.export.filename_pattern%'

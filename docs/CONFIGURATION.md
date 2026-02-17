@@ -179,6 +179,9 @@ php bin/console nowo:anonymize:run --locale en_US
 # Override connections
 php bin/console nowo:anonymize:run --connection default
 
+# Process only specific entity/entities (e.g. to test anonymizeService or events)
+php bin/console nowo:anonymize:run --entity "App\Entity\SmsNotification"
+
 # Enable dry-run
 php bin/console nowo:anonymize:run --dry-run
 
@@ -196,6 +199,37 @@ php bin/console nowo:anonymize:run --debug
 ```
 
 Command-line options take precedence over configuration file values.
+
+## Using FakerFactory in your own services
+
+The bundle registers `Nowo\AnonymizeBundle\Faker\FakerFactory` as a service so you can inject it into your own services (e.g. custom anonymizers or helpers that need to generate fake data).
+
+**Important:** The bundle is loaded only in `dev` and `test`. Any service that depends on `FakerFactory` must be registered only in those environments; otherwise you get *"no such service exists"* when the container is built (e.g. in prod the bundle is not loaded, so `FakerFactory` is not in the container).
+
+**Option 1 – Register your service only in dev/test (recommended)**
+
+Register the service that needs `FakerFactory` in a file that is loaded only in dev and test. For example, create `config/services/dev/services.yaml` (and optionally `config/services/test/services.yaml` with the same content):
+
+```yaml
+# config/services/dev/services.yaml
+services:
+    App\Service\Anonymize\FileService:
+        # FakerFactory is autowired by type
+```
+
+That way the service is only compiled when the bundle is loaded (dev/test), and the "no such service exists" error is avoided.
+
+**Option 2 – Explicit service id**
+
+If autowiring still doesn't find `FakerFactory`, inject it explicitly:
+
+```yaml
+App\Service\Anonymize\FileService:
+    arguments:
+        $fakerFactory: '@nowo_anonymize.faker_factory'
+```
+
+The bundle also exposes the class as service id `Nowo\AnonymizeBundle\Faker\FakerFactory`, so you can use that instead of the alias if you prefer.
 
 ## Available Commands
 

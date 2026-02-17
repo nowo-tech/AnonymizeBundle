@@ -94,7 +94,7 @@ Nothing in Phases A–C changes the rule: **dev/test only, production execution 
 
 ---
 
-## Current Status (1.0.7 - Released)
+## Current Status (1.0.8 - Released)
 
 ### ✅ Implemented Features
 

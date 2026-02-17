@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Command;
 
+use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Nowo\AnonymizeBundle\Command\AnonymizeCommand;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
@@ -86,6 +89,86 @@ class AnonymizeCommandTest extends TestCase
         $this->assertTrue($definition->hasOption('no-progress'));
         $this->assertTrue($definition->hasOption('debug'));
         $this->assertTrue($definition->hasOption('interactive'));
+        $this->assertTrue($definition->hasOption('entity'));
+        $this->assertTrue($definition->hasShortcut('e'));
+    }
+
+    /**
+     * Test execute with --entity option when no anonymizable entities exist: shows entity-filter message (not generic "no entities").
+     */
+    public function testExecuteWithEntityOptionAndNoEntities(): void
+    {
+        $em       = $this->createMock(EntityManagerInterface::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
+        $doctrine->method('getManager')->with('default')->willReturn($em);
+
+        $container = $this->createContainerWithSafeEnvironmentAndKernel();
+        $container->set('doctrine', $doctrine);
+
+        $command = new AnonymizeCommand($container);
+        $input   = new ArrayInput(['--entity' => ['App\Entity\SmsNotification']]);
+        $output  = new BufferedOutput();
+
+        $exitCode = $command->run($input, $output);
+
+        $this->assertSame(0, $exitCode);
+        $this->assertStringContainsString('No entities matching --entity filter in manager "default"', $output->fetch());
+    }
+
+    /**
+     * Test that when --entity filter is used and no entity in the manager matches, the specific filter message is shown.
+     */
+    public function testExecuteWithEntityFilterShowsMessageWhenNoEntityMatches(): void
+    {
+        // Create a real class with #[Anonymize] so getAnonymizableEntities returns it
+        eval('
+            namespace Nowo\AnonymizeBundle\Tests\Command {
+                #[\\Nowo\\AnonymizeBundle\\Attribute\\Anonymize]
+                class EntityFilterTestEntity {
+                }
+            }
+        ');
+        $className = 'Nowo\AnonymizeBundle\Tests\Command\EntityFilterTestEntity';
+
+        $metadata = $this->createMock(ClassMetadata::class);
+        $metadata->method('getTableName')->willReturn('entity_filter_test');
+        // Do not mock isMappedSuperclass/isEmbeddedClass (final or not mockable in some ORM versions)
+
+        $metadataDriver = $this->createMock(MappingDriver::class);
+        $config         = $this->createMock(Configuration::class);
+        $em             = $this->createMock(EntityManagerInterface::class);
+
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+
+        $schemaManager = $this->createMock(\Doctrine\DBAL\Schema\AbstractSchemaManager::class);
+        $schemaManager->method('tablesExist')->willReturn(true);
+
+        $connection->method('createSchemaManager')->willReturn($schemaManager);
+
+        $em->method('getConfiguration')->willReturn($config);
+        $em->method('getConnection')->willReturn($connection);
+        $config->method('getMetadataDriverImpl')->willReturn($metadataDriver);
+        $metadataDriver->method('getAllClassNames')->willReturn([$className]);
+        $em->method('getClassMetadata')->with($className)->willReturn($metadata);
+
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
+        $doctrine->method('getManager')->with('default')->willReturn($em);
+
+        $container = $this->createContainerWithSafeEnvironmentAndKernel();
+        $container->set('doctrine', $doctrine);
+
+        $command = new AnonymizeCommand($container);
+        $input   = new ArrayInput(['--entity' => ['App\Entity\NonExistentEntity']]);
+        $output  = new BufferedOutput();
+
+        $exitCode = $command->run($input, $output);
+
+        $this->assertSame(0, $exitCode);
+        $out = $output->fetch();
+        $this->assertStringContainsString('No entities matching --entity filter in manager "default"', $out);
     }
 
     /**

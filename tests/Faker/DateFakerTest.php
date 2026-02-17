@@ -56,6 +56,8 @@ class DateFakerTest extends TestCase
 
     /**
      * Test that DateFaker generates future dates.
+     * Compare by date string (Y-m-d) so "today" is valid when the type is "future"
+     * (output format is Y-m-d so time is 00:00:00 and can be before "now" on the same day).
      */
     public function testGenerateFuture(): void
     {
@@ -63,9 +65,8 @@ class DateFakerTest extends TestCase
         $date  = $faker->generate(['type' => 'future', 'max_date' => '+1 year']);
 
         $this->assertIsString($date);
-        $dateTime = new DateTime($date);
-        $now      = new DateTime();
-        $this->assertGreaterThanOrEqual($now, $dateTime);
+        $todayStr = (new DateTime())->format('Y-m-d');
+        $this->assertGreaterThanOrEqual($todayStr, $date, 'Generated future date must be today or later');
     }
 
     /**

@@ -7,6 +7,8 @@ namespace Nowo\AnonymizeBundle\Faker;
 use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Enum\FakerType;
 use Psr\Container\ContainerInterface;
+// use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+// use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 use function sprintf;
 
@@ -19,8 +21,11 @@ use function sprintf;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
+// #[AsAlias(id: self::SERVICE_NAME)]
 final class FakerFactory
 {
+    public const SERVICE_NAME = 'nowo_anonymize.faker_factory';
+
     /**
      * Creates a new FakerFactory instance.
      *
@@ -28,6 +33,7 @@ final class FakerFactory
      * @param ContainerInterface|null $container The service container for accessing faker services
      */
     public function __construct(
+        // #[Autowire('%nowo_anonymize.locale%')]
         private string $locale = 'en_US',
         private ?ContainerInterface $container = null
     ) {

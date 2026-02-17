@@ -94,6 +94,8 @@ class User
 php bin/console nowo:anonymize:run
 ```
 
+You can limit to specific connections (`--connection`) or entities (`--entity`, e.g. to test one entity or its `anonymizeService`). See [COMMANDS.md](docs/COMMANDS.md) for all options.
+
 For detailed usage examples, see [USAGE.md](docs/USAGE.md).
 
 ## Requirements
@@ -131,7 +133,7 @@ See [CONFIGURATION.md](docs/CONFIGURATION.md) for detailed configuration options
 
 The bundle provides six console commands:
 
-- **`nowo:anonymize:run`** - Main anonymization command (supports MySQL, PostgreSQL, SQLite)
+- **`nowo:anonymize:run`** - Main anonymization command (supports MySQL, PostgreSQL, SQLite; use `--entity` to process only specific entities)
 - **`nowo:anonymize:history`** - View and manage anonymization history (list, view, compare runs)
 - **`nowo:anonymize:export-db`** - Export databases to files with optional compression (MySQL, PostgreSQL, SQLite, MongoDB)
 - **`nowo:anonymize:generate-column-migration`** - Generate SQL migrations for `anonymized` column (MySQL, PostgreSQL, SQLite)
@@ -201,7 +203,7 @@ For information about our Git workflow and branching strategy, see [BRANCHING.md
 
 We have an extensive roadmap for future enhancements. See [ROADMAP.md](docs/ROADMAP.md) for details on planned features including:
 
-### Current Status (1.0.7)
+### Current Status (1.0.8)
 
 - **Phase 1 Progress**: 100% complete (all 21 fakers implemented)
 - **Total Fakers Available**: 39 fakers (including map, utm, service, and data preservation fakers)

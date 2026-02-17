@@ -17,6 +17,7 @@ php bin/console nowo:anonymize:run [options]
 ### Options
 
 - `--connection, -c`: Process only specific connections (can be used multiple times)
+- `--entity, -e`: Process only these entity class names (e.g. `App\Entity\SmsNotification`). Can be used multiple times. Useful to test a single entity, its `anonymizeService` or event listeners.
 - `--dry-run`: Show what would be anonymized without making changes
 - `--batch-size, -b`: Number of records to process in each batch (default: 100)
 - `--locale, -l`: Locale for Faker generator (default: en_US)
@@ -39,6 +40,13 @@ php bin/console nowo:anonymize:run --dry-run
 
 # Process specific connection
 php bin/console nowo:anonymize:run --connection default
+
+# Process only one entity (e.g. to test its anonymizeService or event listeners)
+php bin/console nowo:anonymize:run --entity "App\Entity\SmsNotification"
+php bin/console nowo:anonymize:run --entity "App\Entity\SmsNotification" --dry-run
+
+# Process multiple entities
+php bin/console nowo:anonymize:run --entity "App\Entity\User" --entity "App\Entity\Customer"
 
 # Process multiple connections
 php bin/console nowo:anonymize:run --connection default --connection postgres --connection sqlite
@@ -76,13 +84,16 @@ The `--interactive` (or `-i`) option enables step-by-step confirmation prompts:
 
 This mode is useful when you want to:
 - Review what will be anonymized before proceeding
-- Selectively process specific entity managers or entities
+- Selectively process specific entity managers or entities (or use `--entity` to limit from the command line)
 - Have more control over the anonymization process
+
+When you use `--entity`, the interactive summary shows the entities filter; only those entities are processed.
 
 Example output:
 ```
 Interactive Mode - Anonymization Summary
 Entity managers to process: default, postgres
+Entities filter: App\Entity\SmsNotification
 Batch size: 100
 Locale: en_US
 

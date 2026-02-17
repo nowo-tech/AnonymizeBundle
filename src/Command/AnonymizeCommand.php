@@ -89,6 +89,7 @@ final class AnonymizeCommand extends AbstractCommand
 
                     Options:
                       --connection, -c    Process only specific connections (can be used multiple times)
+                      --entity, -e        Process only these entity class names (can be used multiple times)
                       --dry-run          Show what would be anonymized without making changes
                       --batch-size, -b   Number of records to process in each batch (default: 100)
                       --locale, -l       Locale for Faker generator (default: en_US)
@@ -104,6 +105,7 @@ final class AnonymizeCommand extends AbstractCommand
                       <info>php %command.full_name%</info>
                       <info>php %command.full_name% --dry-run</info>
                       <info>php %command.full_name% --connection default --connection secondary</info>
+                      <info>php %command.full_name% --entity "App\Entity\SmsNotification"</info>
                       <info>php %command.full_name% --batch-size 50 --locale en_US</info>
                       <info>php %command.full_name% --stats-json stats.json</info>
                       <info>php %command.full_name% --stats-csv stats.csv</info>
@@ -114,6 +116,7 @@ final class AnonymizeCommand extends AbstractCommand
                     HELP
             )
             ->addOption('connection', 'c', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Specific connections to process (default: all)')
+            ->addOption('entity', 'e', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Process only these entity class names (e.g. App\Entity\SmsNotification). Can be used multiple times')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Show what would be anonymized without making changes')
             ->addOption('batch-size', 'b', InputOption::VALUE_OPTIONAL, 'Batch size for processing records', $this->batchSize)
             ->addOption('locale', 'l', InputOption::VALUE_OPTIONAL, 'Locale for Faker generator', $this->locale)
@@ -181,13 +184,14 @@ final class AnonymizeCommand extends AbstractCommand
         }
 
         // Get options (verbose may come from Application when run via bin/console, so check hasOption)
-        $connections = $input->getOption('connection') ?: $this->connections;
-        $dryRun      = $input->getOption('dry-run') || $this->dryRun;
-        $batchSize   = (int) ($input->getOption('batch-size') ?: $this->batchSize);
-        $locale      = $input->getOption('locale') ?: $this->locale;
-        $verbose     = ($input->hasOption('verbose') && $input->getOption('verbose')) || $output->isVerbose();
-        $debug       = $input->getOption('debug') || $output->isDebug();
-        $interactive = $input->getOption('interactive');
+        $connections  = $input->getOption('connection') ?: $this->connections;
+        $entityFilter = $input->getOption('entity') ?: [];
+        $dryRun       = $input->getOption('dry-run') || $this->dryRun;
+        $batchSize    = (int) ($input->getOption('batch-size') ?: $this->batchSize);
+        $locale       = $input->getOption('locale') ?: $this->locale;
+        $verbose      = ($input->hasOption('verbose') && $input->getOption('verbose')) || $output->isVerbose();
+        $debug        = $input->getOption('debug') || $output->isDebug();
+        $interactive  = $input->getOption('interactive');
 
         if ($dryRun) {
             $io->warning('DRY RUN MODE: No changes will be made to the database');
@@ -267,6 +271,9 @@ final class AnonymizeCommand extends AbstractCommand
         if ($interactive && !$statsOnly) {
             $io->title('Interactive Mode - Anonymization Summary');
             $io->writeln(sprintf('Entity managers to process: <info>%s</info>', implode(', ', $managersToProcess)));
+            if (!empty($entityFilter)) {
+                $io->writeln(sprintf('Entities filter: <info>%s</info>', implode(', ', $entityFilter)));
+            }
             $io->writeln(sprintf('Batch size: <info>%d</info>', $batchSize));
             $io->writeln(sprintf('Locale: <info>%s</info>', $locale));
             if ($dryRun) {
@@ -332,7 +339,7 @@ final class AnonymizeCommand extends AbstractCommand
                     }
                 }
 
-                $this->processConnection($io, $em, $anonymizeService, $batchSize, $dryRun, $managerName, $statistics, $statsOnly, $input, $output, $verbose, $debug, $interactive);
+                $this->processConnection($io, $em, $anonymizeService, $batchSize, $dryRun, $managerName, $statistics, $statsOnly, $input, $output, $verbose, $debug, $interactive, $entityFilter);
             } catch (Exception $e) {
                 $io->error(sprintf('Error processing entity manager %s: %s', $managerName, $e->getMessage()));
 
@@ -406,7 +413,8 @@ final class AnonymizeCommand extends AbstractCommand
         ?OutputInterface $output = null,
         bool $verbose = false,
         bool $debug = false,
-        bool $interactive = false
+        bool $interactive = false,
+        array $entityFilter = []
     ): void {
 
         // Get all anonymizable entities
@@ -422,9 +430,18 @@ final class AnonymizeCommand extends AbstractCommand
             return $attr->connection === $managerName;
         });
 
+        // Restrict to given entity class names when --entity is used
+        if ($entityFilter !== []) {
+            $entities = array_intersect_key($entities, array_flip($entityFilter));
+        }
+
         if (empty($entities)) {
             if (!$statsOnly) {
-                $io->note('No entities found with #[Anonymize] attribute');
+                if ($entityFilter !== []) {
+                    $io->note(sprintf('No entities matching --entity filter in manager "%s". Try another connection or check the entity class name.', $managerName));
+                } else {
+                    $io->note('No entities found with #[Anonymize] attribute');
+                }
             }
 
             return;
