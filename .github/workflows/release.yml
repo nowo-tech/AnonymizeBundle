@@ -310,8 +310,39 @@ jobs:
                 console.log('✅ Release ' + tagName + ' created (will be marked as latest if newest)');
               }
             } catch (error) {
-              console.error('❌ Error creating release ' + tagName + ':', error.message);
-              throw error;
+              // On 422 (e.g. release already exists for this tag), try to update existing release instead
+              const status = (error && error.status) || (error.response && error.response.status);
+              const errData = (error && error.response && error.response.data) || {};
+              const errors = Array.isArray(errData.errors) ? errData.errors : [];
+              const isAlreadyExists = status === 422 && (
+                errors.some(e => e && e.code === 'already_exists' && e.field === 'tag_name') ||
+                (errData.message && String(errData.message).includes('already_exists'))
+              );
+              if (status === 422 && (isAlreadyExists || errors.length > 0)) {
+                console.log('Release ' + tagName + ' may already exist (422), fetching and updating...');
+                const { data: releases } = await github.rest.repos.listReleases({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  per_page: 100
+                });
+                const existing = releases.find(r => r && r.tag_name === tagName);
+                if (existing) {
+                  await github.rest.repos.updateRelease({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    release_id: existing.id,
+                    body: releaseBody,
+                    prerelease: isPrerelease
+                  });
+                  console.log('✅ Updated existing release ' + tagName + ' with changelog/commits');
+                } else {
+                  console.error('❌ Error creating release ' + tagName + ':', error.message);
+                  throw error;
+                }
+              } else {
+                console.error('❌ Error creating release ' + tagName + ':', error.message);
+                throw error;
+              }
             }
 
 # Maintainer: Héctor Franco Aceituno (@HecFranco)
