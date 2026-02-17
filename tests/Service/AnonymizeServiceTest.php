@@ -512,8 +512,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
@@ -572,8 +573,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
 
         $property   = $reflection->getProperty('email');
         $properties = [
@@ -616,8 +618,9 @@ class AnonymizeServiceTest extends TestCase
             : ['name' => 'type'];
         $metadata->discriminatorValue = 'sms';
 
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . str_replace("'", "''", (string) $val) . "'");
 
@@ -664,8 +667,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
 
         $entityAttribute                  = new Anonymize();
         $entityAttribute->excludePatterns = ['status' => 'deleted'];
@@ -701,8 +705,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'role' => 'admin', 'status' => 'active']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
 
         $entityAttribute                  = new Anonymize();
         $entityAttribute->excludePatterns = [
@@ -742,8 +747,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'user@nowo.tech']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
 
         $entityAttribute                  = new Anonymize();
         $entityAttribute->excludePatterns = ['email' => ['%@nowo.tech', 'operador@example.com']];
@@ -794,8 +800,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 50, 'email' => 'test@example.com']]); // ID doesn't match pattern
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
@@ -859,8 +866,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com', 'status' => 'deleted']]); // Status matches exclude pattern
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
@@ -940,8 +948,9 @@ class AnonymizeServiceTest extends TestCase
             ->with('test_table')
             ->willReturn(['anonymized' => $column]);
 
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
@@ -1020,8 +1029,9 @@ class AnonymizeServiceTest extends TestCase
             ->with('test_table')
             ->willReturn(['other_column' => $column]);
 
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
@@ -1090,8 +1100,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
@@ -1171,8 +1182,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
@@ -1245,8 +1257,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'age' => '25']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
@@ -1309,8 +1322,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'price' => '99.99']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
@@ -1373,8 +1387,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'active' => '1']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
@@ -1438,8 +1453,9 @@ class AnonymizeServiceTest extends TestCase
         // Record with null email - should still anonymize
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => null]]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static function ($val) {
                 if ($val === null) {
@@ -1509,8 +1525,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'active' => '0']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
@@ -1573,8 +1590,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'active' => '1']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
@@ -1637,8 +1655,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'count' => '10']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
@@ -1701,8 +1720,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'amount' => '50.50']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
@@ -1764,8 +1784,9 @@ class AnonymizeServiceTest extends TestCase
         $metadata->method('getIdentifierColumnNames')
             ->willReturn(['id']);
 
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
         $connection->method('quote')
@@ -1824,8 +1845,9 @@ class AnonymizeServiceTest extends TestCase
         $metadata->method('getIdentifierColumnNames')
             ->willReturn(['id']);
 
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('fetchAllAssociative')
             ->willReturn([]);
 
@@ -1885,8 +1907,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'count' => '10']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
@@ -1949,8 +1972,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static function ($val) {
                 if ($val === null) {
@@ -2035,8 +2059,9 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static function ($val) {
                 if ($val === null) {
@@ -2129,8 +2154,9 @@ class AnonymizeServiceTest extends TestCase
         // Record with null email - should NOT be anonymized when preserve_null is true
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => null]]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static function ($val) {
                 if ($val === null) {
@@ -2209,8 +2235,9 @@ class AnonymizeServiceTest extends TestCase
         // Record with non-null email - should be anonymized even when preserve_null is true
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'original@example.com']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static function ($val) {
                 if ($val === null) {
@@ -2284,8 +2311,9 @@ class AnonymizeServiceTest extends TestCase
         // Record that matches entity exclusion pattern (will be excluded)
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'sensitive_notes' => 'Sensitive data', 'role' => 'admin']]);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static function ($val) {
                 if ($val === null) {
@@ -2354,8 +2382,9 @@ class AnonymizeServiceTest extends TestCase
         $metadata->method('getFieldNames')
             ->willReturn([]);
 
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . str_replace("'", "''", (string) $val) . "'");
 
@@ -2595,7 +2624,7 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('getDatabasePlatform')
             ->willReturn($platform);
 
-        $connection->method('quoteSingleIdentifier')
+        $platform->method('quoteSingleIdentifier')
             ->willReturnCallback(static fn ($id) => '`' . $id . '`');
 
         $executedStatements = [];
@@ -2660,7 +2689,7 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('getDatabasePlatform')
             ->willReturn($platform);
 
-        $connection->method('quoteSingleIdentifier')
+        $platform->method('quoteSingleIdentifier')
             ->willReturnCallback(static fn ($id) => '`' . $id . '`');
 
         $truncateStatements = [];
@@ -2718,8 +2747,9 @@ class AnonymizeServiceTest extends TestCase
         $metadata->method('getTableName')
             ->willReturn('test_table');
 
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('fetchOne')
             ->willReturn('10'); // 10 records would be deleted
 
@@ -2765,7 +2795,7 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('getDatabasePlatform')
             ->willReturn($platform);
 
-        $connection->method('quoteSingleIdentifier')
+        $platform->method('quoteSingleIdentifier')
             ->willReturnCallback(static fn ($id) => '"' . $id . '"');
 
         $executedStatements = [];
@@ -2827,7 +2857,7 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('getParams')
             ->willReturn(['driver' => 'pdo_sqlite']);
 
-        $connection->method('quoteSingleIdentifier')
+        $platform->method('quoteSingleIdentifier')
             ->willReturnCallback(static fn ($id) => '"' . $id . '"');
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . $val . "'");
@@ -2885,7 +2915,7 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('getDatabasePlatform')
             ->willReturn($platform);
 
-        $connection->method('quoteSingleIdentifier')
+        $platform->method('quoteSingleIdentifier')
             ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('executeStatement')
             ->willReturn(0);
@@ -2935,8 +2965,9 @@ class AnonymizeServiceTest extends TestCase
             : ['name' => 'type'];
         $metadata->discriminatorValue = 'customer';
 
-        $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
             ->willReturnCallback(static fn ($val) => "'" . str_replace("'", "''", (string) $val) . "'");
 

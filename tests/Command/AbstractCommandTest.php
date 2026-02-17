@@ -30,12 +30,11 @@ class AbstractCommandTest extends TestCase
             }
         };
 
-        $connection = $this->createMock(Connection::class);
+        $platform = $this->createMock(AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->with('test_table')->willReturn('`test_table`');
 
-        // Mock quoteSingleIdentifier (DBAL 3.6+)
-        $connection->method('quoteSingleIdentifier')
-            ->with('test_table')
-            ->willReturn('`test_table`');
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getDatabasePlatform')->willReturn($platform);
 
         $result = $command->testQuoteIdentifier($connection, 'test_table');
         $this->assertEquals('`test_table`', $result);
@@ -59,7 +58,7 @@ class AbstractCommandTest extends TestCase
         $connection->method('getDatabasePlatform')
             ->willReturn($platform);
 
-        $platform->method('quoteIdentifier')
+        $platform->method('quoteSingleIdentifier')
             ->willReturnCallback(static function ($identifier) {
                 return '`' . $identifier . '`';
             });

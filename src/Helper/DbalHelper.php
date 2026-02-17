@@ -37,7 +37,19 @@ final class DbalHelper
      */
     public static function quoteIdentifier(Connection $connection, string $identifier): string
     {
-        // Try quoteSingleIdentifier first (DBAL 3.6+)
+        // Prefer platform (mockable in tests; in DBAL 4 Connection::quoteSingleIdentifier may be final/static)
+        if (method_exists($connection, 'getDatabasePlatform')) {
+            try {
+                $platform = $connection->getDatabasePlatform();
+                if ($platform !== null && method_exists($platform, 'quoteSingleIdentifier')) {
+                    return $platform->quoteSingleIdentifier($identifier);
+                }
+            } catch (Exception $e) {
+                // Fall through to connection or fallback
+            }
+        }
+
+        // Connection-level quoting (DBAL 3.x when not final)
         if (method_exists($connection, 'quoteSingleIdentifier')) {
             return $connection->quoteSingleIdentifier($identifier);
         }

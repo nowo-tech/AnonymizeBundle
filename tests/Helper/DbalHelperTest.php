@@ -21,15 +21,17 @@ use ReflectionClass;
 class DbalHelperTest extends TestCase
 {
     /**
-     * Test quoteIdentifier with quoteSingleIdentifier method (DBAL 3.6+).
+     * Test quoteIdentifier via platform (DBAL 3.6+ / 4.x; platform is mockable when Connection method is final).
      */
     public function testQuoteIdentifierWithQuoteSingleIdentifier(): void
     {
-        $connection = $this->createMock(Connection::class);
-        $connection->expects($this->once())
-            ->method('quoteSingleIdentifier')
+        $platform = $this->createMock(AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')
             ->with('test_table')
             ->willReturn('`test_table`');
+
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getDatabasePlatform')->willReturn($platform);
 
         $result = DbalHelper::quoteIdentifier($connection, 'test_table');
         $this->assertEquals('`test_table`', $result);
@@ -38,20 +40,17 @@ class DbalHelperTest extends TestCase
     /**
      * Test quoteIdentifier with quoteIdentifier method (DBAL 2.x).
      *
-     * Note: Since method_exists returns true for mocked methods, we can't easily
-     * test the DBAL 2.x path where only quoteIdentifier exists. This test verifies
-     * that the method works correctly with a connection that has quoteSingleIdentifier.
+     * Uses platform when available (same as DBAL 3.6+ path).
      */
     public function testQuoteIdentifierWithQuoteIdentifier(): void
     {
-        $connection = $this->createMock(Connection::class);
-
-        // Test with quoteSingleIdentifier (DBAL 3.6+ path) - this is what will be used
-        // since method_exists returns true for mocked methods
-        $connection->expects($this->once())
-            ->method('quoteSingleIdentifier')
+        $platform = $this->createMock(AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')
             ->with('test_table')
             ->willReturn('`test_table`');
+
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getDatabasePlatform')->willReturn($platform);
 
         $result = DbalHelper::quoteIdentifier($connection, 'test_table');
         $this->assertEquals('`test_table`', $result);
@@ -60,23 +59,21 @@ class DbalHelperTest extends TestCase
     /**
      * Test quoteIdentifier fallback to manual quoting.
      *
-     * Note: This test verifies the manual quoting logic since we can't easily
-     * test the actual fallback with mocks (method_exists returns true for mocked methods).
+     * Verifies the helper returns a valid result when platform provides quoting.
      */
     public function testQuoteIdentifierFallback(): void
     {
-        // Test the manual quoting logic that would be used as fallback
         $identifier = 'test_table';
         $expected   = '`test_table`';
 
-        // Test the manual quoting logic directly (this is what the fallback does)
         $manualResult = '`' . str_replace('`', '``', $identifier) . '`';
         $this->assertEquals($expected, $manualResult);
 
-        // Also verify that the helper method returns a valid result when methods exist
+        $platform = $this->createMock(AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturn('`test_table`');
         $connection = $this->createMock(Connection::class);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturn('`test_table`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
+
         $result = DbalHelper::quoteIdentifier($connection, $identifier);
         $this->assertIsString($result);
         $this->assertEquals('`test_table`', $result);
@@ -87,18 +84,17 @@ class DbalHelperTest extends TestCase
      */
     public function testQuoteIdentifierWithBackticks(): void
     {
-        // Test the manual quoting logic that handles backticks
         $identifier = 'test`table';
         $expected   = '`test``table`';
 
-        // Test the manual quoting logic directly (this is what the fallback does)
         $manualResult = '`' . str_replace('`', '``', $identifier) . '`';
         $this->assertEquals($expected, $manualResult);
 
-        // Also verify that the helper method returns a valid result when methods exist
+        $platform = $this->createMock(AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturn('`test``table`');
         $connection = $this->createMock(Connection::class);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturn('`test``table`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
+
         $result = DbalHelper::quoteIdentifier($connection, $identifier);
         $this->assertIsString($result);
         $this->assertEquals('`test``table`', $result);
@@ -485,15 +481,18 @@ class DbalHelperTest extends TestCase
     }
 
     /**
-     * Test quoteIdentifier with different identifier names.
+     * Test quoteIdentifier with different identifier names (via platform).
      */
     public function testQuoteIdentifierWithDifferentNames(): void
     {
-        $connection = $this->createMock(Connection::class);
-        $connection->method('quoteSingleIdentifier')
+        $platform = $this->createMock(AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')
             ->willReturnCallback(static function ($identifier) {
                 return '`' . $identifier . '`';
             });
+
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getDatabasePlatform')->willReturn($platform);
 
         $result1 = DbalHelper::quoteIdentifier($connection, 'users');
         $this->assertEquals('`users`', $result1);
@@ -510,10 +509,11 @@ class DbalHelperTest extends TestCase
      */
     public function testQuoteIdentifierWithEmptyString(): void
     {
+        $platform = $this->createMock(AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->with('')->willReturn('``');
+
         $connection = $this->createMock(Connection::class);
-        $connection->method('quoteSingleIdentifier')
-            ->with('')
-            ->willReturn('``');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
 
         $result = DbalHelper::quoteIdentifier($connection, '');
         $this->assertEquals('``', $result);
@@ -524,11 +524,14 @@ class DbalHelperTest extends TestCase
      */
     public function testQuoteIdentifierWithSpecialCharacters(): void
     {
-        $connection = $this->createMock(Connection::class);
-        $connection->method('quoteSingleIdentifier')
+        $platform = $this->createMock(AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')
             ->willReturnCallback(static function ($identifier) {
                 return '`' . $identifier . '`';
             });
+
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getDatabasePlatform')->willReturn($platform);
 
         $result = DbalHelper::quoteIdentifier($connection, 'table-name');
         $this->assertEquals('`table-name`', $result);
@@ -607,15 +610,15 @@ class DbalHelperTest extends TestCase
     }
 
     /**
-     * Test quoteIdentifier with quoteIdentifier method when quoteSingleIdentifier doesn't exist.
-     * Note: This is hard to test with mocks since method_exists returns true for mocked methods.
+     * Test quoteIdentifier via platform (preferred path when platform has quoteSingleIdentifier).
      */
     public function testQuoteIdentifierWithQuoteIdentifierMethod(): void
     {
-        // Since method_exists returns true for mocked methods, we test the logic indirectly
+        $platform = $this->createMock(AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->with('test')->willReturn('`test`');
+
         $connection = $this->createMock(Connection::class);
-        $connection->method('quoteSingleIdentifier')
-            ->willReturn('`test`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
 
         $result = DbalHelper::quoteIdentifier($connection, 'test');
         $this->assertEquals('`test`', $result);

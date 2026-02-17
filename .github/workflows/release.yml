@@ -151,27 +151,30 @@ jobs:
             }
 
             try {
-              const { data: releases } = await github.rest.repos.listReleases({
+              const { data: existingRelease } = await github.rest.repos.getReleaseByTag({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                per_page: 100
+                tag: tagName
               });
-
-              const existingRelease = releases.find(r => r.tag_name === tagName);
 
               if (existingRelease) {
                 const hasChangelog = (existingRelease.body || '').includes('## Changelog');
                 core.setOutput('exists', 'true');
                 core.setOutput('release_id', existingRelease.id.toString());
                 core.setOutput('has_changelog', hasChangelog ? 'true' : 'false');
-                console.log('Release ' + tagName + ' already exists (ID: ' + existingRelease.id + '), has changelog: ' + hasChangelog);
+                console.log('Release ' + tagName + ' already exists (ID: ' + existingRelease.id + '), will update');
               } else {
                 core.setOutput('exists', 'false');
                 console.log('Release ' + tagName + ' does not exist, will create new one');
               }
             } catch (error) {
-              console.log('Error checking existing releases:', error.message);
-              core.setOutput('exists', 'false');
+              if (error.status === 404) {
+                core.setOutput('exists', 'false');
+                console.log('Release ' + tagName + ' does not exist (404), will create new one');
+              } else {
+                console.log('Error checking existing release:', error.message);
+                core.setOutput('exists', 'false');
+              }
             }
 
       - name: Update existing release
@@ -310,7 +313,7 @@ jobs:
                 console.log('✅ Release ' + tagName + ' created (will be marked as latest if newest)');
               }
             } catch (error) {
-              // On 422 (e.g. release already exists for this tag), try to update existing release instead
+              // On 422 (e.g. release already exists for this tag), fetch by tag and update instead
               const status = (error && error.status) || (error.response && error.response.status);
               const errData = (error && error.response && error.response.data) || {};
               const errors = Array.isArray(errData.errors) ? errData.errors : [];
@@ -318,15 +321,14 @@ jobs:
                 errors.some(e => e && e.code === 'already_exists' && e.field === 'tag_name') ||
                 (errData.message && String(errData.message).includes('already_exists'))
               );
-              if (status === 422 && (isAlreadyExists || errors.length > 0)) {
-                console.log('Release ' + tagName + ' may already exist (422), fetching and updating...');
-                const { data: releases } = await github.rest.repos.listReleases({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  per_page: 100
-                });
-                const existing = releases.find(r => r && r.tag_name === tagName);
-                if (existing) {
+              if (status === 422 && isAlreadyExists) {
+                console.log('Release ' + tagName + ' already exists (422), fetching by tag and updating...');
+                try {
+                  const { data: existing } = await github.rest.repos.getReleaseByTag({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    tag: tagName
+                  });
                   await github.rest.repos.updateRelease({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
@@ -335,9 +337,9 @@ jobs:
                     prerelease: isPrerelease
                   });
                   console.log('✅ Updated existing release ' + tagName + ' with changelog/commits');
-                } else {
-                  console.error('❌ Error creating release ' + tagName + ':', error.message);
-                  throw error;
+                } catch (updateErr) {
+                  console.error('❌ Error updating existing release ' + tagName + ':', updateErr.message);
+                  throw updateErr;
                 }
               } else {
                 console.error('❌ Error creating release ' + tagName + ':', error.message);
