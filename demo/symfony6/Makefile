@@ -1,7 +1,7 @@
 # Makefile for Anonymize Bundle Demo - Symfony 6.1+
 # Simplifies Docker commands for the demo
 
-.PHONY: help up down shell install clean setup update-symfony
+.PHONY: help up down shell install clean setup update-symfony update-bundle
 
 # Default target
 help:
@@ -16,6 +16,7 @@ help:
 	@echo "  install       Install Composer dependencies (without bundle)"
 	@echo "  setup         Setup databases and load fixtures (without bundle)"
 	@echo "  update-symfony Update Symfony from 6.0 to 6.1+ (required for bundle v0.0.25+)"
+	@echo "  update-bundle  Update anonymize-bundle from repo (fixes 'Unknown named parameter \$truncate')"
 	@echo "  clean         Remove vendor, var, and cache"
 	@echo "  logs          Show container logs"
 	@echo ""
@@ -62,6 +63,7 @@ up:
 	@echo "Next steps:"
 	@echo "  make install    - Install dependencies"
 	@echo "  make setup      - Complete setup (install + DB + fixtures)"
+	@echo "  make update-bundle - If you see 'Unknown named parameter \$$truncate', update bundle from repo"
 
 # Stop containers
 down:
@@ -82,6 +84,14 @@ install:
 	@echo "You can now run:"
 	@echo "  make anonymize-dry-run    - Test anonymization (dry-run)"
 	@echo "  make anonymize            - Run anonymization"
+
+# Update the bundle from the path repo (use if you get "Unknown named parameter $truncate")
+update-bundle:
+	@echo "📦 Updating nowo-tech/anonymize-bundle from repo..."
+	@docker-compose exec -T php git config --global --add safe.directory /bundles 2>/dev/null || true
+	docker-compose exec -T php composer update nowo-tech/anonymize-bundle --with-all-dependencies --no-interaction
+	docker-compose exec -T php php bin/console cache:clear --no-warmup
+	@echo "✅ Bundle updated! Run: make anonymize-dry-run"
 
 # Complete setup (without bundle installation - bundle will be added after first release)
 setup:

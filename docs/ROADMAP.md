@@ -1,6 +1,98 @@
 # Roadmap - Anonymize Bundle
 
-This document outlines the planned features, improvements, and enhancements for the Anonymize Bundle.
+This document outlines the vision, adoption strategy, and planned features for the Anonymize Bundle. The goal is to make it **the default Symfony solution** for database anonymization and GDPR-friendly dev/test data.
+
+---
+
+## Vision and why this bundle will be widely used
+
+### North Star
+
+**"Anonymize Bundle: the standard way to anonymize database data in Symfony apps—in under a minute, with zero risk in production."**
+
+Bundles that become community standards (DoctrineBundle, MakerBundle, SecurityBundle, API Platform) share a few traits: they solve a **clear, recurring pain**; they have a **fast time-to-value**; they are **safe by default**; and they fit the **Symfony ecosystem** (attributes, DI, events). This roadmap doubles down on those traits without losing focus on the core job: **anonymize sensitive data in dev/test and support GDPR workflows**.
+
+### Core focus (we do not dilute)
+
+- **Development and test only**: Anonymize production-like copies so teams can work without real PII. Production execution remains **blocked by design**.
+- **Attribute-first, optional config**: One entity, a few attributes, one command. No required YAML for the happy path.
+- **Doctrine ORM first**: MySQL, PostgreSQL, SQLite today; MongoDB and others as first-class when demand and maintainability allow.
+- **GDPR-aware**: Right to erasure, data portability, and “anonymous dev data” are use cases we support via patterns, traits, and docs—not by running in production.
+
+### Four pillars for adoption
+
+| Pillar | What we do | Why it drives adoption |
+|--------|------------|-------------------------|
+| **Developer experience** | Quick start in &lt;1 min, sensible defaults, `--dry-run` and pre-flight checks, progress and stats | Low friction → more teams try it; fewer “it broke my DB” stories → trust. |
+| **Ecosystem fit** | Symfony Flex recipe, compatibility with 6.1/7/8, events and services for extensibility | Standard install path; works in real Symfony projects and CI. |
+| **Trust** | Dev/test only, no prod, clear docs, semver, upgrade guide | Security and compliance teams accept it; maintainers can recommend it. |
+| **Reach** | Docs, “Anonymize in 60 seconds”, Symfony blog/community, optional integrations (Messenger, Lock, Fixtures) | Visibility and “it works with my stack” → word of mouth and stars. |
+
+This roadmap prioritizes work that strengthens these four pillars while keeping the core use case central.
+
+---
+
+## Adoption roadmap (next 12–24 months)
+
+Concrete milestones to increase usage and community. Order is intentional: **visibility and DX first**, then **integrations**, then **scale and optional enterprise**.
+
+### Phase A: Visibility and first-run experience (next 3–6 months)
+
+- **Symfony Flex recipe (recipes-contrib)**  
+  - Publish recipe so `composer require nowo-tech/anonymize-bundle --dev` creates config and registers the bundle in the right envs.  
+  - **Impact**: Same “one command and go” experience as other popular bundles.
+
+- **“Anonymize in 60 seconds” guide**  
+  - Single doc or README section: copy one entity snippet, run one command, see anonymized data. No optional features.  
+  - **Impact**: Conference/demo slide and first-run success.
+
+- **Symfony blog / community spotlight**  
+  - One post or spotlight (Symfony blog, newsletter, or community site) explaining the problem and the bundle.  
+  - **Impact**: Credibility and discoverability.
+
+- **CI / pipeline documentation**  
+  - Document (or small example) for “run anonymization in CI” (e.g. after fixtures or before E2E). Optional GitHub Action or Make target.  
+  - **Impact**: Fits modern dev workflows and increases retention.
+
+### Phase B: Integrations and ecosystem (6–12 months)
+
+- **Symfony Messenger integration**  
+  - Optional: dispatch anonymization per entity or per connection to Messenger (async).  
+  - **Impact**: Large DBs and teams that already use Messenger get a natural fit.
+
+- **Symfony Lock integration**  
+  - Use Lock component to prevent concurrent anonymization runs (e.g. same connection).  
+  - **Impact**: Safety in shared dev/staging and scripts.
+
+- **MongoDB ODM support**  
+  - First-class support for Doctrine MongoDB ODM (demos already have infrastructure).  
+  - **Impact**: Full-stack and API teams often have both SQL and MongoDB.
+
+- **Doctrine Data Fixtures / Foundry**  
+  - Document “load fixtures then anonymize” or optional hook/recipe step. No required coupling.  
+  - **Impact**: Fits “realistic test data” workflows without changing fixture semantics.
+
+### Phase C: Scale and optional enterprise (12–24 months)
+
+- **Resume / checkpoint**  
+  - Optional checkpoint and resume for long-running runs.  
+  - **Impact**: Very large DBs and staging environments.
+
+- **Config-file alternative**  
+  - Optional YAML/JSON config for entity-level rules (in addition to attributes) for teams that prefer config.  
+  - **Impact**: Enterprise and “config-driven” teams without breaking attribute-first.
+
+- **Plugin / community fakers**  
+  - Simple registry or tag for third-party fakers (e.g. domain-specific: healthcare, finance).  
+  - **Impact**: Community can extend without forking; niche use cases get supported.
+
+- **Compliance and audit**  
+  - Optional audit log of “what was anonymized when” (e.g. for compliance reports). Stays dev/test oriented.  
+  - **Impact**: Trust from security and compliance when recommending the bundle.
+
+Nothing in Phases A–C changes the rule: **dev/test only, production execution blocked, attribute-first by default.**
+
+---
 
 ## Current Status (1.0.5 - Released)
 
@@ -105,20 +197,23 @@ This document outlines the planned features, improvements, and enhancements for 
     - Use cases: User preferences, theme colors
     - Status: Available in v0.0.12
 
-14. **FileFaker** - **PENDING**
+14. ✅ **FileFaker** - **IMPLEMENTED**
     - Generate file paths and names
     - Options: `extension`, `directory`, `absolute`
     - Use cases: File uploads, document paths
+    - Status: Available in v0.0.12
 
-15. **JsonFaker** - **PENDING**
+15. ✅ **JsonFaker** - **IMPLEMENTED**
     - Generate JSON structures
     - Options: `schema`, `depth`, `max_items`
     - Use cases: JSON columns, API responses stored in DB
+    - Status: Available in v0.0.12
 
-16. **TextFaker** - **PENDING**
+16. ✅ **TextFaker** - **IMPLEMENTED**
     - Generate text content (sentences, paragraphs)
     - Options: `type` (sentence/paragraph), `min_words`, `max_words`
     - Use cases: Comments, descriptions, notes
+    - Status: Available in v0.0.12
 
 17. ✅ **NumericFaker** - **IMPLEMENTED**
     - Generate numeric values (integers, decimals)
@@ -132,20 +227,23 @@ This document outlines the planned features, improvements, and enhancements for 
     - Use cases: Flags, toggles, status booleans
     - Status: Available in v0.0.12
 
-19. **EnumFaker** - **PENDING**
+19. ✅ **EnumFaker** - **IMPLEMENTED**
     - Generate values from a predefined enum/list
     - Options: `values` (array), `weighted` (associative array with probabilities)
     - Use cases: Status fields, categories, types
+    - Status: Available in v0.0.12
 
-20. **CountryFaker** - **PENDING**
+20. ✅ **CountryFaker** - **IMPLEMENTED**
     - Generate country codes/names
     - Options: `format` (code/name/iso2/iso3), `locale`
     - Use cases: Country fields, nationality
+    - Status: Available in v0.0.12
 
-21. **LanguageFaker** - **PENDING**
+21. ✅ **LanguageFaker** - **IMPLEMENTED**
     - Generate language codes/names
     - Options: `format` (code/name), `locale`
     - Use cases: Language preferences, content language
+    - Status: Available in v0.0.12
 
 #### Enhanced Existing Fakers
 
@@ -759,51 +857,23 @@ This document outlines the planned features, improvements, and enhancements for 
 
 ## Implementation Priority
 
-### 🔥 High Priority (Next 2-3 releases)
+Priorities are aligned with the **Adoption roadmap** (Phases A–C) above. Technical work below supports those milestones.
 
-1. ✅ **AddressFaker** - **COMPLETED** (v0.0.11)
-2. ✅ **DateFaker** - **COMPLETED** (v0.0.11)
-3. ✅ **MaskingFaker** - **COMPLETED** (v0.0.11)
-4. ✅ **PasswordFaker** - **COMPLETED** (v0.0.12)
-5. ✅ **IpAddressFaker** - **COMPLETED** (v0.0.12)
-6. ✅ **Pre-flight Checks** - **COMPLETED** (v0.0.13)
-7. ✅ **Enhanced Email/Phone/CreditCard Fakers** - **COMPLETED** (v0.0.12)
-8. ✅ **Progress Bars** - **COMPLETED** (v0.0.13)
-9. ✅ **Environment Protection** - **COMPLETED** (v0.0.13)
-10. ✅ **Debug and Verbose Modes** - **COMPLETED** (v0.0.13)
+### 🔥 High Priority (Adoption Phase A – visibility and first-run)
 
-### ⚡ Medium Priority (Next 4-6 releases)
+1. **Symfony Flex recipe** – Publish to recipes-contrib for one-command install and config.
+2. **“Anonymize in 60 seconds”** – Single-page quick start (README or dedicated doc).
+3. **CI / pipeline docs** – How to run anonymization in CI (e.g. after fixtures, before E2E).
+4. **Community visibility** – Symfony blog post or community spotlight.
 
-1. ✅ **UsernameFaker, UrlFaker, CompanyFaker** - **COMPLETED** (v0.0.11)
-2. ✅ **MacAddressFaker, UuidFaker** - **COMPLETED** (current development)
-3. **Relationship Preservation** (Pending)
-4. **MongoDB Support** (Infrastructure ready, ODM support pending)
-5. **SQLite Support** (Pending)
-6. **Configuration Files** (Pending)
-7. ✅ **Event System** - **COMPLETED** (v0.0.13)
-8. ✅ **HashPreserveFaker, ShuffleFaker, ConstantFaker** - **COMPLETED** (v0.0.13)
-9. ✅ **PatternMatcher OR Operator** - **COMPLETED** (v0.0.14)
-10. ✅ **Entity-Level Pattern Filtering Fix** - **COMPLETED** (v0.0.14)
-11. ✅ **EmailSubscription Demo Entity** - **COMPLETED** (v0.0.14)
-12. ✅ **MongoDB Field Migration Command** - **COMPLETED** (v0.0.15)
-13. ✅ **Relationship Patterns Support** - **COMPLETED** (v0.0.16)
-14. ✅ **Interactive Mode** - **COMPLETED** (v0.0.17)
-15. ✅ **Enhanced Reporting** - **COMPLETED** (v0.0.17)
-  - ✅ CSV export support (`--stats-csv`)
-  - ✅ Success rate calculation and display
-  - ✅ Enhanced statistics tables
-  - ✅ Configurable output directory (`stats_output_dir`)
-  - ⏳ Per-entity and per-property detailed analytics (Partial)
-  - ⏳ Export to PDF/HTML (Pending)
-  - ⏳ Comparison reports (before/after) (Pending)
-16. ✅ **Database Export Command** - **COMPLETED** (v0.0.17)
-  - ✅ Export MySQL, PostgreSQL, SQLite, MongoDB
-  - ✅ Compression support (gzip, bzip2, zip)
-  - ✅ Configurable output directory and filename patterns
-  - ✅ Automatic .gitignore management
-  - ✅ Selective connection export
-17. **Symfony Messenger Integration**
-18. **Security Enhancements**
+### ⚡ Medium Priority (Adoption Phase B – integrations)
+
+1. **Symfony Messenger integration** – Optional async anonymization (large DBs, queues).
+2. **Symfony Lock integration** – Prevent concurrent runs (shared dev/staging).
+3. **MongoDB ODM support** – First-class ODM support (demos infrastructure ready).
+4. **Doctrine Fixtures / Foundry** – Document or optional “after fixtures” step.
+5. **Relationship Preservation** (ForeignKeyFaker / ConsistentFaker) – Referential integrity.
+6. **Configuration file alternative** – Optional YAML/JSON for entity rules (in addition to attributes).
 
 ### 📊 Database Support Priority
 
@@ -825,27 +895,32 @@ This document outlines the planned features, improvements, and enhancements for 
 9. **Neo4j** - Graph database support, relationship-heavy data
 10. **Time-Series Databases** (InfluxDB, TimescaleDB) - Specialized use cases for metrics/IoT
 
-### 📋 Low Priority (Future releases)
+### 📋 Lower Priority (Adoption Phase C and beyond)
 
-1. **Enterprise Features**
-2. **API Integration**
-3. **Distributed Processing**
-4. **Advanced Analytics**
-5. **Machine Learning Integration**
-6. **Workflow Automation**
-7. **Multi-tenant Support**
+1. **Resume / checkpoint** – Long-running runs (very large DBs).
+2. **Plugin / community fakers** – Registry for third-party fakers.
+3. **Compliance / audit** – Optional “what was anonymized when” for reports.
+4. **Enterprise options** – Multi-tenant, API, distributed processing only where they clearly serve adoption without diluting the core (dev/test anonymization).
 
 ---
 
-## Community Contributions
+## Community and contributions
 
-We welcome community contributions! Areas where help is especially appreciated:
+We welcome contributions that align with the **adoption pillars** (DX, ecosystem, trust, reach). That means:
 
-- **New Fakers**: Implement additional faker types
-- **Database Drivers**: Add support for additional databases
-- **Documentation**: Improve guides and examples
-- **Tests**: Increase test coverage
-- **Examples**: Create real-world usage examples
+- **Highest impact**: Flex recipe, docs (quick start, CI, best practices), visibility (blog post, talk, tweet).
+- **High impact**: New fakers (especially domain-specific: healthcare, finance, i18n), MongoDB ODM support, Messenger/Lock integrations, tests and examples.
+- **Ongoing**: Bug fixes, docs improvements, demos, and feedback on what would make you recommend the bundle to your team.
+
+We prioritize work that helps **more teams adopt and retain** the bundle without breaking the core promise (dev/test only, attribute-first, production-safe). If you want to propose a big feature, open an issue with the use case and how it fits the roadmap; we’ll align it with a phase or explain why we defer it.
+
+Areas where help is especially appreciated:
+
+- **Symfony Flex recipe**: Prepare and maintain the recipe for recipes-contrib.
+- **Documentation**: “Anonymize in 60 seconds”, CI/pipeline guide, best practices, i18n/locale examples.
+- **New fakers**: Implement additional faker types (see [FAKERS.md](FAKERS.md) and existing implementations).
+- **Database drivers**: MongoDB ODM first; other backends when they clearly serve adoption.
+- **Tests and examples**: Increase coverage, real-world fixtures, integration with Data Fixtures/Foundry.
 
 ---
 
@@ -891,47 +966,25 @@ We welcome community contributions! Areas where help is especially appreciated:
   - ✅ Total fakers: 14 (8 original + 6 new)
   - ✅ Progress: Phase 1 (30% complete), Phase 2 (25% complete - MaskingFaker)
 
-- **v0.0.14** (2026-01-20 - Released): Pattern matching enhancements and bug fixes
-  - ✅ PatternMatcher OR operator support for multiple value matching
-  - ✅ Entity-level pattern filtering fix
-  - ✅ EmailSubscription demo entity with comprehensive pattern examples
-  - ✅ Comprehensive fixtures (~50 records) covering all pattern combinations
-  - ✅ Service registration improvements using attributes
+### Planned Releases (aligned with Adoption roadmap)
 
-- **v0.0.13** (2026-01-19 - Released): Phase 1 complete + Enhanced features
-  - ✅ All Phase 1 fakers implemented (32 total)
-  - ✅ Pre-flight checks, progress bars, environment protection
-  - ✅ Debug/verbose modes, info command, event system
-  - ✅ SystemLog entity with 100% faker coverage
-
-- **v0.0.12** (2026-01-19 - Released): Phase 1 Complete + Enhanced Fakers
-  - ✅ All Phase 1 fakers implemented: File, Json, Text, Enum, Country, Language
-  - ✅ Enhanced existing fakers: Email, Phone, Credit Card, IBAN, Age, Name, Surname
-  - ✅ Total fakers: 32 (all Phase 1 + Phase 2 data preservation fakers)
-  - ✅ Progress: Phase 1 (100% complete - all 21 fakers)
-
-### Planned Releases
-
-- **v0.1.0** (Q1 2026): Enhanced Fakers (Phase 1) - **Completed** (all 21 fakers implemented, 100%)
-- **v0.2.0** (Q2 2026): Advanced Features (Phase 2) - **Partial** (MaskingFaker completed)
-- **v0.3.0** (Q3 2026): Database Support (Phase 3)
-- **v0.4.0** (Q4 2026): Developer Experience (Phase 4)
-- **v0.5.0** (2027): Enterprise Features (Phase 5)
-- **v0.6.0** (2027): Performance (Phase 6)
-- **v0.7.0** (2027): Security and Compliance (Phase 7)
-- **v0.8.0** (2027): Advanced Features (Phase 8)
+- **v1.1.x** (next): Adoption Phase A – Flex recipe, “60 seconds” guide, CI docs, visibility.
+- **v1.2.x**: Adoption Phase B – Messenger (optional async), Lock, MongoDB ODM, Fixtures integration.
+- **v1.3.x+**: Adoption Phase C – Resume/checkpoint, config file option, plugin/community fakers, compliance/audit.
+- **Phases 2–8** (v0.2.0–v0.8.0): Technical roadmap below remains the reference for advanced features (relationship preservation, more DBs, DX, enterprise, performance, security); delivery is aligned with adoption milestones above.
 
 ---
 
 ## Notes
 
-- This roadmap is subject to change based on community feedback and priorities
-- Features may be reprioritized based on user needs
-- Community contributions may accelerate feature development
-- Breaking changes will be clearly documented in UPGRADING.md
+- This roadmap is subject to change based on community feedback and priorities.
+- **Adoption first**: Features are prioritized when they strengthen DX, ecosystem fit, trust, or reach (see Four pillars).
+- **Core focus is fixed**: Dev/test only, attribute-first, Doctrine-first, GDPR-aware. We do not dilute this to chase every use case.
+- Community contributions (new fakers, docs, integrations) are welcome and can accelerate adoption milestones.
+- Breaking changes will be clearly documented in [UPGRADING.md](UPGRADING.md); we follow semantic versioning.
 
 ---
 
-**Last Updated**: 2026-01-20  
+**Last Updated**: 2026-02-17  
 **Maintainer**: Héctor Franco Aceituno (@HecFranco)  
 **Organization**: nowo-tech (https://github.com/nowo-tech)
