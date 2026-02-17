@@ -28,6 +28,14 @@ final class SmsNotificationAnonymizerService implements EntityAnonymizerServiceI
     /**
      * {@inheritdoc}
      */
+    public function supportsBatch(): bool
+    {
+        return false;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function anonymize(
         EntityManagerInterface $em,
         ClassMetadata $metadata,
@@ -41,5 +49,25 @@ final class SmsNotificationAnonymizerService implements EntityAnonymizerServiceI
             'recipient' => $phoneFaker->generate([]),
             'message'   => $textFaker->generate(['type' => 'sentence', 'maxNbWords' => 12]),
         ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function anonymizeBatch(
+        EntityManagerInterface $em,
+        ClassMetadata $metadata,
+        array $records,
+        bool $dryRun
+    ): array {
+        $result = [];
+        foreach ($records as $index => $record) {
+            $updates = $this->anonymize($em, $metadata, $record, $dryRun);
+            if (!empty($updates)) {
+                $result[$index] = $updates;
+            }
+        }
+
+        return $result;
     }
 }

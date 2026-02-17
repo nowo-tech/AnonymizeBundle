@@ -458,7 +458,11 @@ php bin/console doctrine:fixtures:load
 
 For some entities you may want to **delegate anonymization to a service** instead of using `AnonymizeProperty` attributes (e.g. polymorphic subtypes with different logic, external APIs, or complex rules). Use the `anonymizeService` option on `#[Anonymize]`:
 
-1. Implement `Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface`:
+1. Implement `Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface`. The interface has three methods:
+
+   - **`supportsBatch(): bool`** — Return `true` if the service can anonymize a chunk of records in one go (then the bundle will call `anonymizeBatch()` per chunk); return `false` to work record-by-record (then the bundle will call `anonymize()` for each record).
+   - **`anonymize(...): array`** — Anonymize a single record; return a map `column => new value` for columns to update.
+   - **`anonymizeBatch(...): array`** — When `supportsBatch()` is true, the bundle calls this once per chunk with all records in the chunk; return a map `record index => (column => new value)`.
 
 ```php
 namespace App\Service;
@@ -469,17 +473,34 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 
 class SmsNotificationAnonymizerService implements EntityAnonymizerServiceInterface
 {
+    public function supportsBatch(): bool
+    {
+        return false; // record-by-record
+    }
+
     public function anonymize(
         EntityManagerInterface $em,
         ClassMetadata $metadata,
         array $record,
         bool $dryRun
     ): array {
-        // Return column => new value for each column to update
         return [
             'recipient' => '+34' . random_int(600000000, 699999999),
             'message'   => 'Anonymized message ' . ($record['id'] ?? ''),
         ];
+    }
+
+    public function anonymizeBatch(
+        EntityManagerInterface $em,
+        ClassMetadata $metadata,
+        array $records,
+        bool $dryRun
+    ): array {
+        $result = [];
+        foreach ($records as $index => $record) {
+            $result[$index] = $this->anonymize($em, $metadata, $record, $dryRun);
+        }
+        return $result;
     }
 }
 ```
@@ -496,7 +517,8 @@ class SmsNotification extends AbstractNotification
 }
 ```
 
-- When `anonymizeService` is set, **you do not need any `#[AnonymizeProperty]`** on that entity; the command will process it and call the service for each record. Property-level attributes, if present, are ignored; the service's return value is the only source of updates.
+- When `anonymizeService` is set, **you do not need any `#[AnonymizeProperty]`** on that entity; the command will process it and call the service for each record (or per chunk when `supportsBatch()` is true). Property-level attributes, if present, are ignored; the service's return value is the only source of updates.
+- **Record-by-record vs batch**: If `supportsBatch()` returns `false`, the bundle calls `anonymize($record)` for each record. If it returns `true`, it calls `anonymizeBatch($records)` once per chunk (of size `batch_size`), so the service can optimize bulk work (e.g. one API call for many records).
 - Entity-level `includePatterns` / `excludePatterns` still apply: excluded records are skipped and the service is not called.
 - The bundle injects the container so the service can be resolved by id (FQCN or alias). See demo entities `SmsNotification` and `SmsNotificationAnonymizerService` in the demo projects.
 

@@ -203,7 +203,7 @@ For information about our Git workflow and branching strategy, see [BRANCHING.md
 
 We have an extensive roadmap for future enhancements. See [ROADMAP.md](docs/ROADMAP.md) for details on planned features including:
 
-### Current Status (1.0.11)
+### Current Status (1.0.12)
 
 - **Phase 1 Progress**: 100% complete (all 21 fakers implemented)
 - **Total Fakers Available**: 39 fakers (including map, utm, service, and data preservation fakers)

@@ -2389,6 +2389,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturnCallback(static fn ($val) => "'" . str_replace("'", "''", (string) $val) . "'");
 
         $record = ['id' => 1, 'recipient' => '+34600000000', 'message' => 'Hello'];
+        $connection->method('fetchOne')->willReturn(1);
         $connection->method('fetchAllAssociative')
             ->willReturn([$record]);
 
@@ -2401,6 +2402,7 @@ class AnonymizeServiceTest extends TestCase
             });
 
         $anonymizer = $this->createMock(EntityAnonymizerServiceInterface::class);
+        $anonymizer->method('supportsBatch')->willReturn(false);
         $anonymizer->method('anonymize')
             ->with($em, $metadata, $record, false)
             ->willReturn(['recipient' => '+34999111222', 'message' => 'Anonymized']);
@@ -2448,6 +2450,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(['id']);
 
         $record = ['id' => 1, 'recipient' => '+34600000000'];
+        $connection->method('fetchOne')->willReturn(1);
         $connection->method('fetchAllAssociative')
             ->willReturn([$record]);
 
@@ -2455,6 +2458,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(1);
 
         $anonymizer = $this->createMock(EntityAnonymizerServiceInterface::class);
+        $anonymizer->method('supportsBatch')->willReturn(false);
         $anonymizer->method('anonymize')
             ->with($em, $metadata, $record, true)
             ->willReturn(['recipient' => '+34999111222']);
@@ -2531,10 +2535,12 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(['id']);
 
         $record = ['id' => 1, 'role' => 'admin'];
+        $connection->method('fetchOne')->willReturn(1);
         $connection->method('fetchAllAssociative')
             ->willReturn([$record]);
 
         $anonymizer = $this->createMock(EntityAnonymizerServiceInterface::class);
+        $anonymizer->method('supportsBatch')->willReturn(false);
         $anonymizer->expects($this->never())->method('anonymize');
 
         $container = $this->createMock(ContainerInterface::class);
@@ -2552,6 +2558,60 @@ class AnonymizeServiceTest extends TestCase
 
         $this->assertEquals(1, $result['processed']);
         $this->assertEquals(0, $result['updated']);
+    }
+
+    /**
+     * Test that when anonymizeService supportsBatch() returns true, anonymizeBatch() is called per chunk and anonymize() is not.
+     */
+    public function testAnonymizeEntityUsesAnonymizeBatchWhenSupportsBatch(): void
+    {
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $em->method('getConnection')->willReturn($connection);
+        $metadata->method('getTableName')->willReturn('notifications');
+        $metadata->method('getIdentifierColumnNames')->willReturn(['id']);
+        $metadata->method('hasField')->willReturn(false);
+        $metadata->method('hasAssociation')->willReturn(false);
+        $metadata->method('getFieldNames')->willReturn([]);
+
+        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
+        $connection->method('quote')->willReturnCallback(static fn ($val) => "'" . str_replace("'", "''", (string) $val) . "'");
+
+        $records = [
+            ['id' => 1, 'recipient' => '+34600000001'],
+            ['id' => 2, 'recipient' => '+34600000002'],
+        ];
+        $connection->method('fetchOne')->willReturn(2);
+        $connection->method('fetchAllAssociative')->willReturn($records);
+        $connection->method('executeStatement')->willReturn(1);
+
+        $anonymizer = $this->createMock(EntityAnonymizerServiceInterface::class);
+        $anonymizer->method('supportsBatch')->willReturn(true);
+        $anonymizer->expects($this->never())->method('anonymize');
+        $anonymizer->method('anonymizeBatch')
+            ->with($em, $metadata, $records, false)
+            ->willReturn([
+                0 => ['recipient' => '+34999111001', 'message' => 'Msg1'],
+                1 => ['recipient' => '+34999111002', 'message' => 'Msg2'],
+            ]);
+
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('get')->with('App\Service\SmsAnonymizer')->willReturn($anonymizer);
+
+        $service         = new AnonymizeService($this->fakerFactory, $this->patternMatcher, null, $container);
+        $entityAttribute = new Anonymize(anonymizeService: 'App\Service\SmsAnonymizer');
+        $reflection      = $this->createMock(ReflectionClass::class);
+
+        $result = $service->anonymizeEntity($em, $metadata, $reflection, [], 100, false, null, null, $entityAttribute);
+
+        $this->assertSame(2, $result['processed']);
+        $this->assertSame(2, $result['updated']);
     }
 
     /**

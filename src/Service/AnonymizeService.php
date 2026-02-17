@@ -329,7 +329,7 @@ final class AnonymizeService
      * @param ClassMetadata $metadata The entity metadata
      * @param ReflectionClass $reflection The entity reflection class
      * @param array<string, array{property: ReflectionProperty, attribute: AnonymizeProperty, weight: int}> $properties The properties to anonymize
-     * @param int $batchSize The batch size for processing
+     * @param int $batchSize Chunk size for reading (LIMIT per query) and for committing updates (one transaction per chunk)
      * @param bool $dryRun If true, only show what would be anonymized
      * @param AnonymizeStatistics|null $statistics Optional statistics collector
      * @param callable|null $progressCallback Optional progress callback (current, total, message)
@@ -382,220 +382,270 @@ final class AnonymizeService
                 $connection->quote($disc['value']),
             );
         }
-        $records      = $connection->fetchAllAssociative($query);
-        $totalRecords = count($records);
+
+        $countQuery   = $this->buildCountQuery($connection, $metadata, $tableName, $disc['column'], $disc['value']);
+        $totalRecords = (int) $connection->fetchOne($countQuery);
 
         if ($progressCallback !== null && $totalRecords > 0) {
             $progressCallback(0, $totalRecords, sprintf('Starting anonymization of %d records', $totalRecords));
         }
 
-        foreach ($records as $index => $record) {
-            ++$processed;
-
-            // Check entity-level inclusion/exclusion patterns first
-            $isEntityExcluded = false;
-            if ($entityAttribute !== null) {
-                if (!$this->patternMatcher->matches($record, $entityAttribute->includePatterns, $entityAttribute->excludePatterns)) {
-                    // Record is excluded at entity level
-                    $isEntityExcluded = true;
-                }
+        $offset = 0;
+        while (true) {
+            $chunkQuery = $this->appendOrderByAndLimit($connection, $query, $metadata, 't0', $batchSize, $offset);
+            $records    = $connection->fetchAllAssociative($chunkQuery);
+            if (count($records) === 0) {
+                break;
             }
 
-            // When anonymizeService is set, delegate to the service instead of property-based anonymization
-            if ($entityAttribute !== null && $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '' && $this->container !== null) {
-                if ($isEntityExcluded) {
-                    if ($progressCallback !== null && (($index + 1) % max(1, (int) ($totalRecords / 100)) === 0 || $index + 1 === $totalRecords)) {
-                        $progressCallback($index + 1, $totalRecords, sprintf('Processed %d/%d records (%d updated)', $index + 1, $totalRecords, $updated));
+            $connection->beginTransaction();
+            try {
+                $useBatch = false;
+                if ($entityAttribute !== null && $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '' && $this->container !== null) {
+                    try {
+                        $anonymizer = $this->container->get($entityAttribute->anonymizeService);
+                    } catch (Throwable $e) {
+                        throw new RuntimeException(sprintf('Cannot get anonymizer service "%s": %s', $entityAttribute->anonymizeService, $e->getMessage()), 0, $e);
                     }
-                    continue;
-                }
-                try {
-                    $anonymizer = $this->container->get($entityAttribute->anonymizeService);
-                } catch (Throwable $e) {
-                    throw new RuntimeException(sprintf('Cannot get anonymizer service "%s": %s', $entityAttribute->anonymizeService, $e->getMessage()), 0, $e);
-                }
-                if (!$anonymizer instanceof EntityAnonymizerServiceInterface) {
-                    throw new RuntimeException(sprintf('Service "%s" must implement %s.', $entityAttribute->anonymizeService, EntityAnonymizerServiceInterface::class));
-                }
-                $updates = $anonymizer->anonymize($em, $metadata, $record, $dryRun);
-                if (!empty($updates)) {
-                    if (!$dryRun) {
-                        $this->updateRecord($connection, $tableName, $record, $updates, $metadata);
+                    if (!$anonymizer instanceof EntityAnonymizerServiceInterface) {
+                        throw new RuntimeException(sprintf('Service "%s" must implement %s.', $entityAttribute->anonymizeService, EntityAnonymizerServiceInterface::class));
                     }
-                    ++$updated;
-                }
-                if ($progressCallback !== null && (($index + 1) % max(1, (int) ($totalRecords / 100)) === 0 || $index + 1 === $totalRecords)) {
-                    $progressCallback($index + 1, $totalRecords, sprintf('Processed %d/%d records (%d updated)', $index + 1, $totalRecords, $updated));
-                }
-                continue;
-            }
-
-            $shouldAnonymize = false;
-            $updates         = [];
-
-            foreach ($properties as $propertyData) {
-                $property     = $propertyData['property'];
-                $attribute    = $propertyData['attribute'];
-                $propertyName = $property->getName();
-
-                // Check if property exists in metadata
-                if (!$metadata->hasField($propertyName) && !$metadata->hasAssociation($propertyName)) {
-                    continue;
-                }
-
-                // Get column name from metadata
-                $columnName = $propertyName;
-                if ($metadata->hasField($propertyName)) {
-                    $fieldMapping = $metadata->getFieldMapping($propertyName);
-                    $columnName   = $fieldMapping['columnName'] ?? $propertyName;
-                }
-
-                // Check if column exists in record
-                if (!isset($record[$columnName])) {
-                    continue;
-                }
-
-                // Check if this field should bypass entity exclusion
-                $bypassEntityExclusion = $attribute->options['bypass_entity_exclusion'] ?? false;
-
-                // If entity is excluded and this field doesn't bypass exclusion, skip it
-                if ($isEntityExcluded && !$bypassEntityExclusion) {
-                    continue;
-                }
-
-                // Check inclusion/exclusion patterns (only if not bypassing entity exclusion or entity is not excluded)
-                if (!$bypassEntityExclusion || !$isEntityExcluded) {
-                    if (!$this->patternMatcher->matches($record, $attribute->includePatterns, $attribute->excludePatterns)) {
-                        continue;
+                    if ($anonymizer->supportsBatch()) {
+                        $useBatch   = true;
+                        $allUpdates = $anonymizer->anonymizeBatch($em, $metadata, $records, $dryRun);
+                        $processed += count($records);
+                        foreach ($allUpdates as $index => $updates) {
+                            if (empty($updates)) {
+                                continue;
+                            }
+                            $record = $records[$index] ?? null;
+                            if ($record === null) {
+                                continue;
+                            }
+                            if ($entityAttribute !== null && !$this->patternMatcher->matches($record, $entityAttribute->includePatterns, $entityAttribute->excludePatterns)) {
+                                continue;
+                            }
+                            if (!$dryRun) {
+                                $this->updateRecord($connection, $tableName, $record, $updates, $metadata);
+                            }
+                            ++$updated;
+                        }
                     }
                 }
 
-                // Generate anonymized value
-                $faker = $this->getFaker($attribute->type, $attribute->service);
+                if (!$useBatch) {
+                    foreach ($records as $record) {
+                        ++$processed;
 
-                // Always pass the original value to all fakers for consistency and versatility
-                // This allows fakers to use the original value if needed (e.g., hash_preserve, masking)
-                // or ignore it if not needed (most fakers)
-                $fakerOptions  = $attribute->options;
-                $originalValue = $record[$columnName] ?? null;
-
-                // Check if we should preserve null values (skip anonymization if original is null)
-                $preserveNull = $fakerOptions['preserve_null'] ?? false;
-                if ($preserveNull && $originalValue === null) {
-                    // Skip anonymization for this property if original value is null
-                    continue;
-                }
-
-                // Set original_value (standard key for all fakers)
-                if (!isset($fakerOptions['original_value'])) {
-                    $fakerOptions['original_value'] = $originalValue;
-                }
-
-                // For backward compatibility with hash_preserve and masking (they use 'value' key)
-                if (in_array($attribute->type, ['hash_preserve', 'masking']) && !isset($fakerOptions['value'])) {
-                    $fakerOptions['value'] = $originalValue;
-                }
-
-                // For name_fallback faker, pass the full record to check related fields
-                if ($attribute->type === 'name_fallback' && !isset($fakerOptions['record'])) {
-                    $fakerOptions['record'] = $record;
-                }
-
-                // For pattern_based and copy fakers, pass the record with already anonymized values merged
-                // This allows them to use anonymized values from other fields (e.g., email)
-                if (in_array($attribute->type, ['pattern_based', 'copy']) && !isset($fakerOptions['record'])) {
-                    // Merge original record with already anonymized values from $updates
-                    // This ensures these fakers can access the anonymized value of source_field
-                    $mergedRecord           = array_merge($record, $updates);
-                    $fakerOptions['record'] = $mergedRecord;
-                }
-
-                // Check if value should be null based on nullable option
-                $nullable        = $fakerOptions['nullable'] ?? false;
-                $nullProbability = (int) ($fakerOptions['null_probability'] ?? 0);
-
-                // If nullable is enabled and random chance determines it should be null
-                if ($nullable && $nullProbability > 0) {
-                    // Generate random number 0-99 and check if it's below the probability threshold
-                    // null_probability of 30 means 30% chance of being null (0-29 out of 0-99)
-                    // null_probability of 100 means 100% chance of being null (0-99 out of 0-99)
-                    $random = mt_rand(0, 99);
-                    if ($random < $nullProbability) {
-                        $anonymizedValue = null;
-                    } else {
-                        $anonymizedValue = $faker->generate($fakerOptions);
-                    }
-                } else {
-                    $anonymizedValue = $faker->generate($fakerOptions);
-                }
-
-                // Convert value based on field type (but preserve null values)
-                if ($anonymizedValue !== null) {
-                    $anonymizedValue = $this->convertValue($anonymizedValue, $metadata, $propertyName);
-                }
-
-                // Dispatch AnonymizePropertyEvent to allow listeners to modify or skip anonymization
-                if ($this->eventDispatcher !== null) {
-                    $event = new AnonymizePropertyEvent(
-                        $em,
-                        $metadata,
-                        $property,
-                        $columnName,
-                        $record[$columnName] ?? null,
-                        $anonymizedValue,
-                        $record,
-                        $dryRun,
-                    );
-                    $this->eventDispatcher->dispatch($event);
-
-                    // Check if listener requested to skip anonymization
-                    if ($event->shouldSkipAnonymization()) {
-                        continue;
-                    }
-
-                    // Use the potentially modified anonymized value
-                    $anonymizedValue = $event->getAnonymizedValue();
-                }
-
-                $updates[$columnName] = $anonymizedValue;
-                $shouldAnonymize      = true;
-
-                // Track property statistics
-                if (!isset($propertyStats[$propertyName])) {
-                    $propertyStats[$propertyName] = 0;
-                }
-                ++$propertyStats[$propertyName];
-            }
-
-            if ($shouldAnonymize && !$dryRun) {
-                // Check if entity uses AnonymizableTrait and add anonymized flag
-                if ($this->usesAnonymizableTrait($reflection)) {
-                    $schemaManager = $connection->createSchemaManager();
-                    if ($schemaManager->tablesExist([$tableName])) {
-                        $columns             = $schemaManager->listTableColumns($tableName);
-                        $hasAnonymizedColumn = false;
-                        foreach ($columns as $column) {
-                            if ($column->getName() === 'anonymized') {
-                                $hasAnonymizedColumn = true;
-                                break;
+                        // Check entity-level inclusion/exclusion patterns first
+                        $isEntityExcluded = false;
+                        if ($entityAttribute !== null) {
+                            if (!$this->patternMatcher->matches($record, $entityAttribute->includePatterns, $entityAttribute->excludePatterns)) {
+                                // Record is excluded at entity level
+                                $isEntityExcluded = true;
                             }
                         }
 
-                        if ($hasAnonymizedColumn) {
-                            $updates['anonymized'] = true;
+                        // When anonymizeService is set, delegate to the service instead of property-based anonymization
+                        if ($entityAttribute !== null && $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '' && $this->container !== null) {
+                            if ($isEntityExcluded) {
+                                continue;
+                            }
+                            try {
+                                $anonymizer = $this->container->get($entityAttribute->anonymizeService);
+                            } catch (Throwable $e) {
+                                throw new RuntimeException(sprintf('Cannot get anonymizer service "%s": %s', $entityAttribute->anonymizeService, $e->getMessage()), 0, $e);
+                            }
+                            if (!$anonymizer instanceof EntityAnonymizerServiceInterface) {
+                                throw new RuntimeException(sprintf('Service "%s" must implement %s.', $entityAttribute->anonymizeService, EntityAnonymizerServiceInterface::class));
+                            }
+                            $updates = $anonymizer->anonymize($em, $metadata, $record, $dryRun);
+                            if (!empty($updates)) {
+                                if (!$dryRun) {
+                                    $this->updateRecord($connection, $tableName, $record, $updates, $metadata);
+                                }
+                                ++$updated;
+                            }
+                            continue;
+                        }
+
+                        $shouldAnonymize = false;
+                        $updates         = [];
+
+                        foreach ($properties as $propertyData) {
+                            $property     = $propertyData['property'];
+                            $attribute    = $propertyData['attribute'];
+                            $propertyName = $property->getName();
+
+                            // Check if property exists in metadata
+                            if (!$metadata->hasField($propertyName) && !$metadata->hasAssociation($propertyName)) {
+                                continue;
+                            }
+
+                            // Get column name from metadata
+                            $columnName = $propertyName;
+                            if ($metadata->hasField($propertyName)) {
+                                $fieldMapping = $metadata->getFieldMapping($propertyName);
+                                $columnName   = $fieldMapping['columnName'] ?? $propertyName;
+                            }
+
+                            // Check if column exists in record
+                            if (!isset($record[$columnName])) {
+                                continue;
+                            }
+
+                            // Check if this field should bypass entity exclusion
+                            $bypassEntityExclusion = $attribute->options['bypass_entity_exclusion'] ?? false;
+
+                            // If entity is excluded and this field doesn't bypass exclusion, skip it
+                            if ($isEntityExcluded && !$bypassEntityExclusion) {
+                                continue;
+                            }
+
+                            // Check inclusion/exclusion patterns (only if not bypassing entity exclusion or entity is not excluded)
+                            if (!$bypassEntityExclusion || !$isEntityExcluded) {
+                                if (!$this->patternMatcher->matches($record, $attribute->includePatterns, $attribute->excludePatterns)) {
+                                    continue;
+                                }
+                            }
+
+                            // Generate anonymized value
+                            $faker = $this->getFaker($attribute->type, $attribute->service);
+
+                            // Always pass the original value to all fakers for consistency and versatility
+                            // This allows fakers to use the original value if needed (e.g., hash_preserve, masking)
+                            // or ignore it if not needed (most fakers)
+                            $fakerOptions  = $attribute->options;
+                            $originalValue = $record[$columnName] ?? null;
+
+                            // Check if we should preserve null values (skip anonymization if original is null)
+                            $preserveNull = $fakerOptions['preserve_null'] ?? false;
+                            if ($preserveNull && $originalValue === null) {
+                                // Skip anonymization for this property if original value is null
+                                continue;
+                            }
+
+                            // Set original_value (standard key for all fakers)
+                            if (!isset($fakerOptions['original_value'])) {
+                                $fakerOptions['original_value'] = $originalValue;
+                            }
+
+                            // For backward compatibility with hash_preserve and masking (they use 'value' key)
+                            if (in_array($attribute->type, ['hash_preserve', 'masking']) && !isset($fakerOptions['value'])) {
+                                $fakerOptions['value'] = $originalValue;
+                            }
+
+                            // For name_fallback faker, pass the full record to check related fields
+                            if ($attribute->type === 'name_fallback' && !isset($fakerOptions['record'])) {
+                                $fakerOptions['record'] = $record;
+                            }
+
+                            // For pattern_based and copy fakers, pass the record with already anonymized values merged
+                            // This allows them to use anonymized values from other fields (e.g., email)
+                            if (in_array($attribute->type, ['pattern_based', 'copy']) && !isset($fakerOptions['record'])) {
+                                // Merge original record with already anonymized values from $updates
+                                // This ensures these fakers can access the anonymized value of source_field
+                                $mergedRecord           = array_merge($record, $updates);
+                                $fakerOptions['record'] = $mergedRecord;
+                            }
+
+                            // Check if value should be null based on nullable option
+                            $nullable        = $fakerOptions['nullable'] ?? false;
+                            $nullProbability = (int) ($fakerOptions['null_probability'] ?? 0);
+
+                            // If nullable is enabled and random chance determines it should be null
+                            if ($nullable && $nullProbability > 0) {
+                                // Generate random number 0-99 and check if it's below the probability threshold
+                                // null_probability of 30 means 30% chance of being null (0-29 out of 0-99)
+                                // null_probability of 100 means 100% chance of being null (0-99 out of 0-99)
+                                $random = mt_rand(0, 99);
+                                if ($random < $nullProbability) {
+                                    $anonymizedValue = null;
+                                } else {
+                                    $anonymizedValue = $faker->generate($fakerOptions);
+                                }
+                            } else {
+                                $anonymizedValue = $faker->generate($fakerOptions);
+                            }
+
+                            // Convert value based on field type (but preserve null values)
+                            if ($anonymizedValue !== null) {
+                                $anonymizedValue = $this->convertValue($anonymizedValue, $metadata, $propertyName);
+                            }
+
+                            // Dispatch AnonymizePropertyEvent to allow listeners to modify or skip anonymization
+                            if ($this->eventDispatcher !== null) {
+                                $event = new AnonymizePropertyEvent(
+                                    $em,
+                                    $metadata,
+                                    $property,
+                                    $columnName,
+                                    $record[$columnName] ?? null,
+                                    $anonymizedValue,
+                                    $record,
+                                    $dryRun,
+                                );
+                                $this->eventDispatcher->dispatch($event);
+
+                                // Check if listener requested to skip anonymization
+                                if ($event->shouldSkipAnonymization()) {
+                                    continue;
+                                }
+
+                                // Use the potentially modified anonymized value
+                                $anonymizedValue = $event->getAnonymizedValue();
+                            }
+
+                            $updates[$columnName] = $anonymizedValue;
+                            $shouldAnonymize      = true;
+
+                            // Track property statistics
+                            if (!isset($propertyStats[$propertyName])) {
+                                $propertyStats[$propertyName] = 0;
+                            }
+                            ++$propertyStats[$propertyName];
+                        }
+
+                        if ($shouldAnonymize && !$dryRun) {
+                            // Check if entity uses AnonymizableTrait and add anonymized flag
+                            if ($this->usesAnonymizableTrait($reflection)) {
+                                $schemaManager = $connection->createSchemaManager();
+                                if ($schemaManager->tablesExist([$tableName])) {
+                                    $columns             = $schemaManager->listTableColumns($tableName);
+                                    $hasAnonymizedColumn = false;
+                                    foreach ($columns as $column) {
+                                        if ($column->getName() === 'anonymized') {
+                                            $hasAnonymizedColumn = true;
+                                            break;
+                                        }
+                                    }
+
+                                    if ($hasAnonymizedColumn) {
+                                        $updates['anonymized'] = true;
+                                    }
+                                }
+                            }
+
+                            $this->updateRecord($connection, $tableName, $record, $updates, $metadata);
+                            ++$updated;
+                        } elseif ($shouldAnonymize && $dryRun) {
+                            ++$updated;
                         }
                     }
                 }
 
-                $this->updateRecord($connection, $tableName, $record, $updates, $metadata);
-                ++$updated;
-            } elseif ($shouldAnonymize && $dryRun) {
-                ++$updated;
+                $connection->commit();
+            } catch (Throwable $e) {
+                $connection->rollBack();
+                throw $e;
             }
 
-            // Update progress
-            if ($progressCallback !== null && (($index + 1) % max(1, (int) ($totalRecords / 100)) === 0 || $index + 1 === $totalRecords)) {
-                $progressCallback($index + 1, $totalRecords, sprintf('Processed %d/%d records (%d updated)', $index + 1, $totalRecords, $updated));
+            if ($progressCallback !== null) {
+                $progressCallback($processed, $totalRecords, sprintf('Processed %d/%d records (%d updated)', $processed, $totalRecords, $updated));
+            }
+            $offset += $batchSize;
+            if (count($records) < $batchSize) {
+                break;
             }
         }
 
@@ -944,5 +994,76 @@ final class AnonymizeService
         }
 
         return $query;
+    }
+
+    /**
+     * Builds a COUNT(*) query for the main table with optional discriminator filter.
+     * Used to get total record count for progress without loading all rows.
+     *
+     * @param \Doctrine\DBAL\Connection $connection The database connection
+     * @param ClassMetadata $metadata The entity metadata
+     * @param string $tableName The main table name
+     * @param string|null $discColumn Discriminator column name (null if not polymorphic)
+     * @param mixed $discValue Discriminator value
+     *
+     * @return string The SQL COUNT query
+     */
+    private function buildCountQuery(
+        \Doctrine\DBAL\Connection $connection,
+        ClassMetadata $metadata,
+        string $tableName,
+        ?string $discColumn,
+        mixed $discValue
+    ): string {
+        $mainTableAlias = 't0';
+        $from           = sprintf(
+            '%s AS %s',
+            DbalHelper::quoteIdentifier($connection, $tableName),
+            DbalHelper::quoteIdentifier($connection, $mainTableAlias),
+        );
+        $query = 'SELECT COUNT(*) FROM ' . $from;
+        if ($discColumn !== null && $discValue !== null) {
+            $query .= sprintf(
+                ' WHERE %s = %s',
+                DbalHelper::quoteIdentifier($connection, $discColumn),
+                $connection->quote((string) $discValue),
+            );
+        }
+
+        return $query;
+    }
+
+    /**
+     * Appends ORDER BY primary key and LIMIT/OFFSET to a query for stable chunked reads.
+     *
+     * @param \Doctrine\DBAL\Connection $connection The database connection
+     * @param string $query The base SELECT query (with WHERE if any)
+     * @param ClassMetadata $metadata The entity metadata
+     * @param string $mainTableAlias The main table alias (e.g. t0)
+     * @param int $limit Maximum number of rows
+     * @param int $offset Offset for pagination
+     *
+     * @return string The query with ORDER BY, LIMIT and OFFSET
+     */
+    private function appendOrderByAndLimit(
+        \Doctrine\DBAL\Connection $connection,
+        string $query,
+        ClassMetadata $metadata,
+        string $mainTableAlias,
+        int $limit,
+        int $offset
+    ): string {
+        $idColumns  = $metadata->getIdentifierColumnNames();
+        $orderParts = [];
+        foreach ($idColumns as $col) {
+            $orderParts[] = DbalHelper::quoteIdentifier($connection, $mainTableAlias) . '.'
+                . DbalHelper::quoteIdentifier($connection, $col);
+        }
+        $suffix = sprintf(' LIMIT %d OFFSET %d', $limit, $offset);
+        if (empty($orderParts)) {
+            return $query . $suffix;
+        }
+
+        return $query . ' ORDER BY ' . implode(', ', $orderParts) . $suffix;
     }
 }

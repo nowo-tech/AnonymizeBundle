@@ -13,6 +13,40 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.12
+
+**Release Date**: 2026-02-16
+
+#### What's New
+
+- **Chunked processing**: Anonymization now loads records in chunks of `batch_size` (config or `--batch-size`) instead of loading the full table into memory. Each chunk is committed in a single transaction, reducing the number of commits and keeping memory bounded.
+- **Custom anonymizer: record or batch**: Services implementing `EntityAnonymizerServiceInterface` can choose to work record-by-record (existing behaviour) or by batch. Implement `supportsBatch(): bool` and `anonymizeBatch(..., array $records, ...): array`; when `supportsBatch()` returns `true`, the bundle calls `anonymizeBatch()` once per chunk.
+
+#### Breaking Changes
+
+- **EntityAnonymizerServiceInterface**: The interface now has three methods. Any class that implements it must implement:
+  - **`supportsBatch(): bool`** — Return `false` for record-by-record (bundle calls `anonymize()` per record), or `true` for batch (bundle calls `anonymizeBatch()` per chunk).
+  - **`anonymize(...): array`** — Unchanged; single record, returns column => value.
+  - **`anonymizeBatch(EntityManagerInterface $em, ClassMetadata $metadata, array $records, bool $dryRun): array`** — Returns a map `int $index => array<string, mixed>` (updates for each record in the chunk). Only called when `supportsBatch()` is `true`.
+
+#### Migration Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Implement the new interface methods** in every class that implements `EntityAnonymizerServiceInterface`:
+   - Add `public function supportsBatch(): bool` — return `false` to keep current record-by-record behaviour, or `true` to use batch mode.
+   - Add `public function anonymizeBatch(EntityManagerInterface $em, ClassMetadata $metadata, array $records, bool $dryRun): array` — if you use record-by-record, you can implement it by calling `anonymize()` for each record and returning `[$index => $updates, ...]` for non-empty updates. See the demo `SmsNotificationAnonymizerService` in `demo/symfony6/src/Service/` (and symfony7/symfony8) for an example.
+
+3. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+4. No configuration changes required. Existing `batch_size` (or `--batch-size`) now controls both chunk size for reading and one transaction per chunk for writes.
+
 ### Upgrading to 1.0.11
 
 **Release Date**: 2026-02-17
@@ -1967,7 +2001,8 @@ If you encounter issues during upgrade:
 
 | Bundle Version | Symfony Version | PHP Version | Doctrine Bundle | Features |
 |---------------|-----------------|-------------|-----------------|----------|
-| 1.0.11+       | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | UtmFaker min/max length after format, test/CI compatibility |
+| 1.0.12+       | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Chunked processing (batch_size), transaction per chunk, EntityAnonymizerServiceInterface supportsBatch/anonymizeBatch (breaking: implement 3 methods) |
+| 1.0.11        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | UtmFaker min/max length after format, test/CI compatibility |
 | 1.0.10        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | anonymizeService-only entities (no AnonymizeProperty required) |
 | 1.0.9         | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | FakerFactory/PreFlightCheckService explicit DI, no synthetic kernel usage, --entity without -e, demo Makefiles aligned |
 | 1.0.8         | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | --entity option for nowo:anonymize:run, FakerFactory alias and doc for app services |

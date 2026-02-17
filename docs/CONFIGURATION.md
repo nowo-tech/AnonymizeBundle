@@ -78,7 +78,7 @@ nowo_anonymize:
 
 **Type**: `integer`  
 **Default**: `100`  
-**Description**: Number of records to process in each batch. Larger batch sizes may improve performance but use more memory.
+**Description**: Number of records processed per batch. Records are loaded from the database in chunks of this size (using `LIMIT`/`OFFSET` with an `ORDER BY` on the primary key) so memory usage stays bounded. All updates for a batch are committed in a single transaction, so larger batches mean fewer commits and often better throughput; smaller batches use less memory.
 
 **Example**:
 ```yaml

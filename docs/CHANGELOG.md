@@ -25,6 +25,31 @@ _(none)_
 
 ---
 
+## [1.0.12] - 2026-02-16
+
+### Added
+
+- **Chunked processing and bounded memory**: `AnonymizeService::anonymizeEntity()` now loads records in chunks of `batch_size` (LIMIT/OFFSET with ORDER BY primary key) instead of loading all rows at once. Memory usage is bounded by the configured batch size. A single `COUNT(*)` query is run once for progress reporting.
+- **Transaction per chunk**: All updates for a chunk are committed in one transaction (one commit per chunk instead of per row), improving throughput when using a custom anonymizer or property-based anonymization.
+- **EntityAnonymizerServiceInterface**: Two new methods for custom anonymizer services:
+  - **`supportsBatch(): bool`** — Return `true` to have the bundle call `anonymizeBatch()` once per chunk; `false` to call `anonymize()` for each record.
+  - **`anonymizeBatch(EntityManagerInterface $em, ClassMetadata $metadata, array $records, bool $dryRun): array`** — Receives the full chunk of records and returns a map `record index => (column => new value)`. Only called when `supportsBatch()` returns `true`.
+
+### Changed
+
+- **EntityAnonymizerServiceInterface (breaking)**: The interface now requires three methods: `supportsBatch()`, `anonymize()`, and `anonymizeBatch()`. Existing implementations must add `supportsBatch()` and `anonymizeBatch()`. For record-by-record behavior, return `false` from `supportsBatch()` and implement `anonymizeBatch()` e.g. by delegating to `anonymize()` per record (see demos and USAGE.md).
+
+### Fixed
+
+_(none)_
+
+### Documentation
+
+- **CONFIGURATION.md**: `batch_size` description updated to state that it limits rows loaded per query (memory) and that one transaction is committed per chunk (performance).
+- **USAGE.md**: Section "Anonymizing via a custom service" updated with the three interface methods and the record-by-record vs batch behaviour.
+
+---
+
 ## [1.0.11] - 2026-02-17
 
 ### Fixed
