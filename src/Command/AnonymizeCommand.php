@@ -551,15 +551,20 @@ final class AnonymizeCommand extends AbstractCommand
             $reflection = $entityData['reflection'];
             $attribute  = $entityData['attribute'];
 
+            // Get anonymizable properties (optional when entity uses anonymizeService)
+            $properties           = $anonymizeService->getAnonymizableProperties($reflection);
+            $usesAnonymizeService = $attribute->anonymizeService !== null && $attribute->anonymizeService !== '';
+
             // Interactive confirmation for each entity
             if ($interactive && !$statsOnly) {
-                // Get property count for summary
-                $propertyCount = count($entityData['properties'] ?? []);
-                $io->writeln(sprintf('Entity: <info>%s</info> (table: <comment>%s</comment>, properties: <info>%d</info>)', $className, $metadata->getTableName(), $propertyCount));
-
-                if ($verbose && isset($entityData['properties'])) {
+                if ($usesAnonymizeService && empty($properties)) {
+                    $io->writeln(sprintf('Entity: <info>%s</info> (table: <comment>%s</comment>, <comment>custom anonymize service</comment>)', $className, $metadata->getTableName()));
+                } else {
+                    $io->writeln(sprintf('Entity: <info>%s</info> (table: <comment>%s</comment>, properties: <info>%d</info>)', $className, $metadata->getTableName(), count($properties)));
+                }
+                if ($verbose && !empty($properties)) {
                     $io->writeln('  Properties to anonymize:');
-                    foreach ($entityData['properties'] as $propName => $propData) {
+                    foreach ($properties as $propName => $propData) {
                         $fakerType = $propData['attribute']->type ?? 'unknown';
                         $io->writeln(sprintf('    - <info>%s</info> (<comment>%s</comment>)', $propName, $fakerType));
                     }
@@ -581,10 +586,7 @@ final class AnonymizeCommand extends AbstractCommand
                 $io->writeln(sprintf('<comment>[DEBUG]</comment> Entity metadata: table=%s', $metadata->getTableName()));
             }
 
-            // Get anonymizable properties
-            $properties = $anonymizeService->getAnonymizableProperties($reflection);
-
-            if (empty($properties)) {
+            if (empty($properties) && !$usesAnonymizeService) {
                 if (!$statsOnly) {
                     $io->writeln('  No properties found with #[AnonymizeProperty] attribute');
                 }
@@ -595,11 +597,19 @@ final class AnonymizeCommand extends AbstractCommand
             }
 
             if (!$statsOnly) {
-                $io->writeln(sprintf('  Found %d property(ies) to anonymize', count($properties)));
+                if ($usesAnonymizeService && empty($properties)) {
+                    $io->writeln('  Using custom anonymize service (no #[AnonymizeProperty] needed)');
+                } else {
+                    $io->writeln(sprintf('  Found %d property(ies) to anonymize', count($properties)));
+                }
             }
 
             if ($verbose || $debug) {
-                $io->writeln('  Properties to anonymize:');
+                if ($usesAnonymizeService && empty($properties)) {
+                    $io->writeln('  Anonymization: custom service (no property attributes)');
+                } else {
+                    $io->writeln('  Properties to anonymize:');
+                }
                 foreach ($properties as $propertyData) {
                     $property  = $propertyData['property'];
                     $attribute = $propertyData['attribute'];

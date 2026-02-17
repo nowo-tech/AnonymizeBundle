@@ -146,10 +146,11 @@ final class AnonymizeInfoCommand extends AbstractCommand
                     $entityAttribute = $entityData['attribute'];
                     $tableName       = $metadata->getTableName();
 
-                    // Get anonymizable properties
-                    $properties = $anonymizeService->getAnonymizableProperties($reflection);
+                    // Get anonymizable properties (may be empty when entity uses anonymizeService)
+                    $properties           = $anonymizeService->getAnonymizableProperties($reflection);
+                    $usesAnonymizeService = $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '';
 
-                    if (empty($properties)) {
+                    if (empty($properties) && !$usesAnonymizeService) {
                         continue;
                     }
 
@@ -157,7 +158,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
                     $countQuery   = sprintf('SELECT COUNT(*) as total FROM %s', $this->quoteIdentifier($connection, $tableName));
                     $totalRecords = (int) $connection->fetchOne($countQuery);
 
-                    // Get all records for pattern matching
+                    // Get all records for pattern matching (only needed when we have properties to show samples)
                     $query      = sprintf('SELECT * FROM %s', $this->quoteIdentifier($connection, $tableName));
                     $allRecords = $connection->fetchAllAssociative($query);
 
@@ -165,6 +166,10 @@ final class AnonymizeInfoCommand extends AbstractCommand
                     $io->writeln(sprintf('  <comment>Entity:</comment> <info>%s</info>', $className));
                     $io->writeln(sprintf('  <comment>Table:</comment> %s', $tableName));
                     $io->writeln(sprintf('  <comment>Total Records:</comment> %d', $totalRecords));
+
+                    if ($usesAnonymizeService) {
+                        $io->writeln(sprintf('  <comment>Anonymization:</comment> custom service <info>%s</info> (no #[AnonymizeProperty] required)', $entityAttribute->anonymizeService));
+                    }
 
                     // Show entity-level patterns if any
                     if (!empty($entityAttribute->includePatterns) || !empty($entityAttribute->excludePatterns)) {
@@ -175,6 +180,11 @@ final class AnonymizeInfoCommand extends AbstractCommand
                         if (!empty($entityAttribute->excludePatterns)) {
                             $io->writeln(sprintf('    Exclude: %s', json_encode($entityAttribute->excludePatterns, JSON_PRETTY_PRINT)));
                         }
+                    }
+
+                    if (empty($properties)) {
+                        $io->writeln('');
+                        continue;
                     }
 
                     // Sort properties by weight

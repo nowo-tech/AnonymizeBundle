@@ -496,7 +496,7 @@ class SmsNotification extends AbstractNotification
 }
 ```
 
-- When `anonymizeService` is set, **property-level attributes are ignored** for that entity; the service's return value is the only source of updates.
+- When `anonymizeService` is set, **you do not need any `#[AnonymizeProperty]`** on that entity; the command will process it and call the service for each record. Property-level attributes, if present, are ignored; the service's return value is the only source of updates.
 - Entity-level `includePatterns` / `excludePatterns` still apply: excluded records are skipped and the service is not called.
 - The bundle injects the container so the service can be resolved by id (FQCN or alias). See demo entities `SmsNotification` and `SmsNotificationAnonymizerService` in the demo projects.
 

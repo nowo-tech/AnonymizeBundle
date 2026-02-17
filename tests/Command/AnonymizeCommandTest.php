@@ -90,7 +90,7 @@ class AnonymizeCommandTest extends TestCase
         $this->assertTrue($definition->hasOption('debug'));
         $this->assertTrue($definition->hasOption('interactive'));
         $this->assertTrue($definition->hasOption('entity'));
-        $this->assertTrue($definition->hasShortcut('e'));
+        // --entity has no shortcut (e would conflict with Symfony's global --env -e)
     }
 
     /**
