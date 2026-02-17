@@ -23,7 +23,7 @@ class EnvironmentProtectionServiceTest extends TestCase
     {
         $parameterBag = $this->createMock(ParameterBagInterface::class);
         $parameterBag->method('get')
-            ->willReturnCallback(function ($key) {
+            ->willReturnCallback(static function ($key) {
                 return match ($key) {
                     'kernel.environment' => 'dev',
                     'kernel.debug'       => true,
@@ -46,7 +46,7 @@ class EnvironmentProtectionServiceTest extends TestCase
     {
         $parameterBag = $this->createMock(ParameterBagInterface::class);
         $parameterBag->method('get')
-            ->willReturnCallback(function ($key) {
+            ->willReturnCallback(static function ($key) {
                 return match ($key) {
                     'kernel.environment' => 'test',
                     'kernel.debug'       => true,
@@ -69,7 +69,7 @@ class EnvironmentProtectionServiceTest extends TestCase
     {
         $parameterBag = $this->createMock(ParameterBagInterface::class);
         $parameterBag->method('get')
-            ->willReturnCallback(function ($key) {
+            ->willReturnCallback(static function ($key) {
                 return match ($key) {
                     'kernel.environment' => 'prod',
                     'kernel.debug'       => false,
@@ -100,7 +100,7 @@ class EnvironmentProtectionServiceTest extends TestCase
 
         $parameterBag = $this->createMock(ParameterBagInterface::class);
         $parameterBag->method('get')
-            ->willReturnCallback(function ($key) use ($tempDir) {
+            ->willReturnCallback(static function ($key) use ($tempDir) {
                 return match ($key) {
                     'kernel.environment' => 'dev',
                     'kernel.debug'       => true,
@@ -144,7 +144,7 @@ class EnvironmentProtectionServiceTest extends TestCase
 
         $parameterBag = $this->createMock(ParameterBagInterface::class);
         $parameterBag->method('get')
-            ->willReturnCallback(function ($key) use ($tempDir) {
+            ->willReturnCallback(static function ($key) use ($tempDir) {
                 return match ($key) {
                     'kernel.environment' => 'dev',
                     'kernel.debug'       => true,
@@ -241,7 +241,7 @@ class EnvironmentProtectionServiceTest extends TestCase
 
         $parameterBag = $this->createMock(ParameterBagInterface::class);
         $parameterBag->method('get')
-            ->willReturnCallback(function ($key) use ($tempDir) {
+            ->willReturnCallback(static function ($key) use ($tempDir) {
                 return match ($key) {
                     'kernel.environment' => 'dev',
                     'kernel.debug'       => true,
@@ -281,7 +281,7 @@ class EnvironmentProtectionServiceTest extends TestCase
 
         $parameterBag = $this->createMock(ParameterBagInterface::class);
         $parameterBag->method('get')
-            ->willReturnCallback(function ($key) use ($tempDir) {
+            ->willReturnCallback(static function ($key) use ($tempDir) {
                 return match ($key) {
                     'kernel.environment' => 'dev',
                     'kernel.debug'       => true,

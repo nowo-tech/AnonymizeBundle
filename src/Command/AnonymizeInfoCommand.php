@@ -178,7 +178,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
                     }
 
                     // Sort properties by weight
-                    usort($properties, function ($a, $b) {
+                    usort($properties, static function ($a, $b) {
                         $weightA = $a['weight'] ?? PHP_INT_MAX;
                         $weightB = $b['weight'] ?? PHP_INT_MAX;
                         if ($weightA === $weightB) {

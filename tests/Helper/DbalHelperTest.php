@@ -491,7 +491,7 @@ class DbalHelperTest extends TestCase
     {
         $connection = $this->createMock(Connection::class);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(function ($identifier) {
+            ->willReturnCallback(static function ($identifier) {
                 return '`' . $identifier . '`';
             });
 
@@ -526,7 +526,7 @@ class DbalHelperTest extends TestCase
     {
         $connection = $this->createMock(Connection::class);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(function ($identifier) {
+            ->willReturnCallback(static function ($identifier) {
                 return '`' . $identifier . '`';
             });
 

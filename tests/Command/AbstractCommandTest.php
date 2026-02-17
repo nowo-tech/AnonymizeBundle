@@ -60,7 +60,7 @@ class AbstractCommandTest extends TestCase
             ->willReturn($platform);
 
         $platform->method('quoteIdentifier')
-            ->willReturnCallback(function ($identifier) {
+            ->willReturnCallback(static function ($identifier) {
                 return '`' . $identifier . '`';
             });
 

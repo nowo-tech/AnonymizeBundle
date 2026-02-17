@@ -242,7 +242,7 @@ final class PreFlightCheckService
         try {
             $fakerType = FakerType::from($attribute->type);
         } catch (ValueError $e) {
-            $errors[] = sprintf('Invalid faker type "%s". Valid types: %s', $attribute->type, implode(', ', array_map(fn ($case) => $case->value, FakerType::cases())));
+            $errors[] = sprintf('Invalid faker type "%s". Valid types: %s', $attribute->type, implode(', ', array_map(static fn ($case) => $case->value, FakerType::cases())));
 
             return $errors;
         }

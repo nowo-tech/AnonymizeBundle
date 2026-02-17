@@ -168,7 +168,7 @@ class AnonymizeServiceTest extends TestCase
         $this->assertIsArray($result);
         $this->assertCount(2, $result);
         // The result is an indexed array, not associative by property name
-        $propertyNames = array_map(fn ($item) => $item['property']->getName(), $result);
+        $propertyNames = array_map(static fn ($item) => $item['property']->getName(), $result);
         $this->assertContains('email', $propertyNames);
         $this->assertContains('name', $propertyNames);
         $this->assertArrayHasKey('property', $result[0]);
@@ -199,7 +199,7 @@ class AnonymizeServiceTest extends TestCase
         $this->assertIsArray($result);
         $this->assertCount(3, $result);
         // The result is sorted by weight, so email (1) should come first, then phone (2), then name (3)
-        $propertyNames = array_map(fn ($item) => $item['property']->getName(), $result);
+        $propertyNames = array_map(static fn ($item) => $item['property']->getName(), $result);
         $this->assertEquals('email', $propertyNames[0]);
         $this->assertEquals('phone', $propertyNames[1]);
         $this->assertEquals('name', $propertyNames[2]);
@@ -225,7 +225,7 @@ class AnonymizeServiceTest extends TestCase
         $this->assertIsArray($result);
         $this->assertCount(2, $result);
         // Properties with weight should come first
-        $propertyNames = array_map(fn ($item) => $item['property']->getName(), $result);
+        $propertyNames = array_map(static fn ($item) => $item['property']->getName(), $result);
         $this->assertEquals('email', $propertyNames[0]);
         $this->assertEquals('name', $propertyNames[1]);
     }
@@ -379,7 +379,7 @@ class AnonymizeServiceTest extends TestCase
 
         $properties       = [];
         $progressCalled   = false;
-        $progressCallback = function ($current, $total, $message) use (&$progressCalled) {
+        $progressCallback = static function ($current, $total, $message) use (&$progressCalled) {
             $progressCalled = true;
         };
 
@@ -513,9 +513,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
@@ -529,7 +529,7 @@ class AnonymizeServiceTest extends TestCase
         ];
 
         // Use a valid progress callback to avoid the error
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -573,7 +573,7 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
 
         $property   = $reflection->getProperty('email');
         $properties = [
@@ -617,13 +617,13 @@ class AnonymizeServiceTest extends TestCase
         $metadata->discriminatorValue = 'sms';
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . str_replace("'", "''", (string) $val) . "'");
+            ->willReturnCallback(static fn ($val) => "'" . str_replace("'", "''", (string) $val) . "'");
 
         $capturedQuery = null;
         $connection->method('fetchAllAssociative')
-            ->willReturnCallback(function ($query) use (&$capturedQuery) {
+            ->willReturnCallback(static function ($query) use (&$capturedQuery) {
                 $capturedQuery = $query;
 
                 return [];
@@ -665,7 +665,7 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
 
         $entityAttribute                  = new Anonymize();
         $entityAttribute->excludePatterns = ['status' => 'deleted'];
@@ -702,7 +702,7 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'role' => 'admin', 'status' => 'active']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
 
         $entityAttribute                  = new Anonymize();
         $entityAttribute->excludePatterns = [
@@ -743,7 +743,7 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'user@nowo.tech']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
 
         $entityAttribute                  = new Anonymize();
         $entityAttribute->excludePatterns = ['email' => ['%@nowo.tech', 'operador@example.com']];
@@ -795,9 +795,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 50, 'email' => 'test@example.com']]); // ID doesn't match pattern
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
@@ -810,7 +810,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -860,9 +860,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com', 'status' => 'deleted']]); // Status matches exclude pattern
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
@@ -875,7 +875,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -941,9 +941,9 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(['anonymized' => $column]);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
@@ -956,7 +956,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -1021,9 +1021,9 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(['other_column' => $column]);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
@@ -1036,7 +1036,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -1091,15 +1091,15 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
         // Mock event to skip anonymization
         $eventDispatcher->method('dispatch')
-            ->willReturnCallback(function ($event) {
+            ->willReturnCallback(static function ($event) {
                 if ($event instanceof \Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent) {
                     $event->setSkipAnonymization(true);
                 }
@@ -1116,7 +1116,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -1172,15 +1172,15 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
         // Mock event to modify anonymized value
         $eventDispatcher->method('dispatch')
-            ->willReturnCallback(function ($event) {
+            ->willReturnCallback(static function ($event) {
                 if ($event instanceof \Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent) {
                     $event->setAnonymizedValue('modified@example.com');
                 }
@@ -1197,7 +1197,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -1246,9 +1246,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'age' => '25']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
@@ -1261,7 +1261,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -1310,9 +1310,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'price' => '99.99']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
@@ -1325,7 +1325,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -1374,9 +1374,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'active' => '1']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
@@ -1389,7 +1389,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -1439,9 +1439,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => null]]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(function ($val) {
+            ->willReturnCallback(static function ($val) {
                 if ($val === null) {
                     return 'NULL';
                 }
@@ -1460,7 +1460,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -1510,9 +1510,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'active' => '0']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
@@ -1525,7 +1525,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -1574,9 +1574,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'active' => '1']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
@@ -1589,7 +1589,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -1638,9 +1638,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'count' => '10']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
@@ -1653,7 +1653,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -1702,9 +1702,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'amount' => '50.50']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
@@ -1717,7 +1717,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -1765,11 +1765,11 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(['id']);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
@@ -1782,7 +1782,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -1825,7 +1825,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(['id']);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('fetchAllAssociative')
             ->willReturn([]);
 
@@ -1838,7 +1838,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -1886,9 +1886,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'count' => '10']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
@@ -1901,7 +1901,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -1950,9 +1950,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(function ($val) {
+            ->willReturnCallback(static function ($val) {
                 if ($val === null) {
                     return 'NULL';
                 }
@@ -1964,7 +1964,7 @@ class AnonymizeServiceTest extends TestCase
         $nullUsed    = false;
         $capturedSql = '';
         $connection->method('executeStatement')
-            ->willReturnCallback(function ($sql) use (&$nullUsed, &$capturedSql) {
+            ->willReturnCallback(static function ($sql) use (&$nullUsed, &$capturedSql) {
                 $capturedSql = $sql;
                 // Check if SQL contains '= NULL' (without quotes, which means null value)
                 // The SQL should be like: UPDATE `test_table` SET `email` = NULL WHERE `id` = '1'
@@ -1984,7 +1984,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -2036,9 +2036,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(function ($val) {
+            ->willReturnCallback(static function ($val) {
                 if ($val === null) {
                     return 'NULL';
                 }
@@ -2049,7 +2049,7 @@ class AnonymizeServiceTest extends TestCase
         // Track if null was used in SQL
         $nullUsed = false;
         $connection->method('executeStatement')
-            ->willReturnCallback(function ($sql) use (&$nullUsed) {
+            ->willReturnCallback(static function ($sql) use (&$nullUsed) {
                 // The SQL should NOT contain '= NULL' for the email field with 0% probability
                 if (preg_match('/`email`\s*=\s*NULL\b/i', $sql) || preg_match('/email\s*=\s*NULL\b/i', $sql)) {
                     $nullUsed = true;
@@ -2067,7 +2067,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
 
@@ -2130,9 +2130,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => null]]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(function ($val) {
+            ->willReturnCallback(static function ($val) {
                 if ($val === null) {
                     return 'NULL';
                 }
@@ -2143,7 +2143,7 @@ class AnonymizeServiceTest extends TestCase
         // Track if SQL was executed (should NOT be executed when preserve_null is true and value is null)
         $sqlExecuted = false;
         $connection->method('executeStatement')
-            ->willReturnCallback(function ($sql) use (&$sqlExecuted) {
+            ->willReturnCallback(static function ($sql) use (&$sqlExecuted) {
                 $sqlExecuted = true;
 
                 return 1;
@@ -2158,7 +2158,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -2210,9 +2210,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'original@example.com']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(function ($val) {
+            ->willReturnCallback(static function ($val) {
                 if ($val === null) {
                     return 'NULL';
                 }
@@ -2231,7 +2231,7 @@ class AnonymizeServiceTest extends TestCase
             ],
         ];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
@@ -2285,9 +2285,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'sensitive_notes' => 'Sensitive data', 'role' => 'admin']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(function ($val) {
+            ->willReturnCallback(static function ($val) {
                 if ($val === null) {
                     return 'NULL';
                 }
@@ -2297,7 +2297,7 @@ class AnonymizeServiceTest extends TestCase
 
         $capturedSql = '';
         $connection->method('executeStatement')
-            ->willReturnCallback(function ($sql) use (&$capturedSql) {
+            ->willReturnCallback(static function ($sql) use (&$capturedSql) {
                 $capturedSql = $sql;
 
                 return 1;
@@ -2316,7 +2316,7 @@ class AnonymizeServiceTest extends TestCase
         $entityAttribute                  = new Anonymize();
         $entityAttribute->excludePatterns = ['role' => 'admin'];
 
-        $progressCallback = function ($current, $total, $message) {
+        $progressCallback = static function ($current, $total, $message) {
             // Empty callback
         };
         $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback, $entityAttribute);
@@ -2355,9 +2355,9 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn([]);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . str_replace("'", "''", (string) $val) . "'");
+            ->willReturnCallback(static fn ($val) => "'" . str_replace("'", "''", (string) $val) . "'");
 
         $record = ['id' => 1, 'recipient' => '+34600000000', 'message' => 'Hello'];
         $connection->method('fetchAllAssociative')
@@ -2365,7 +2365,7 @@ class AnonymizeServiceTest extends TestCase
 
         $capturedSql = null;
         $connection->method('executeStatement')
-            ->willReturnCallback(function ($sql) use (&$capturedSql) {
+            ->willReturnCallback(static function ($sql) use (&$capturedSql) {
                 $capturedSql = $sql;
 
                 return 1;
@@ -2596,11 +2596,11 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn($platform);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
 
         $executedStatements = [];
         $connection->method('executeStatement')
-            ->willReturnCallback(function ($sql) use (&$executedStatements) {
+            ->willReturnCallback(static function ($sql) use (&$executedStatements) {
                 $executedStatements[] = $sql;
 
                 return 0;
@@ -2661,11 +2661,11 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn($platform);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
 
         $truncateStatements = [];
         $connection->method('executeStatement')
-            ->willReturnCallback(function ($sql) use (&$truncateStatements) {
+            ->willReturnCallback(static function ($sql) use (&$truncateStatements) {
                 if (str_contains($sql, 'TRUNCATE TABLE')) {
                     $truncateStatements[] = $sql;
                 }
@@ -2719,7 +2719,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn('test_table');
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('fetchOne')
             ->willReturn('10'); // 10 records would be deleted
 
@@ -2766,11 +2766,11 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn($platform);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '"' . $id . '"');
+            ->willReturnCallback(static fn ($id) => '"' . $id . '"');
 
         $executedStatements = [];
         $connection->method('executeStatement')
-            ->willReturnCallback(function ($sql) use (&$executedStatements) {
+            ->willReturnCallback(static function ($sql) use (&$executedStatements) {
                 $executedStatements[] = $sql;
 
                 return 0;
@@ -2828,13 +2828,13 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(['driver' => 'pdo_sqlite']);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '"' . $id . '"');
+            ->willReturnCallback(static fn ($id) => '"' . $id . '"');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . $val . "'");
+            ->willReturnCallback(static fn ($val) => "'" . $val . "'");
 
         $executedStatements = [];
         $connection->method('executeStatement')
-            ->willReturnCallback(function ($sql) use (&$executedStatements) {
+            ->willReturnCallback(static function ($sql) use (&$executedStatements) {
                 $executedStatements[] = $sql;
 
                 return 0;
@@ -2886,13 +2886,13 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn($platform);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('executeStatement')
             ->willReturn(0);
 
         $callbackCalled   = false;
         $callbackTable    = '';
-        $progressCallback = function (string $tableName, string $message) use (&$callbackCalled, &$callbackTable): void {
+        $progressCallback = static function (string $tableName, string $message) use (&$callbackCalled, &$callbackTable): void {
             $callbackCalled = true;
             $callbackTable  = $tableName;
         };
@@ -2936,13 +2936,13 @@ class AnonymizeServiceTest extends TestCase
         $metadata->discriminatorValue = 'customer';
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn ($id) => '`' . $id . '`');
+            ->willReturnCallback(static fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn ($val) => "'" . str_replace("'", "''", (string) $val) . "'");
+            ->willReturnCallback(static fn ($val) => "'" . str_replace("'", "''", (string) $val) . "'");
 
         $executedStatements = [];
         $connection->method('executeStatement')
-            ->willReturnCallback(function ($sql) use (&$executedStatements) {
+            ->willReturnCallback(static function ($sql) use (&$executedStatements) {
                 $executedStatements[] = $sql;
 
                 return 0;
@@ -2961,7 +2961,7 @@ class AnonymizeServiceTest extends TestCase
         $this->assertIsArray($result);
         $this->assertArrayHasKey('person', $result);
         $this->assertNotEmpty($executedStatements);
-        $deleteSql = array_values(array_filter($executedStatements, fn ($s) => str_contains($s, 'DELETE FROM')));
+        $deleteSql = array_values(array_filter($executedStatements, static fn ($s) => str_contains($s, 'DELETE FROM')));
         $this->assertCount(1, $deleteSql, 'Should execute one DELETE statement for polymorphic truncate');
         $this->assertStringContainsString('DELETE FROM `person`', $deleteSql[0]);
         $this->assertStringContainsString('`type` = \'customer\'', $deleteSql[0]);

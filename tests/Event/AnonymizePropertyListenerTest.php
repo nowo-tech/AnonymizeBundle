@@ -69,7 +69,7 @@ class AnonymizePropertyListenerTest extends TestCase
     {
         $event = $this->createEvent('file_url', 'https://s3.amazonaws.com/bucket/key.pdf', 'https://anon.example/file.pdf');
 
-        $listener = function (AnonymizePropertyEvent $e): void {
+        $listener = static function (AnonymizePropertyEvent $e): void {
             $e->getOriginalValue();
             $e->getPropertyName();
             $e->getColumnName();
@@ -90,7 +90,7 @@ class AnonymizePropertyListenerTest extends TestCase
     {
         $event = $this->createEvent('file_url', 'https://s3.amazonaws.com/bucket/doc.pdf', 'https://anon.example/doc.pdf');
 
-        $listener = function (AnonymizePropertyEvent $e): void {
+        $listener = static function (AnonymizePropertyEvent $e): void {
             $original = $e->getOriginalValue();
             if ($original !== null && $original !== '') {
                 // Simulate: download from S3, upload elsewhere, then set new URL
@@ -110,7 +110,7 @@ class AnonymizePropertyListenerTest extends TestCase
     {
         $event = $this->createEvent('file_url', 'https://s3.amazonaws.com/bucket/keep.pdf', 'https://anon.example/keep.pdf');
 
-        $listener = function (AnonymizePropertyEvent $e): void {
+        $listener = static function (AnonymizePropertyEvent $e): void {
             $e->setSkipAnonymization(true);
         };
         $listener($event);
@@ -126,7 +126,7 @@ class AnonymizePropertyListenerTest extends TestCase
         $record = ['id' => 42, 'file_url' => 's3://bucket/x.pdf', 'entity_type' => 'Document'];
         $event  = $this->createEvent('file_url', 's3://bucket/x.pdf', 'anon.pdf', $record);
 
-        $listener = function (AnonymizePropertyEvent $e): void {
+        $listener = static function (AnonymizePropertyEvent $e): void {
             $r = $e->getRecord();
             if (($r['entity_type'] ?? '') === 'Document') {
                 $e->setAnonymizedValue('https://new-cdn.example/doc/42.pdf');

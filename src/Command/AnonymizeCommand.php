@@ -413,7 +413,7 @@ final class AnonymizeCommand extends AbstractCommand
         $entities = $anonymizeService->getAnonymizableEntities($em);
 
         // Only process entities that match this manager (entity-level connection filter)
-        $entities = array_filter($entities, function ($entityData) use ($managerName): bool {
+        $entities = array_filter($entities, static function ($entityData) use ($managerName): bool {
             $attr = $entityData['attribute'];
             if ($attr->connection === null) {
                 return true;
@@ -473,7 +473,7 @@ final class AnonymizeCommand extends AbstractCommand
                 if (!$io->confirm('Do you want to truncate (empty) these tables?', true)) {
                     $io->note('Skipping table truncation');
                 } else {
-                    $truncateCallback = function (string $tableName, string $message) use ($io, $verbose): void {
+                    $truncateCallback = static function (string $tableName, string $message) use ($io, $verbose): void {
                         if ($verbose) {
                             $io->writeln(sprintf('  %s', $message));
                         }
@@ -500,7 +500,7 @@ final class AnonymizeCommand extends AbstractCommand
                 }
             } else {
                 // Non-interactive: execute truncation
-                $truncateCallback = function (string $tableName, string $message) use ($io, $verbose, $statsOnly): void {
+                $truncateCallback = static function (string $tableName, string $message) use ($io, $verbose, $statsOnly): void {
                     if (!$statsOnly && $verbose) {
                         $io->writeln(sprintf('  %s', $message));
                     }
@@ -627,7 +627,7 @@ final class AnonymizeCommand extends AbstractCommand
             // Create progress callback
             $progressCallback = null;
             if ($progressBar !== null) {
-                $progressCallback = function (int $current, int $total, string $message) use ($progressBar): void {
+                $progressCallback = static function (int $current, int $total, string $message) use ($progressBar): void {
                     $progressBar->setProgress($current);
                     $progressBar->setMessage($message);
                 };
