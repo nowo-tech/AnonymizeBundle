@@ -9,8 +9,11 @@ use Faker\Generator as FakerGenerator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+use function in_array;
 use function is_array;
 use function strlen;
+
+use const PHP_INT_MAX;
 
 /**
  * Faker for generating anonymized UTM (Urchin Tracking Module) parameters.
@@ -122,6 +125,20 @@ final class UtmFaker implements FakerInterface
 
         // Apply format
         $value = $this->applyFormat($value, $format);
+
+        // Re-enforce min_length/max_length after format (format can shorten the string, e.g. lowercase removes underscores)
+        if (in_array($type, ['campaign', 'term', 'content'], true)) {
+            $minLength = (int) ($options['min_length'] ?? 0);
+            $maxLength = (int) ($options['max_length'] ?? PHP_INT_MAX);
+            if ($minLength > 0 && strlen($value) < $minLength) {
+                while (strlen($value) < $minLength) {
+                    $value .= $this->faker->randomElement(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']);
+                }
+            }
+            if ($maxLength > 0 && $maxLength < PHP_INT_MAX && strlen($value) > $maxLength) {
+                $value = substr($value, 0, $maxLength);
+            }
+        }
 
         // Add prefix and suffix
         if ($prefix !== '') {

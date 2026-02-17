@@ -12,6 +12,7 @@ use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Nowo\AnonymizeBundle\Command\AnonymizeCommand;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
+use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -75,8 +76,11 @@ class AnonymizeCommandTest extends TestCase
      */
     public function testConfigureDefinesOptions(): void
     {
-        $container  = $this->createContainerWithSafeEnvironment();
-        $command    = new AnonymizeCommand($container);
+        $container = $this->createContainerWithSafeEnvironment();
+        $command   = new AnonymizeCommand($container);
+        // Ensure configure() is run so options are registered (Application::add() does this in real usage)
+        $application = new Application();
+        $application->add($command);
         $definition = $command->getDefinition();
 
         $this->assertTrue($definition->hasOption('connection'));
@@ -90,7 +94,6 @@ class AnonymizeCommandTest extends TestCase
         $this->assertTrue($definition->hasOption('debug'));
         $this->assertTrue($definition->hasOption('interactive'));
         $this->assertTrue($definition->hasOption('entity'));
-        // --entity has no shortcut (e would conflict with Symfony's global --env -e)
     }
 
     /**
