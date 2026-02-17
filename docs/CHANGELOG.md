@@ -25,6 +25,20 @@ _(none)_
 
 ---
 
+## [1.0.9] - 2026-02-16
+
+### Fixed
+
+- **DI / FakerFactory**: `AnonymizeService` and `PreFlightCheckService` now receive `FakerFactory` via explicit injection (`@nowo_anonymize.faker_factory`) in the bundle's `services.yaml`, so the container builds correctly when the app (or the bundle's autowiring pattern) excludes `FakerFactory` from autowiring. Fixes "Cannot autowire service ... argument \$fakerFactory needs an instance of FakerFactory but this type has been excluded".
+- **Synthetic kernel**: Commands and services no longer use the `kernel` service (synthetic until boot). They use the `kernel.project_dir` parameter or `getParameter('kernel.project_dir')` where available, with fallback to `getcwd()`. Fixes "The 'kernel' service is synthetic, it needs to be set at boot time" in runtimes such as FrankenPHP. Affected: `AnonymizeCommand`, `ExportDatabaseCommand`, `AnonymizationHistoryCommand`, `GenerateMongoAnonymizedFieldCommand`, `DatabaseExportService`, `KernelParameterBagAdapter`.
+- **Console option conflict**: The `--entity` option no longer uses the `-e` shortcut, to avoid conflict with Symfony's global `--env` (`-e`). Use `--entity` only.
+
+### Documentation
+
+- **Demo Makefiles**: All three demos (symfony6, symfony7, symfony8) aligned: same targets and help text, `cache-clear` target added, `update-bundle` runs full `cache:clear` (with warmup). Symfony 6 keeps `update-symfony` in help and as a target.
+
+---
+
 ## [1.0.8] - 2026-02-17
 
 ### Added
