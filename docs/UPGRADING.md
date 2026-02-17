@@ -13,6 +13,32 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.7
+
+**Release Date**: 2026-02-16
+
+#### What's Fixed
+
+- **Doctrine DBAL 4 / CI**: Identifier quoting now uses the database platform when available, ensuring compatibility with DBAL 4 (e.g. PHP 8.1 CI) where connection-level quoting may not be mockable. No configuration or code changes required for application code.
+
+#### Breaking Changes
+
+None. Fully backward compatible.
+
+#### Migration Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. No configuration or code changes required.
+
 ### Upgrading to 1.0.6
 
 **Release Date**: 2026-02-17
@@ -1833,7 +1859,8 @@ If you encounter issues during upgrade:
 
 | Bundle Version | Symfony Version | PHP Version | Doctrine Bundle | Features |
 |---------------|-----------------|-------------|-----------------|----------|
-| 1.0.6+        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | PostgreSQL boolean TRUE/FALSE for `anonymized` column, ROADMAP adoption strategy |
+| 1.0.7+        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | DBAL 4–compatible identifier quoting via platform, CI tests on PHP 8.1 |
+| 1.0.6         | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | PostgreSQL boolean TRUE/FALSE for `anonymized` column, ROADMAP adoption strategy |
 | 1.0.5         | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | anonymizeService, truncate by discriminator, Doctrine ORM 3 discriminatorColumn, UtmFaker campaign min_length, demo notification breadcrumb fix |
 | 1.0.4         | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Map faker, demo AnonymizePropertySubscriber, FakerFactory FakerType keys, UtmFaker term min_length fix |
 | 0.0.25+       | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Fixed FakerFactory autowiring error |

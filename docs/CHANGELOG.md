@@ -25,6 +25,12 @@ _(none)_
 
 ---
 
+## [1.0.7] - 2026-02-16
+
+### Fixed
+
+- **Doctrine DBAL 4 / PHP 8.1 CI**: Identifier quoting now uses the database platform when available, so the bundle works with DBAL 4 where `Connection::quoteSingleIdentifier` may be final or static and not mockable. `DbalHelper::quoteIdentifier()` prefers `$connection->getDatabasePlatform()->quoteSingleIdentifier()` first, then falls back to connection-level quoting or driver-aware manual quoting. No change for end users; tests were updated to mock the platform instead of the connection so CI passes on PHP 8.1 with DBAL 4.
+
 ## [1.0.6] - 2026-02-17
 
 ### Fixed
