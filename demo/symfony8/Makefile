@@ -1,7 +1,7 @@
 # Makefile for Anonymize Bundle Demo - Symfony 8
 # Simplifies Docker commands for the demo
 
-.PHONY: help up down shell install clean setup update-bundle
+.PHONY: help up down shell install clean cache-clear setup update-bundle
 
 # Default target
 help:
@@ -15,9 +15,10 @@ help:
 	@echo "  shell          Open shell in PHP container"
 	@echo "  install        Install Composer dependencies"
 	@echo "  setup          Setup databases and load fixtures"
-	@echo "  update-bundle  Update anonymize-bundle from repo (fixes 'Unknown named parameter \$truncate')"
+	@echo "  update-bundle  Update anonymize-bundle from repo"
 	@echo "  clean          Remove vendor, var, and cache"
-	@echo "  logs          Show container logs"
+	@echo "  cache-clear    Full cache clear (fixes missing Container* service files)"
+	@echo "  logs           Show container logs"
 	@echo ""
 	@echo "Anonymization:"
 	@echo "  anonymize-dry-run    Test anonymization (dry-run)"
@@ -62,7 +63,7 @@ up:
 	@echo "Next steps:"
 	@echo "  make install    - Install dependencies"
 	@echo "  make setup      - Complete setup (install + DB + fixtures)"
-	@echo "  make update-bundle - If you see 'Unknown named parameter \$truncate', update the bundle from repo"
+	@echo "  make update-bundle - Update the bundle from repo"
 
 # Stop containers
 down:
@@ -89,7 +90,7 @@ update-bundle:
 	@echo "📦 Updating nowo-tech/anonymize-bundle from repo..."
 	@docker-compose exec -T php git config --global --add safe.directory /bundles 2>/dev/null || true
 	docker-compose exec -T php composer update nowo-tech/anonymize-bundle --with-all-dependencies --no-interaction
-	docker-compose exec -T php php bin/console cache:clear --no-warmup
+	docker-compose exec -T php php bin/console cache:clear
 	@echo "✅ Bundle updated! Run: make anonymize-dry-run"
 
 # Complete setup
@@ -193,6 +194,13 @@ logs:
 server:
 	@echo "🌐 Web server (nginx) is already running!"
 	@echo "Access the application at: http://localhost:8000"
+
+# Full cache clear (regenerates container; use if you see "Failed to open stream ... get*Service.php")
+cache-clear:
+	@echo "🗑️  Clearing cache..."
+	docker-compose exec -T php rm -rf var/cache/*
+	docker-compose exec -T php php bin/console cache:clear
+	@echo "✅ Cache cleared!"
 
 # Clean vendor and cache
 clean:

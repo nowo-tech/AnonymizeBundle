@@ -233,7 +233,11 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
      */
     private function getProjectRoot(): ?string
     {
-        // Try to get from container (Symfony kernel project dir)
+        // Try to get from container (parameter to avoid synthetic kernel service)
+        if (method_exists($this->container, 'hasParameter') && method_exists($this->container, 'getParameter')
+            && $this->container->hasParameter('kernel.project_dir')) {
+            return $this->container->getParameter('kernel.project_dir');
+        }
         try {
             if ($this->container->has('kernel')) {
                 $kernel = $this->container->get('kernel');

@@ -484,13 +484,16 @@ final class DatabaseExportService
      */
     private function updateGitignore(): void
     {
-        // Get project directory
-        if (!$this->container->has('kernel')) {
+        // Get project directory (use parameter to avoid synthetic kernel service)
+        $projectDir = null;
+        if (method_exists($this->container, 'hasParameter') && method_exists($this->container, 'getParameter')
+            && $this->container->hasParameter('kernel.project_dir')) {
+            $projectDir = $this->container->getParameter('kernel.project_dir');
+        }
+        if ($projectDir === null || $projectDir === '') {
             return;
         }
 
-        $kernel        = $this->container->get('kernel');
-        $projectDir    = $kernel->getProjectDir();
         $gitignorePath = $projectDir . '/.gitignore';
 
         // Calculate relative path from project root

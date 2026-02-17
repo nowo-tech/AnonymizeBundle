@@ -29,8 +29,12 @@ _(none)_
 
 ### Added
 
-- **`nowo:anonymize:run`**: New `--entity` / `-e` option to process only the given entity class name(s). Can be used multiple times. Useful to test a single entity, its `anonymizeService` or event listeners. See [COMMANDS.md](COMMANDS.md).
+- **`nowo:anonymize:run`**: New `--entity` option to process only the given entity class name(s). Can be used multiple times. Useful to test a single entity, its `anonymizeService` or event listeners. See [COMMANDS.md](COMMANDS.md).
 - **FakerFactory**: Public alias `nowo_anonymize.faker_factory` for injection in app services. [CONFIGURATION.md](CONFIGURATION.md) now includes a section "Using FakerFactory in your own services" explaining that services depending on `FakerFactory` must be registered only in dev/test (where the bundle is loaded) to avoid "no such service exists" when the container is built.
+
+### Fixed
+
+- **Tests**: DateFaker future-date assertion now compares by date string (avoids timezone/midnight flakiness). AnonymizeCommand entity-filter test updated for DBAL `Result` return type and ORM metadata mocks.
 
 ## [1.0.7] - 2026-02-16
 

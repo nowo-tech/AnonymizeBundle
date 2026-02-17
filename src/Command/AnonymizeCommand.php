@@ -89,7 +89,7 @@ final class AnonymizeCommand extends AbstractCommand
 
                     Options:
                       --connection, -c    Process only specific connections (can be used multiple times)
-                      --entity, -e        Process only these entity class names (can be used multiple times)
+                      --entity            Process only these entity class names (can be used multiple times)
                       --dry-run          Show what would be anonymized without making changes
                       --batch-size, -b   Number of records to process in each batch (default: 100)
                       --locale, -l       Locale for Faker generator (default: en_US)
@@ -116,7 +116,7 @@ final class AnonymizeCommand extends AbstractCommand
                     HELP
             )
             ->addOption('connection', 'c', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Specific connections to process (default: all)')
-            ->addOption('entity', 'e', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Process only these entity class names (e.g. App\Entity\SmsNotification). Can be used multiple times')
+            ->addOption('entity', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Process only these entity class names (e.g. App\Entity\SmsNotification). Can be used multiple times')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Show what would be anonymized without making changes')
             ->addOption('batch-size', 'b', InputOption::VALUE_OPTIONAL, 'Batch size for processing records', $this->batchSize)
             ->addOption('locale', 'l', InputOption::VALUE_OPTIONAL, 'Locale for Faker generator', $this->locale)
@@ -241,11 +241,10 @@ final class AnonymizeCommand extends AbstractCommand
         // Get stats output directory from configuration
         $statsOutputDir = $this->getParameter('nowo_anonymize.stats_output_dir', '%kernel.project_dir%/var/stats');
 
-        // Resolve kernel.project_dir if present
+        // Resolve kernel.project_dir if present (use parameter to avoid synthetic kernel service)
         if (str_contains($statsOutputDir, '%kernel.project_dir%')) {
-            if ($this->container->has('kernel')) {
-                $kernel         = $this->container->get('kernel');
-                $projectDir     = $kernel->getProjectDir();
+            $projectDir = $this->getProjectDirFromContainer();
+            if ($projectDir !== null) {
                 $statsOutputDir = str_replace('%kernel.project_dir%', $projectDir, $statsOutputDir);
             }
         }
@@ -353,9 +352,8 @@ final class AnonymizeCommand extends AbstractCommand
         try {
             $historyDir = $this->getParameter('nowo_anonymize.history_dir', '%kernel.project_dir%/var/anonymize_history');
             if (str_contains($historyDir, '%kernel.project_dir%')) {
-                if ($this->container->has('kernel')) {
-                    $kernel     = $this->container->get('kernel');
-                    $projectDir = $kernel->getProjectDir();
+                $projectDir = $this->getProjectDirFromContainer();
+                if ($projectDir !== null) {
                     $historyDir = str_replace('%kernel.project_dir%', $projectDir, $historyDir);
                 }
             }
@@ -863,5 +861,20 @@ final class AnonymizeCommand extends AbstractCommand
         } catch (InvalidArgumentException $e) {
             return $default;
         }
+    }
+
+    /**
+     * Returns project directory without using the synthetic kernel service.
+     * Uses kernel.project_dir parameter when available, otherwise getcwd().
+     */
+    private function getProjectDirFromContainer(): ?string
+    {
+        if (method_exists($this->container, 'hasParameter') && method_exists($this->container, 'getParameter')
+            && $this->container->hasParameter('kernel.project_dir')) {
+            return $this->container->getParameter('kernel.project_dir');
+        }
+        $cwd = getcwd();
+
+        return $cwd !== false ? $cwd : null;
     }
 }

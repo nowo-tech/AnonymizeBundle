@@ -147,12 +147,11 @@ final class ExportDatabaseCommand extends AbstractCommand
                 : true
         );
 
-        // Resolve kernel.project_dir if present
+        // Resolve kernel.project_dir if present (use parameter to avoid synthetic kernel service)
         if (str_contains($outputDir, '%kernel.project_dir%')) {
-            if ($this->container->has('kernel')) {
-                $kernel     = $this->container->get('kernel');
-                $projectDir = $kernel->getProjectDir();
-                $outputDir  = str_replace('%kernel.project_dir%', $projectDir, $outputDir);
+            $projectDir = $this->getProjectDirFromContainer();
+            if ($projectDir !== null) {
+                $outputDir = str_replace('%kernel.project_dir%', $projectDir, $outputDir);
             }
         }
 
@@ -336,5 +335,19 @@ final class ExportDatabaseCommand extends AbstractCommand
         $bytes /= (1 << (10 * $pow));
 
         return round($bytes, 2) . ' ' . $units[$pow];
+    }
+
+    /**
+     * Returns project directory without using the synthetic kernel service.
+     */
+    private function getProjectDirFromContainer(): ?string
+    {
+        if (method_exists($this->container, 'hasParameter') && method_exists($this->container, 'getParameter')
+            && $this->container->hasParameter('kernel.project_dir')) {
+            return $this->container->getParameter('kernel.project_dir');
+        }
+        $cwd = getcwd();
+
+        return $cwd !== false ? $cwd : null;
     }
 }

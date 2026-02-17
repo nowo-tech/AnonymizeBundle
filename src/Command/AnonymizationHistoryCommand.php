@@ -369,12 +369,9 @@ final class AnonymizationHistoryCommand extends AbstractCommand
         }
 
         if (str_contains((string) $historyDir, '%kernel.project_dir%')) {
-            if ($this->container->has('kernel')) {
-                $kernel     = $this->container->get('kernel');
-                $projectDir = method_exists($kernel, 'getProjectDir') ? $kernel->getProjectDir() : null;
-                if ($projectDir !== null) {
-                    $historyDir = str_replace('%kernel.project_dir%', $projectDir, (string) $historyDir);
-                }
+            $projectDir = $this->getProjectDirFromContainer();
+            if ($projectDir !== null) {
+                $historyDir = str_replace('%kernel.project_dir%', $projectDir, (string) $historyDir);
             }
             if (str_contains((string) $historyDir, '%kernel.project_dir%')) {
                 $historyDir = str_replace('%kernel.project_dir%', getcwd() ?: '.', (string) $historyDir);
@@ -382,5 +379,19 @@ final class AnonymizationHistoryCommand extends AbstractCommand
         }
 
         return (string) $historyDir;
+    }
+
+    /**
+     * Returns project directory without using the synthetic kernel service.
+     */
+    private function getProjectDirFromContainer(): ?string
+    {
+        if (method_exists($this->container, 'hasParameter') && method_exists($this->container, 'getParameter')
+            && $this->container->hasParameter('kernel.project_dir')) {
+            return $this->container->getParameter('kernel.project_dir');
+        }
+        $cwd = getcwd();
+
+        return $cwd !== false ? $cwd : null;
     }
 }

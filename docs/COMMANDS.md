@@ -17,7 +17,7 @@ php bin/console nowo:anonymize:run [options]
 ### Options
 
 - `--connection, -c`: Process only specific connections (can be used multiple times)
-- `--entity, -e`: Process only these entity class names (e.g. `App\Entity\SmsNotification`). Can be used multiple times. Useful to test a single entity, its `anonymizeService` or event listeners.
+- `--entity`: Process only these entity class names (e.g. `App\Entity\SmsNotification`). Can be used multiple times. Useful to test a single entity, its `anonymizeService` or event listeners.
 - `--dry-run`: Show what would be anonymized without making changes
 - `--batch-size, -b`: Number of records to process in each batch (default: 100)
 - `--locale, -l`: Locale for Faker generator (default: en_US)

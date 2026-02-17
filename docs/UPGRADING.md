@@ -19,7 +19,7 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 #### What's New
 
-- **`--entity` / `-e` on `nowo:anonymize:run`**: You can limit anonymization to one or more entity class names (e.g. `--entity "App\Entity\SmsNotification"`). Useful to test a single entity, its `anonymizeService` or event listeners.
+- **`--entity` on `nowo:anonymize:run`**: You can limit anonymization to one or more entity class names (e.g. `--entity "App\Entity\SmsNotification"`). Useful to test a single entity, its `anonymizeService` or event listeners.
 - **FakerFactory in app services**: If you inject `Nowo\AnonymizeBundle\Faker\FakerFactory` in your own services, register those services only in dev/test (e.g. in `config/services/dev/services.yaml`) so the container can resolve the dependency. The bundle also exposes the alias `nowo_anonymize.faker_factory` for explicit wiring. See CONFIGURATION.md → "Using FakerFactory in your own services".
 
 #### Breaking Changes

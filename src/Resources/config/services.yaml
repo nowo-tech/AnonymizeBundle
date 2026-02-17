@@ -42,10 +42,11 @@ services:
     # from the #[AsAlias] attributes in each faker class when autoconfigure: true
 
     # Services - auto-registered via autowiring
-    # AnonymizeService with optional EventDispatcher
-    # EventDispatcher is optional and defaults to null in the constructor
-    # It will be retrieved manually in commands when needed
-    Nowo\AnonymizeBundle\Service\AnonymizeService: ~
+    # AnonymizeService: FakerFactory is injected explicitly so it works even when
+    # the app excludes this bundle's namespace from autowiring (FakerFactory is excluded from our own pattern)
+    Nowo\AnonymizeBundle\Service\AnonymizeService:
+        arguments:
+            $fakerFactory: '@nowo_anonymize.faker_factory'
 
     # AnonymizationHistoryService
     nowo_anonymize.service.anonymization_history:
@@ -66,7 +67,9 @@ services:
     Nowo\AnonymizeBundle\Service\AnonymizeStatistics: ~
     Nowo\AnonymizeBundle\Service\EnvironmentProtectionService: ~
     Nowo\AnonymizeBundle\Service\PatternMatcher: ~
-    Nowo\AnonymizeBundle\Service\PreFlightCheckService: ~
+    Nowo\AnonymizeBundle\Service\PreFlightCheckService:
+        arguments:
+            $fakerFactory: '@nowo_anonymize.faker_factory'
     Nowo\AnonymizeBundle\Service\SchemaService: ~
 
     # Console Commands

@@ -33,6 +33,12 @@ final class KernelParameterBagAdapter implements ParameterBagInterface
      */
     public function get(string $name): array|bool|string|int|float|UnitEnum|null
     {
+        // Prefer container parameters when available (avoids synthetic kernel service)
+        if (method_exists($this->container, 'hasParameter') && method_exists($this->container, 'getParameter')
+            && $this->container->hasParameter($name)) {
+            return $this->container->getParameter($name);
+        }
+
         if (!$this->container->has('kernel')) {
             throw new InvalidArgumentException(sprintf('Parameter "%s" not found', $name));
         }
