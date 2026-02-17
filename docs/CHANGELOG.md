@@ -25,6 +25,15 @@ _(none)_
 
 ---
 
+## [1.0.11] - 2026-02-17
+
+### Fixed
+
+- **UtmFaker**: For types `campaign`, `term`, and `content`, `min_length` and `max_length` are now enforced again after applying the output format (snake_case, kebab-case, lowercase, etc.). Formatting can shorten the string (e.g. lowercase removes underscores), so the final value now respects the requested length. Fixes flaky test `testGenerateContentWithMinMaxLength` when the formatted value was shorter than `min_length`.
+- **Tests / CI**: `testConfigureDefinesOptions` no longer uses `Application::add()` (not available in all Symfony Console versions used in CI). The test only instantiates the command and reads its definition; options are registered in `configure()` called from the parent constructor.
+
+---
+
 ## [1.0.10] - 2026-02-17
 
 ### Changed

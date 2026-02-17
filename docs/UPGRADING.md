@@ -13,6 +13,33 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.11
+
+**Release Date**: 2026-02-17
+
+#### What's Fixed
+
+- **UtmFaker**: When using `min_length`/`max_length` with types campaign, term, or content, the generated value now always respects those limits after the output format is applied (e.g. snake_case, lowercase). No configuration change needed.
+- **CI**: Test suite compatibility with PHP 8.4/8.5 and different Symfony Console versions (no functional change for the bundle).
+
+#### Breaking Changes
+
+None. Fully backward compatible.
+
+#### Migration Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. No configuration or code changes required.
+
 ### Upgrading to 1.0.10
 
 **Release Date**: 2026-02-17
@@ -1940,7 +1967,8 @@ If you encounter issues during upgrade:
 
 | Bundle Version | Symfony Version | PHP Version | Doctrine Bundle | Features |
 |---------------|-----------------|-------------|-----------------|----------|
-| 1.0.10+       | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | anonymizeService-only entities (no AnonymizeProperty required) |
+| 1.0.11+       | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | UtmFaker min/max length after format, test/CI compatibility |
+| 1.0.10        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | anonymizeService-only entities (no AnonymizeProperty required) |
 | 1.0.9         | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | FakerFactory/PreFlightCheckService explicit DI, no synthetic kernel usage, --entity without -e, demo Makefiles aligned |
 | 1.0.8         | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | --entity option for nowo:anonymize:run, FakerFactory alias and doc for app services |
 | 1.0.7         | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | DBAL 4–compatible identifier quoting via platform, CI tests on PHP 8.1 |
