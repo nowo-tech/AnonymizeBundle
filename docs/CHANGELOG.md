@@ -11,6 +11,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _(none)_
 
+### Changed
+
+_(none)_
+
+### Fixed
+
+_(none)_
+
+### Documentation
+
+_(none)_
+
+---
+
+## [1.0.6] - 2026-02-17
+
 ### Fixed
 
 - **PostgreSQL / AnonymizeService**: The `anonymized` column (boolean) is now written with SQL literals `TRUE`/`FALSE` on PostgreSQL instead of `1`/`0`, fixing `SQLSTATE[42804]: Datatype mismatch: column "anonymized" is of type boolean but expression is of type integer`. MySQL and other platforms continue to use `1`/`0`. Detection uses `DbalHelper::getDriverName()` (pgsql) for compatibility across DBAL versions.
@@ -18,6 +34,7 @@ _(none)_
 ### Documentation
 
 - **UPGRADING.md**: Standardized section headings to "Migration Steps" (was mixed with "Upgrade Steps"). Renamed duplicate "Upgrading to 1.0.0 (Initial Release)" to "Installing the bundle (first-time install)" for clarity.
+- **ROADMAP.md**: Vision, adoption strategy (Phases A–C), and four pillars for community adoption; Implementation Priority aligned with adoption milestones.
 
 ## [1.0.5] - 2026-02-16
 

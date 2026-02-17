@@ -13,11 +13,31 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
-### Unreleased (next version)
+### Upgrading to 1.0.6
+
+**Release Date**: 2026-02-17
 
 #### What's Fixed
 
 - **PostgreSQL**: When using `AnonymizableTrait`, the `anonymized` column is now updated with SQL literals `TRUE`/`FALSE` on PostgreSQL instead of integers `1`/`0`, resolving `SQLSTATE[42804]: Datatype mismatch` for boolean columns. No configuration or code changes required.
+
+#### Breaking Changes
+
+None. Fully backward compatible.
+
+#### Migration Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. No configuration or code changes required. If you use PostgreSQL and had been hitting the boolean column error, anonymization will now succeed.
 
 ### Upgrading to 1.0.5
 
@@ -1813,7 +1833,8 @@ If you encounter issues during upgrade:
 
 | Bundle Version | Symfony Version | PHP Version | Doctrine Bundle | Features |
 |---------------|-----------------|-------------|-----------------|----------|
-| 1.0.5+        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | anonymizeService, truncate by discriminator, Doctrine ORM 3 discriminatorColumn, UtmFaker campaign min_length, demo notification breadcrumb fix |
+| 1.0.6+        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | PostgreSQL boolean TRUE/FALSE for `anonymized` column, ROADMAP adoption strategy |
+| 1.0.5         | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | anonymizeService, truncate by discriminator, Doctrine ORM 3 discriminatorColumn, UtmFaker campaign min_length, demo notification breadcrumb fix |
 | 1.0.4         | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Map faker, demo AnonymizePropertySubscriber, FakerFactory FakerType keys, UtmFaker term min_length fix |
 | 0.0.25+       | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Fixed FakerFactory autowiring error |
 | 0.0.24        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Simplified services.yaml, complete documentation update |
