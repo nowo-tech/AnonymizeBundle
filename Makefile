@@ -1,7 +1,7 @@
 # Makefile for Anonymize Bundle
 # Simplifies Docker commands for development
 
-.PHONY: help up down shell install test test-coverage cs-check cs-fix qa clean setup-hooks test-up test-down test-shell
+.PHONY: help up down shell install test test-coverage cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up
 
 # Default target
 help:
@@ -28,37 +28,46 @@ help:
 	@echo "  setup-hooks   Install git pre-commit hooks"
 	@echo ""
 
-# Build and start container
+# Build and start container (root docker-compose)
 up:
 	@echo "Building Docker image..."
-	docker-compose build
+	docker-compose -f docker-compose.yml build
 	@echo "Starting container..."
-	docker-compose up -d
+	docker-compose -f docker-compose.yml up -d
 	@echo "Waiting for container to be ready..."
 	@sleep 2
 	@echo "Installing dependencies..."
-	docker-compose exec -T php composer install --no-interaction
+	docker-compose -f docker-compose.yml exec -T php composer install --no-interaction
 	@echo "✅ Container ready!"
 
-# Stop container
+# Stop container (root docker-compose)
 down:
-	docker-compose down
+	docker-compose -f docker-compose.yml down
 
-# Open shell in container
+# Ensure root container is running (start if not). Used by cs-fix, cs-check, qa, install, test, test-coverage.
+ensure-up:
+	@if ! docker-compose -f docker-compose.yml exec -T php true 2>/dev/null; then \
+		echo "Starting container (root docker-compose)..."; \
+		docker-compose -f docker-compose.yml up -d; \
+		sleep 3; \
+		docker-compose -f docker-compose.yml exec -T php composer install --no-interaction; \
+	fi
+
+# Open shell in container (root docker-compose)
 shell:
-	docker-compose exec php sh
+	docker-compose -f docker-compose.yml exec php sh
 
-# Install dependencies
-install:
-	docker-compose exec -T php composer install
+# Install dependencies (runs inside root docker-compose php container)
+install: ensure-up
+	docker-compose -f docker-compose.yml exec -T php composer install
 
-# Run tests
-test:
-	docker-compose exec -T php composer test
+# Run tests (runs inside root docker-compose php container)
+test: ensure-up
+	docker-compose -f docker-compose.yml exec -T php composer test
 
-# Run tests with coverage
-test-coverage:
-	docker-compose exec -T php composer test-coverage
+# Run tests with coverage (runs inside root docker-compose php container)
+test-coverage: ensure-up
+	docker-compose -f docker-compose.yml exec -T php composer test-coverage
 
 # Run tests in test container (with databases)
 test-with-db:
@@ -88,17 +97,17 @@ test-down:
 test-shell:
 	docker-compose -f docker-compose.test.yml exec test sh
 
-# Check code style
-cs-check:
-	docker-compose exec -T php composer cs-check
+# Check code style (runs inside root docker-compose php container)
+cs-check: ensure-up
+	docker-compose -f docker-compose.yml exec -T php composer cs-check
 
-# Fix code style
-cs-fix:
-	docker-compose exec -T php composer cs-fix
+# Fix code style (runs inside root docker-compose php container)
+cs-fix: ensure-up
+	docker-compose -f docker-compose.yml exec -T php composer cs-fix
 
-# Run all QA
-qa:
-	docker-compose exec -T php composer qa
+# Run all QA (runs inside root docker-compose php container)
+qa: ensure-up
+	docker-compose -f docker-compose.yml exec -T php composer qa
 
 # Clean vendor and cache
 clean:

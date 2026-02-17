@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Command;
 
+use Exception;
 use Psr\Container\ContainerInterface;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+
+use function count;
+use function dirname;
+use function sprintf;
 
 /**
  * Command to generate MongoDB scripts for adding the `anonymized` field to anonymizable documents.
@@ -25,7 +32,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 #[AsCommand(
     name: 'nowo:anonymize:generate-mongo-field',
-    description: 'Generate MongoDB script to add anonymized field to anonymizable documents'
+    description: 'Generate MongoDB script to add anonymized field to anonymizable documents',
 )]
 final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
 {
@@ -81,31 +88,31 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
                 'database',
                 'd',
                 InputOption::VALUE_REQUIRED,
-                'MongoDB database name (default: anonymize_demo)'
+                'MongoDB database name (default: anonymize_demo)',
             )
             ->addOption(
                 'collection',
                 null,
                 InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
-                'MongoDB collection name(s) to process (can be used multiple times)'
+                'MongoDB collection name(s) to process (can be used multiple times)',
             )
             ->addOption(
                 'scan-documents',
                 null,
                 InputOption::VALUE_NONE,
-                'Scan PHP document classes for #[Anonymize] attribute and collection names'
+                'Scan PHP document classes for #[Anonymize] attribute and collection names',
             )
             ->addOption(
                 'document-path',
                 null,
                 InputOption::VALUE_REQUIRED,
-                'Path to scan for document classes (default: src/Document)'
+                'Path to scan for document classes (default: src/Document)',
             )
             ->addOption(
                 'output',
                 'o',
                 InputOption::VALUE_OPTIONAL,
-                'Output file path for the MongoDB script (default: prints to console)'
+                'Output file path for the MongoDB script (default: prints to console)',
             );
     }
 
@@ -114,6 +121,7 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
      *
      * @param InputInterface $input The input interface
      * @param OutputInterface $output The output interface
+     *
      * @return int The command exit code
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -121,11 +129,11 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
         $io = new SymfonyStyle($input, $output);
         $io->title('Generate MongoDB Anonymized Field Script');
 
-        $database = $input->getOption('database') ?? 'anonymize_demo';
-        $collections = $input->getOption('collection');
+        $database      = $input->getOption('database') ?? 'anonymize_demo';
+        $collections   = $input->getOption('collection');
         $scanDocuments = $input->getOption('scan-documents');
-        $documentPath = $input->getOption('document-path');
-        $outputFile = $input->getOption('output');
+        $documentPath  = $input->getOption('document-path');
+        $outputFile    = $input->getOption('output');
 
         // If scanning documents, try to find collections
         if ($scanDocuments) {
@@ -145,6 +153,7 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
         if (empty($collections)) {
             $io->error('No collections specified. Use --collection option or --scan-documents to find collections automatically.');
             $io->note('Example: php bin/console nowo:anonymize:generate-mongo-field --collection=user_activities');
+
             return self::FAILURE;
         }
 
@@ -169,6 +178,7 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
      * Scans PHP document classes for #[Anonymize] attribute and collection names.
      *
      * @param string|null $documentPath The path to scan (default: src/Document)
+     *
      * @return array<string> Array of collection names found
      */
     private function scanDocumentClasses(?string $documentPath): array
@@ -186,8 +196,8 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
             return $collections;
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($scanPath, \RecursiveDirectoryIterator::SKIP_DOTS)
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($scanPath, RecursiveDirectoryIterator::SKIP_DOTS),
         );
 
         foreach ($iterator as $file) {
@@ -231,13 +241,13 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
                     return $kernel->getProjectDir();
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Ignore
         }
 
         // Fallback: try to find composer.json
         $dir = __DIR__;
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             if (file_exists($dir . '/composer.json')) {
                 return $dir;
             }
@@ -256,6 +266,7 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
      *
      * @param string $database The database name
      * @param array<string> $collections The collection names
+     *
      * @return string The generated JavaScript script
      */
     private function generateMongoScript(string $database, array $collections): string

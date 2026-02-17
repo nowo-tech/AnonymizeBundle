@@ -22,7 +22,8 @@ final class SmsNotificationAnonymizerService implements EntityAnonymizerServiceI
 {
     public function __construct(
         private readonly FakerFactory $fakerFactory
-    ) {}
+    ) {
+    }
 
     /**
      * {@inheritdoc}
@@ -34,11 +35,11 @@ final class SmsNotificationAnonymizerService implements EntityAnonymizerServiceI
         bool $dryRun
     ): array {
         $phoneFaker = $this->fakerFactory->create('phone', null);
-        $textFaker = $this->fakerFactory->create('text', null);
+        $textFaker  = $this->fakerFactory->create('text', null);
 
         return [
             'recipient' => $phoneFaker->generate([]),
-            'message' => $textFaker->generate(['type' => 'sentence', 'maxNbWords' => 12]),
+            'message'   => $textFaker->generate(['type' => 'sentence', 'maxNbWords' => 12]),
         ];
     }
 }

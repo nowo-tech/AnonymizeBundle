@@ -36,16 +36,17 @@ final class FileFaker implements FakerInterface
      * Generates an anonymized file path or name.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'extension' (string): File extension (default: random)
-     *   - 'directory' (string): Directory path (default: random)
-     *   - 'absolute' (bool): Return absolute path (default: false)
+     *                                      - 'extension' (string): File extension (default: random)
+     *                                      - 'directory' (string): Directory path (default: random)
+     *                                      - 'absolute' (bool): Return absolute path (default: false)
+     *
      * @return string The anonymized file path or name
      */
     public function generate(array $options = []): string
     {
         $extension = $options['extension'] ?? $this->faker->fileExtension();
         $directory = $options['directory'] ?? null;
-        $absolute = $options['absolute'] ?? false;
+        $absolute  = $options['absolute'] ?? false;
 
         // Generate filename
         $filename = $this->faker->word() . '.' . ltrim($extension, '.');

@@ -9,6 +9,8 @@ use Faker\Generator as FakerGenerator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+use const M_PI;
+
 /**
  * Faker for generating anonymized ages.
  *
@@ -36,20 +38,21 @@ final class AgeFaker implements FakerInterface
      * Generates an anonymized age.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'min' (int): Minimum age (default: 18)
-     *   - 'max' (int): Maximum age (default: 100)
-     *   - 'distribution' (string): Distribution type ('uniform' or 'normal', default: 'uniform')
-     *   - 'mean' (float): Mean age for normal distribution (default: 40)
-     *   - 'std_dev' (float): Standard deviation for normal distribution (default: 15)
+     *                                      - 'min' (int): Minimum age (default: 18)
+     *                                      - 'max' (int): Maximum age (default: 100)
+     *                                      - 'distribution' (string): Distribution type ('uniform' or 'normal', default: 'uniform')
+     *                                      - 'mean' (float): Mean age for normal distribution (default: 40)
+     *                                      - 'std_dev' (float): Standard deviation for normal distribution (default: 15)
+     *
      * @return int The anonymized age
      */
     public function generate(array $options = []): int
     {
-        $min = (int) ($options['min'] ?? 18);
-        $max = (int) ($options['max'] ?? 100);
+        $min          = (int) ($options['min'] ?? 18);
+        $max          = (int) ($options['max'] ?? 100);
         $distribution = $options['distribution'] ?? 'uniform';
-        $mean = (float) ($options['mean'] ?? 40);
-        $stdDev = (float) ($options['std_dev'] ?? 15);
+        $mean         = (float) ($options['mean'] ?? 40);
+        $stdDev       = (float) ($options['std_dev'] ?? 15);
 
         if ($distribution === 'normal') {
             // Generate age using normal distribution (Box-Muller transform)

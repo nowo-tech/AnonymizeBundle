@@ -7,6 +7,9 @@ namespace Nowo\AnonymizeBundle\Tests\Faker;
 use Nowo\AnonymizeBundle\Faker\CountryFaker;
 use PHPUnit\Framework\TestCase;
 
+use function count;
+use function strlen;
+
 /**
  * Test case for CountryFaker.
  *
@@ -20,7 +23,7 @@ class CountryFakerTest extends TestCase
      */
     public function testGenerate(): void
     {
-        $faker = new CountryFaker('en_US');
+        $faker   = new CountryFaker('en_US');
         $country = $faker->generate();
 
         $this->assertIsString($country);
@@ -32,7 +35,7 @@ class CountryFakerTest extends TestCase
      */
     public function testGenerateName(): void
     {
-        $faker = new CountryFaker('en_US');
+        $faker   = new CountryFaker('en_US');
         $country = $faker->generate(['format' => 'name']);
 
         $this->assertIsString($country);
@@ -44,7 +47,7 @@ class CountryFakerTest extends TestCase
      */
     public function testGenerateIso2(): void
     {
-        $faker = new CountryFaker('en_US');
+        $faker   = new CountryFaker('en_US');
         $country = $faker->generate(['format' => 'iso2']);
 
         $this->assertIsString($country);
@@ -57,7 +60,7 @@ class CountryFakerTest extends TestCase
      */
     public function testGenerateIso3(): void
     {
-        $faker = new CountryFaker('en_US');
+        $faker   = new CountryFaker('en_US');
         $country = $faker->generate(['format' => 'iso3']);
 
         $this->assertIsString($country);
@@ -70,7 +73,7 @@ class CountryFakerTest extends TestCase
      */
     public function testGenerateWithCodeFormat(): void
     {
-        $faker = new CountryFaker('en_US');
+        $faker   = new CountryFaker('en_US');
         $country = $faker->generate(['format' => 'code']);
 
         $this->assertIsString($country);
@@ -83,7 +86,7 @@ class CountryFakerTest extends TestCase
      */
     public function testGenerateWithUnknownFormat(): void
     {
-        $faker = new CountryFaker('en_US');
+        $faker   = new CountryFaker('en_US');
         $country = $faker->generate(['format' => 'unknown']);
 
         $this->assertIsString($country);
@@ -97,7 +100,7 @@ class CountryFakerTest extends TestCase
      */
     public function testGenerateWithLocale(): void
     {
-        $faker = new CountryFaker('en_US');
+        $faker   = new CountryFaker('en_US');
         $country = $faker->generate(['format' => 'name', 'locale' => 'es_ES']);
 
         $this->assertIsString($country);
@@ -118,7 +121,7 @@ class CountryFakerTest extends TestCase
      */
     public function testGenerateWithDifferentLocale(): void
     {
-        $faker = new CountryFaker('es_ES');
+        $faker   = new CountryFaker('es_ES');
         $country = $faker->generate();
 
         $this->assertIsString($country);
@@ -130,10 +133,10 @@ class CountryFakerTest extends TestCase
      */
     public function testGenerateDifferentCountries(): void
     {
-        $faker = new CountryFaker('en_US');
+        $faker     = new CountryFaker('en_US');
         $countries = [];
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             $countries[] = $faker->generate();
         }
 

@@ -45,10 +45,10 @@ class UserAccount
         type: 'pattern_based',
         weight: 2,
         options: [
-            'source_field' => 'email',  // Use anonymized email as base
-            'pattern' => '/(\\(\\d+\\))$/',  // Extract (number) at the end
+            'source_field'        => 'email',  // Use anonymized email as base
+            'pattern'             => '/(\\(\\d+\\))$/',  // Extract (number) at the end
             'pattern_replacement' => '$1',  // Keep the extracted pattern
-        ]
+        ],
     )]
     #[ORM\Column(type: Types::STRING, length: 180, unique: true)]
     protected string $username;
@@ -57,10 +57,10 @@ class UserAccount
         type: 'pattern_based',
         weight: 3,
         options: [
-            'source_field' => 'email',
-            'pattern' => '/(\\(\\d+\\))$/',
+            'source_field'        => 'email',
+            'pattern'             => '/(\\(\\d+\\))$/',
             'pattern_replacement' => '$1',
-        ]
+        ],
     )]
     #[ORM\Column(type: Types::STRING, length: 180, unique: true)]
     protected string $usernameCanonical;
@@ -70,7 +70,7 @@ class UserAccount
         weight: 4,
         options: [
             'source_field' => 'email',  // Copy from anonymized email (same value)
-        ]
+        ],
     )]
     #[ORM\Column(type: Types::STRING, length: 180)]
     protected string $emailCanonical;

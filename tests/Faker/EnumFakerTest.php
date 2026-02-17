@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Faker;
 
+use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Faker\EnumFaker;
 use PHPUnit\Framework\TestCase;
+
+use function count;
 
 /**
  * Test case for EnumFaker.
@@ -20,9 +23,9 @@ class EnumFakerTest extends TestCase
      */
     public function testGenerate(): void
     {
-        $faker = new EnumFaker('en_US');
+        $faker  = new EnumFaker('en_US');
         $values = ['active', 'inactive', 'pending'];
-        $value = $faker->generate(['values' => $values]);
+        $value  = $faker->generate(['values' => $values]);
 
         $this->assertContains($value, $values);
     }
@@ -32,7 +35,7 @@ class EnumFakerTest extends TestCase
      */
     public function testGenerateThrowsExceptionWhenValuesMissing(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('EnumFaker requires a "values" option');
 
         $faker = new EnumFaker('en_US');
@@ -44,7 +47,7 @@ class EnumFakerTest extends TestCase
      */
     public function testGenerateThrowsExceptionWhenValuesEmpty(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('EnumFaker requires a "values" option');
 
         $faker = new EnumFaker('en_US');
@@ -56,10 +59,10 @@ class EnumFakerTest extends TestCase
      */
     public function testGenerateWithWeighted(): void
     {
-        $faker = new EnumFaker('en_US');
-        $values = ['active', 'inactive', 'pending'];
+        $faker    = new EnumFaker('en_US');
+        $values   = ['active', 'inactive', 'pending'];
         $weighted = ['active' => 50, 'inactive' => 30, 'pending' => 20];
-        $value = $faker->generate(['values' => $values, 'weighted' => $weighted]);
+        $value    = $faker->generate(['values' => $values, 'weighted' => $weighted]);
 
         $this->assertContains($value, $values);
     }
@@ -69,10 +72,10 @@ class EnumFakerTest extends TestCase
      */
     public function testGenerateWithWeightedFloat(): void
     {
-        $faker = new EnumFaker('en_US');
-        $values = ['low', 'medium', 'high'];
+        $faker    = new EnumFaker('en_US');
+        $values   = ['low', 'medium', 'high'];
         $weighted = ['low' => 0.3, 'medium' => 0.5, 'high' => 0.2];
-        $value = $faker->generate(['values' => $values, 'weighted' => $weighted]);
+        $value    = $faker->generate(['values' => $values, 'weighted' => $weighted]);
 
         $this->assertContains($value, array_keys($weighted));
     }
@@ -82,10 +85,10 @@ class EnumFakerTest extends TestCase
      */
     public function testGenerateWithWeightedSingleValue(): void
     {
-        $faker = new EnumFaker('en_US');
-        $values = ['only'];
+        $faker    = new EnumFaker('en_US');
+        $values   = ['only'];
         $weighted = ['only' => 100];
-        $value = $faker->generate(['values' => $values, 'weighted' => $weighted]);
+        $value    = $faker->generate(['values' => $values, 'weighted' => $weighted]);
 
         $this->assertEquals('only', $value);
     }
@@ -95,9 +98,9 @@ class EnumFakerTest extends TestCase
      */
     public function testGenerateWithEmptyWeighted(): void
     {
-        $faker = new EnumFaker('en_US');
+        $faker  = new EnumFaker('en_US');
         $values = ['active', 'inactive', 'pending'];
-        $value = $faker->generate(['values' => $values, 'weighted' => []]);
+        $value  = $faker->generate(['values' => $values, 'weighted' => []]);
 
         // Should fall back to random selection
         $this->assertContains($value, $values);
@@ -108,9 +111,9 @@ class EnumFakerTest extends TestCase
      */
     public function testGenerateWithNullWeighted(): void
     {
-        $faker = new EnumFaker('en_US');
+        $faker  = new EnumFaker('en_US');
         $values = ['active', 'inactive', 'pending'];
-        $value = $faker->generate(['values' => $values, 'weighted' => null]);
+        $value  = $faker->generate(['values' => $values, 'weighted' => null]);
 
         // Should fall back to random selection
         $this->assertContains($value, $values);
@@ -121,10 +124,10 @@ class EnumFakerTest extends TestCase
      */
     public function testGenerateWithWeightedMismatchedKeys(): void
     {
-        $faker = new EnumFaker('en_US');
-        $values = ['active', 'inactive', 'pending'];
+        $faker    = new EnumFaker('en_US');
+        $values   = ['active', 'inactive', 'pending'];
         $weighted = ['active' => 50, 'other' => 50];
-        $value = $faker->generate(['values' => $values, 'weighted' => $weighted]);
+        $value    = $faker->generate(['values' => $values, 'weighted' => $weighted]);
 
         // Should still return a valid value
         $this->assertIsString($value);
@@ -135,11 +138,11 @@ class EnumFakerTest extends TestCase
      */
     public function testGenerateMultipleCalls(): void
     {
-        $faker = new EnumFaker('en_US');
+        $faker  = new EnumFaker('en_US');
         $values = ['a', 'b', 'c', 'd', 'e'];
 
         $results = [];
-        for ($i = 0; $i < 20; $i++) {
+        for ($i = 0; $i < 20; ++$i) {
             $results[] = $faker->generate(['values' => $values]);
         }
 
@@ -159,14 +162,14 @@ class EnumFakerTest extends TestCase
      */
     public function testSelectWeightedValueFallback(): void
     {
-        $faker = new EnumFaker('en_US');
-        $values = ['a', 'b', 'c'];
+        $faker    = new EnumFaker('en_US');
+        $values   = ['a', 'b', 'c'];
         $weighted = ['a' => 10, 'b' => 20, 'c' => 30];
 
         // Run multiple times to increase chance of hitting fallback
         $results = [];
-        for ($i = 0; $i < 100; $i++) {
-            $value = $faker->generate(['values' => $values, 'weighted' => $weighted]);
+        for ($i = 0; $i < 100; ++$i) {
+            $value     = $faker->generate(['values' => $values, 'weighted' => $weighted]);
             $results[] = $value;
             // All results should be valid keys from weighted array
             $this->assertContains($value, array_keys($weighted));
@@ -182,8 +185,8 @@ class EnumFakerTest extends TestCase
      */
     public function testGenerateWithZeroWeights(): void
     {
-        $faker = new EnumFaker('en_US');
-        $values = ['a', 'b', 'c'];
+        $faker    = new EnumFaker('en_US');
+        $values   = ['a', 'b', 'c'];
         $weighted = ['a' => 0, 'b' => 0, 'c' => 100];
 
         // With zero weights, 'c' should be selected most of the time
@@ -196,8 +199,8 @@ class EnumFakerTest extends TestCase
      */
     public function testGenerateWithVerySmallWeights(): void
     {
-        $faker = new EnumFaker('en_US');
-        $values = ['a', 'b'];
+        $faker    = new EnumFaker('en_US');
+        $values   = ['a', 'b'];
         $weighted = ['a' => 0.001, 'b' => 0.002];
 
         $value = $faker->generate(['values' => $values, 'weighted' => $weighted]);

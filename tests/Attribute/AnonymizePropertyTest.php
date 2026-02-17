@@ -50,7 +50,7 @@ class AnonymizePropertyTest extends TestCase
     public function testAnonymizePropertyCanBeInstantiatedWithIncludePatterns(): void
     {
         $includePatterns = ['id' => '>100', 'status' => 'active'];
-        $attribute = new AnonymizeProperty(type: 'email', includePatterns: $includePatterns);
+        $attribute       = new AnonymizeProperty(type: 'email', includePatterns: $includePatterns);
 
         $this->assertEquals('email', $attribute->type);
         $this->assertEquals($includePatterns, $attribute->includePatterns);
@@ -62,7 +62,7 @@ class AnonymizePropertyTest extends TestCase
     public function testAnonymizePropertyCanBeInstantiatedWithExcludePatterns(): void
     {
         $excludePatterns = ['id' => '<=100', 'deleted' => 'true'];
-        $attribute = new AnonymizeProperty(type: 'email', excludePatterns: $excludePatterns);
+        $attribute       = new AnonymizeProperty(type: 'email', excludePatterns: $excludePatterns);
 
         $this->assertEquals('email', $attribute->type);
         $this->assertEquals($excludePatterns, $attribute->excludePatterns);
@@ -74,7 +74,7 @@ class AnonymizePropertyTest extends TestCase
     public function testAnonymizePropertyCanBeInstantiatedWithExcludePatternsArrayValue(): void
     {
         $excludePatterns = ['email' => ['%@nowo.tech', 'operador@example.com']];
-        $attribute = new AnonymizeProperty(type: 'email', excludePatterns: $excludePatterns);
+        $attribute       = new AnonymizeProperty(type: 'email', excludePatterns: $excludePatterns);
 
         $this->assertEquals($excludePatterns, $attribute->excludePatterns);
     }
@@ -109,7 +109,7 @@ class AnonymizePropertyTest extends TestCase
      */
     public function testAnonymizePropertyCanBeInstantiatedWithOptions(): void
     {
-        $options = ['min' => 18, 'max' => 65];
+        $options   = ['min' => 18, 'max' => 65];
         $attribute = new AnonymizeProperty(type: 'age', options: $options);
 
         $this->assertEquals('age', $attribute->type);
@@ -123,7 +123,7 @@ class AnonymizePropertyTest extends TestCase
     {
         $includePatterns = ['id' => '>100'];
         $excludePatterns = ['deleted' => 'true'];
-        $options = ['min' => 18, 'max' => 65];
+        $options         = ['min' => 18, 'max' => 65];
 
         $attribute = new AnonymizeProperty(
             type: 'age',
@@ -131,7 +131,7 @@ class AnonymizePropertyTest extends TestCase
             includePatterns: $includePatterns,
             excludePatterns: $excludePatterns,
             service: null,
-            options: $options
+            options: $options,
         );
 
         $this->assertEquals('age', $attribute->type);

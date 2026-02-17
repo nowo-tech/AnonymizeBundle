@@ -36,15 +36,16 @@ final class IbanFaker implements FakerInterface
      * Generates an anonymized IBAN.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'country' (string): Country code (ISO 3166-1 alpha-2, default: 'ES')
-     *   - 'valid' (bool): Generate valid IBAN with correct checksum (default: true)
-     *   - 'formatted' (bool): Include spaces in IBAN (default: false)
+     *                                      - 'country' (string): Country code (ISO 3166-1 alpha-2, default: 'ES')
+     *                                      - 'valid' (bool): Generate valid IBAN with correct checksum (default: true)
+     *                                      - 'formatted' (bool): Include spaces in IBAN (default: false)
+     *
      * @return string The anonymized IBAN
      */
     public function generate(array $options = []): string
     {
-        $country = $options['country'] ?? 'ES';
-        $valid = $options['valid'] ?? true;
+        $country   = $options['country'] ?? 'ES';
+        $valid     = $options['valid'] ?? true;
         $formatted = $options['formatted'] ?? false;
 
         // Generate IBAN (Faker library generates valid IBANs by default)

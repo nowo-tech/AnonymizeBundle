@@ -21,7 +21,7 @@ class AgeFakerTest extends TestCase
     public function testGenerate(): void
     {
         $faker = new AgeFaker('en_US');
-        $age = $faker->generate();
+        $age   = $faker->generate();
 
         $this->assertIsInt($age);
         $this->assertGreaterThanOrEqual(18, $age);
@@ -34,7 +34,7 @@ class AgeFakerTest extends TestCase
     public function testGenerateWithOptions(): void
     {
         $faker = new AgeFaker('en_US');
-        $age = $faker->generate(['min' => 25, 'max' => 50]);
+        $age   = $faker->generate(['min' => 25, 'max' => 50]);
 
         $this->assertIsInt($age);
         $this->assertGreaterThanOrEqual(25, $age);
@@ -47,7 +47,7 @@ class AgeFakerTest extends TestCase
     public function testGenerateWithUniformDistribution(): void
     {
         $faker = new AgeFaker('en_US');
-        $age = $faker->generate(['distribution' => 'uniform', 'min' => 20, 'max' => 30]);
+        $age   = $faker->generate(['distribution' => 'uniform', 'min' => 20, 'max' => 30]);
 
         $this->assertIsInt($age);
         $this->assertGreaterThanOrEqual(20, $age);
@@ -60,12 +60,12 @@ class AgeFakerTest extends TestCase
     public function testGenerateWithNormalDistribution(): void
     {
         $faker = new AgeFaker('en_US');
-        $age = $faker->generate([
+        $age   = $faker->generate([
             'distribution' => 'normal',
-            'mean' => 40,
-            'std_dev' => 10,
-            'min' => 18,
-            'max' => 100,
+            'mean'         => 40,
+            'std_dev'      => 10,
+            'min'          => 18,
+            'max'          => 100,
         ]);
 
         $this->assertIsInt($age);
@@ -79,12 +79,12 @@ class AgeFakerTest extends TestCase
     public function testGenerateWithMeanAndStdDev(): void
     {
         $faker = new AgeFaker('en_US');
-        $age = $faker->generate([
+        $age   = $faker->generate([
             'distribution' => 'normal',
-            'mean' => 50,
-            'std_dev' => 5,
-            'min' => 30,
-            'max' => 70,
+            'mean'         => 50,
+            'std_dev'      => 5,
+            'min'          => 30,
+            'max'          => 70,
         ]);
 
         $this->assertIsInt($age);
@@ -98,7 +98,7 @@ class AgeFakerTest extends TestCase
     public function testGenerateWithMinEqualMax(): void
     {
         $faker = new AgeFaker('en_US');
-        $age = $faker->generate(['min' => 25, 'max' => 25]);
+        $age   = $faker->generate(['min' => 25, 'max' => 25]);
 
         $this->assertEquals(25, $age);
     }
@@ -123,12 +123,12 @@ class AgeFakerTest extends TestCase
     public function testGenerateNormalWithExtremeValues(): void
     {
         $faker = new AgeFaker('en_US');
-        $age = $faker->generate([
+        $age   = $faker->generate([
             'distribution' => 'normal',
-            'mean' => 100,
-            'std_dev' => 50,
-            'min' => 0,
-            'max' => 150,
+            'mean'         => 100,
+            'std_dev'      => 50,
+            'min'          => 0,
+            'max'          => 150,
         ]);
 
         $this->assertIsInt($age);
@@ -151,7 +151,7 @@ class AgeFakerTest extends TestCase
     public function testGenerateWithDifferentLocale(): void
     {
         $faker = new AgeFaker('es_ES');
-        $age = $faker->generate();
+        $age   = $faker->generate();
 
         $this->assertIsInt($age);
         $this->assertGreaterThanOrEqual(18, $age);

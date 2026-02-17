@@ -22,34 +22,34 @@ class ProductType extends AbstractType
         $builder
             ->add('name', TextType::class, [
                 'required' => true,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('description', TextareaType::class, [
                 'required' => false,
-                'attr' => ['class' => 'form-control', 'rows' => 4],
+                'attr'     => ['class' => 'form-control', 'rows' => 4],
             ])
             ->add('price', MoneyType::class, [
                 'required' => true,
                 'currency' => 'USD',
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('imageUrl', UrlType::class, [
                 'required' => false,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('status', ChoiceType::class, [
                 'choices' => [
-                    'Active' => 'active',
+                    'Active'   => 'active',
                     'Inactive' => 'inactive',
-                    'Draft' => 'draft',
+                    'Draft'    => 'draft',
                 ],
                 'required' => true,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('createdAt', DateTimeType::class, [
                 'required' => false,
-                'widget' => 'single_text',
-                'attr' => ['class' => 'form-control'],
+                'widget'   => 'single_text',
+                'attr'     => ['class' => 'form-control'],
             ]);
     }
 

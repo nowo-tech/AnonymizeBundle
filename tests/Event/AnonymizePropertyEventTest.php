@@ -23,7 +23,7 @@ class AnonymizePropertyEventTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->em = $this->createMock(EntityManagerInterface::class);
+        $this->em       = $this->createMock(EntityManagerInterface::class);
         $this->metadata = $this->createMock(ClassMetadata::class);
     }
 
@@ -32,13 +32,14 @@ class AnonymizePropertyEventTest extends TestCase
         $testClass = new class {
             public string $testProperty = 'test';
         };
+
         return new ReflectionProperty($testClass, 'testProperty');
     }
 
     public function testGetEntityManager(): void
     {
         $property = $this->createTestProperty();
-        $event = new AnonymizePropertyEvent(
+        $event    = new AnonymizePropertyEvent(
             $this->em,
             $this->metadata,
             $property,
@@ -46,7 +47,7 @@ class AnonymizePropertyEventTest extends TestCase
             'original@example.com',
             'anonymized@example.com',
             ['id' => 1, 'email' => 'original@example.com'],
-            false
+            false,
         );
 
         $this->assertSame($this->em, $event->getEntityManager());
@@ -55,7 +56,7 @@ class AnonymizePropertyEventTest extends TestCase
     public function testGetMetadata(): void
     {
         $property = $this->createTestProperty();
-        $event = new AnonymizePropertyEvent(
+        $event    = new AnonymizePropertyEvent(
             $this->em,
             $this->metadata,
             $property,
@@ -63,7 +64,7 @@ class AnonymizePropertyEventTest extends TestCase
             'original@example.com',
             'anonymized@example.com',
             ['id' => 1],
-            false
+            false,
         );
 
         $this->assertSame($this->metadata, $event->getMetadata());
@@ -72,7 +73,7 @@ class AnonymizePropertyEventTest extends TestCase
     public function testGetProperty(): void
     {
         $property = $this->createTestProperty();
-        $event = new AnonymizePropertyEvent(
+        $event    = new AnonymizePropertyEvent(
             $this->em,
             $this->metadata,
             $property,
@@ -80,7 +81,7 @@ class AnonymizePropertyEventTest extends TestCase
             'original@example.com',
             'anonymized@example.com',
             ['id' => 1],
-            false
+            false,
         );
 
         $this->assertSame($property, $event->getProperty());
@@ -89,7 +90,7 @@ class AnonymizePropertyEventTest extends TestCase
     public function testGetPropertyName(): void
     {
         $property = $this->createTestProperty();
-        $event = new AnonymizePropertyEvent(
+        $event    = new AnonymizePropertyEvent(
             $this->em,
             $this->metadata,
             $property,
@@ -97,7 +98,7 @@ class AnonymizePropertyEventTest extends TestCase
             'original@example.com',
             'anonymized@example.com',
             ['id' => 1],
-            false
+            false,
         );
 
         $this->assertEquals('testProperty', $event->getPropertyName());
@@ -106,7 +107,7 @@ class AnonymizePropertyEventTest extends TestCase
     public function testGetColumnName(): void
     {
         $property = $this->createTestProperty();
-        $event = new AnonymizePropertyEvent(
+        $event    = new AnonymizePropertyEvent(
             $this->em,
             $this->metadata,
             $property,
@@ -114,7 +115,7 @@ class AnonymizePropertyEventTest extends TestCase
             'original@example.com',
             'anonymized@example.com',
             ['id' => 1],
-            false
+            false,
         );
 
         $this->assertEquals('email', $event->getColumnName());
@@ -123,7 +124,7 @@ class AnonymizePropertyEventTest extends TestCase
     public function testGetOriginalValue(): void
     {
         $property = $this->createTestProperty();
-        $event = new AnonymizePropertyEvent(
+        $event    = new AnonymizePropertyEvent(
             $this->em,
             $this->metadata,
             $property,
@@ -131,7 +132,7 @@ class AnonymizePropertyEventTest extends TestCase
             'original@example.com',
             'anonymized@example.com',
             ['id' => 1],
-            false
+            false,
         );
 
         $this->assertEquals('original@example.com', $event->getOriginalValue());
@@ -140,7 +141,7 @@ class AnonymizePropertyEventTest extends TestCase
     public function testGetAnonymizedValue(): void
     {
         $property = $this->createTestProperty();
-        $event = new AnonymizePropertyEvent(
+        $event    = new AnonymizePropertyEvent(
             $this->em,
             $this->metadata,
             $property,
@@ -148,7 +149,7 @@ class AnonymizePropertyEventTest extends TestCase
             'original@example.com',
             'anonymized@example.com',
             ['id' => 1],
-            false
+            false,
         );
 
         $this->assertEquals('anonymized@example.com', $event->getAnonymizedValue());
@@ -157,7 +158,7 @@ class AnonymizePropertyEventTest extends TestCase
     public function testSetAnonymizedValue(): void
     {
         $property = $this->createTestProperty();
-        $event = new AnonymizePropertyEvent(
+        $event    = new AnonymizePropertyEvent(
             $this->em,
             $this->metadata,
             $property,
@@ -165,7 +166,7 @@ class AnonymizePropertyEventTest extends TestCase
             'original@example.com',
             'anonymized@example.com',
             ['id' => 1],
-            false
+            false,
         );
 
         $event->setAnonymizedValue('modified@example.com');
@@ -175,8 +176,8 @@ class AnonymizePropertyEventTest extends TestCase
     public function testGetRecord(): void
     {
         $property = $this->createTestProperty();
-        $record = ['id' => 1, 'email' => 'original@example.com', 'name' => 'John'];
-        $event = new AnonymizePropertyEvent(
+        $record   = ['id' => 1, 'email' => 'original@example.com', 'name' => 'John'];
+        $event    = new AnonymizePropertyEvent(
             $this->em,
             $this->metadata,
             $property,
@@ -184,7 +185,7 @@ class AnonymizePropertyEventTest extends TestCase
             'original@example.com',
             'anonymized@example.com',
             $record,
-            false
+            false,
         );
 
         $this->assertEquals($record, $event->getRecord());
@@ -193,7 +194,7 @@ class AnonymizePropertyEventTest extends TestCase
     public function testShouldSkipAnonymization(): void
     {
         $property = $this->createTestProperty();
-        $event = new AnonymizePropertyEvent(
+        $event    = new AnonymizePropertyEvent(
             $this->em,
             $this->metadata,
             $property,
@@ -201,7 +202,7 @@ class AnonymizePropertyEventTest extends TestCase
             'original@example.com',
             'anonymized@example.com',
             ['id' => 1],
-            false
+            false,
         );
 
         $this->assertFalse($event->shouldSkipAnonymization());
@@ -213,7 +214,7 @@ class AnonymizePropertyEventTest extends TestCase
     public function testSetSkipAnonymization(): void
     {
         $property = $this->createTestProperty();
-        $event = new AnonymizePropertyEvent(
+        $event    = new AnonymizePropertyEvent(
             $this->em,
             $this->metadata,
             $property,
@@ -221,7 +222,7 @@ class AnonymizePropertyEventTest extends TestCase
             'original@example.com',
             'anonymized@example.com',
             ['id' => 1],
-            false
+            false,
         );
 
         $event->setSkipAnonymization(true);
@@ -234,7 +235,7 @@ class AnonymizePropertyEventTest extends TestCase
     public function testIsDryRun(): void
     {
         $property = $this->createTestProperty();
-        $event1 = new AnonymizePropertyEvent(
+        $event1   = new AnonymizePropertyEvent(
             $this->em,
             $this->metadata,
             $property,
@@ -242,7 +243,7 @@ class AnonymizePropertyEventTest extends TestCase
             'original@example.com',
             'anonymized@example.com',
             ['id' => 1],
-            true
+            true,
         );
         $this->assertTrue($event1->isDryRun());
 
@@ -254,7 +255,7 @@ class AnonymizePropertyEventTest extends TestCase
             'original@example.com',
             'anonymized@example.com',
             ['id' => 1],
-            false
+            false,
         );
         $this->assertFalse($event2->isDryRun());
     }

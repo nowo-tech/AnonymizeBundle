@@ -21,48 +21,48 @@ class EmailSubscriptionType extends AbstractType
         $builder
             ->add('email', EmailType::class, [
                 'required' => true,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('name', TextType::class, [
                 'required' => true,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('status', ChoiceType::class, [
                 'choices' => [
-                    'Active' => 'active',
-                    'Inactive' => 'inactive',
+                    'Active'       => 'active',
+                    'Inactive'     => 'inactive',
                     'Unsubscribed' => 'unsubscribed',
                 ],
                 'required' => true,
-                'attr' => ['class' => 'form-select'],
+                'attr'     => ['class' => 'form-select'],
             ])
             ->add('backupEmail', EmailType::class, [
                 'required' => false,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('source', ChoiceType::class, [
                 'choices' => [
-                    'Website' => 'website',
+                    'Website'    => 'website',
                     'Newsletter' => 'newsletter',
-                    'Promotion' => 'promotion',
-                    'Partner' => 'partner',
+                    'Promotion'  => 'promotion',
+                    'Partner'    => 'partner',
                 ],
                 'required' => true,
-                'attr' => ['class' => 'form-select'],
+                'attr'     => ['class' => 'form-select'],
             ])
             ->add('subscribedAt', DateTimeType::class, [
                 'required' => true,
-                'widget' => 'single_text',
-                'attr' => ['class' => 'form-control'],
+                'widget'   => 'single_text',
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('unsubscribedAt', DateTimeType::class, [
                 'required' => false,
-                'widget' => 'single_text',
-                'attr' => ['class' => 'form-control'],
+                'widget'   => 'single_text',
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('notes', TextareaType::class, [
                 'required' => false,
-                'attr' => ['class' => 'form-control', 'rows' => 3],
+                'attr'     => ['class' => 'form-control', 'rows' => 3],
             ]);
     }
 

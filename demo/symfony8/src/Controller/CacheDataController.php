@@ -7,7 +7,6 @@ namespace App\Controller;
 use App\Entity\CacheData;
 use App\Form\CacheDataType;
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Nowo\AnonymizeBundle\Service\SchemaService;
@@ -16,23 +15,30 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+use function is_string;
+use function sprintf;
+
+use const JSON_ERROR_NONE;
+use const JSON_PRETTY_PRINT;
+
 #[Route('/{connection}/cache-data')]
 class CacheDataController extends AbstractController
 {
     public function __construct(
         private readonly ManagerRegistry $doctrine,
         private readonly SchemaService $schemaService
-    ) {}
+    ) {
+    }
 
     #[Route('/', name: 'cache_data_index', methods: ['GET'])]
     public function index(string $connection): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em                  = $this->doctrine->getManager($connection);
         $hasAnonymizedColumn = $this->schemaService->hasAnonymizedColumn($em, CacheData::class);
 
         if (!$hasAnonymizedColumn) {
             /** @var ClassMetadata $metadata */
-            $metadata = $em->getClassMetadata(CacheData::class);
+            $metadata  = $em->getClassMetadata(CacheData::class);
             $tableName = $metadata->getTableName();
             /** @var Connection $dbConnection */
             $dbConnection = $em->getConnection();
@@ -41,19 +47,19 @@ class CacheDataController extends AbstractController
             foreach ($metadata->getFieldNames() as $fieldName) {
                 if ($fieldName !== 'anonymized') {
                     $fieldMapping = $metadata->getFieldMapping($fieldName);
-                    $columns[] = $dbConnection->quoteSingleIdentifier($fieldMapping['columnName'] ?? $fieldName);
+                    $columns[]    = $dbConnection->quoteSingleIdentifier($fieldMapping['columnName'] ?? $fieldName);
                 }
             }
 
-            $sql = sprintf('SELECT %s FROM %s', implode(', ', $columns), $dbConnection->quoteSingleIdentifier($tableName));
+            $sql           = sprintf('SELECT %s FROM %s', implode(', ', $columns), $dbConnection->quoteSingleIdentifier($tableName));
             $cacheDataList = $dbConnection->fetchAllAssociative($sql);
         } else {
             $cacheDataList = $em->getRepository(CacheData::class)->findAll();
         }
 
         return $this->render('cache_data/index.html.twig', [
-            'cache_data_list' => $cacheDataList,
-            'connection' => $connection,
+            'cache_data_list'     => $cacheDataList,
+            'connection'          => $connection,
             'hasAnonymizedColumn' => $hasAnonymizedColumn,
         ]);
     }
@@ -62,8 +68,8 @@ class CacheDataController extends AbstractController
     public function new(Request $request, string $connection): Response
     {
         $cacheData = new CacheData();
-        $em = $this->doctrine->getManager($connection);
-        $form = $this->createForm(CacheDataType::class, $cacheData);
+        $em        = $this->doctrine->getManager($connection);
+        $form      = $this->createForm(CacheDataType::class, $cacheData);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -88,7 +94,7 @@ class CacheDataController extends AbstractController
 
         return $this->render('cache_data/new.html.twig', [
             'cache_data' => $cacheData,
-            'form' => $form,
+            'form'       => $form,
             'connection' => $connection,
         ]);
     }
@@ -96,17 +102,17 @@ class CacheDataController extends AbstractController
     #[Route('/{id}', name: 'cache_data_show', methods: ['GET'])]
     public function show(string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em                  = $this->doctrine->getManager($connection);
         $hasAnonymizedColumn = $this->schemaService->hasAnonymizedColumn($em, CacheData::class);
-        $cacheData = $em->getRepository(CacheData::class)->find($id);
+        $cacheData           = $em->getRepository(CacheData::class)->find($id);
 
         if (!$cacheData) {
             throw $this->createNotFoundException('CacheData not found');
         }
 
         return $this->render('cache_data/show.html.twig', [
-            'cache_data' => $cacheData,
-            'connection' => $connection,
+            'cache_data'          => $cacheData,
+            'connection'          => $connection,
             'hasAnonymizedColumn' => $hasAnonymizedColumn,
         ]);
     }
@@ -114,7 +120,7 @@ class CacheDataController extends AbstractController
     #[Route('/{id}/edit', name: 'cache_data_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em        = $this->doctrine->getManager($connection);
         $cacheData = $em->getRepository(CacheData::class)->find($id);
 
         if (!$cacheData) {
@@ -152,7 +158,7 @@ class CacheDataController extends AbstractController
 
         return $this->render('cache_data/edit.html.twig', [
             'cache_data' => $cacheData,
-            'form' => $form,
+            'form'       => $form,
             'connection' => $connection,
         ]);
     }
@@ -160,7 +166,7 @@ class CacheDataController extends AbstractController
     #[Route('/{id}', name: 'cache_data_delete', methods: ['POST'])]
     public function delete(Request $request, string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em        = $this->doctrine->getManager($connection);
         $cacheData = $em->getRepository(CacheData::class)->find($id);
 
         if (!$cacheData) {

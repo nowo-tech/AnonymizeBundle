@@ -7,8 +7,10 @@ namespace Nowo\AnonymizeBundle\Tests\Helper;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Exception;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 /**
  * Test case for DbalHelper.
@@ -65,7 +67,7 @@ class DbalHelperTest extends TestCase
     {
         // Test the manual quoting logic that would be used as fallback
         $identifier = 'test_table';
-        $expected = '`test_table`';
+        $expected   = '`test_table`';
 
         // Test the manual quoting logic directly (this is what the fallback does)
         $manualResult = '`' . str_replace('`', '``', $identifier) . '`';
@@ -87,7 +89,7 @@ class DbalHelperTest extends TestCase
     {
         // Test the manual quoting logic that handles backticks
         $identifier = 'test`table';
-        $expected = '`test``table`';
+        $expected   = '`test``table`';
 
         // Test the manual quoting logic directly (this is what the fallback does)
         $manualResult = '`' . str_replace('`', '``', $identifier) . '`';
@@ -133,7 +135,7 @@ class DbalHelperTest extends TestCase
         // Create a mock platform with MySQL in class name
         $mysqlPlatform = $this->getMockBuilder(AbstractPlatform::class)
             ->getMock();
-        $mysqlPlatformClass = get_class($mysqlPlatform);
+        $mysqlPlatformClass = $mysqlPlatform::class;
         // Use reflection to check if class name contains MySQL
         // Since we can't easily mock the class name, we'll test via params
         $connection = $this->createMock(Connection::class);
@@ -301,7 +303,7 @@ class DbalHelperTest extends TestCase
         $connection->method('getDriver')
             ->willReturn($driver);
         $connection->method('getDatabasePlatform')
-            ->willThrowException(new \Exception('Database error'));
+            ->willThrowException(new Exception('Database error'));
         $connection->method('getParams')
             ->willReturn([]);
 
@@ -390,14 +392,14 @@ class DbalHelperTest extends TestCase
         // Create a connection mock that doesn't have quoteSingleIdentifier or quoteIdentifier
         // We can't easily test this with mocks since method_exists returns true for mocked methods
         // But we can test the manual quoting logic directly
-        $identifier = 'test_table';
-        $expected = '`test_table`';
+        $identifier   = 'test_table';
+        $expected     = '`test_table`';
         $manualResult = '`' . str_replace('`', '``', $identifier) . '`';
         $this->assertEquals($expected, $manualResult);
 
         // Test with backticks in identifier
-        $identifier2 = 'test`table';
-        $expected2 = '`test``table`';
+        $identifier2   = 'test`table';
+        $expected2     = '`test``table`';
         $manualResult2 = '`' . str_replace('`', '``', $identifier2) . '`';
         $this->assertEquals($expected2, $manualResult2);
     }
@@ -510,8 +512,8 @@ class DbalHelperTest extends TestCase
         $platform = $this->createMock(AbstractPlatform::class);
 
         // Use reflection to create a mock with a specific class name
-        $reflection = new \ReflectionClass($platform);
-        $className = $reflection->getName();
+        $reflection = new ReflectionClass($platform);
+        $className  = $reflection->getName();
 
         $connection = $this->createMock(Connection::class);
         $connection->method('getDriver')

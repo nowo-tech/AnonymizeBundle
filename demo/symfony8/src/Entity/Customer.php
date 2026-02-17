@@ -22,7 +22,7 @@ use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 #[ORM\Table(name: 'customers')]
 #[Anonymize(
     includePatterns: ['status' => 'active'],
-    excludePatterns: ['id' => '<=10']
+    excludePatterns: ['id' => '<=10'],
 )]
 class Customer
 {
@@ -37,7 +37,7 @@ class Customer
         type: 'email',
         weight: 1,
         includePatterns: ['status' => 'active'],
-        excludePatterns: ['id' => '=1']
+        excludePatterns: ['id' => '=1'],
     )]
     private ?string $email = null;
 
@@ -53,7 +53,7 @@ class Customer
         type: 'service',
         service: 'App\Service\CustomReferenceFaker',
         weight: 3,
-        options: ['prefix' => 'CUST', 'length' => 8, 'separator' => '-']
+        options: ['prefix' => 'CUST', 'length' => 8, 'separator' => '-'],
     )]
     private ?string $referenceCode = null;
 

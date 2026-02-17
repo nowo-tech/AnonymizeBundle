@@ -25,7 +25,7 @@ use Nowo\AnonymizeBundle\Attribute\Anonymize;
 #[Anonymize(
     anonymizeService: \App\Service\SmsNotificationAnonymizerService::class,
     truncate: true,
-    truncate_order: 2
+    truncate_order: 2,
 )]
 class SmsNotification extends AbstractNotification
 {

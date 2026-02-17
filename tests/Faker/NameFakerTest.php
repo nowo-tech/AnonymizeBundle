@@ -21,7 +21,7 @@ class NameFakerTest extends TestCase
     public function testGenerate(): void
     {
         $faker = new NameFaker('en_US');
-        $name = $faker->generate();
+        $name  = $faker->generate();
 
         $this->assertIsString($name);
         $this->assertNotEmpty($name);
@@ -46,7 +46,7 @@ class NameFakerTest extends TestCase
     public function testGenerateWithGenderMale(): void
     {
         $faker = new NameFaker('en_US');
-        $name = $faker->generate(['gender' => 'male']);
+        $name  = $faker->generate(['gender' => 'male']);
 
         $this->assertIsString($name);
         $this->assertNotEmpty($name);
@@ -58,7 +58,7 @@ class NameFakerTest extends TestCase
     public function testGenerateWithGenderFemale(): void
     {
         $faker = new NameFaker('en_US');
-        $name = $faker->generate(['gender' => 'female']);
+        $name  = $faker->generate(['gender' => 'female']);
 
         $this->assertIsString($name);
         $this->assertNotEmpty($name);
@@ -70,7 +70,7 @@ class NameFakerTest extends TestCase
     public function testGenerateWithGenderRandom(): void
     {
         $faker = new NameFaker('en_US');
-        $name = $faker->generate(['gender' => 'random']);
+        $name  = $faker->generate(['gender' => 'random']);
 
         $this->assertIsString($name);
         $this->assertNotEmpty($name);
@@ -95,7 +95,7 @@ class NameFakerTest extends TestCase
     public function testGenerateWithLocaleSpecific(): void
     {
         $faker = new NameFaker('en_US');
-        $name = $faker->generate(['locale_specific' => true]);
+        $name  = $faker->generate(['locale_specific' => true]);
 
         $this->assertIsString($name);
         $this->assertNotEmpty($name);
@@ -107,7 +107,7 @@ class NameFakerTest extends TestCase
     public function testGenerateWithLocaleSpecificFalse(): void
     {
         $faker = new NameFaker('en_US');
-        $name = $faker->generate(['locale_specific' => false]);
+        $name  = $faker->generate(['locale_specific' => false]);
 
         $this->assertIsString($name);
         $this->assertNotEmpty($name);
@@ -128,7 +128,7 @@ class NameFakerTest extends TestCase
     public function testGenerateWithDifferentLocale(): void
     {
         $faker = new NameFaker('es_ES');
-        $name = $faker->generate();
+        $name  = $faker->generate();
 
         $this->assertIsString($name);
         $this->assertNotEmpty($name);

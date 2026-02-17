@@ -6,6 +6,7 @@ namespace Nowo\AnonymizeBundle\Tests\Enum;
 
 use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 /**
  * Test case for SymfonyService class.
@@ -28,7 +29,7 @@ class SymfonyServiceTest extends TestCase
      */
     public function testSymfonyServiceIsAbstract(): void
     {
-        $reflection = new \ReflectionClass(SymfonyService::class);
+        $reflection = new ReflectionClass(SymfonyService::class);
         $this->assertTrue($reflection->isAbstract());
     }
 
@@ -37,8 +38,8 @@ class SymfonyServiceTest extends TestCase
      */
     public function testAllConstantsAreAccessible(): void
     {
-        $reflection = new \ReflectionClass(SymfonyService::class);
-        $constants = $reflection->getConstants();
+        $reflection = new ReflectionClass(SymfonyService::class);
+        $constants  = $reflection->getConstants();
 
         $this->assertArrayHasKey('DOCTRINE', $constants);
         $this->assertEquals('doctrine', $constants['DOCTRINE']);

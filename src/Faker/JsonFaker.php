@@ -9,6 +9,10 @@ use Faker\Generator as FakerGenerator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+use function is_array;
+
+use const JSON_THROW_ON_ERROR;
+
 /**
  * Faker for generating anonymized JSON structures.
  *
@@ -36,15 +40,16 @@ final class JsonFaker implements FakerInterface
      * Generates an anonymized JSON structure.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'schema' (array): Schema definition for JSON structure (optional)
-     *   - 'depth' (int): Maximum nesting depth (default: 2)
-     *   - 'max_items' (int): Maximum items in arrays (default: 5)
+     *                                      - 'schema' (array): Schema definition for JSON structure (optional)
+     *                                      - 'depth' (int): Maximum nesting depth (default: 2)
+     *                                      - 'max_items' (int): Maximum items in arrays (default: 5)
+     *
      * @return string The anonymized JSON string
      */
     public function generate(array $options = []): string
     {
-        $schema = $options['schema'] ?? null;
-        $depth = (int) ($options['depth'] ?? 2);
+        $schema   = $options['schema'] ?? null;
+        $depth    = (int) ($options['depth'] ?? 2);
         $maxItems = (int) ($options['max_items'] ?? 5);
 
         if ($schema !== null && is_array($schema)) {
@@ -61,6 +66,7 @@ final class JsonFaker implements FakerInterface
      *
      * @param array<string, mixed> $schema Schema definition
      * @param int $maxDepth Maximum nesting depth
+     *
      * @return array<string, mixed> Generated data
      */
     private function generateFromSchema(array $schema, int $maxDepth): array
@@ -90,6 +96,7 @@ final class JsonFaker implements FakerInterface
      *
      * @param int $maxDepth Maximum nesting depth
      * @param int $maxItems Maximum items in arrays
+     *
      * @return array<string, mixed> Generated data
      */
     private function generateRandomStructure(int $maxDepth, int $maxItems): array
@@ -101,17 +108,17 @@ final class JsonFaker implements FakerInterface
         $structure = [];
         $itemCount = $this->faker->numberBetween(2, $maxItems);
 
-        for ($i = 0; $i < $itemCount; $i++) {
-            $key = $this->faker->word();
+        for ($i = 0; $i < $itemCount; ++$i) {
+            $key  = $this->faker->word();
             $type = $this->faker->randomElement(['string', 'number', 'boolean', 'array', 'object']);
 
             $structure[$key] = match ($type) {
-                'string' => $this->faker->sentence(),
-                'number' => $this->faker->randomFloat(2, 0, 1000),
+                'string'  => $this->faker->sentence(),
+                'number'  => $this->faker->randomFloat(2, 0, 1000),
                 'boolean' => $this->faker->boolean(),
-                'array' => $this->faker->randomElements(['a', 'b', 'c', 'd', 'e'], $this->faker->numberBetween(1, 3)),
-                'object' => $this->generateRandomStructure($maxDepth - 1, $maxItems),
-                default => $this->faker->word(),
+                'array'   => $this->faker->randomElements(['a', 'b', 'c', 'd', 'e'], $this->faker->numberBetween(1, 3)),
+                'object'  => $this->generateRandomStructure($maxDepth - 1, $maxItems),
+                default   => $this->faker->word(),
             };
         }
 
@@ -123,6 +130,7 @@ final class JsonFaker implements FakerInterface
      *
      * @param string $type Value type
      * @param int $maxDepth Maximum nesting depth
+     *
      * @return mixed Generated value
      */
     private function generateValueByType(string $type, int $maxDepth): mixed
@@ -130,11 +138,11 @@ final class JsonFaker implements FakerInterface
         return match ($type) {
             'string' => $this->faker->sentence(),
             'number', 'integer' => $this->faker->numberBetween(0, 1000),
-            'float' => $this->faker->randomFloat(2, 0, 1000),
+            'float'   => $this->faker->randomFloat(2, 0, 1000),
             'boolean' => $this->faker->boolean(),
-            'array' => $this->faker->randomElements(['a', 'b', 'c', 'd', 'e'], $this->faker->numberBetween(1, 3)),
-            'object' => $maxDepth > 0 ? $this->generateRandomStructure($maxDepth, 3) : [],
-            default => $this->faker->word(),
+            'array'   => $this->faker->randomElements(['a', 'b', 'c', 'd', 'e'], $this->faker->numberBetween(1, 3)),
+            'object'  => $maxDepth > 0 ? $this->generateRandomStructure($maxDepth, 3) : [],
+            default   => $this->faker->word(),
         };
     }
 }

@@ -32,7 +32,7 @@ class PhoneFakerTest extends TestCase
      */
     public function testGenerateUnique(): void
     {
-        $faker = new PhoneFaker('en_US');
+        $faker  = new PhoneFaker('en_US');
         $phone1 = $faker->generate();
         $phone2 = $faker->generate();
 

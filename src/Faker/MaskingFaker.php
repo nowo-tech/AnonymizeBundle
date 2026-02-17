@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Faker;
 
+use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+
+use function is_string;
+use function strlen;
 
 /**
  * Faker for partial masking of sensitive data.
@@ -24,14 +28,16 @@ final class MaskingFaker implements FakerInterface
      * Generates a masked version of the original value.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'original_value' (string): The original value to mask (standard, always provided)
-     *   - 'value' (string): Alias for 'original_value' (backward compatibility)
-     *   - 'preserve_start' (int): Number of characters to preserve at start (default: 1)
-     *   - 'preserve_end' (int): Number of characters to preserve at end (default: 0)
-     *   - 'mask_char' (string): Character to use for masking (default: '*')
-     *   - 'mask_length' (int|null): Fixed length for mask, null for auto (default: null)
+     *                                      - 'original_value' (string): The original value to mask (standard, always provided)
+     *                                      - 'value' (string): Alias for 'original_value' (backward compatibility)
+     *                                      - 'preserve_start' (int): Number of characters to preserve at start (default: 1)
+     *                                      - 'preserve_end' (int): Number of characters to preserve at end (default: 0)
+     *                                      - 'mask_char' (string): Character to use for masking (default: '*')
+     *                                      - 'mask_length' (int|null): Fixed length for mask, null for auto (default: null)
+     *
+     * @throws InvalidArgumentException If neither 'original_value' nor 'value' option is provided or is not a string
+     *
      * @return string The masked value
-     * @throws \InvalidArgumentException If neither 'original_value' nor 'value' option is provided or is not a string
      */
     public function generate(array $options = []): string
     {
@@ -39,12 +45,12 @@ final class MaskingFaker implements FakerInterface
         $value = $options['original_value'] ?? $options['value'] ?? null;
 
         if ($value === null || !is_string($value)) {
-            throw new \InvalidArgumentException('MaskingFaker requires an "original_value" (or "value") option with the original value to mask.');
+            throw new InvalidArgumentException('MaskingFaker requires an "original_value" (or "value") option with the original value to mask.');
         }
         $preserveStart = (int) ($options['preserve_start'] ?? 1);
-        $preserveEnd = (int) ($options['preserve_end'] ?? 0);
-        $maskChar = $options['mask_char'] ?? '*';
-        $maskLength = $options['mask_length'] ?? null;
+        $preserveEnd   = (int) ($options['preserve_end'] ?? 0);
+        $maskChar      = $options['mask_char'] ?? '*';
+        $maskLength    = $options['mask_length'] ?? null;
 
         $valueLength = strlen($value);
 
@@ -62,8 +68,8 @@ final class MaskingFaker implements FakerInterface
 
         // Build masked value
         $start = substr($value, 0, $preserveStart);
-        $mask = str_repeat($maskChar, $actualMaskLength);
-        $end = $preserveEnd > 0 ? substr($value, -$preserveEnd) : '';
+        $mask  = str_repeat($maskChar, $actualMaskLength);
+        $end   = $preserveEnd > 0 ? substr($value, -$preserveEnd) : '';
 
         return $start . $mask . $end;
     }

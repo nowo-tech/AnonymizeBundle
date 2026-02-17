@@ -7,6 +7,8 @@ namespace Nowo\AnonymizeBundle\Tests\Faker;
 use Nowo\AnonymizeBundle\Faker\EmailFaker;
 use PHPUnit\Framework\TestCase;
 
+use function strlen;
+
 /**
  * Test case for EmailFaker.
  *
@@ -33,7 +35,7 @@ class EmailFakerTest extends TestCase
      */
     public function testGenerateUnique(): void
     {
-        $faker = new EmailFaker('en_US');
+        $faker  = new EmailFaker('en_US');
         $email1 = $faker->generate();
         $email2 = $faker->generate();
 

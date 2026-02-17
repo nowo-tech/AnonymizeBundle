@@ -30,8 +30,8 @@ class AnonymizePropertySubscriber
     public function onAnonymizeProperty(AnonymizePropertyEvent $event): void
     {
         $originalValue = $event->getOriginalValue();
-        $propertyName = $event->getPropertyName();
-        $columnName = $event->getColumnName();
+        $propertyName  = $event->getPropertyName();
+        $columnName    = $event->getColumnName();
 
         // Only act on properties that look like file/URL storage (customize condition to your entities/columns)
         // if ($columnName !== 'file_url' && $columnName !== 's3_key') {

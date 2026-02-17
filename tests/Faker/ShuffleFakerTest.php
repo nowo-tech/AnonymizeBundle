@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Faker;
 
+use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Faker\ShuffleFaker;
 use PHPUnit\Framework\TestCase;
+
+use function count;
 
 /**
  * Test case for ShuffleFaker.
@@ -20,9 +23,9 @@ class ShuffleFakerTest extends TestCase
      */
     public function testGenerate(): void
     {
-        $faker = new ShuffleFaker();
+        $faker  = new ShuffleFaker();
         $values = ['value1', 'value2', 'value3', 'value4'];
-        $value = $faker->generate(['values' => $values]);
+        $value  = $faker->generate(['values' => $values]);
 
         $this->assertContains($value, $values);
     }
@@ -32,7 +35,7 @@ class ShuffleFakerTest extends TestCase
      */
     public function testGenerateThrowsExceptionWhenValuesMissing(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('ShuffleFaker requires a "values" option');
 
         $faker = new ShuffleFaker();
@@ -44,7 +47,7 @@ class ShuffleFakerTest extends TestCase
      */
     public function testGenerateThrowsExceptionWhenValuesEmpty(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('ShuffleFaker requires a "values" option');
 
         $faker = new ShuffleFaker();
@@ -56,7 +59,7 @@ class ShuffleFakerTest extends TestCase
      */
     public function testGenerateWithSeed(): void
     {
-        $faker = new ShuffleFaker();
+        $faker  = new ShuffleFaker();
         $values = ['value1', 'value2', 'value3', 'value4'];
 
         // With same seed, should get same result (or at least valid value)
@@ -72,7 +75,7 @@ class ShuffleFakerTest extends TestCase
      */
     public function testGenerateWithExclude(): void
     {
-        $faker = new ShuffleFaker();
+        $faker  = new ShuffleFaker();
         $values = ['value1', 'value2', 'value3', 'value4'];
 
         $value = $faker->generate(['values' => $values, 'exclude' => 'value1']);
@@ -86,7 +89,7 @@ class ShuffleFakerTest extends TestCase
      */
     public function testGenerateThrowsExceptionWhenAllExcluded(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('All values were excluded');
 
         $faker = new ShuffleFaker();
@@ -107,11 +110,11 @@ class ShuffleFakerTest extends TestCase
      */
     public function testGenerateDifferentValues(): void
     {
-        $faker = new ShuffleFaker();
+        $faker  = new ShuffleFaker();
         $values = ['value1', 'value2', 'value3', 'value4', 'value5', 'value6', 'value7', 'value8', 'value9', 'value10'];
 
         $results = [];
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             $results[] = $faker->generate(['values' => $values]);
         }
 
@@ -125,9 +128,9 @@ class ShuffleFakerTest extends TestCase
      */
     public function testGenerateWithNumericValues(): void
     {
-        $faker = new ShuffleFaker();
+        $faker  = new ShuffleFaker();
         $values = [1, 2, 3, 4, 5];
-        $value = $faker->generate(['values' => $values]);
+        $value  = $faker->generate(['values' => $values]);
 
         $this->assertContains($value, $values);
         $this->assertIsInt($value);
@@ -138,9 +141,9 @@ class ShuffleFakerTest extends TestCase
      */
     public function testGenerateWithMixedTypes(): void
     {
-        $faker = new ShuffleFaker();
+        $faker  = new ShuffleFaker();
         $values = ['string', 123, true, null, 45.67];
-        $value = $faker->generate(['values' => $values]);
+        $value  = $faker->generate(['values' => $values]);
 
         $this->assertContains($value, $values);
     }
@@ -150,9 +153,9 @@ class ShuffleFakerTest extends TestCase
      */
     public function testGenerateWithExcludeMultipleOccurrences(): void
     {
-        $faker = new ShuffleFaker();
+        $faker  = new ShuffleFaker();
         $values = ['value1', 'value2', 'value1', 'value3', 'value1'];
-        $value = $faker->generate(['values' => $values, 'exclude' => 'value1']);
+        $value  = $faker->generate(['values' => $values, 'exclude' => 'value1']);
 
         $this->assertNotEquals('value1', $value);
         $this->assertContains($value, ['value2', 'value3']);

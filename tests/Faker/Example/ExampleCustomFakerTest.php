@@ -26,10 +26,10 @@ final class ExampleCustomFakerTest extends TestCase
     public function testGeneratePreservesOriginalWhenOptionIsTrue(): void
     {
         $originalValue = 'original_value';
-        $options = [
-            'original_value' => $originalValue,
+        $options       = [
+            'original_value'    => $originalValue,
             'preserve_original' => true,
-            'record' => [],
+            'record'            => [],
         ];
 
         $result = $this->faker->generate($options);
@@ -40,10 +40,10 @@ final class ExampleCustomFakerTest extends TestCase
     public function testGenerateAnonymizesWhenPreserveOriginalIsFalse(): void
     {
         $originalValue = 'sensitive_data';
-        $options = [
-            'original_value' => $originalValue,
+        $options       = [
+            'original_value'    => $originalValue,
             'preserve_original' => false,
-            'record' => [],
+            'record'            => [],
         ];
 
         $result = $this->faker->generate($options);
@@ -55,9 +55,9 @@ final class ExampleCustomFakerTest extends TestCase
     public function testGenerateAnonymizesWhenPreserveOriginalIsNotSet(): void
     {
         $originalValue = 'sensitive_data';
-        $options = [
+        $options       = [
             'original_value' => $originalValue,
-            'record' => [],
+            'record'         => [],
         ];
 
         $result = $this->faker->generate($options);
@@ -69,9 +69,9 @@ final class ExampleCustomFakerTest extends TestCase
     public function testGenerateReturnsNullWhenOriginalValueIsNull(): void
     {
         $options = [
-            'original_value' => null,
+            'original_value'    => null,
             'preserve_original' => false,
-            'record' => [],
+            'record'            => [],
         ];
 
         $result = $this->faker->generate($options);
@@ -82,11 +82,11 @@ final class ExampleCustomFakerTest extends TestCase
     public function testGenerateCanAccessRecordFields(): void
     {
         $originalValue = 'test_value';
-        $options = [
-            'original_value' => $originalValue,
+        $options       = [
+            'original_value'    => $originalValue,
             'preserve_original' => false,
-            'record' => [
-                'other_field' => 'other_value',
+            'record'            => [
+                'other_field'       => 'other_value',
                 'related_entity_id' => 123,
             ],
         ];
@@ -102,11 +102,11 @@ final class ExampleCustomFakerTest extends TestCase
     public function testGenerateHandlesCustomOptions(): void
     {
         $originalValue = 'test_value';
-        $options = [
-            'original_value' => $originalValue,
+        $options       = [
+            'original_value'    => $originalValue,
             'preserve_original' => false,
-            'custom_option' => 'custom_value',
-            'record' => [],
+            'custom_option'     => 'custom_value',
+            'record'            => [],
         ];
 
         $result = $this->faker->generate($options);
@@ -118,14 +118,14 @@ final class ExampleCustomFakerTest extends TestCase
     public function testGenerateWithEntityManager(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $faker = new ExampleCustomFaker($entityManager);
+        $faker         = new ExampleCustomFaker($entityManager);
 
         $originalValue = 'test_value';
-        $options = [
-            'original_value' => $originalValue,
+        $options       = [
+            'original_value'    => $originalValue,
             'preserve_original' => false,
-            'related_entity' => 'App\Entity\RelatedEntity',
-            'record' => [
+            'related_entity'    => 'App\Entity\RelatedEntity',
+            'record'            => [
                 'related_entity_id' => 123,
             ],
         ];
@@ -145,10 +145,10 @@ final class ExampleCustomFakerTest extends TestCase
     public function testGenerateWithEmptyRecord(): void
     {
         $originalValue = 'test_value';
-        $options = [
-            'original_value' => $originalValue,
+        $options       = [
+            'original_value'    => $originalValue,
             'preserve_original' => false,
-            'record' => [],
+            'record'            => [],
         ];
 
         $result = $this->faker->generate($options);
@@ -160,10 +160,10 @@ final class ExampleCustomFakerTest extends TestCase
     public function testGenerateWithNonStringValue(): void
     {
         $originalValue = 12345;
-        $options = [
-            'original_value' => $originalValue,
+        $options       = [
+            'original_value'    => $originalValue,
             'preserve_original' => false,
-            'record' => [],
+            'record'            => [],
         ];
 
         $result = $this->faker->generate($options);
@@ -175,10 +175,10 @@ final class ExampleCustomFakerTest extends TestCase
     public function testGenerateWithBooleanValue(): void
     {
         $originalValue = true;
-        $options = [
-            'original_value' => $originalValue,
+        $options       = [
+            'original_value'    => $originalValue,
             'preserve_original' => false,
-            'record' => [],
+            'record'            => [],
         ];
 
         $result = $this->faker->generate($options);
@@ -190,8 +190,8 @@ final class ExampleCustomFakerTest extends TestCase
     public function testGeneratePreservesOriginalWithNullRecord(): void
     {
         $originalValue = 'test_value';
-        $options = [
-            'original_value' => $originalValue,
+        $options       = [
+            'original_value'    => $originalValue,
             'preserve_original' => true,
         ];
 
@@ -203,10 +203,10 @@ final class ExampleCustomFakerTest extends TestCase
     public function testGenerateHandlesLongStrings(): void
     {
         $originalValue = str_repeat('a', 1000);
-        $options = [
-            'original_value' => $originalValue,
+        $options       = [
+            'original_value'    => $originalValue,
             'preserve_original' => false,
-            'record' => [],
+            'record'            => [],
         ];
 
         $result = $this->faker->generate($options);
@@ -218,10 +218,10 @@ final class ExampleCustomFakerTest extends TestCase
     public function testGenerateHandlesSpecialCharacters(): void
     {
         $originalValue = 'test with émojis 🎉 and unicode ñ';
-        $options = [
-            'original_value' => $originalValue,
+        $options       = [
+            'original_value'    => $originalValue,
             'preserve_original' => false,
-            'record' => [],
+            'record'            => [],
         ];
 
         $result = $this->faker->generate($options);

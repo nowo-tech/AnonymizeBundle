@@ -20,7 +20,7 @@ class CreditCardFakerTest extends TestCase
      */
     public function testGenerate(): void
     {
-        $faker = new CreditCardFaker('en_US');
+        $faker      = new CreditCardFaker('en_US');
         $creditCard = $faker->generate();
 
         $this->assertIsString($creditCard);
@@ -34,7 +34,7 @@ class CreditCardFakerTest extends TestCase
      */
     public function testGenerateUnique(): void
     {
-        $faker = new CreditCardFaker('en_US');
+        $faker       = new CreditCardFaker('en_US');
         $creditCard1 = $faker->generate();
         $creditCard2 = $faker->generate();
 
@@ -47,7 +47,7 @@ class CreditCardFakerTest extends TestCase
      */
     public function testGenerateWithTypeVisa(): void
     {
-        $faker = new CreditCardFaker('en_US');
+        $faker      = new CreditCardFaker('en_US');
         $creditCard = $faker->generate(['type' => 'visa']);
 
         $this->assertIsString($creditCard);
@@ -61,7 +61,7 @@ class CreditCardFakerTest extends TestCase
      */
     public function testGenerateWithTypeMastercard(): void
     {
-        $faker = new CreditCardFaker('en_US');
+        $faker      = new CreditCardFaker('en_US');
         $creditCard = $faker->generate(['type' => 'mastercard']);
 
         $this->assertIsString($creditCard);
@@ -76,7 +76,7 @@ class CreditCardFakerTest extends TestCase
      */
     public function testGenerateWithFormatted(): void
     {
-        $faker = new CreditCardFaker('en_US');
+        $faker      = new CreditCardFaker('en_US');
         $creditCard = $faker->generate(['formatted' => true]);
 
         $this->assertIsString($creditCard);
@@ -90,7 +90,7 @@ class CreditCardFakerTest extends TestCase
      */
     public function testGenerateWithoutFormatted(): void
     {
-        $faker = new CreditCardFaker('en_US');
+        $faker      = new CreditCardFaker('en_US');
         $creditCard = $faker->generate(['formatted' => false]);
 
         $this->assertIsString($creditCard);
@@ -105,7 +105,7 @@ class CreditCardFakerTest extends TestCase
      */
     public function testGenerateWithTypeAmex(): void
     {
-        $faker = new CreditCardFaker('en_US');
+        $faker      = new CreditCardFaker('en_US');
         $creditCard = $faker->generate(['type' => 'amex']);
 
         $this->assertIsString($creditCard);
@@ -120,7 +120,7 @@ class CreditCardFakerTest extends TestCase
      */
     public function testGenerateWithValidFalse(): void
     {
-        $faker = new CreditCardFaker('en_US');
+        $faker      = new CreditCardFaker('en_US');
         $creditCard = $faker->generate(['valid' => false]);
 
         $this->assertIsString($creditCard);
@@ -135,7 +135,7 @@ class CreditCardFakerTest extends TestCase
      */
     public function testGenerateWithInvalidType(): void
     {
-        $faker = new CreditCardFaker('en_US');
+        $faker      = new CreditCardFaker('en_US');
         $creditCard = $faker->generate(['type' => 'invalid_type']);
 
         $this->assertIsString($creditCard);
@@ -149,7 +149,7 @@ class CreditCardFakerTest extends TestCase
      */
     public function testGenerateWithFormattedAndValidFalse(): void
     {
-        $faker = new CreditCardFaker('en_US');
+        $faker      = new CreditCardFaker('en_US');
         $creditCard = $faker->generate(['formatted' => true, 'valid' => false]);
 
         $this->assertIsString($creditCard);

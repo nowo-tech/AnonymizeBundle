@@ -7,6 +7,9 @@ namespace Nowo\AnonymizeBundle\Tests\Faker;
 use Nowo\AnonymizeBundle\Faker\UsernameFaker;
 use PHPUnit\Framework\TestCase;
 
+use function sprintf;
+use function strlen;
+
 /**
  * Test case for UsernameFaker.
  *
@@ -20,7 +23,7 @@ class UsernameFakerTest extends TestCase
      */
     public function testGenerate(): void
     {
-        $faker = new UsernameFaker('en_US');
+        $faker    = new UsernameFaker('en_US');
         $username = $faker->generate();
 
         $this->assertIsString($username);
@@ -32,7 +35,7 @@ class UsernameFakerTest extends TestCase
      */
     public function testGenerateWithLength(): void
     {
-        $faker = new UsernameFaker('en_US');
+        $faker    = new UsernameFaker('en_US');
         $username = $faker->generate(['min_length' => 8, 'max_length' => 12]);
 
         $this->assertIsString($username);
@@ -48,7 +51,7 @@ class UsernameFakerTest extends TestCase
      */
     public function testGenerateWithPrefix(): void
     {
-        $faker = new UsernameFaker('en_US');
+        $faker    = new UsernameFaker('en_US');
         $username = $faker->generate(['prefix' => 'user_']);
 
         $this->assertIsString($username);
@@ -60,7 +63,7 @@ class UsernameFakerTest extends TestCase
      */
     public function testGenerateWithSuffix(): void
     {
-        $faker = new UsernameFaker('en_US');
+        $faker    = new UsernameFaker('en_US');
         $username = $faker->generate(['suffix' => '_test', 'max_length' => 50]);
 
         $this->assertIsString($username);
@@ -72,7 +75,7 @@ class UsernameFakerTest extends TestCase
      */
     public function testGenerateWithNumbers(): void
     {
-        $faker = new UsernameFaker('en_US');
+        $faker    = new UsernameFaker('en_US');
         $username = $faker->generate(['include_numbers' => true, 'max_length' => 20]);
 
         $this->assertIsString($username);
@@ -85,7 +88,7 @@ class UsernameFakerTest extends TestCase
      */
     public function testGenerateWithoutNumbers(): void
     {
-        $faker = new UsernameFaker('en_US');
+        $faker    = new UsernameFaker('en_US');
         $username = $faker->generate(['include_numbers' => false, 'max_length' => 20]);
 
         $this->assertIsString($username);
@@ -97,10 +100,10 @@ class UsernameFakerTest extends TestCase
      */
     public function testGenerateWithPrefixSuffixAndLength(): void
     {
-        $faker = new UsernameFaker('en_US');
+        $faker    = new UsernameFaker('en_US');
         $username = $faker->generate([
-            'prefix' => 'user_',
-            'suffix' => '_test',
+            'prefix'     => 'user_',
+            'suffix'     => '_test',
             'min_length' => 10,
             'max_length' => 20,
         ]);
@@ -119,8 +122,8 @@ class UsernameFakerTest extends TestCase
         $faker = new UsernameFaker('en_US');
         // Force a very short base by using a long prefix/suffix
         $username = $faker->generate([
-            'prefix' => 'a',
-            'suffix' => 'b',
+            'prefix'     => 'a',
+            'suffix'     => 'b',
             'min_length' => 10,
             'max_length' => 20,
         ]);
@@ -143,7 +146,7 @@ class UsernameFakerTest extends TestCase
      */
     public function testGenerateWithDifferentLocale(): void
     {
-        $faker = new UsernameFaker('es_ES');
+        $faker    = new UsernameFaker('es_ES');
         $username = $faker->generate();
 
         $this->assertIsString($username);
@@ -155,10 +158,10 @@ class UsernameFakerTest extends TestCase
      */
     public function testGenerateWithVeryLongPrefixSuffix(): void
     {
-        $faker = new UsernameFaker('en_US');
+        $faker    = new UsernameFaker('en_US');
         $username = $faker->generate([
-            'prefix' => 'very_long_prefix_',
-            'suffix' => '_very_long_suffix',
+            'prefix'     => 'very_long_prefix_',
+            'suffix'     => '_very_long_suffix',
             'min_length' => 5,
             'max_length' => 50,
         ]);
@@ -174,7 +177,7 @@ class UsernameFakerTest extends TestCase
      */
     public function testGenerateWithEqualMinMaxLength(): void
     {
-        $faker = new UsernameFaker('en_US');
+        $faker    = new UsernameFaker('en_US');
         $username = $faker->generate([
             'min_length' => 10,
             'max_length' => 10,
@@ -189,7 +192,7 @@ class UsernameFakerTest extends TestCase
      */
     public function testGenerateWithZeroMinLength(): void
     {
-        $faker = new UsernameFaker('en_US');
+        $faker    = new UsernameFaker('en_US');
         $username = $faker->generate([
             'min_length' => 0,
             'max_length' => 20,

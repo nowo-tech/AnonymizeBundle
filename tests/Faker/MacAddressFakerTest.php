@@ -7,6 +7,8 @@ namespace Nowo\AnonymizeBundle\Tests\Faker;
 use Nowo\AnonymizeBundle\Faker\MacAddressFaker;
 use PHPUnit\Framework\TestCase;
 
+use function strlen;
+
 /**
  * Test case for MacAddressFaker.
  *
@@ -21,7 +23,7 @@ class MacAddressFakerTest extends TestCase
     public function testGenerate(): void
     {
         $faker = new MacAddressFaker('en_US');
-        $mac = $faker->generate();
+        $mac   = $faker->generate();
 
         $this->assertIsString($mac);
         $this->assertMatchesRegularExpression('/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/', $mac);
@@ -33,7 +35,7 @@ class MacAddressFakerTest extends TestCase
     public function testGenerateWithColonSeparator(): void
     {
         $faker = new MacAddressFaker('en_US');
-        $mac = $faker->generate(['separator' => 'colon']);
+        $mac   = $faker->generate(['separator' => 'colon']);
 
         $this->assertIsString($mac);
         $this->assertStringContainsString(':', $mac);
@@ -46,7 +48,7 @@ class MacAddressFakerTest extends TestCase
     public function testGenerateWithDashSeparator(): void
     {
         $faker = new MacAddressFaker('en_US');
-        $mac = $faker->generate(['separator' => 'dash']);
+        $mac   = $faker->generate(['separator' => 'dash']);
 
         $this->assertIsString($mac);
         $this->assertStringContainsString('-', $mac);
@@ -59,7 +61,7 @@ class MacAddressFakerTest extends TestCase
     public function testGenerateWithNoSeparator(): void
     {
         $faker = new MacAddressFaker('en_US');
-        $mac = $faker->generate(['separator' => 'none']);
+        $mac   = $faker->generate(['separator' => 'none']);
 
         $this->assertIsString($mac);
         $this->assertEquals(12, strlen($mac));
@@ -72,7 +74,7 @@ class MacAddressFakerTest extends TestCase
     public function testGenerateWithUppercase(): void
     {
         $faker = new MacAddressFaker('en_US');
-        $mac = $faker->generate(['uppercase' => true]);
+        $mac   = $faker->generate(['uppercase' => true]);
 
         $this->assertIsString($mac);
         $this->assertEquals(strtoupper($mac), $mac);
@@ -84,7 +86,7 @@ class MacAddressFakerTest extends TestCase
     public function testGenerateWithLowercase(): void
     {
         $faker = new MacAddressFaker('en_US');
-        $mac = $faker->generate(['uppercase' => false]);
+        $mac   = $faker->generate(['uppercase' => false]);
 
         $this->assertIsString($mac);
         $this->assertEquals(strtolower($mac), $mac);
@@ -96,8 +98,8 @@ class MacAddressFakerTest extends TestCase
     public function testGenerateDifferentMacAddresses(): void
     {
         $faker = new MacAddressFaker('en_US');
-        $mac1 = $faker->generate();
-        $mac2 = $faker->generate();
+        $mac1  = $faker->generate();
+        $mac2  = $faker->generate();
 
         // They might be the same by chance, but very unlikely
         $this->assertIsString($mac1);
@@ -132,7 +134,7 @@ class MacAddressFakerTest extends TestCase
     public function testGenerateWithDifferentLocale(): void
     {
         $faker = new MacAddressFaker('es_ES');
-        $mac = $faker->generate();
+        $mac   = $faker->generate();
 
         $this->assertIsString($mac);
         $this->assertMatchesRegularExpression('/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/', $mac);
@@ -144,7 +146,7 @@ class MacAddressFakerTest extends TestCase
     public function testGenerateWithDashAndLowercase(): void
     {
         $faker = new MacAddressFaker('en_US');
-        $mac = $faker->generate(['separator' => 'dash', 'uppercase' => false]);
+        $mac   = $faker->generate(['separator' => 'dash', 'uppercase' => false]);
 
         $this->assertIsString($mac);
         $this->assertStringContainsString('-', $mac);

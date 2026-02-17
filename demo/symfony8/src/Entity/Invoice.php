@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
@@ -49,9 +50,9 @@ class Invoice
         weight: 5,
         options: [
             'preserve_start' => 4,
-            'preserve_end' => 4,
-            'mask_char' => '*',
-        ]
+            'preserve_end'   => 4,
+            'mask_char'      => '*',
+        ],
     )]
     private ?string $creditCard = null;
 
@@ -61,11 +62,11 @@ class Invoice
 
     #[ORM\Column(type: 'datetime')]
     #[AnonymizeProperty(type: 'date', weight: 7, options: ['type' => 'past', 'min_date' => '-6 months', 'max_date' => 'now', 'format' => 'Y-m-d H:i:s'])]
-    private ?\DateTimeInterface $issueDate = null;
+    private ?DateTimeInterface $issueDate = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     #[AnonymizeProperty(type: 'date', weight: 8, options: ['type' => 'future', 'min_date' => 'now', 'max_date' => '+30 days', 'format' => 'Y-m-d H:i:s'])]
-    private ?\DateTimeInterface $dueDate = null;
+    private ?DateTimeInterface $dueDate = null;
 
     #[ORM\Column(length: 50)]
     private ?string $status = null;
@@ -147,24 +148,24 @@ class Invoice
         return $this;
     }
 
-    public function getIssueDate(): ?\DateTimeInterface
+    public function getIssueDate(): ?DateTimeInterface
     {
         return $this->issueDate;
     }
 
-    public function setIssueDate(?\DateTimeInterface $issueDate): static
+    public function setIssueDate(?DateTimeInterface $issueDate): static
     {
         $this->issueDate = $issueDate;
 
         return $this;
     }
 
-    public function getDueDate(): ?\DateTimeInterface
+    public function getDueDate(): ?DateTimeInterface
     {
         return $this->dueDate;
     }
 
-    public function setDueDate(?\DateTimeInterface $dueDate): static
+    public function setDueDate(?DateTimeInterface $dueDate): static
     {
         $this->dueDate = $dueDate;
 

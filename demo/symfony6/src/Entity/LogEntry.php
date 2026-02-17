@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
@@ -28,7 +29,7 @@ use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 #[ORM\Table(name: 'log_entries')]
 #[Anonymize(
     truncate: true,  // This table will be emptied before anonymization
-    truncate_order: null  // No explicit order - will be truncated alphabetically after explicit orders
+    truncate_order: null,  // No explicit order - will be truncated alphabetically after explicit orders
 )]
 class LogEntry
 {
@@ -49,7 +50,7 @@ class LogEntry
 
     #[AnonymizeProperty(type: FakerType::DATE, weight: 3, options: ['type' => 'past', 'min_date' => '-1 year'])]
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $loggedAt = null;
+    private ?DateTimeImmutable $loggedAt = null;
 
     public function getId(): ?int
     {
@@ -80,12 +81,12 @@ class LogEntry
         return $this;
     }
 
-    public function getLoggedAt(): ?\DateTimeImmutable
+    public function getLoggedAt(): ?DateTimeImmutable
     {
         return $this->loggedAt;
     }
 
-    public function setLoggedAt(?\DateTimeImmutable $loggedAt): static
+    public function setLoggedAt(?DateTimeImmutable $loggedAt): static
     {
         $this->loggedAt = $loggedAt;
 

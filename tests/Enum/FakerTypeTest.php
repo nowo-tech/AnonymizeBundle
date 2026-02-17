@@ -6,6 +6,11 @@ namespace Nowo\AnonymizeBundle\Tests\Enum;
 
 use Nowo\AnonymizeBundle\Enum\FakerType;
 use PHPUnit\Framework\TestCase;
+use ValueError;
+
+use function constant;
+use function count;
+use function in_array;
 
 /**
  * Test case for FakerType enum.
@@ -70,7 +75,7 @@ class FakerTypeTest extends TestCase
      */
     public function testEnumThrowsExceptionForInvalidValue(): void
     {
-        $this->expectException(\ValueError::class);
+        $this->expectException(ValueError::class);
         FakerType::from('invalid_type');
     }
 
@@ -103,8 +108,8 @@ class FakerTypeTest extends TestCase
 
         foreach ($expectedCases as $caseName) {
             $this->assertTrue(
-                in_array(constant("Nowo\\AnonymizeBundle\\Enum\\FakerType::$caseName"), $cases),
-                "Case $caseName should exist"
+                in_array(constant("Nowo\\AnonymizeBundle\\Enum\\FakerType::{$caseName}"), $cases),
+                "Case {$caseName} should exist",
             );
         }
     }

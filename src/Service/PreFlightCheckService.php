@@ -6,12 +6,21 @@ namespace Nowo\AnonymizeBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Exception;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
 use Nowo\AnonymizeBundle\Enum\FakerType;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use ReflectionClass;
 use ReflectionProperty;
+use ValueError;
+
+use function array_slice;
+use function count;
+use function is_array;
+use function is_int;
+use function is_string;
+use function sprintf;
 
 /**
  * Service for pre-flight validation checks before anonymization.
@@ -31,13 +40,15 @@ final class PreFlightCheckService
      */
     public function __construct(
         private FakerFactory $fakerFactory
-    ) {}
+    ) {
+    }
 
     /**
      * Performs all pre-flight checks for the given entity manager.
      *
      * @param EntityManagerInterface $em The entity manager
      * @param array<string, array{metadata: ClassMetadata, reflection: ReflectionClass, attribute: Anonymize}> $entities The entities to check
+     *
      * @return array<string, string> Array of error messages (empty if all checks pass)
      */
     public function performChecks(EntityManagerInterface $em, array $entities): array
@@ -49,9 +60,9 @@ final class PreFlightCheckService
 
         // Check each entity
         foreach ($entities as $className => $entityData) {
-            $metadata = $entityData['metadata'];
+            $metadata   = $entityData['metadata'];
             $reflection = $entityData['reflection'];
-            $attribute = $entityData['attribute'];
+            $attribute  = $entityData['attribute'];
 
             // Check entity existence
             $errors = array_merge($errors, $this->checkEntityExistence($em, $className, $metadata));
@@ -59,7 +70,7 @@ final class PreFlightCheckService
             // Check properties
             $properties = $this->getAnonymizableProperties($reflection);
             foreach ($properties as $propertyName => $propertyData) {
-                $property = $propertyData['property'];
+                $property          = $propertyData['property'];
                 $propertyAttribute = $propertyData['attribute'];
 
                 // Check column existence
@@ -80,6 +91,7 @@ final class PreFlightCheckService
      * Checks database connectivity.
      *
      * @param EntityManagerInterface $em The entity manager
+     *
      * @return array<string> Array of error messages
      */
     private function checkDatabaseConnectivity(EntityManagerInterface $em): array
@@ -91,7 +103,7 @@ final class PreFlightCheckService
             // Execute a simple query to test connectivity
             // This will automatically connect if not already connected
             $connection->executeQuery('SELECT 1');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $errors[] = sprintf('Database connectivity check failed: %s', $e->getMessage());
         }
 
@@ -104,6 +116,7 @@ final class PreFlightCheckService
      * @param EntityManagerInterface $em The entity manager
      * @param string $className The entity class name
      * @param ClassMetadata $metadata The entity metadata
+     *
      * @return array<string> Array of error messages
      */
     private function checkEntityExistence(EntityManagerInterface $em, string $className, ClassMetadata $metadata): array
@@ -114,13 +127,13 @@ final class PreFlightCheckService
         if (!$metadata->isMappedSuperclass && !$metadata->isEmbeddedClass) {
             $tableName = $metadata->getTableName();
             try {
-                $connection = $em->getConnection();
+                $connection    = $em->getConnection();
                 $schemaManager = $connection->createSchemaManager();
 
                 if (!$schemaManager->tablesExist([$tableName])) {
                     $errors[] = sprintf('Table "%s" for entity "%s" does not exist in database', $tableName, $className);
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $errors[] = sprintf('Could not check table existence for entity "%s": %s', $className, $e->getMessage());
             }
         }
@@ -135,6 +148,7 @@ final class PreFlightCheckService
      * @param ClassMetadata $metadata The entity metadata
      * @param string $propertyName The property name
      * @param ReflectionProperty $property The reflection property
+     *
      * @return array<string> Array of error messages
      */
     private function checkColumnExistence(EntityManagerInterface $em, ClassMetadata $metadata, string $propertyName, ReflectionProperty $property): array
@@ -142,24 +156,24 @@ final class PreFlightCheckService
         $errors = [];
 
         if ($metadata->hasField($propertyName)) {
-            $fieldMapping = $metadata->getFieldMapping($propertyName);
+            $fieldMapping       = $metadata->getFieldMapping($propertyName);
             $expectedColumnName = $fieldMapping['columnName'] ?? $propertyName;
 
             try {
-                $tableName = $metadata->getTableName();
-                $connection = $em->getConnection();
+                $tableName     = $metadata->getTableName();
+                $connection    = $em->getConnection();
                 $schemaManager = $connection->createSchemaManager();
 
                 if ($schemaManager->tablesExist([$tableName])) {
                     $columns = $schemaManager->listTableColumns($tableName);
 
                     // Get actual column names from database (case-sensitive)
-                    $actualColumnNames = [];
-                    $columnExists = false;
+                    $actualColumnNames    = [];
+                    $columnExists         = false;
                     $caseInsensitiveMatch = null;
 
                     foreach ($columns as $column) {
-                        $actualColumnName = $column->getName();
+                        $actualColumnName    = $column->getName();
                         $actualColumnNames[] = $actualColumnName;
 
                         // Exact match (case-sensitive)
@@ -180,14 +194,14 @@ final class PreFlightCheckService
                             'Column "%s" (from mapping) does not exist in table "%s" for property "%s"',
                             $expectedColumnName,
                             $tableName,
-                            $propertyName
+                            $propertyName,
                         );
 
                         // Add case-insensitive match suggestion if found
                         if ($caseInsensitiveMatch !== null) {
                             $errorMessage .= sprintf(
                                 '. Found similar column "%s" (case mismatch)',
-                                $caseInsensitiveMatch
+                                $caseInsensitiveMatch,
                             );
                         }
 
@@ -198,13 +212,13 @@ final class PreFlightCheckService
                         }
                         $errorMessage .= sprintf(
                             '. Available columns: %s',
-                            implode(', ', $availableColumns)
+                            implode(', ', $availableColumns),
                         );
 
                         $errors[] = $errorMessage;
                     }
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Column check failed, but this might be acceptable in some cases
                 // We'll log it but not fail the check
             }
@@ -217,6 +231,7 @@ final class PreFlightCheckService
      * Validates faker type and options.
      *
      * @param AnonymizeProperty $attribute The anonymize property attribute
+     *
      * @return array<string> Array of error messages
      */
     private function validateFakerType(AnonymizeProperty $attribute): array
@@ -226,8 +241,9 @@ final class PreFlightCheckService
         // Check if faker type is valid
         try {
             $fakerType = FakerType::from($attribute->type);
-        } catch (\ValueError $e) {
-            $errors[] = sprintf('Invalid faker type "%s". Valid types: %s', $attribute->type, implode(', ', array_map(fn($case) => $case->value, FakerType::cases())));
+        } catch (ValueError $e) {
+            $errors[] = sprintf('Invalid faker type "%s". Valid types: %s', $attribute->type, implode(', ', array_map(fn ($case) => $case->value, FakerType::cases())));
+
             return $errors;
         }
 
@@ -243,7 +259,7 @@ final class PreFlightCheckService
             } else {
                 $this->fakerFactory->create($attribute->type);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $errors[] = sprintf('Could not create faker for type "%s": %s', $attribute->type, $e->getMessage());
         }
 
@@ -254,6 +270,7 @@ final class PreFlightCheckService
      * Validates inclusion/exclusion patterns.
      *
      * @param AnonymizeProperty $attribute The anonymize property attribute
+     *
      * @return array<string> Array of error messages
      */
     private function validatePatterns(AnonymizeProperty $attribute): array
@@ -272,13 +289,14 @@ final class PreFlightCheckService
     /**
      * Validates a pattern config: either single set (field=>pattern) or list of sets (OR between configs).
      *
-     * @param array<string|array<string>|array<int, array<string, string|array<string>>>> $config
+     * @param array<array<int, array<string, array<string>|string>>|array<string>|string> $config
+     *
      * @return array<string>
      */
     private function validatePatternConfig(array $config, string $type): array
     {
         $errors = [];
-        $label = $type === 'include' ? 'include' : 'exclude';
+        $label  = $type === 'include' ? 'include' : 'exclude';
 
         if ($this->isListOfPatternSets($config)) {
             foreach ($config as $index => $set) {
@@ -289,6 +307,7 @@ final class PreFlightCheckService
                     }
                 }
             }
+
             return $errors;
         }
 
@@ -298,6 +317,7 @@ final class PreFlightCheckService
                 $errors[] = $err;
             }
         }
+
         return $errors;
     }
 
@@ -311,6 +331,7 @@ final class PreFlightCheckService
                 return false;
             }
         }
+
         return true;
     }
 
@@ -331,11 +352,13 @@ final class PreFlightCheckService
                     return sprintf('Invalid %s pattern: pattern option must not be empty for field "%s"', $label, (string) $field);
                 }
             }
+
             return null;
         }
         if ($pattern === '' && $pattern !== 0) {
             return sprintf('Invalid %s pattern: pattern must not be empty for field "%s"', $label, (string) $field);
         }
+
         return null;
     }
 
@@ -343,6 +366,7 @@ final class PreFlightCheckService
      * Gets anonymizable properties from reflection class.
      *
      * @param ReflectionClass $reflection The reflection class
+     *
      * @return array<string, array{property: ReflectionProperty, attribute: AnonymizeProperty}>
      */
     private function getAnonymizableProperties(ReflectionClass $reflection): array
@@ -352,9 +376,9 @@ final class PreFlightCheckService
         foreach ($reflection->getProperties() as $property) {
             $attributes = $property->getAttributes(AnonymizeProperty::class);
             if (!empty($attributes)) {
-                $attribute = $attributes[0]->newInstance();
+                $attribute                        = $attributes[0]->newInstance();
                 $properties[$property->getName()] = [
-                    'property' => $property,
+                    'property'  => $property,
                     'attribute' => $attribute,
                 ];
             }

@@ -36,8 +36,9 @@ final class CompanyFaker implements FakerInterface
      * Generates an anonymized company name.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'type' (string): Company type 'corporation', 'llc', 'inc', or null for random
-     *   - 'suffix' (string): Custom suffix (overrides type)
+     *                                      - 'type' (string): Company type 'corporation', 'llc', 'inc', or null for random
+     *                                      - 'suffix' (string): Custom suffix (overrides type)
+     *
      * @return string The anonymized company name
      */
     public function generate(array $options = []): string
@@ -45,11 +46,12 @@ final class CompanyFaker implements FakerInterface
         $companyName = $this->faker->company();
 
         $suffix = $options['suffix'] ?? null;
-        $type = $options['type'] ?? null;
+        $type   = $options['type'] ?? null;
 
         if ($suffix !== null) {
             // Remove existing suffix if any
             $companyName = preg_replace('/\s+(Inc\.?|LLC|Ltd\.?|Corp\.?|Corporation)$/i', '', $companyName);
+
             return $companyName . ' ' . $suffix;
         }
 
@@ -59,9 +61,9 @@ final class CompanyFaker implements FakerInterface
 
             $suffixes = match (strtolower($type)) {
                 'corporation', 'corp' => 'Corp.',
-                'llc' => 'LLC',
-                'inc' => 'Inc.',
-                'ltd' => 'Ltd.',
+                'llc'   => 'LLC',
+                'inc'   => 'Inc.',
+                'ltd'   => 'Ltd.',
                 default => null,
             };
 

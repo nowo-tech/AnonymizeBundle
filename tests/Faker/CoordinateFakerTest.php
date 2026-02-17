@@ -7,6 +7,9 @@ namespace Nowo\AnonymizeBundle\Tests\Faker;
 use Nowo\AnonymizeBundle\Faker\CoordinateFaker;
 use PHPUnit\Framework\TestCase;
 
+use function count;
+use function strlen;
+
 /**
  * Test case for CoordinateFaker.
  *
@@ -20,7 +23,7 @@ class CoordinateFakerTest extends TestCase
      */
     public function testGenerate(): void
     {
-        $faker = new CoordinateFaker('en_US');
+        $faker  = new CoordinateFaker('en_US');
         $coords = $faker->generate();
 
         $this->assertIsString($coords);
@@ -32,7 +35,7 @@ class CoordinateFakerTest extends TestCase
      */
     public function testGenerateArrayFormat(): void
     {
-        $faker = new CoordinateFaker('en_US');
+        $faker  = new CoordinateFaker('en_US');
         $coords = $faker->generate(['format' => 'array']);
 
         $this->assertIsArray($coords);
@@ -51,7 +54,7 @@ class CoordinateFakerTest extends TestCase
      */
     public function testGenerateJsonFormat(): void
     {
-        $faker = new CoordinateFaker('en_US');
+        $faker  = new CoordinateFaker('en_US');
         $coords = $faker->generate(['format' => 'json']);
 
         $this->assertIsString($coords);
@@ -66,7 +69,7 @@ class CoordinateFakerTest extends TestCase
      */
     public function testGenerateWithPrecision(): void
     {
-        $faker = new CoordinateFaker('en_US');
+        $faker  = new CoordinateFaker('en_US');
         $coords = $faker->generate(['precision' => 2]);
 
         $this->assertIsString($coords);
@@ -84,9 +87,9 @@ class CoordinateFakerTest extends TestCase
      */
     public function testGenerateWithBounds(): void
     {
-        $faker = new CoordinateFaker('en_US');
+        $faker  = new CoordinateFaker('en_US');
         $coords = $faker->generate([
-            'format' => 'array',
+            'format'  => 'array',
             'min_lat' => 40.0,
             'max_lat' => 50.0,
             'min_lng' => -5.0,
@@ -118,7 +121,7 @@ class CoordinateFakerTest extends TestCase
      */
     public function testGenerateWithZeroPrecision(): void
     {
-        $faker = new CoordinateFaker('en_US');
+        $faker  = new CoordinateFaker('en_US');
         $coords = $faker->generate(['precision' => 0]);
 
         $this->assertIsString($coords);
@@ -134,7 +137,7 @@ class CoordinateFakerTest extends TestCase
      */
     public function testGenerateWithHighPrecision(): void
     {
-        $faker = new CoordinateFaker('en_US');
+        $faker  = new CoordinateFaker('en_US');
         $coords = $faker->generate(['precision' => 10]);
 
         $this->assertIsString($coords);
@@ -147,10 +150,10 @@ class CoordinateFakerTest extends TestCase
      */
     public function testGenerateDifferentCoordinates(): void
     {
-        $faker = new CoordinateFaker('en_US');
+        $faker  = new CoordinateFaker('en_US');
         $coords = [];
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             $coords[] = $faker->generate();
         }
 
@@ -173,7 +176,7 @@ class CoordinateFakerTest extends TestCase
      */
     public function testGenerateWithDifferentLocale(): void
     {
-        $faker = new CoordinateFaker('es_ES');
+        $faker  = new CoordinateFaker('es_ES');
         $coords = $faker->generate();
 
         $this->assertIsString($coords);

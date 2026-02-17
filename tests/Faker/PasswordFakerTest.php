@@ -7,6 +7,8 @@ namespace Nowo\AnonymizeBundle\Tests\Faker;
 use Nowo\AnonymizeBundle\Faker\PasswordFaker;
 use PHPUnit\Framework\TestCase;
 
+use function strlen;
+
 /**
  * Test case for PasswordFaker.
  *
@@ -20,7 +22,7 @@ class PasswordFakerTest extends TestCase
      */
     public function testGenerate(): void
     {
-        $faker = new PasswordFaker('en_US');
+        $faker    = new PasswordFaker('en_US');
         $password = $faker->generate();
 
         $this->assertIsString($password);
@@ -32,7 +34,7 @@ class PasswordFakerTest extends TestCase
      */
     public function testGenerateWithLength(): void
     {
-        $faker = new PasswordFaker('en_US');
+        $faker    = new PasswordFaker('en_US');
         $password = $faker->generate(['length' => 16]);
 
         $this->assertIsString($password);
@@ -44,7 +46,7 @@ class PasswordFakerTest extends TestCase
      */
     public function testGenerateWithSpecialChars(): void
     {
-        $faker = new PasswordFaker('en_US');
+        $faker    = new PasswordFaker('en_US');
         $password = $faker->generate(['include_special' => true, 'length' => 20]);
 
         $this->assertIsString($password);
@@ -56,7 +58,7 @@ class PasswordFakerTest extends TestCase
      */
     public function testGenerateWithNumbers(): void
     {
-        $faker = new PasswordFaker('en_US');
+        $faker    = new PasswordFaker('en_US');
         $password = $faker->generate(['include_numbers' => true, 'length' => 20]);
 
         $this->assertIsString($password);
@@ -68,7 +70,7 @@ class PasswordFakerTest extends TestCase
      */
     public function testGenerateWithUppercase(): void
     {
-        $faker = new PasswordFaker('en_US');
+        $faker    = new PasswordFaker('en_US');
         $password = $faker->generate(['include_uppercase' => true, 'length' => 20]);
 
         $this->assertIsString($password);

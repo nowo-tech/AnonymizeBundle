@@ -20,7 +20,7 @@ class CompanyFakerTest extends TestCase
      */
     public function testGenerate(): void
     {
-        $faker = new CompanyFaker('en_US');
+        $faker   = new CompanyFaker('en_US');
         $company = $faker->generate();
 
         $this->assertIsString($company);
@@ -32,7 +32,7 @@ class CompanyFakerTest extends TestCase
      */
     public function testGenerateWithTypeCorporation(): void
     {
-        $faker = new CompanyFaker('en_US');
+        $faker   = new CompanyFaker('en_US');
         $company = $faker->generate(['type' => 'corporation']);
 
         $this->assertIsString($company);
@@ -44,7 +44,7 @@ class CompanyFakerTest extends TestCase
      */
     public function testGenerateWithTypeLlc(): void
     {
-        $faker = new CompanyFaker('en_US');
+        $faker   = new CompanyFaker('en_US');
         $company = $faker->generate(['type' => 'llc']);
 
         $this->assertIsString($company);
@@ -56,7 +56,7 @@ class CompanyFakerTest extends TestCase
      */
     public function testGenerateWithTypeInc(): void
     {
-        $faker = new CompanyFaker('en_US');
+        $faker   = new CompanyFaker('en_US');
         $company = $faker->generate(['type' => 'inc']);
 
         $this->assertIsString($company);
@@ -68,7 +68,7 @@ class CompanyFakerTest extends TestCase
      */
     public function testGenerateWithSuffix(): void
     {
-        $faker = new CompanyFaker('en_US');
+        $faker   = new CompanyFaker('en_US');
         $company = $faker->generate(['suffix' => 'Ltd.']);
 
         $this->assertIsString($company);
@@ -80,7 +80,7 @@ class CompanyFakerTest extends TestCase
      */
     public function testGenerateWithUnknownType(): void
     {
-        $faker = new CompanyFaker('en_US');
+        $faker   = new CompanyFaker('en_US');
         $company = $faker->generate(['type' => 'unknown_type']);
 
         $this->assertIsString($company);
@@ -93,7 +93,7 @@ class CompanyFakerTest extends TestCase
      */
     public function testGenerateWithTypeLtd(): void
     {
-        $faker = new CompanyFaker('en_US');
+        $faker   = new CompanyFaker('en_US');
         $company = $faker->generate(['type' => 'ltd']);
 
         $this->assertIsString($company);
@@ -107,7 +107,7 @@ class CompanyFakerTest extends TestCase
     {
         $faker = new CompanyFaker('en_US');
         // Generate multiple times to potentially get a company with existing suffix
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             $company = $faker->generate(['type' => 'llc']);
             $this->assertIsString($company);
             // Should end with LLC and not have double suffixes
@@ -121,7 +121,7 @@ class CompanyFakerTest extends TestCase
      */
     public function testGenerateWithTypeCorp(): void
     {
-        $faker = new CompanyFaker('en_US');
+        $faker   = new CompanyFaker('en_US');
         $company = $faker->generate(['type' => 'corp']);
 
         $this->assertIsString($company);
@@ -135,7 +135,7 @@ class CompanyFakerTest extends TestCase
     {
         $faker = new CompanyFaker('en_US');
         // Generate multiple times to potentially get a company with existing suffix
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             $company = $faker->generate(['suffix' => 'Custom']);
             $this->assertIsString($company);
             $this->assertStringEndsWith('Custom', $company);
@@ -158,7 +158,7 @@ class CompanyFakerTest extends TestCase
      */
     public function testGenerateWithDifferentLocale(): void
     {
-        $faker = new CompanyFaker('es_ES');
+        $faker   = new CompanyFaker('es_ES');
         $company = $faker->generate();
 
         $this->assertIsString($company);

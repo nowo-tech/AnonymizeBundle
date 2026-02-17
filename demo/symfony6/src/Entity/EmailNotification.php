@@ -23,7 +23,7 @@ use Nowo\AnonymizeBundle\Enum\FakerType;
 #[ORM\DiscriminatorValue('email')]
 #[Anonymize(
     truncate: true,
-    truncate_order: 1
+    truncate_order: 1,
 )]
 class EmailNotification extends AbstractNotification
 {

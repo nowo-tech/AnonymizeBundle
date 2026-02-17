@@ -36,7 +36,7 @@ class PatternMatcherTest extends TestCase
      */
     public function testMatchesWithInclusionPatterns(): void
     {
-        $record = ['id' => 100, 'status' => 'active'];
+        $record          = ['id' => 100, 'status' => 'active'];
         $includePatterns = ['id' => '>50', 'status' => 'active'];
 
         $this->assertTrue($this->matcher->matches($record, $includePatterns));
@@ -47,7 +47,7 @@ class PatternMatcherTest extends TestCase
      */
     public function testMatchesFailsWithInclusionPatterns(): void
     {
-        $record = ['id' => 50, 'status' => 'active'];
+        $record          = ['id' => 50, 'status' => 'active'];
         $includePatterns = ['id' => '>50'];
 
         $this->assertFalse($this->matcher->matches($record, $includePatterns));
@@ -58,7 +58,7 @@ class PatternMatcherTest extends TestCase
      */
     public function testMatchesWithExclusionPatterns(): void
     {
-        $record = ['id' => 50, 'status' => 'active'];
+        $record          = ['id' => 50, 'status' => 'active'];
         $includePatterns = ['id' => '>10'];
         $excludePatterns = ['id' => '<=100'];
 
@@ -99,17 +99,17 @@ class PatternMatcherTest extends TestCase
         $this->assertFalse($this->matcher->matches(
             ['role' => 'admin', 'email' => 'u@nowo.tech', 'status' => 'active'],
             [],
-            $excludePatterns
+            $excludePatterns,
         ));
         $this->assertFalse($this->matcher->matches(
             ['role' => 'user', 'email' => 'a@other.com', 'status' => 'deleted'],
             [],
-            $excludePatterns
+            $excludePatterns,
         ));
         $this->assertTrue($this->matcher->matches(
             ['role' => 'user', 'email' => 'a@other.com', 'status' => 'active'],
             [],
-            $excludePatterns
+            $excludePatterns,
         ));
     }
 
@@ -125,15 +125,15 @@ class PatternMatcherTest extends TestCase
 
         $this->assertTrue($this->matcher->matches(
             ['role' => 'admin', 'status' => 'inactive', 'department' => 'IT'],
-            $includePatterns
+            $includePatterns,
         ));
         $this->assertTrue($this->matcher->matches(
             ['role' => 'user', 'status' => 'active', 'department' => 'HR'],
-            $includePatterns
+            $includePatterns,
         ));
         $this->assertFalse($this->matcher->matches(
             ['role' => 'user', 'status' => 'inactive', 'department' => 'IT'],
-            $includePatterns
+            $includePatterns,
         ));
     }
 
@@ -234,7 +234,7 @@ class PatternMatcherTest extends TestCase
      */
     public function testMatchesWithMultipleInclusionPatterns(): void
     {
-        $record = ['id' => 100, 'status' => 'active', 'age' => 30];
+        $record          = ['id' => 100, 'status' => 'active', 'age' => 30];
         $includePatterns = ['id' => '>50', 'status' => 'active', 'age' => '>=18'];
 
         $this->assertTrue($this->matcher->matches($record, $includePatterns));
@@ -248,7 +248,7 @@ class PatternMatcherTest extends TestCase
      */
     public function testMatchesWithOrOperator(): void
     {
-        $record = ['status' => 'active'];
+        $record          = ['status' => 'active'];
         $includePatterns = ['status' => 'active|pending'];
 
         $this->assertTrue($this->matcher->matches($record, $includePatterns));
@@ -350,7 +350,7 @@ class PatternMatcherTest extends TestCase
      */
     public function testMatchesWithMultipleOrValues(): void
     {
-        $record = ['status' => 'pending'];
+        $record          = ['status' => 'pending'];
         $includePatterns = ['status' => 'active|pending|review'];
 
         $this->assertTrue($this->matcher->matches($record, $includePatterns));
@@ -367,7 +367,7 @@ class PatternMatcherTest extends TestCase
      */
     public function testExclusionPatternsTakePrecedence(): void
     {
-        $record = ['id' => 50, 'status' => 'active'];
+        $record          = ['id' => 50, 'status' => 'active'];
         $includePatterns = ['id' => '>10', 'status' => 'active'];
         $excludePatterns = ['id' => '<=100'];
 
@@ -399,7 +399,7 @@ class PatternMatcherTest extends TestCase
         // Test with LIKE pattern in OR (when option contains %)
         // Note: If pattern contains %, it's treated as LIKE, not OR
         // So we test OR with LIKE pattern in individual options
-        $record2 = ['email' => 'user@test.com'];
+        $record2          = ['email' => 'user@test.com'];
         $includePatterns2 = ['email' => 'example.com|test.com'];
         // OR operator: 'user@test.com' contains 'test.com'
         $this->assertTrue($this->matcher->matches($record2, $includePatterns2));
@@ -462,7 +462,7 @@ class PatternMatcherTest extends TestCase
      */
     public function testMatchesWithOrOperatorExactMatch(): void
     {
-        $record = ['status' => 'active'];
+        $record          = ['status' => 'active'];
         $includePatterns = ['status' => 'active|pending'];
 
         $this->assertTrue($this->matcher->matches($record, $includePatterns));
@@ -473,7 +473,7 @@ class PatternMatcherTest extends TestCase
      */
     public function testMatchesWithOrOperatorContains(): void
     {
-        $record = ['email' => 'user@example.com'];
+        $record          = ['email' => 'user@example.com'];
         $includePatterns = ['email' => 'example|test'];
 
         // Should match because 'user@example.com' contains 'example'
@@ -558,7 +558,6 @@ class PatternMatcherTest extends TestCase
         // Underscore in LIKE pattern with %: 'A_%B' should match 'A1B', 'A2B', etc.
         $this->assertTrue($this->matcher->matches($record, ['code' => 'A_%B_%C']));
     }
-
 
     /**
      * Test OR operator with exact match when value equals option.

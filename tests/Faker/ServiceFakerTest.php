@@ -8,6 +8,8 @@ use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use Nowo\AnonymizeBundle\Faker\ServiceFaker;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
+use RuntimeException;
+use stdClass;
 
 /**
  * Test case for ServiceFaker.
@@ -39,7 +41,7 @@ class ServiceFakerTest extends TestCase
             ->willReturn($mockFaker);
 
         $serviceFaker = new ServiceFaker($container, 'test_service');
-        $result = $serviceFaker->generate(['option' => 'value']);
+        $result       = $serviceFaker->generate(['option' => 'value']);
 
         $this->assertEquals('anonymized_value', $result);
     }
@@ -67,7 +69,7 @@ class ServiceFakerTest extends TestCase
             ->willReturn($mockService);
 
         $serviceFaker = new ServiceFaker($container, 'test_service');
-        $result = $serviceFaker->generate();
+        $result       = $serviceFaker->generate();
 
         $this->assertEquals('generated_value', $result);
     }
@@ -77,7 +79,7 @@ class ServiceFakerTest extends TestCase
      */
     public function testGenerateWithCallableService(): void
     {
-        $callableService = fn(array $options = []) => 'callable_value';
+        $callableService = fn (array $options = []) => 'callable_value';
 
         $container = $this->createMock(ContainerInterface::class);
         $container->expects($this->once())
@@ -90,7 +92,7 @@ class ServiceFakerTest extends TestCase
             ->willReturn($callableService);
 
         $serviceFaker = new ServiceFaker($container, 'test_service');
-        $result = $serviceFaker->generate();
+        $result       = $serviceFaker->generate();
 
         $this->assertEquals('callable_value', $result);
     }
@@ -118,7 +120,7 @@ class ServiceFakerTest extends TestCase
             ->willReturn($invokableService);
 
         $serviceFaker = new ServiceFaker($container, 'test_service');
-        $result = $serviceFaker->generate();
+        $result       = $serviceFaker->generate();
 
         $this->assertEquals('invoked_value', $result);
     }
@@ -141,7 +143,7 @@ class ServiceFakerTest extends TestCase
             ->willReturn($mockFaker);
 
         $serviceFaker = new ServiceFaker($container, 'test_service');
-        $result = $serviceFaker->generate(['key' => 'value', 'original_value' => 'test']);
+        $result       = $serviceFaker->generate(['key' => 'value', 'original_value' => 'test']);
 
         $this->assertEquals('result', $result);
     }
@@ -159,7 +161,7 @@ class ServiceFakerTest extends TestCase
 
         $serviceFaker = new ServiceFaker($container, 'non_existent_service');
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Service "non_existent_service" not found.');
 
         $serviceFaker->generate();
@@ -170,7 +172,7 @@ class ServiceFakerTest extends TestCase
      */
     public function testGenerateThrowsExceptionWhenServiceInvalid(): void
     {
-        $invalidService = new \stdClass();
+        $invalidService = new stdClass();
 
         $container = $this->createMock(ContainerInterface::class);
         $container->expects($this->once())
@@ -184,7 +186,7 @@ class ServiceFakerTest extends TestCase
 
         $serviceFaker = new ServiceFaker($container, 'invalid_service');
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Service "invalid_service" must implement FakerInterface, have a generate() method, or be callable.');
 
         $serviceFaker->generate();

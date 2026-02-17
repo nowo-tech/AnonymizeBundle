@@ -36,8 +36,9 @@ final class CountryFaker implements FakerInterface
      * Generates an anonymized country code or name.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'format' (string): 'code', 'name', 'iso2', or 'iso3' (default: 'code')
-     *   - 'locale' (string): Override locale for country names (optional)
+     *                                      - 'format' (string): 'code', 'name', 'iso2', or 'iso3' (default: 'code')
+     *                                      - 'locale' (string): Override locale for country names (optional)
+     *
      * @return string The anonymized country value
      */
     public function generate(array $options = []): string
@@ -51,10 +52,10 @@ final class CountryFaker implements FakerInterface
         }
 
         return match ($format) {
-            'name' => $this->faker->country(),
-            'iso2' => $this->faker->countryCode(),
-            'iso3' => $this->faker->countryISOAlpha3(),
-            'code' => $this->faker->countryCode(),
+            'name'  => $this->faker->country(),
+            'iso2'  => $this->faker->countryCode(),
+            'iso3'  => $this->faker->countryISOAlpha3(),
+            'code'  => $this->faker->countryCode(),
             default => $this->faker->countryCode(),
         };
     }

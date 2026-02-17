@@ -7,6 +7,8 @@ namespace Nowo\AnonymizeBundle\Tests\Faker;
 use Nowo\AnonymizeBundle\Faker\DniCifFaker;
 use PHPUnit\Framework\TestCase;
 
+use function strlen;
+
 /**
  * Test case for DniCifFaker.
  *
@@ -21,7 +23,7 @@ class DniCifFakerTest extends TestCase
     public function testGenerateDni(): void
     {
         $faker = new DniCifFaker('es_ES');
-        $dni = $faker->generate(['type' => 'dni']);
+        $dni   = $faker->generate(['type' => 'dni']);
 
         $this->assertIsString($dni);
         $this->assertEquals(9, strlen($dni));
@@ -34,7 +36,7 @@ class DniCifFakerTest extends TestCase
     public function testGenerateCif(): void
     {
         $faker = new DniCifFaker('es_ES');
-        $cif = $faker->generate(['type' => 'cif']);
+        $cif   = $faker->generate(['type' => 'cif']);
 
         $this->assertIsString($cif);
         $this->assertEquals(9, strlen($cif));
@@ -47,7 +49,7 @@ class DniCifFakerTest extends TestCase
     public function testGenerateNif(): void
     {
         $faker = new DniCifFaker('es_ES');
-        $nif = $faker->generate(['type' => 'nif']);
+        $nif   = $faker->generate(['type' => 'nif']);
 
         $this->assertIsString($nif);
         $this->assertEquals(9, strlen($nif));
@@ -60,7 +62,7 @@ class DniCifFakerTest extends TestCase
     public function testGenerateAutoDetectsDni(): void
     {
         $faker = new DniCifFaker('es_ES');
-        $dni = $faker->generate(['type' => 'auto', 'original_value' => '12345678A']);
+        $dni   = $faker->generate(['type' => 'auto', 'original_value' => '12345678A']);
 
         $this->assertIsString($dni);
         $this->assertEquals(9, strlen($dni));
@@ -73,7 +75,7 @@ class DniCifFakerTest extends TestCase
     public function testGenerateAutoDetectsCif(): void
     {
         $faker = new DniCifFaker('es_ES');
-        $cif = $faker->generate(['type' => 'auto', 'original_value' => 'A12345674']);
+        $cif   = $faker->generate(['type' => 'auto', 'original_value' => 'A12345674']);
 
         $this->assertIsString($cif);
         $this->assertEquals(9, strlen($cif));
@@ -86,7 +88,7 @@ class DniCifFakerTest extends TestCase
     public function testGenerateDniFormatted(): void
     {
         $faker = new DniCifFaker('es_ES');
-        $dni = $faker->generate(['type' => 'dni', 'formatted' => true]);
+        $dni   = $faker->generate(['type' => 'dni', 'formatted' => true]);
 
         $this->assertIsString($dni);
         $this->assertEquals(10, strlen($dni)); // 8 digits + 1 dash + 1 letter
@@ -99,7 +101,7 @@ class DniCifFakerTest extends TestCase
     public function testGenerateCifFormatted(): void
     {
         $faker = new DniCifFaker('es_ES');
-        $cif = $faker->generate(['type' => 'cif', 'formatted' => true]);
+        $cif   = $faker->generate(['type' => 'cif', 'formatted' => true]);
 
         $this->assertIsString($cif);
         $this->assertEquals(11, strlen($cif)); // 1 letter + 1 dash + 7 digits + 1 dash + 1 letter/digit
@@ -112,7 +114,7 @@ class DniCifFakerTest extends TestCase
     public function testGenerateAutoDefaultsToDni(): void
     {
         $faker = new DniCifFaker('es_ES');
-        $dni = $faker->generate(['type' => 'auto']);
+        $dni   = $faker->generate(['type' => 'auto']);
 
         $this->assertIsString($dni);
         $this->assertEquals(9, strlen($dni));
@@ -134,7 +136,7 @@ class DniCifFakerTest extends TestCase
     public function testGenerateWithDifferentLocale(): void
     {
         $faker = new DniCifFaker('en_US');
-        $dni = $faker->generate(['type' => 'dni']);
+        $dni   = $faker->generate(['type' => 'dni']);
 
         $this->assertIsString($dni);
         $this->assertEquals(9, strlen($dni));

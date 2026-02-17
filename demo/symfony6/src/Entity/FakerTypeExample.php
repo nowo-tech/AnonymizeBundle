@@ -46,9 +46,9 @@ class FakerTypeExample
         type: FakerType::DNI_CIF,
         weight: 2,
         options: [
-            'type' => 'dni',
+            'type'          => 'dni',
             'preserve_null' => true,
-        ]
+        ],
     )]
     #[ORM\Column(type: Types::STRING, length: 30, nullable: true)]
     private ?string $legalId = null;
@@ -60,9 +60,9 @@ class FakerTypeExample
         type: FakerType::HTML,
         weight: 3,
         options: [
-            'type' => 'signature',
+            'type'          => 'signature',
             'include_links' => true,
-        ]
+        ],
     )]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $signature = null;
@@ -74,10 +74,10 @@ class FakerTypeExample
         type: FakerType::PATTERN_BASED,
         weight: 4,
         options: [
-            'source_field' => 'email',
-            'pattern' => '/(\\(\\d+\\))$/',
+            'source_field'        => 'email',
+            'pattern'             => '/(\\(\\d+\\))$/',
             'pattern_replacement' => '$1',
-        ]
+        ],
     )]
     #[ORM\Column(type: Types::STRING, length: 180)]
     private ?string $username = null;
@@ -88,7 +88,7 @@ class FakerTypeExample
     #[AnonymizeProperty(
         type: FakerType::NULL,
         weight: 5,
-        options: ['bypass_entity_exclusion' => true]
+        options: ['bypass_entity_exclusion' => true],
     )]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $sensitiveNotes = null;
@@ -107,9 +107,9 @@ class FakerTypeExample
         type: FakerType::MAP,
         weight: 7,
         options: [
-            'map' => ['active' => 'status_a', 'inactive' => 'status_b', 'pending' => 'status_c'],
+            'map'     => ['active' => 'status_a', 'inactive' => 'status_b', 'pending' => 'status_c'],
             'default' => 'status_unknown',
-        ]
+        ],
     )]
     #[ORM\Column(type: Types::STRING, length: 50, nullable: true)]
     private ?string $status = null;

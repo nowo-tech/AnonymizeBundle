@@ -22,7 +22,7 @@ class AnonymizeBundleTest extends TestCase
      */
     public function testGetContainerExtension(): void
     {
-        $bundle = new AnonymizeBundle();
+        $bundle    = new AnonymizeBundle();
         $extension = $bundle->getContainerExtension();
 
         $this->assertInstanceOf(ExtensionInterface::class, $extension);
@@ -34,7 +34,7 @@ class AnonymizeBundleTest extends TestCase
      */
     public function testGetContainerExtensionReturnsSameInstance(): void
     {
-        $bundle = new AnonymizeBundle();
+        $bundle     = new AnonymizeBundle();
         $extension1 = $bundle->getContainerExtension();
         $extension2 = $bundle->getContainerExtension();
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
@@ -39,10 +40,10 @@ class EmailSignature
         type: 'html',
         weight: 2,
         options: [
-            'type' => 'signature',
-            'include_links' => true,
+            'type'           => 'signature',
+            'include_links'  => true,
             'include_styles' => false,
-        ]
+        ],
     )]
     private ?string $signature = null;
 
@@ -51,11 +52,11 @@ class EmailSignature
         type: 'html',
         weight: 3,
         options: [
-            'type' => 'paragraph',
+            'type'           => 'paragraph',
             'min_paragraphs' => 1,
             'max_paragraphs' => 3,
-            'include_links' => true,
-        ]
+            'include_links'  => true,
+        ],
     )]
     private ?string $emailBody = null;
 
@@ -65,7 +66,7 @@ class EmailSignature
 
     #[ORM\Column(type: 'datetime')]
     #[AnonymizeProperty(type: 'date', weight: 5, options: ['type' => 'past', 'min_date' => '-1 year', 'max_date' => 'now'])]
-    private ?\DateTimeInterface $sentAt = null;
+    private ?DateTimeInterface $sentAt = null;
 
     public function getId(): ?int
     {
@@ -120,12 +121,12 @@ class EmailSignature
         return $this;
     }
 
-    public function getSentAt(): ?\DateTimeInterface
+    public function getSentAt(): ?DateTimeInterface
     {
         return $this->sentAt;
     }
 
-    public function setSentAt(?\DateTimeInterface $sentAt): static
+    public function setSentAt(?DateTimeInterface $sentAt): static
     {
         $this->sentAt = $sentAt;
 

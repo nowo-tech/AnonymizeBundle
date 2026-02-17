@@ -9,6 +9,8 @@ use Faker\Generator as FakerGenerator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+use const STR_PAD_LEFT;
+
 /**
  * Faker for generating anonymized MAC addresses.
  *
@@ -36,8 +38,9 @@ final class MacAddressFaker implements FakerInterface
      * Generates an anonymized MAC address.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'separator' (string): Separator between octets ('colon', 'dash', 'none', default: 'colon')
-     *   - 'uppercase' (bool): Use uppercase letters (default: true)
+     *                                      - 'separator' (string): Separator between octets ('colon', 'dash', 'none', default: 'colon')
+     *                                      - 'uppercase' (bool): Use uppercase letters (default: true)
+     *
      * @return string The anonymized MAC address
      */
     public function generate(array $options = []): string
@@ -47,17 +50,17 @@ final class MacAddressFaker implements FakerInterface
 
         // Generate 6 octets (2 hex digits each)
         $octets = [];
-        for ($i = 0; $i < 6; $i++) {
+        for ($i = 0; $i < 6; ++$i) {
             $octet = dechex($this->faker->numberBetween(0, 255));
             // Pad with leading zero if needed
-            $octet = str_pad($octet, 2, '0', STR_PAD_LEFT);
+            $octet    = str_pad($octet, 2, '0', STR_PAD_LEFT);
             $octets[] = $uppercase ? strtoupper($octet) : strtolower($octet);
         }
 
         // Apply separator
         $separatorChar = match ($separator) {
-            'dash' => '-',
-            'none' => '',
+            'dash'  => '-',
+            'none'  => '',
             default => ':',
         };
 

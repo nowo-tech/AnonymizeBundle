@@ -104,7 +104,7 @@ class AnonymizableTraitTest extends TestCase
         $entity = new class {
             use AnonymizableTrait;
 
-            public string $name = 'John';
+            public string $name  = 'John';
             public string $email = 'john@example.com';
         };
 

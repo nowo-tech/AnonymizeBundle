@@ -27,7 +27,7 @@ class AnonymizePropertyListenerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->em = $this->createMock(EntityManagerInterface::class);
+        $this->em       = $this->createMock(EntityManagerInterface::class);
         $this->metadata = $this->createMock(ClassMetadata::class);
     }
 
@@ -36,6 +36,7 @@ class AnonymizePropertyListenerTest extends TestCase
         $testClass = new class {
             public string $fileUrl = '';
         };
+
         return new ReflectionProperty($testClass, 'fileUrl');
     }
 
@@ -47,7 +48,7 @@ class AnonymizePropertyListenerTest extends TestCase
         bool $dryRun = false
     ): AnonymizePropertyEvent {
         $property = $this->createTestProperty();
-        $record = $record ?: ['id' => 1, $columnName => $originalValue];
+        $record   = $record ?: ['id' => 1, $columnName => $originalValue];
 
         return new AnonymizePropertyEvent(
             $this->em,
@@ -57,7 +58,7 @@ class AnonymizePropertyListenerTest extends TestCase
             $originalValue,
             $anonymizedValue,
             $record,
-            $dryRun
+            $dryRun,
         );
     }
 
@@ -123,7 +124,7 @@ class AnonymizePropertyListenerTest extends TestCase
     public function testListenerCanReadRecord(): void
     {
         $record = ['id' => 42, 'file_url' => 's3://bucket/x.pdf', 'entity_type' => 'Document'];
-        $event = $this->createEvent('file_url', 's3://bucket/x.pdf', 'anon.pdf', $record);
+        $event  = $this->createEvent('file_url', 's3://bucket/x.pdf', 'anon.pdf', $record);
 
         $listener = function (AnonymizePropertyEvent $e): void {
             $r = $e->getRecord();

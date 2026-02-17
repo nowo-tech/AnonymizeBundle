@@ -35,7 +35,7 @@ class Person
     #[AnonymizeProperty(
         type: 'name_fallback',
         weight: 1,
-        options: ['fallback_field' => 'firstname', 'gender' => 'random']
+        options: ['fallback_field' => 'firstname', 'gender' => 'random'],
     )]
     private ?string $name = null;
 
@@ -43,7 +43,7 @@ class Person
     #[AnonymizeProperty(
         type: 'name_fallback',
         weight: 2,
-        options: ['fallback_field' => 'name', 'gender' => 'random']
+        options: ['fallback_field' => 'name', 'gender' => 'random'],
     )]
     private ?string $firstname = null;
 

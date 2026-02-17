@@ -7,7 +7,6 @@ namespace App\Controller;
 use App\Entity\Employee;
 use App\Form\EmployeeType;
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Nowo\AnonymizeBundle\Service\SchemaService;
@@ -16,23 +15,26 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+use function sprintf;
+
 #[Route('/{connection}/employee')]
 class EmployeeController extends AbstractController
 {
     public function __construct(
         private readonly ManagerRegistry $doctrine,
         private readonly SchemaService $schemaService
-    ) {}
+    ) {
+    }
 
     #[Route('/', name: 'employee_index', methods: ['GET'])]
     public function index(string $connection): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em                  = $this->doctrine->getManager($connection);
         $hasAnonymizedColumn = $this->schemaService->hasAnonymizedColumn($em, Employee::class);
 
         if (!$hasAnonymizedColumn) {
             /** @var ClassMetadata $metadata */
-            $metadata = $em->getClassMetadata(Employee::class);
+            $metadata  = $em->getClassMetadata(Employee::class);
             $tableName = $metadata->getTableName();
             /** @var Connection $dbConnection */
             $dbConnection = $em->getConnection(); // @phpstan-ignore-line
@@ -41,11 +43,11 @@ class EmployeeController extends AbstractController
             foreach ($metadata->getFieldNames() as $fieldName) {
                 if ($fieldName !== 'anonymized') {
                     $fieldMapping = $metadata->getFieldMapping($fieldName);
-                    $columns[] = $dbConnection->quoteSingleIdentifier($fieldMapping['columnName'] ?? $fieldName);
+                    $columns[]    = $dbConnection->quoteSingleIdentifier($fieldMapping['columnName'] ?? $fieldName);
                 }
             }
 
-            $sql = sprintf('SELECT %s FROM %s', implode(', ', $columns), $dbConnection->quoteSingleIdentifier($tableName));
+            $sql     = sprintf('SELECT %s FROM %s', implode(', ', $columns), $dbConnection->quoteSingleIdentifier($tableName));
             $results = $dbConnection->fetchAllAssociative($sql);
 
             $employees = [];
@@ -66,8 +68,8 @@ class EmployeeController extends AbstractController
         }
 
         return $this->render('employee/index.html.twig', [
-            'employees' => $employees,
-            'connection' => $connection,
+            'employees'           => $employees,
+            'connection'          => $connection,
             'hasAnonymizedColumn' => $hasAnonymizedColumn,
         ]);
     }
@@ -76,8 +78,8 @@ class EmployeeController extends AbstractController
     public function new(Request $request, string $connection): Response
     {
         $employee = new Employee();
-        $em = $this->doctrine->getManager($connection);
-        $form = $this->createForm(EmployeeType::class, $employee);
+        $em       = $this->doctrine->getManager($connection);
+        $form     = $this->createForm(EmployeeType::class, $employee);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -90,8 +92,8 @@ class EmployeeController extends AbstractController
         }
 
         return $this->render('employee/new.html.twig', [
-            'employee' => $employee,
-            'form' => $form,
+            'employee'   => $employee,
+            'form'       => $form,
             'connection' => $connection,
         ]);
     }
@@ -99,17 +101,17 @@ class EmployeeController extends AbstractController
     #[Route('/{id}', name: 'employee_show', methods: ['GET'])]
     public function show(string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em                  = $this->doctrine->getManager($connection);
         $hasAnonymizedColumn = $this->schemaService->hasAnonymizedColumn($em, Employee::class);
-        $employee = $em->getRepository(Employee::class)->find($id);
+        $employee            = $em->getRepository(Employee::class)->find($id);
 
         if (!$employee) {
             throw $this->createNotFoundException('Employee not found');
         }
 
         return $this->render('employee/show.html.twig', [
-            'employee' => $employee,
-            'connection' => $connection,
+            'employee'            => $employee,
+            'connection'          => $connection,
             'hasAnonymizedColumn' => $hasAnonymizedColumn,
         ]);
     }
@@ -117,7 +119,7 @@ class EmployeeController extends AbstractController
     #[Route('/{id}/edit', name: 'employee_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em       = $this->doctrine->getManager($connection);
         $employee = $em->getRepository(Employee::class)->find($id);
 
         if (!$employee) {
@@ -136,8 +138,8 @@ class EmployeeController extends AbstractController
         }
 
         return $this->render('employee/edit.html.twig', [
-            'employee' => $employee,
-            'form' => $form,
+            'employee'   => $employee,
+            'form'       => $form,
             'connection' => $connection,
         ]);
     }
@@ -145,7 +147,7 @@ class EmployeeController extends AbstractController
     #[Route('/{id}', name: 'employee_delete', methods: ['POST'])]
     public function delete(Request $request, string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em       = $this->doctrine->getManager($connection);
         $employee = $em->getRepository(Employee::class)->find($id);
 
         if (!$employee) {

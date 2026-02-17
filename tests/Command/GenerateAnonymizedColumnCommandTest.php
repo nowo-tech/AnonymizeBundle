@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Tests\Command;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 use Nowo\AnonymizeBundle\Command\GenerateAnonymizedColumnCommand;
 use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
@@ -17,7 +16,6 @@ use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use ReflectionClass;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 
@@ -35,11 +33,11 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->container = $this->createMock(ContainerInterface::class);
-        $fakerFactory = new FakerFactory('en_US');
-        $patternMatcher = new PatternMatcher();
+        $this->container        = $this->createMock(ContainerInterface::class);
+        $fakerFactory           = new FakerFactory('en_US');
+        $patternMatcher         = new PatternMatcher();
         $this->anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $this->command = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, []);
+        $this->command          = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, []);
     }
 
     /**
@@ -74,9 +72,9 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
      */
     public function testExecuteWithNoAnonymizableEntities(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em       = $this->createMock(EntityManagerInterface::class);
         $doctrine = $this->createMock(ManagerRegistry::class);
-        $config = $this->createMock(\Doctrine\ORM\Configuration::class);
+        $config   = $this->createMock(\Doctrine\ORM\Configuration::class);
 
         $this->container->method('has')
             ->with(SymfonyService::DOCTRINE)
@@ -96,7 +94,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $config->method('getMetadataDriverImpl')
             ->willReturn(null);
 
-        $input = new ArrayInput(['--connection' => ['default']]);
+        $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
 
         $result = $this->command->run($input, $output);
@@ -156,9 +154,9 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
             ->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')
             ->with('nonexistent')
-            ->willThrowException(new \Exception('Manager not found'));
+            ->willThrowException(new Exception('Manager not found'));
 
-        $input = new ArrayInput(['--connection' => ['nonexistent']]);
+        $input  = new ArrayInput(['--connection' => ['nonexistent']]);
         $output = new BufferedOutput();
 
         $result = $this->command->run($input, $output);
@@ -184,9 +182,9 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
      */
     public function testExecuteUsesDefaultConnection(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em       = $this->createMock(EntityManagerInterface::class);
         $doctrine = $this->createMock(ManagerRegistry::class);
-        $config = $this->createMock(\Doctrine\ORM\Configuration::class);
+        $config   = $this->createMock(\Doctrine\ORM\Configuration::class);
 
         $this->container->method('has')
             ->with(SymfonyService::DOCTRINE)
@@ -206,7 +204,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $config->method('getMetadataDriverImpl')
             ->willReturn(null);
 
-        $input = new ArrayInput([]);
+        $input  = new ArrayInput([]);
         $output = new BufferedOutput();
 
         $result = $this->command->run($input, $output);
@@ -232,9 +230,9 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
             ->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')
             ->with('default')
-            ->willThrowException(new \Exception('Database error'));
+            ->willThrowException(new Exception('Database error'));
 
-        $input = new ArrayInput(['--connection' => ['default']]);
+        $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
 
         $result = $this->command->run($input, $output);

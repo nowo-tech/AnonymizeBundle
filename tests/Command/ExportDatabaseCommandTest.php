@@ -7,8 +7,7 @@ namespace Nowo\AnonymizeBundle\Tests\Command;
 use Nowo\AnonymizeBundle\Command\ExportDatabaseCommand;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\BufferedOutput;
+use ReflectionClass;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 /**
@@ -25,7 +24,7 @@ class ExportDatabaseCommandTest extends TestCase
     protected function setUp(): void
     {
         $this->container = $this->createMock(ContainerInterface::class);
-        $this->command = new ExportDatabaseCommand($this->container);
+        $this->command   = new ExportDatabaseCommand($this->container);
     }
 
     /**
@@ -91,8 +90,8 @@ class ExportDatabaseCommandTest extends TestCase
             ->willReturn($parameterBag);
 
         // Use reflection to test private method
-        $reflection = new \ReflectionClass($this->command);
-        $method = $reflection->getMethod('getParameterBag');
+        $reflection = new ReflectionClass($this->command);
+        $method     = $reflection->getMethod('getParameterBag');
         $method->setAccessible(true);
 
         $result = $method->invoke($this->command);
@@ -109,8 +108,8 @@ class ExportDatabaseCommandTest extends TestCase
             ->willReturn(false);
 
         // Use reflection to test private method
-        $reflection = new \ReflectionClass($this->command);
-        $method = $reflection->getMethod('getParameterBag');
+        $reflection = new ReflectionClass($this->command);
+        $method     = $reflection->getMethod('getParameterBag');
         $method->setAccessible(true);
 
         // Should return a ParameterBagInterface wrapper when parameter_bag is not available
@@ -124,8 +123,8 @@ class ExportDatabaseCommandTest extends TestCase
     public function testFormatBytesFormatsCorrectly(): void
     {
         // Use reflection to test private method
-        $reflection = new \ReflectionClass($this->command);
-        $method = $reflection->getMethod('formatBytes');
+        $reflection = new ReflectionClass($this->command);
+        $method     = $reflection->getMethod('formatBytes');
         $method->setAccessible(true);
 
         $result = $method->invoke($this->command, 1024);
@@ -147,8 +146,8 @@ class ExportDatabaseCommandTest extends TestCase
     public function testFormatBytesHandlesZeroBytes(): void
     {
         // Use reflection to test private method
-        $reflection = new \ReflectionClass($this->command);
-        $method = $reflection->getMethod('formatBytes');
+        $reflection = new ReflectionClass($this->command);
+        $method     = $reflection->getMethod('formatBytes');
         $method->setAccessible(true);
 
         $result = $method->invoke($this->command, 0);
@@ -162,8 +161,8 @@ class ExportDatabaseCommandTest extends TestCase
     public function testFormatBytesHandlesLargeNumbers(): void
     {
         // Use reflection to test private method
-        $reflection = new \ReflectionClass($this->command);
-        $method = $reflection->getMethod('formatBytes');
+        $reflection = new ReflectionClass($this->command);
+        $method     = $reflection->getMethod('formatBytes');
         $method->setAccessible(true);
 
         $result = $method->invoke($this->command, 1024 * 1024 * 1024 * 1024);

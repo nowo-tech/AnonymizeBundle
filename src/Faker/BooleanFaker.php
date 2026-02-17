@@ -36,7 +36,8 @@ final class BooleanFaker implements FakerInterface
      * Generates an anonymized boolean value.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'true_probability' (int): Probability of true (0-100, default: 50)
+     *                                      - 'true_probability' (int): Probability of true (0-100, default: 50)
+     *
      * @return bool The anonymized boolean value
      */
     public function generate(array $options = []): bool

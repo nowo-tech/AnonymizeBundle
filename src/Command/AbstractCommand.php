@@ -23,6 +23,7 @@ abstract class AbstractCommand extends SymfonyCommand
      *
      * @param \Doctrine\DBAL\Connection $connection The database connection
      * @param string $identifier The identifier to quote
+     *
      * @return string The quoted identifier
      */
     protected function quoteIdentifier(\Doctrine\DBAL\Connection $connection, string $identifier): string

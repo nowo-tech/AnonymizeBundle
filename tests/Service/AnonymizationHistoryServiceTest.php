@@ -7,6 +7,11 @@ namespace Nowo\AnonymizeBundle\Tests\Service;
 use Nowo\AnonymizeBundle\Service\AnonymizationHistoryService;
 use PHPUnit\Framework\TestCase;
 
+use function count;
+
+use const JSON_PRETTY_PRINT;
+use const JSON_UNESCAPED_SLASHES;
+
 /**
  * Test case for AnonymizationHistoryService.
  *
@@ -39,13 +44,13 @@ class AnonymizationHistoryServiceTest extends TestCase
 
         $statistics = [
             'total_entities' => 5,
-            'total_records' => 100,
-            'total_updated' => 80,
+            'total_records'  => 100,
+            'total_updated'  => 80,
         ];
 
         $metadata = [
             'connection' => 'default',
-            'dry_run' => false,
+            'dry_run'    => false,
         ];
 
         $filePath = $service->saveRun($statistics, $metadata);
@@ -86,7 +91,7 @@ class AnonymizationHistoryServiceTest extends TestCase
 
         $statistics = [
             'total_entities' => 5,
-            'total_records' => 100,
+            'total_records'  => 100,
         ];
 
         $service->saveRun($statistics, ['connection' => 'default']);
@@ -106,7 +111,7 @@ class AnonymizationHistoryServiceTest extends TestCase
         $statistics = ['total_entities' => 1];
 
         // Save 5 runs
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 5; ++$i) {
             $service->saveRun($statistics);
         }
 
@@ -123,14 +128,14 @@ class AnonymizationHistoryServiceTest extends TestCase
 
         $statistics1 = [
             'total_entities' => 1,
-            'entities' => [
+            'entities'       => [
                 ['connection' => 'default', 'name' => 'TestEntity'],
             ],
         ];
 
         $statistics2 = [
             'total_entities' => 1,
-            'entities' => [
+            'entities'       => [
                 ['connection' => 'postgres', 'name' => 'TestEntity'],
             ],
         ];
@@ -152,11 +157,11 @@ class AnonymizationHistoryServiceTest extends TestCase
 
         $statistics = [
             'total_entities' => 5,
-            'total_records' => 100,
+            'total_records'  => 100,
         ];
 
         $filePath = $service->saveRun($statistics, ['connection' => 'default']);
-        $runId = json_decode(file_get_contents($filePath), true)['id'];
+        $runId    = json_decode(file_get_contents($filePath), true)['id'];
 
         $run = $service->getRun($runId);
         $this->assertIsArray($run);
@@ -243,11 +248,11 @@ class AnonymizationHistoryServiceTest extends TestCase
 
         // Create a recent run
         $recentFilePath = $service->saveRun($statistics);
-        $recentRunId = json_decode(file_get_contents($recentFilePath), true)['id'];
+        $recentRunId    = json_decode(file_get_contents($recentFilePath), true)['id'];
 
         // Create an old run by modifying the file directly
-        $oldFilePath = $service->saveRun($statistics);
-        $oldRunData = json_decode(file_get_contents($oldFilePath), true);
+        $oldFilePath             = $service->saveRun($statistics);
+        $oldRunData              = json_decode(file_get_contents($oldFilePath), true);
         $oldRunData['timestamp'] = time() - (35 * 24 * 60 * 60); // 35 days ago
         file_put_contents($oldFilePath, json_encode($oldRunData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
@@ -282,7 +287,7 @@ class AnonymizationHistoryServiceTest extends TestCase
         if (count($runs) >= 2) {
             $this->assertGreaterThanOrEqual(
                 $runs[1]['timestamp'] ?? 0,
-                $runs[0]['timestamp'] ?? 0
+                $runs[0]['timestamp'] ?? 0,
             );
         }
     }
@@ -296,9 +301,9 @@ class AnonymizationHistoryServiceTest extends TestCase
 
         $statistics = [
             'global' => [
-                'total_entities' => 5,
+                'total_entities'  => 5,
                 'total_processed' => 100,
-                'total_updated' => 80,
+                'total_updated'   => 80,
             ],
         ];
 
@@ -321,13 +326,13 @@ class AnonymizationHistoryServiceTest extends TestCase
 
         // Create index with non-existent file
         $indexFile = $this->tempDir . '/index.json';
-        $index = [
+        $index     = [
             [
-                'id' => 'test-id',
+                'id'        => 'test-id',
                 'timestamp' => time(),
-                'datetime' => date('Y-m-d H:i:s'),
-                'file' => $this->tempDir . '/non-existent-file.json',
-                'summary' => ['total_entities' => 1],
+                'datetime'  => date('Y-m-d H:i:s'),
+                'file'      => $this->tempDir . '/non-existent-file.json',
+                'summary'   => ['total_entities' => 1],
             ],
         ];
         file_put_contents($indexFile, json_encode($index, JSON_PRETTY_PRINT));

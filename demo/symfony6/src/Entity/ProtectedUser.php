@@ -25,10 +25,10 @@ use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 #[Anonymize(
     excludePatterns: [
         ['email' => '%@visitor.com'],           // Config 1: exclude emails ending in @visitor.com
-        ['role' => 'admin'],                    // Config 2: exclude admin users
-        ['id' => '<=100'],                      // Config 3: exclude first 100 records
+        ['role'   => 'admin'],                    // Config 2: exclude admin users
+        ['id'     => '<=100'],                      // Config 3: exclude first 100 records
         ['status' => 'archived|deleted'],       // Config 4: exclude archived or deleted (| = OR within field)
-    ]
+    ],
 )]
 class ProtectedUser
 {
@@ -68,7 +68,7 @@ class ProtectedUser
     #[AnonymizeProperty(
         type: 'null',
         weight: 5,
-        options: ['bypass_entity_exclusion' => true]
+        options: ['bypass_entity_exclusion' => true],
     )]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $sensitiveNotes = null;

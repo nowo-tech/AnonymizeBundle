@@ -21,7 +21,7 @@ class HtmlFakerTest extends TestCase
     public function testGenerateSignature(): void
     {
         $faker = new HtmlFaker('en_US');
-        $html = $faker->generate(['type' => 'signature']);
+        $html  = $faker->generate(['type' => 'signature']);
 
         $this->assertIsString($html);
         $this->assertNotEmpty($html);
@@ -36,7 +36,7 @@ class HtmlFakerTest extends TestCase
     public function testGenerateSignatureWithLinks(): void
     {
         $faker = new HtmlFaker('en_US');
-        $html = $faker->generate(['type' => 'signature', 'include_links' => true]);
+        $html  = $faker->generate(['type' => 'signature', 'include_links' => true]);
 
         $this->assertIsString($html);
         $this->assertStringContainsString('<a href', $html);
@@ -48,7 +48,7 @@ class HtmlFakerTest extends TestCase
     public function testGenerateSignatureWithoutLinks(): void
     {
         $faker = new HtmlFaker('en_US');
-        $html = $faker->generate(['type' => 'signature', 'include_links' => false]);
+        $html  = $faker->generate(['type' => 'signature', 'include_links' => false]);
 
         $this->assertIsString($html);
         $this->assertStringNotContainsString('<a href', $html);
@@ -60,7 +60,7 @@ class HtmlFakerTest extends TestCase
     public function testGenerateSignatureWithStyles(): void
     {
         $faker = new HtmlFaker('en_US');
-        $html = $faker->generate(['type' => 'signature', 'include_styles' => true]);
+        $html  = $faker->generate(['type' => 'signature', 'include_styles' => true]);
 
         $this->assertIsString($html);
         $this->assertStringContainsString('style=', $html);
@@ -72,7 +72,7 @@ class HtmlFakerTest extends TestCase
     public function testGenerateParagraphs(): void
     {
         $faker = new HtmlFaker('en_US');
-        $html = $faker->generate(['type' => 'paragraph', 'min_paragraphs' => 2, 'max_paragraphs' => 3]);
+        $html  = $faker->generate(['type' => 'paragraph', 'min_paragraphs' => 2, 'max_paragraphs' => 3]);
 
         $this->assertIsString($html);
         $this->assertNotEmpty($html);
@@ -88,7 +88,7 @@ class HtmlFakerTest extends TestCase
     public function testGenerateParagraphsWithLinks(): void
     {
         $faker = new HtmlFaker('en_US');
-        $html = $faker->generate(['type' => 'paragraph', 'include_links' => true, 'min_paragraphs' => 5, 'max_paragraphs' => 5]);
+        $html  = $faker->generate(['type' => 'paragraph', 'include_links' => true, 'min_paragraphs' => 5, 'max_paragraphs' => 5]);
 
         $this->assertIsString($html);
         // With 5 paragraphs and 30% chance, at least one should have a link
@@ -102,13 +102,13 @@ class HtmlFakerTest extends TestCase
     public function testGenerateList(): void
     {
         $faker = new HtmlFaker('en_US');
-        $html = $faker->generate(['type' => 'list', 'min_list_items' => 3, 'max_list_items' => 5]);
+        $html  = $faker->generate(['type' => 'list', 'min_list_items' => 3, 'max_list_items' => 5]);
 
         $this->assertIsString($html);
         $this->assertNotEmpty($html);
         $this->assertTrue(
             str_contains($html, '<ul>') || str_contains($html, '<ol>'),
-            'HTML should contain ul or ol tag'
+            'HTML should contain ul or ol tag',
         );
         $this->assertStringContainsString('<li>', $html);
     }
@@ -119,7 +119,7 @@ class HtmlFakerTest extends TestCase
     public function testGenerateListWithLinks(): void
     {
         $faker = new HtmlFaker('en_US');
-        $html = $faker->generate(['type' => 'list', 'include_links' => true, 'min_list_items' => 10, 'max_list_items' => 10]);
+        $html  = $faker->generate(['type' => 'list', 'include_links' => true, 'min_list_items' => 10, 'max_list_items' => 10]);
 
         $this->assertIsString($html);
         // With 10 items and 40% chance, at least one should have a link
@@ -133,7 +133,7 @@ class HtmlFakerTest extends TestCase
     public function testGenerateMixed(): void
     {
         $faker = new HtmlFaker('en_US');
-        $html = $faker->generate(['type' => 'mixed', 'min_paragraphs' => 2, 'max_paragraphs' => 3]);
+        $html  = $faker->generate(['type' => 'mixed', 'min_paragraphs' => 2, 'max_paragraphs' => 3]);
 
         $this->assertIsString($html);
         $this->assertNotEmpty($html);
@@ -146,7 +146,7 @@ class HtmlFakerTest extends TestCase
     public function testGenerateMixedWithStyles(): void
     {
         $faker = new HtmlFaker('en_US');
-        $html = $faker->generate(['type' => 'mixed', 'include_styles' => true]);
+        $html  = $faker->generate(['type' => 'mixed', 'include_styles' => true]);
 
         $this->assertIsString($html);
         $this->assertStringContainsString('style=', $html);
@@ -158,7 +158,7 @@ class HtmlFakerTest extends TestCase
     public function testGenerateDefault(): void
     {
         $faker = new HtmlFaker('en_US');
-        $html = $faker->generate();
+        $html  = $faker->generate();
 
         $this->assertIsString($html);
         $this->assertNotEmpty($html);
@@ -171,7 +171,7 @@ class HtmlFakerTest extends TestCase
     public function testGenerateInvalidType(): void
     {
         $faker = new HtmlFaker('en_US');
-        $html = $faker->generate(['type' => 'invalid_type']);
+        $html  = $faker->generate(['type' => 'invalid_type']);
 
         $this->assertIsString($html);
         $this->assertNotEmpty($html);
@@ -194,7 +194,7 @@ class HtmlFakerTest extends TestCase
     public function testGenerateWithDifferentLocale(): void
     {
         $faker = new HtmlFaker('es_ES');
-        $html = $faker->generate(['type' => 'signature']);
+        $html  = $faker->generate(['type' => 'signature']);
 
         $this->assertIsString($html);
         $this->assertNotEmpty($html);
@@ -207,7 +207,7 @@ class HtmlFakerTest extends TestCase
     public function testGenerateEscapesHtmlSpecialChars(): void
     {
         $faker = new HtmlFaker('en_US');
-        $html = $faker->generate(['type' => 'signature']);
+        $html  = $faker->generate(['type' => 'signature']);
 
         $this->assertIsString($html);
         // Check that content is properly escaped (no unescaped < or > in text content)
@@ -221,11 +221,11 @@ class HtmlFakerTest extends TestCase
     public function testGenerateValidHtmlStructure(): void
     {
         $faker = new HtmlFaker('en_US');
-        $html = $faker->generate(['type' => 'signature']);
+        $html  = $faker->generate(['type' => 'signature']);
 
         $this->assertIsString($html);
         // Check that opening and closing tags match
-        $openDivs = substr_count($html, '<div');
+        $openDivs  = substr_count($html, '<div');
         $closeDivs = substr_count($html, '</div>');
         $this->assertEquals($openDivs, $closeDivs, 'Opening and closing div tags should match');
     }

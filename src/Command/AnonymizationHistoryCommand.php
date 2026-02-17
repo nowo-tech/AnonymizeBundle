@@ -11,6 +11,12 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+use function count;
+use function sprintf;
+
+use const JSON_PRETTY_PRINT;
+use const JSON_UNESCAPED_SLASHES;
+
 /**
  * Command to view and manage anonymization history.
  *
@@ -19,7 +25,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 #[AsCommand(
     name: 'nowo:anonymize:history',
-    description: 'View and manage anonymization history'
+    description: 'View and manage anonymization history',
 )]
 final class AnonymizationHistoryCommand extends AbstractCommand
 {
@@ -67,12 +73,12 @@ final class AnonymizationHistoryCommand extends AbstractCommand
         $io = new SymfonyStyle($input, $output);
 
         // Get history directory from parameter
-        $historyDir = $this->getHistoryDir();
+        $historyDir     = $this->getHistoryDir();
         $historyService = new AnonymizationHistoryService($historyDir);
 
         // Handle cleanup
         if ($input->getOption('cleanup')) {
-            $days = (int) ($input->getOption('days') ?? 30);
+            $days    = (int) ($input->getOption('days') ?? 30);
             $deleted = $historyService->cleanup($days);
             $io->success(sprintf('Cleaned up %d old run(s) (kept runs from last %d days)', $deleted, $days));
 
@@ -127,9 +133,9 @@ final class AnonymizationHistoryCommand extends AbstractCommand
         }
 
         // List all runs
-        $limit = $input->getOption('limit') !== null ? (int) $input->getOption('limit') : null;
+        $limit      = $input->getOption('limit') !== null ? (int) $input->getOption('limit') : null;
         $connection = $input->getOption('connection');
-        $runs = $historyService->getRuns($limit, $connection);
+        $runs       = $historyService->getRuns($limit, $connection);
 
         if (empty($runs)) {
             $io->info('No anonymization runs found in history.');
@@ -153,7 +159,6 @@ final class AnonymizationHistoryCommand extends AbstractCommand
      *
      * @param SymfonyStyle $io The Symfony style output
      * @param array<int, array<string, mixed>> $runs Array of anonymization runs
-     * @return void
      */
     private function displayRunsList(SymfonyStyle $io, array $runs): void
     {
@@ -174,10 +179,10 @@ final class AnonymizationHistoryCommand extends AbstractCommand
 
         $io->table(
             ['Run ID', 'Date/Time', 'Entities', 'Processed', 'Updated', 'Duration'],
-            $rows
+            $rows,
         );
 
-        $io->note(sprintf('Use --run-id <id> to view details of a specific run'));
+        $io->note('Use --run-id <id> to view details of a specific run');
     }
 
     /**
@@ -185,7 +190,6 @@ final class AnonymizationHistoryCommand extends AbstractCommand
      *
      * @param SymfonyStyle $io The Symfony style output
      * @param array<string, mixed> $run The anonymization run data
-     * @return void
      */
     private function displayRun(SymfonyStyle $io, array $run): void
     {
@@ -200,7 +204,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
                 ['Environment', $run['metadata']['environment'] ?? 'N/A'],
                 ['PHP Version', $run['metadata']['php_version'] ?? 'N/A'],
                 ['Symfony Version', $run['metadata']['symfony_version'] ?? 'N/A'],
-            ]
+            ],
         );
 
         $global = $run['statistics']['global'] ?? [];
@@ -215,7 +219,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
                 ['Duration', $this->formatDuration($global['duration'] ?? 0)],
                 ['Start Time', isset($global['start_time']) ? date('Y-m-d H:i:s', (int) $global['start_time']) : 'N/A'],
                 ['End Time', isset($global['end_time']) ? date('Y-m-d H:i:s', (int) $global['end_time']) : 'N/A'],
-            ]
+            ],
         );
 
         $entities = $run['statistics']['entities'] ?? [];
@@ -239,7 +243,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
 
             $io->table(
                 ['Entity', 'Connection', 'Processed', 'Updated', 'Skipped', 'Success Rate'],
-                $entityRows
+                $entityRows,
             );
         }
     }
@@ -249,7 +253,6 @@ final class AnonymizationHistoryCommand extends AbstractCommand
      *
      * @param SymfonyStyle $io The Symfony style output
      * @param array<string, mixed> $comparison The comparison data between two runs
-     * @return void
      */
     private function displayComparison(SymfonyStyle $io, array $comparison): void
     {
@@ -261,16 +264,16 @@ final class AnonymizationHistoryCommand extends AbstractCommand
             [
                 ['Run ID', substr($comparison['run1']['id'] ?? 'unknown', 0, 12), substr($comparison['run2']['id'] ?? 'unknown', 0, 12)],
                 ['Date/Time', $comparison['run1']['datetime'] ?? 'N/A', $comparison['run2']['datetime'] ?? 'N/A'],
-            ]
+            ],
         );
 
         $global = $comparison['global'] ?? [];
         $io->section('Global Statistics Comparison');
         $globalRows = [];
         foreach ($global as $metric => $data) {
-            $diff = $data['diff'] ?? 0;
+            $diff          = $data['diff'] ?? 0;
             $diffFormatted = $diff >= 0 ? sprintf('+%s', $diff) : (string) $diff;
-            $globalRows[] = [
+            $globalRows[]  = [
                 ucfirst(str_replace('_', ' ', $metric)),
                 (string) ($data['run1'] ?? 0),
                 (string) ($data['run2'] ?? 0),
@@ -280,7 +283,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
 
         $io->table(
             ['Metric', 'Run 1', 'Run 2', 'Difference'],
-            $globalRows
+            $globalRows,
         );
 
         $entities = $comparison['entities'] ?? [];
@@ -302,7 +305,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
 
             $io->table(
                 ['Entity', 'Connection', 'Processed (R1)', 'Processed (R2)', 'Diff', 'Updated (R1)', 'Updated (R2)', 'Diff'],
-                $entityRows
+                $entityRows,
             );
         }
     }
@@ -311,6 +314,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
      * Formats duration in seconds to human-readable format.
      *
      * @param float $seconds Duration in seconds
+     *
      * @return string Formatted duration string (e.g., "1.23 s", "2 m 30.45 s")
      */
     private function formatDuration(float $seconds): string
@@ -323,7 +327,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
             return sprintf('%.2f s', $seconds);
         }
 
-        $minutes = floor($seconds / 60);
+        $minutes          = floor($seconds / 60);
         $remainingSeconds = $seconds % 60;
 
         return sprintf('%d m %.2f s', $minutes, $remainingSeconds);
@@ -344,7 +348,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
             if (file_exists(__DIR__ . '/../../../../var')) {
                 // We're in a Symfony project
                 $projectRoot = realpath(__DIR__ . '/../../../../');
-                $historyDir = str_replace('%kernel.project_dir%', $projectRoot, $historyDir);
+                $historyDir  = str_replace('%kernel.project_dir%', $projectRoot, $historyDir);
             } else {
                 // Fallback
                 $historyDir = str_replace('%kernel.project_dir%', getcwd() ?: '.', $historyDir);

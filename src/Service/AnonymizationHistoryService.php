@@ -6,6 +6,13 @@ namespace Nowo\AnonymizeBundle\Service;
 
 use Symfony\Component\Filesystem\Filesystem;
 
+use function array_slice;
+use function sprintf;
+
+use const JSON_PRETTY_PRINT;
+use const JSON_UNESCAPED_SLASHES;
+use const PHP_VERSION;
+
 /**
  * Service for managing anonymization history.
  *
@@ -42,6 +49,7 @@ final class AnonymizationHistoryService
      *
      * @param array<string, mixed> $statistics Statistics from AnonymizeStatistics
      * @param array<string, mixed> $metadata Additional metadata (command options, environment, etc.)
+     *
      * @return string The history file path
      */
     public function saveRun(array $statistics, array $metadata = []): string
@@ -53,12 +61,12 @@ final class AnonymizationHistoryService
 
         // Create history entry
         $historyEntry = [
-            'id' => $this->generateRunId(),
+            'id'        => $this->generateRunId(),
             'timestamp' => time(),
-            'datetime' => date('Y-m-d H:i:s'),
-            'metadata' => array_merge([
-                'environment' => $_ENV['APP_ENV'] ?? 'unknown',
-                'php_version' => PHP_VERSION,
+            'datetime'  => date('Y-m-d H:i:s'),
+            'metadata'  => array_merge([
+                'environment'     => $_ENV['APP_ENV'] ?? 'unknown',
+                'php_version'     => PHP_VERSION,
                 'symfony_version' => $this->getSymfonyVersion(),
             ], $metadata),
             'statistics' => $statistics,
@@ -70,7 +78,7 @@ final class AnonymizationHistoryService
 
         $this->filesystem->dumpFile(
             $filePath,
-            json_encode($historyEntry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+            json_encode($historyEntry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
         );
 
         // Update index file for quick access
@@ -84,6 +92,7 @@ final class AnonymizationHistoryService
      *
      * @param int|null $limit Maximum number of runs to return
      * @param string|null $connection Filter by connection name
+     *
      * @return array<int, array<string, mixed>> Array of history entries
      */
     public function getRuns(?int $limit = null, ?string $connection = null): array
@@ -95,7 +104,7 @@ final class AnonymizationHistoryService
         }
 
         $index = json_decode(file_get_contents($indexFile), true) ?? [];
-        $runs = [];
+        $runs  = [];
 
         foreach ($index as $entry) {
             // Filter by connection if specified
@@ -143,6 +152,7 @@ final class AnonymizationHistoryService
      * Get a specific run by ID.
      *
      * @param string $runId The run ID
+     *
      * @return array<string, mixed>|null The run data or null if not found
      */
     public function getRun(string $runId): ?array
@@ -163,6 +173,7 @@ final class AnonymizationHistoryService
                         return $runData;
                     }
                 }
+
                 return $entry;
             }
         }
@@ -175,6 +186,7 @@ final class AnonymizationHistoryService
      *
      * @param string $runId1 First run ID
      * @param string $runId2 Second run ID
+     *
      * @return array<string, mixed> Comparison data
      */
     public function compareRuns(string $runId1, string $runId2): ?array
@@ -188,22 +200,22 @@ final class AnonymizationHistoryService
 
         $comparison = [
             'run1' => [
-                'id' => $run1['id'],
+                'id'        => $run1['id'],
                 'timestamp' => $run1['timestamp'],
-                'datetime' => $run1['datetime'],
+                'datetime'  => $run1['datetime'],
             ],
             'run2' => [
-                'id' => $run2['id'],
+                'id'        => $run2['id'],
                 'timestamp' => $run2['timestamp'],
-                'datetime' => $run2['datetime'],
+                'datetime'  => $run2['datetime'],
             ],
             'global' => $this->compareGlobalStats(
                 $run1['statistics']['global'] ?? [],
-                $run2['statistics']['global'] ?? []
+                $run2['statistics']['global'] ?? [],
             ),
             'entities' => $this->compareEntityStats(
                 $run1['statistics']['entities'] ?? [],
-                $run2['statistics']['entities'] ?? []
+                $run2['statistics']['entities'] ?? [],
             ),
         ];
 
@@ -214,19 +226,20 @@ final class AnonymizationHistoryService
      * Delete old runs (cleanup).
      *
      * @param int $daysToKeep Number of days to keep
+     *
      * @return int Number of runs deleted
      */
     public function cleanup(int $daysToKeep = 30): int
     {
         $cutoffTime = time() - ($daysToKeep * 24 * 60 * 60);
-        $runs = $this->getRuns();
-        $deleted = 0;
+        $runs       = $this->getRuns();
+        $deleted    = 0;
 
         foreach ($runs as $run) {
             if (isset($run['timestamp']) && $run['timestamp'] < $cutoffTime) {
                 if (isset($run['file']) && file_exists($run['file'])) {
                     $this->filesystem->remove($run['file']);
-                    $deleted++;
+                    ++$deleted;
                 }
             }
         }
@@ -251,12 +264,11 @@ final class AnonymizationHistoryService
      * Updates the index file with a new history entry.
      *
      * @param array<string, mixed> $entry The history entry to add
-     * @return void
      */
     private function updateIndex(array $entry): void
     {
         $indexFile = $this->historyDir . '/index.json';
-        $index = [];
+        $index     = [];
 
         if (file_exists($indexFile)) {
             $index = json_decode(file_get_contents($indexFile), true) ?? [];
@@ -264,14 +276,14 @@ final class AnonymizationHistoryService
 
         // Add entry to index
         $indexEntry = [
-            'id' => $entry['id'],
+            'id'        => $entry['id'],
             'timestamp' => $entry['timestamp'],
-            'datetime' => $entry['datetime'],
-            'file' => $this->historyDir . '/' . sprintf('run_%s_%s.json', date('Y-m-d_His', $entry['timestamp']), $entry['id']),
-            'summary' => [
-                'total_entities' => $entry['statistics']['global']['total_entities'] ?? 0,
+            'datetime'  => $entry['datetime'],
+            'file'      => $this->historyDir . '/' . sprintf('run_%s_%s.json', date('Y-m-d_His', $entry['timestamp']), $entry['id']),
+            'summary'   => [
+                'total_entities'  => $entry['statistics']['global']['total_entities'] ?? 0,
                 'total_processed' => $entry['statistics']['global']['total_processed'] ?? 0,
-                'total_updated' => $entry['statistics']['global']['total_updated'] ?? 0,
+                'total_updated'   => $entry['statistics']['global']['total_updated'] ?? 0,
             ],
         ];
 
@@ -286,7 +298,7 @@ final class AnonymizationHistoryService
 
         $this->filesystem->dumpFile(
             $indexFile,
-            json_encode($index, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+            json_encode($index, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
         );
     }
 
@@ -294,8 +306,6 @@ final class AnonymizationHistoryService
      * Rebuilds the index file from existing history files.
      *
      * Scans the history directory for all run files and rebuilds the index.json file.
-     *
-     * @return void
      */
     private function rebuildIndex(): void
     {
@@ -310,14 +320,14 @@ final class AnonymizationHistoryService
             $data = json_decode(file_get_contents($file), true);
             if ($data !== null && isset($data['id'])) {
                 $index[] = [
-                    'id' => $data['id'],
+                    'id'        => $data['id'],
                     'timestamp' => $data['timestamp'],
-                    'datetime' => $data['datetime'],
-                    'file' => $file,
-                    'summary' => [
-                        'total_entities' => $data['statistics']['global']['total_entities'] ?? 0,
+                    'datetime'  => $data['datetime'],
+                    'file'      => $file,
+                    'summary'   => [
+                        'total_entities'  => $data['statistics']['global']['total_entities'] ?? 0,
                         'total_processed' => $data['statistics']['global']['total_processed'] ?? 0,
-                        'total_updated' => $data['statistics']['global']['total_updated'] ?? 0,
+                        'total_updated'   => $data['statistics']['global']['total_updated'] ?? 0,
                     ],
                 ];
             }
@@ -331,7 +341,7 @@ final class AnonymizationHistoryService
         $indexFile = $this->historyDir . '/index.json';
         $this->filesystem->dumpFile(
             $indexFile,
-            json_encode($index, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+            json_encode($index, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
         );
     }
 
@@ -340,6 +350,7 @@ final class AnonymizationHistoryService
      *
      * @param array<string, mixed> $stats1 First run stats
      * @param array<string, mixed> $stats2 Second run stats
+     *
      * @return array<string, mixed> Comparison data
      */
     private function compareGlobalStats(array $stats1, array $stats2): array
@@ -373,11 +384,12 @@ final class AnonymizationHistoryService
      *
      * @param array<string, mixed> $entities1 First run entities
      * @param array<string, mixed> $entities2 Second run entities
+     *
      * @return array<string, mixed> Comparison data
      */
     private function compareEntityStats(array $entities1, array $entities2): array
     {
-        $comparison = [];
+        $comparison  = [];
         $allEntities = array_unique(array_merge(array_keys($entities1), array_keys($entities2)));
 
         foreach ($allEntities as $entityKey) {
@@ -385,9 +397,9 @@ final class AnonymizationHistoryService
             $entity2 = $entities2[$entityKey] ?? null;
 
             $comparison[$entityKey] = [
-                'entity' => $entity1['entity'] ?? $entity2['entity'] ?? 'unknown',
+                'entity'     => $entity1['entity'] ?? $entity2['entity'] ?? 'unknown',
                 'connection' => $entity1['connection'] ?? $entity2['connection'] ?? 'unknown',
-                'processed' => [
+                'processed'  => [
                     'run1' => $entity1['processed'] ?? 0,
                     'run2' => $entity2['processed'] ?? 0,
                     'diff' => ($entity2['processed'] ?? 0) - ($entity1['processed'] ?? 0),

@@ -20,49 +20,49 @@ class InvoiceType extends AbstractType
         $builder
             ->add('invoiceNumber', TextType::class, [
                 'required' => true,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('companyName', TextType::class, [
                 'required' => true,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('companyAddress', TextType::class, [
                 'required' => true,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('bankAccount', TextType::class, [
                 'required' => false,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('creditCard', TextType::class, [
                 'required' => false,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('amount', MoneyType::class, [
                 'required' => true,
                 'currency' => 'USD',
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('issueDate', DateTimeType::class, [
                 'required' => true,
-                'widget' => 'single_text',
-                'attr' => ['class' => 'form-control'],
+                'widget'   => 'single_text',
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('dueDate', DateTimeType::class, [
                 'required' => false,
-                'widget' => 'single_text',
-                'attr' => ['class' => 'form-control'],
+                'widget'   => 'single_text',
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('status', ChoiceType::class, [
                 'choices' => [
-                    'Draft' => 'draft',
-                    'Sent' => 'sent',
-                    'Paid' => 'paid',
-                    'Overdue' => 'overdue',
+                    'Draft'     => 'draft',
+                    'Sent'      => 'sent',
+                    'Paid'      => 'paid',
+                    'Overdue'   => 'overdue',
                     'Cancelled' => 'cancelled',
                 ],
                 'required' => true,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ]);
     }
 

@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use DateTime;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+
+use function extension_loaded;
 
 #[Route('/mongodb/analytics-event')]
 class AnalyticsEventController extends AbstractController
@@ -26,8 +30,9 @@ class AnalyticsEventController extends AbstractController
         }
         try {
             $clientClass = class_exists('\MongoDB\Client') ? '\MongoDB\Client' : 'MongoDB\Client';
+
             return new $clientClass($mongodbUrl);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
     }
@@ -38,11 +43,12 @@ class AnalyticsEventController extends AbstractController
         if (!$client) {
             return null;
         }
-        $mongodbUrl = $_ENV['MONGODB_URL'] ?? getenv('MONGODB_URL');
-        $parsedUrl = parse_url(str_replace('mongodb://', 'http://', $mongodbUrl));
+        $mongodbUrl   = $_ENV['MONGODB_URL'] ?? getenv('MONGODB_URL');
+        $parsedUrl    = parse_url(str_replace('mongodb://', 'http://', $mongodbUrl));
         $databaseName = trim($parsedUrl['path'] ?? 'anonymize_demo', '/');
         $databaseName = explode('?', $databaseName)[0];
-        $database = $client->selectDatabase($databaseName);
+        $database     = $client->selectDatabase($databaseName);
+
         return $database->selectCollection('analytics_events');
     }
 
@@ -52,10 +58,11 @@ class AnalyticsEventController extends AbstractController
         if (!extension_loaded('mongodb') || (!class_exists('\MongoDB\Client') && !class_exists('MongoDB\Client'))) {
             $errorMsg = 'MongoDB PHP extension or MongoDB\Client class not found.';
             $this->addFlash('error', $errorMsg);
+
             return $this->render('analytics_event/index.html.twig', [
-                'events' => [],
+                'events'     => [],
                 'connection' => 'mongodb',
-                'error' => $errorMsg,
+                'error'      => $errorMsg,
             ]);
         }
 
@@ -63,27 +70,28 @@ class AnalyticsEventController extends AbstractController
         if (!$collection) {
             $errorMsg = 'MongoDB connection not available.';
             $this->addFlash('error', $errorMsg);
+
             return $this->render('analytics_event/index.html.twig', [
-                'events' => [],
+                'events'     => [],
                 'connection' => 'mongodb',
-                'error' => $errorMsg,
+                'error'      => $errorMsg,
             ]);
         }
 
         try {
-            $events = $collection->find([], ['sort' => ['timestamp' => -1]]);
+            $events      = $collection->find([], ['sort' => ['timestamp' => -1]]);
             $eventsArray = [];
             foreach ($events as $event) {
                 $eventsArray[] = $event;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->addFlash('error', 'Error loading events: ' . $e->getMessage());
             $eventsArray = [];
         }
 
         return $this->render('analytics_event/index.html.twig', [
-            'events' => $eventsArray,
-            'connection' => 'mongodb',
+            'events'              => $eventsArray,
+            'connection'          => 'mongodb',
             'hasAnonymizedColumn' => true,
         ]);
     }
@@ -95,27 +103,29 @@ class AnalyticsEventController extends AbstractController
             $collection = $this->getCollection();
             if (!$collection) {
                 $this->addFlash('error', 'MongoDB connection not available.');
+
                 return $this->redirectToRoute('mongodb_analytics_event_index');
             }
 
             try {
                 $data = [
-                    'eventId' => $request->request->get('eventId', ''),
-                    'eventType' => $request->request->get('eventType', 'page_view'),
-                    'country' => $request->request->get('country', ''),
-                    'language' => $request->request->get('language', ''),
-                    'eventData' => $request->request->get('eventData', '{}'),
-                    'description' => $request->request->get('description', ''),
-                    'userIdHash' => $request->request->get('userIdHash', ''),
-                    'category' => $request->request->get('category', ''),
+                    'eventId'            => $request->request->get('eventId', ''),
+                    'eventType'          => $request->request->get('eventType', 'page_view'),
+                    'country'            => $request->request->get('country', ''),
+                    'language'           => $request->request->get('language', ''),
+                    'eventData'          => $request->request->get('eventData', '{}'),
+                    'description'        => $request->request->get('description', ''),
+                    'userIdHash'         => $request->request->get('userIdHash', ''),
+                    'category'           => $request->request->get('category', ''),
                     'dataClassification' => $request->request->get('dataClassification', 'ANONYMIZED'),
-                    'timestamp' => new \MongoDB\BSON\UTCDateTime(new \DateTime($request->request->get('timestamp', 'now'))),
-                    'anonymized' => false,
+                    'timestamp'          => new \MongoDB\BSON\UTCDateTime(new DateTime($request->request->get('timestamp', 'now'))),
+                    'anonymized'         => false,
                 ];
                 $collection->insertOne($data);
                 $this->addFlash('success', 'Analytics event created successfully!');
+
                 return $this->redirectToRoute('mongodb_analytics_event_index');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->addFlash('error', 'Error creating event: ' . $e->getMessage());
             }
         }
@@ -131,6 +141,7 @@ class AnalyticsEventController extends AbstractController
         $collection = $this->getCollection();
         if (!$collection) {
             $this->addFlash('error', 'MongoDB connection not available.');
+
             return $this->redirectToRoute('mongodb_analytics_event_index');
         }
 
@@ -139,14 +150,15 @@ class AnalyticsEventController extends AbstractController
             if (!$event) {
                 throw $this->createNotFoundException('Analytics event not found');
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->addFlash('error', 'Error loading event: ' . $e->getMessage());
+
             return $this->redirectToRoute('mongodb_analytics_event_index');
         }
 
         return $this->render('analytics_event/show.html.twig', [
-            'event' => $event,
-            'connection' => 'mongodb',
+            'event'               => $event,
+            'connection'          => 'mongodb',
             'hasAnonymizedColumn' => true,
         ]);
     }
@@ -157,6 +169,7 @@ class AnalyticsEventController extends AbstractController
         $collection = $this->getCollection();
         if (!$collection) {
             $this->addFlash('error', 'MongoDB connection not available.');
+
             return $this->redirectToRoute('mongodb_analytics_event_index');
         }
 
@@ -165,8 +178,9 @@ class AnalyticsEventController extends AbstractController
             if (!$event) {
                 throw $this->createNotFoundException('Analytics event not found');
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->addFlash('error', 'Error loading event: ' . $e->getMessage());
+
             return $this->redirectToRoute('mongodb_analytics_event_index');
         }
 
@@ -174,28 +188,29 @@ class AnalyticsEventController extends AbstractController
             try {
                 $updateData = [
                     '$set' => [
-                        'eventId' => $request->request->get('eventId', ''),
-                        'eventType' => $request->request->get('eventType', 'page_view'),
-                        'country' => $request->request->get('country', ''),
-                        'language' => $request->request->get('language', ''),
-                        'eventData' => $request->request->get('eventData', '{}'),
-                        'description' => $request->request->get('description', ''),
-                        'userIdHash' => $request->request->get('userIdHash', ''),
-                        'category' => $request->request->get('category', ''),
+                        'eventId'            => $request->request->get('eventId', ''),
+                        'eventType'          => $request->request->get('eventType', 'page_view'),
+                        'country'            => $request->request->get('country', ''),
+                        'language'           => $request->request->get('language', ''),
+                        'eventData'          => $request->request->get('eventData', '{}'),
+                        'description'        => $request->request->get('description', ''),
+                        'userIdHash'         => $request->request->get('userIdHash', ''),
+                        'category'           => $request->request->get('category', ''),
                         'dataClassification' => $request->request->get('dataClassification', 'ANONYMIZED'),
-                        'timestamp' => new \MongoDB\BSON\UTCDateTime(new \DateTime($request->request->get('timestamp', 'now'))),
+                        'timestamp'          => new \MongoDB\BSON\UTCDateTime(new DateTime($request->request->get('timestamp', 'now'))),
                     ],
                 ];
                 $collection->updateOne(['_id' => new \MongoDB\BSON\ObjectId($id)], $updateData);
                 $this->addFlash('success', 'Analytics event updated successfully!');
+
                 return $this->redirectToRoute('mongodb_analytics_event_index');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->addFlash('error', 'Error updating event: ' . $e->getMessage());
             }
         }
 
         return $this->render('analytics_event/edit.html.twig', [
-            'event' => $event,
+            'event'      => $event,
             'connection' => 'mongodb',
         ]);
     }
@@ -206,6 +221,7 @@ class AnalyticsEventController extends AbstractController
         $collection = $this->getCollection();
         if (!$collection) {
             $this->addFlash('error', 'MongoDB connection not available.');
+
             return $this->redirectToRoute('mongodb_analytics_event_index');
         }
 
@@ -213,7 +229,7 @@ class AnalyticsEventController extends AbstractController
             try {
                 $collection->deleteOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
                 $this->addFlash('success', 'Analytics event deleted successfully!');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->addFlash('error', 'Error deleting event: ' . $e->getMessage());
             }
         }

@@ -7,6 +7,8 @@ namespace Nowo\AnonymizeBundle\Tests\Faker;
 use Nowo\AnonymizeBundle\Faker\HashFaker;
 use PHPUnit\Framework\TestCase;
 
+use function strlen;
+
 /**
  * Test case for HashFaker.
  *
@@ -21,7 +23,7 @@ class HashFakerTest extends TestCase
     public function testGenerate(): void
     {
         $faker = new HashFaker('en_US');
-        $hash = $faker->generate();
+        $hash  = $faker->generate();
 
         $this->assertIsString($hash);
         $this->assertEquals(64, strlen($hash)); // SHA256 default length
@@ -33,7 +35,7 @@ class HashFakerTest extends TestCase
     public function testGenerateMd5(): void
     {
         $faker = new HashFaker('en_US');
-        $hash = $faker->generate(['algorithm' => 'md5']);
+        $hash  = $faker->generate(['algorithm' => 'md5']);
 
         $this->assertIsString($hash);
         $this->assertEquals(32, strlen($hash)); // MD5 length
@@ -46,7 +48,7 @@ class HashFakerTest extends TestCase
     public function testGenerateSha1(): void
     {
         $faker = new HashFaker('en_US');
-        $hash = $faker->generate(['algorithm' => 'sha1']);
+        $hash  = $faker->generate(['algorithm' => 'sha1']);
 
         $this->assertIsString($hash);
         $this->assertEquals(40, strlen($hash)); // SHA1 length
@@ -59,7 +61,7 @@ class HashFakerTest extends TestCase
     public function testGenerateSha256(): void
     {
         $faker = new HashFaker('en_US');
-        $hash = $faker->generate(['algorithm' => 'sha256']);
+        $hash  = $faker->generate(['algorithm' => 'sha256']);
 
         $this->assertIsString($hash);
         $this->assertEquals(64, strlen($hash)); // SHA256 length
@@ -72,7 +74,7 @@ class HashFakerTest extends TestCase
     public function testGenerateWithLength(): void
     {
         $faker = new HashFaker('en_US');
-        $hash = $faker->generate(['length' => 16]);
+        $hash  = $faker->generate(['length' => 16]);
 
         $this->assertIsString($hash);
         $this->assertEquals(16, strlen($hash));
@@ -84,7 +86,7 @@ class HashFakerTest extends TestCase
     public function testGenerateSha512(): void
     {
         $faker = new HashFaker('en_US');
-        $hash = $faker->generate(['algorithm' => 'sha512']);
+        $hash  = $faker->generate(['algorithm' => 'sha512']);
 
         $this->assertIsString($hash);
         $this->assertEquals(128, strlen($hash)); // SHA512 length
@@ -112,7 +114,7 @@ class HashFakerTest extends TestCase
     public function testGenerateWithInvalidAlgorithm(): void
     {
         $faker = new HashFaker('en_US');
-        $hash = $faker->generate(['algorithm' => 'invalid_algorithm']);
+        $hash  = $faker->generate(['algorithm' => 'invalid_algorithm']);
 
         $this->assertIsString($hash);
         // Should default to sha256
@@ -125,7 +127,7 @@ class HashFakerTest extends TestCase
     public function testGenerateWithLengthAndAlgorithm(): void
     {
         $faker = new HashFaker('en_US');
-        $hash = $faker->generate(['algorithm' => 'md5', 'length' => 10]);
+        $hash  = $faker->generate(['algorithm' => 'md5', 'length' => 10]);
 
         $this->assertIsString($hash);
         $this->assertEquals(10, strlen($hash));
@@ -138,7 +140,7 @@ class HashFakerTest extends TestCase
     public function testGenerateWithZeroLength(): void
     {
         $faker = new HashFaker('en_US');
-        $hash = $faker->generate(['length' => 0]);
+        $hash  = $faker->generate(['length' => 0]);
 
         $this->assertIsString($hash);
         // Should return full hash when length is 0 or invalid
@@ -151,7 +153,7 @@ class HashFakerTest extends TestCase
     public function testGenerateWithNegativeLength(): void
     {
         $faker = new HashFaker('en_US');
-        $hash = $faker->generate(['length' => -5]);
+        $hash  = $faker->generate(['length' => -5]);
 
         $this->assertIsString($hash);
         // Should return full hash when length is negative

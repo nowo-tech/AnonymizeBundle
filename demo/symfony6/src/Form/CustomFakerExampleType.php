@@ -17,23 +17,23 @@ class CustomFakerExampleType extends AbstractType
         $builder
             ->add('preservedField', TextType::class, [
                 'required' => true,
-                'label' => 'Preserved Field (ExampleCustomFaker with preserve_original=true)',
-                'help' => 'This field uses ExampleCustomFaker and will preserve the original value',
+                'label'    => 'Preserved Field (ExampleCustomFaker with preserve_original=true)',
+                'help'     => 'This field uses ExampleCustomFaker and will preserve the original value',
             ])
             ->add('anonymizedField', TextType::class, [
                 'required' => true,
-                'label' => 'Anonymized Field (ExampleCustomFaker with preserve_original=false)',
-                'help' => 'This field uses ExampleCustomFaker and will be anonymized',
+                'label'    => 'Anonymized Field (ExampleCustomFaker with preserve_original=false)',
+                'help'     => 'This field uses ExampleCustomFaker and will be anonymized',
             ])
             ->add('referenceField', TextType::class, [
                 'required' => false,
-                'label' => 'Reference Field',
-                'help' => 'This field can be accessed by ExampleCustomFaker via $options[\'record\'][\'referenceField\']',
+                'label'    => 'Reference Field',
+                'help'     => 'This field can be accessed by ExampleCustomFaker via $options[\'record\'][\'referenceField\']',
             ])
             ->add('customOptionField', TextType::class, [
                 'required' => false,
-                'label' => 'Custom Option Field',
-                'help' => 'This field uses ExampleCustomFaker with custom options',
+                'label'    => 'Custom Option Field',
+                'help'     => 'This field uses ExampleCustomFaker with custom options',
             ]);
     }
 

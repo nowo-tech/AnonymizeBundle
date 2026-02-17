@@ -6,8 +6,12 @@ namespace Nowo\AnonymizeBundle\Faker;
 
 use Faker\Factory;
 use Faker\Generator as FakerGenerator;
+use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+
+use function count;
+use function is_string;
 
 /**
  * Faker for generating anonymized values based on patterns from other fields.
@@ -46,34 +50,36 @@ final class PatternBasedFaker implements FakerInterface
      * Generates an anonymized value based on a pattern from another field and the original value.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'source_field' (string, required): Name of the field to use as base (e.g., 'email')
-     *   - 'record' (array, required): Full database record including anonymized values
-     *   - 'original_value' (string|null): The original value of the current field
-     *   - 'pattern' (string): Regex pattern to extract from original_value (default: '/(\\(\\d+\\))$/' for parentheses with number)
-     *   - 'pattern_replacement' (string): Replacement pattern for extracted value (default: '$1' to keep as-is)
-     *   - 'separator' (string): Separator between source field and pattern (default: '')
-     *   - 'fallback_faker' (string): Faker type to use if source field is null (default: 'username')
-     *   - 'fallback_options' (array): Options for fallback faker (default: [])
+     *                                      - 'source_field' (string, required): Name of the field to use as base (e.g., 'email')
+     *                                      - 'record' (array, required): Full database record including anonymized values
+     *                                      - 'original_value' (string|null): The original value of the current field
+     *                                      - 'pattern' (string): Regex pattern to extract from original_value (default: '/(\\(\\d+\\))$/' for parentheses with number)
+     *                                      - 'pattern_replacement' (string): Replacement pattern for extracted value (default: '$1' to keep as-is)
+     *                                      - 'separator' (string): Separator between source field and pattern (default: '')
+     *                                      - 'fallback_faker' (string): Faker type to use if source field is null (default: 'username')
+     *                                      - 'fallback_options' (array): Options for fallback faker (default: [])
+     *
+     * @throws InvalidArgumentException If required options are missing
+     *
      * @return string The anonymized value
-     * @throws \InvalidArgumentException If required options are missing
      */
     public function generate(array $options = []): string
     {
-        $sourceField = $options['source_field'] ?? null;
-        $record = $options['record'] ?? [];
-        $originalValue = $options['original_value'] ?? null;
-        $pattern = $options['pattern'] ?? '/(\\(\\d+\\))$/'; // Default: extract (number) at the end
+        $sourceField        = $options['source_field'] ?? null;
+        $record             = $options['record'] ?? [];
+        $originalValue      = $options['original_value'] ?? null;
+        $pattern            = $options['pattern'] ?? '/(\\(\\d+\\))$/'; // Default: extract (number) at the end
         $patternReplacement = $options['pattern_replacement'] ?? '$1'; // Default: keep extracted pattern
-        $separator = $options['separator'] ?? '';
-        $fallbackFaker = $options['fallback_faker'] ?? 'username';
-        $fallbackOptions = $options['fallback_options'] ?? [];
+        $separator          = $options['separator'] ?? '';
+        $fallbackFaker      = $options['fallback_faker'] ?? 'username';
+        $fallbackOptions    = $options['fallback_options'] ?? [];
 
         if ($sourceField === null) {
-            throw new \InvalidArgumentException('PatternBasedFaker requires a "source_field" option.');
+            throw new InvalidArgumentException('PatternBasedFaker requires a "source_field" option.');
         }
 
         if (empty($record)) {
-            throw new \InvalidArgumentException('PatternBasedFaker requires a "record" option with the full database record.');
+            throw new InvalidArgumentException('PatternBasedFaker requires a "record" option with the full database record.');
         }
 
         // Get the source field value from the record (this will be the anonymized value if already processed)
@@ -88,9 +94,9 @@ final class PatternBasedFaker implements FakerInterface
         }
 
         // If source field is null, use fallback faker
-        $fakerFactory = new FakerFactory($this->faker->locale);
+        $fakerFactory          = new FakerFactory($this->faker->locale);
         $fallbackFakerInstance = $fakerFactory->create($fallbackFaker);
-        $fallbackValue = $fallbackFakerInstance->generate($fallbackOptions);
+        $fallbackValue         = $fallbackFakerInstance->generate($fallbackOptions);
 
         return $fallbackValue . $separator . $extractedPattern;
     }
@@ -100,6 +106,7 @@ final class PatternBasedFaker implements FakerInterface
      *
      * @param array<string, mixed> $record The database record
      * @param string $fieldName The field name to look for
+     *
      * @return mixed The field value or null if not found
      */
     private function getFieldValue(array $record, string $fieldName): mixed
@@ -133,6 +140,7 @@ final class PatternBasedFaker implements FakerInterface
      * @param mixed $originalValue The original value
      * @param string $pattern The regex pattern to match
      * @param string $replacement The replacement pattern
+     *
      * @return string The extracted pattern or empty string if not found
      */
     private function extractPattern(mixed $originalValue, string $pattern, string $replacement): string
@@ -145,11 +153,12 @@ final class PatternBasedFaker implements FakerInterface
         if (preg_match($pattern, $originalValue, $matches)) {
             // Apply replacement (supports $1, $2, etc. for captured groups)
             $result = $replacement;
-            for ($i = 1; $i < count($matches); $i++) {
+            for ($i = 1; $i < count($matches); ++$i) {
                 $result = str_replace('$' . $i, $matches[$i], $result);
             }
             // Replace $0 with full match if needed
             $result = str_replace('$0', $matches[0], $result);
+
             return $result;
         }
 

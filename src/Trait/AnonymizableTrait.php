@@ -20,8 +20,6 @@ trait AnonymizableTrait
 {
     /**
      * Indicates whether this record has been anonymized.
-     *
-     * @var bool
      */
     #[ORM\Column(name: 'anonymized', type: 'boolean', nullable: false, options: ['default' => false])]
     private bool $anonymized = false;
@@ -40,6 +38,7 @@ trait AnonymizableTrait
      * Sets whether this record has been anonymized.
      *
      * @param bool $anonymized True if the record has been anonymized, false otherwise
+     *
      * @return $this
      */
     public function setAnonymized(bool $anonymized): self

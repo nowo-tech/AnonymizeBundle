@@ -20,7 +20,7 @@ class AddressFakerTest extends TestCase
      */
     public function testGenerate(): void
     {
-        $faker = new AddressFaker('en_US');
+        $faker   = new AddressFaker('en_US');
         $address = $faker->generate();
 
         $this->assertIsString($address);
@@ -32,7 +32,7 @@ class AddressFakerTest extends TestCase
      */
     public function testGenerateShortFormat(): void
     {
-        $faker = new AddressFaker('en_US');
+        $faker   = new AddressFaker('en_US');
         $address = $faker->generate(['format' => 'short']);
 
         $this->assertIsString($address);
@@ -44,7 +44,7 @@ class AddressFakerTest extends TestCase
      */
     public function testGenerateFullFormat(): void
     {
-        $faker = new AddressFaker('en_US');
+        $faker   = new AddressFaker('en_US');
         $address = $faker->generate(['format' => 'full']);
 
         $this->assertIsString($address);
@@ -56,7 +56,7 @@ class AddressFakerTest extends TestCase
      */
     public function testGenerateWithPostalCode(): void
     {
-        $faker = new AddressFaker('en_US');
+        $faker   = new AddressFaker('en_US');
         $address = $faker->generate(['include_postal_code' => true]);
 
         $this->assertIsString($address);
@@ -68,7 +68,7 @@ class AddressFakerTest extends TestCase
      */
     public function testGenerateWithCountry(): void
     {
-        $faker = new AddressFaker('en_US');
+        $faker   = new AddressFaker('en_US');
         $address = $faker->generate(['country' => 'US']);
 
         $this->assertIsString($address);
@@ -80,7 +80,7 @@ class AddressFakerTest extends TestCase
      */
     public function testGenerateWithDifferentCountries(): void
     {
-        $faker = new AddressFaker('en_US');
+        $faker     = new AddressFaker('en_US');
         $countries = ['ES', 'FR', 'DE', 'IT', 'GB'];
 
         foreach ($countries as $country) {
@@ -95,7 +95,7 @@ class AddressFakerTest extends TestCase
      */
     public function testGenerateWithUnknownCountry(): void
     {
-        $faker = new AddressFaker('en_US');
+        $faker   = new AddressFaker('en_US');
         $address = $faker->generate(['country' => 'XX']);
 
         $this->assertIsString($address);
@@ -107,7 +107,7 @@ class AddressFakerTest extends TestCase
      */
     public function testGenerateWithFormatAndPostalCode(): void
     {
-        $faker = new AddressFaker('en_US');
+        $faker   = new AddressFaker('en_US');
         $address = $faker->generate(['format' => 'full', 'include_postal_code' => true]);
 
         $this->assertIsString($address);
@@ -119,7 +119,7 @@ class AddressFakerTest extends TestCase
      */
     public function testGenerateShortFormatWithPostalCode(): void
     {
-        $faker = new AddressFaker('en_US');
+        $faker   = new AddressFaker('en_US');
         $address = $faker->generate(['format' => 'short', 'include_postal_code' => true]);
 
         $this->assertIsString($address);
@@ -140,7 +140,7 @@ class AddressFakerTest extends TestCase
      */
     public function testGenerateWithDifferentLocale(): void
     {
-        $faker = new AddressFaker('es_ES');
+        $faker   = new AddressFaker('es_ES');
         $address = $faker->generate();
 
         $this->assertIsString($address);

@@ -7,8 +7,8 @@ namespace App\Form;
 use App\Entity\Person;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -31,7 +31,7 @@ class PersonType extends AbstractType
             ])
             ->add('age', IntegerType::class, [
                 'required' => false,
-                'attr' => ['min' => 1],
+                'attr'     => ['min' => 1],
             ]);
     }
 

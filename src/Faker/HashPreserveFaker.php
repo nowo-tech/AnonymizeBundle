@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Faker;
 
+use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+
+use function strlen;
 
 /**
  * Faker for deterministic anonymization using hash functions.
@@ -23,20 +26,24 @@ final class HashPreserveFaker implements FakerInterface
     /**
      * Creates a new HashPreserveFaker instance.
      */
-    public function __construct() {}
+    public function __construct()
+    {
+    }
 
     /**
      * Generates a deterministic hash from the original value.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'original_value' (mixed): The original value to hash (standard, always provided).
-     *   - 'value' (mixed): Alias for 'original_value' (backward compatibility).
-     *   - 'algorithm' (string): Hash algorithm ('md5', 'sha1', 'sha256', 'sha512', default: 'sha256').
-     *   - 'salt' (string): Optional salt to add before hashing (default: '').
-     *   - 'preserve_format' (bool): If true, attempts to preserve the format of the original value (default: false).
-     *   - 'length' (int|null): Maximum length of the output (truncates hash if specified).
-     * @return string The hashed value.
-     * @throws \InvalidArgumentException If neither 'original_value' nor 'value' option is provided.
+     *                                      - 'original_value' (mixed): The original value to hash (standard, always provided).
+     *                                      - 'value' (mixed): Alias for 'original_value' (backward compatibility).
+     *                                      - 'algorithm' (string): Hash algorithm ('md5', 'sha1', 'sha256', 'sha512', default: 'sha256').
+     *                                      - 'salt' (string): Optional salt to add before hashing (default: '').
+     *                                      - 'preserve_format' (bool): If true, attempts to preserve the format of the original value (default: false).
+     *                                      - 'length' (int|null): Maximum length of the output (truncates hash if specified).
+     *
+     * @throws InvalidArgumentException if neither 'original_value' nor 'value' option is provided
+     *
+     * @return string the hashed value
      */
     public function generate(array $options = []): string
     {
@@ -44,28 +51,28 @@ final class HashPreserveFaker implements FakerInterface
         $value = $options['original_value'] ?? $options['value'] ?? null;
 
         if ($value === null) {
-            throw new \InvalidArgumentException('HashPreserveFaker requires an "original_value" (or "value") option with the original value to hash.');
+            throw new InvalidArgumentException('HashPreserveFaker requires an "original_value" (or "value") option with the original value to hash.');
         }
-        $algorithm = $options['algorithm'] ?? 'sha256';
-        $salt = $options['salt'] ?? '';
+        $algorithm      = $options['algorithm'] ?? 'sha256';
+        $salt           = $options['salt'] ?? '';
         $preserveFormat = $options['preserve_format'] ?? false;
-        $length = $options['length'] ?? null;
+        $length         = $options['length'] ?? null;
 
         // Convert to string
         $valueToHash = (string) $value;
 
         // Add salt if provided
         if ($salt !== '') {
-            $valueToHash = $valueToHash . $salt;
+            $valueToHash .= $salt;
         }
 
         // Generate hash
         $hash = match ($algorithm) {
-            'md5' => md5($valueToHash),
-            'sha1' => sha1($valueToHash),
+            'md5'    => md5($valueToHash),
+            'sha1'   => sha1($valueToHash),
             'sha256' => hash('sha256', $valueToHash),
             'sha512' => hash('sha512', $valueToHash),
-            default => hash('sha256', $valueToHash),
+            default  => hash('sha256', $valueToHash),
         };
 
         // Truncate if length specified

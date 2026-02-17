@@ -21,7 +21,7 @@ class FileFakerTest extends TestCase
     public function testGenerate(): void
     {
         $faker = new FileFaker('en_US');
-        $file = $faker->generate();
+        $file  = $faker->generate();
 
         $this->assertIsString($file);
         $this->assertNotEmpty($file);
@@ -34,7 +34,7 @@ class FileFakerTest extends TestCase
     public function testGenerateWithExtension(): void
     {
         $faker = new FileFaker('en_US');
-        $file = $faker->generate(['extension' => 'pdf']);
+        $file  = $faker->generate(['extension' => 'pdf']);
 
         $this->assertIsString($file);
         $this->assertStringEndsWith('.pdf', $file);
@@ -46,7 +46,7 @@ class FileFakerTest extends TestCase
     public function testGenerateWithDirectory(): void
     {
         $faker = new FileFaker('en_US');
-        $file = $faker->generate(['directory' => 'uploads']);
+        $file  = $faker->generate(['directory' => 'uploads']);
 
         $this->assertIsString($file);
         $this->assertStringStartsWith('uploads/', $file);
@@ -58,7 +58,7 @@ class FileFakerTest extends TestCase
     public function testGenerateAbsolute(): void
     {
         $faker = new FileFaker('en_US');
-        $file = $faker->generate(['absolute' => true]);
+        $file  = $faker->generate(['absolute' => true]);
 
         $this->assertIsString($file);
         $this->assertStringStartsWith('/', $file);
@@ -70,7 +70,7 @@ class FileFakerTest extends TestCase
     public function testGenerateWithDirectoryAndAbsolute(): void
     {
         $faker = new FileFaker('en_US');
-        $file = $faker->generate(['directory' => 'uploads', 'absolute' => true]);
+        $file  = $faker->generate(['directory' => 'uploads', 'absolute' => true]);
 
         $this->assertIsString($file);
         $this->assertStringStartsWith('/', $file);
@@ -83,7 +83,7 @@ class FileFakerTest extends TestCase
     public function testGenerateWithDirectoryTrailingSlash(): void
     {
         $faker = new FileFaker('en_US');
-        $file = $faker->generate(['directory' => 'uploads/']);
+        $file  = $faker->generate(['directory' => 'uploads/']);
 
         $this->assertIsString($file);
         $this->assertStringStartsWith('uploads/', $file);
@@ -96,7 +96,7 @@ class FileFakerTest extends TestCase
     public function testGenerateWithExtensionLeadingDot(): void
     {
         $faker = new FileFaker('en_US');
-        $file = $faker->generate(['extension' => '.pdf']);
+        $file  = $faker->generate(['extension' => '.pdf']);
 
         $this->assertIsString($file);
         $this->assertStringEndsWith('.pdf', $file);
@@ -109,7 +109,7 @@ class FileFakerTest extends TestCase
     public function testGenerateAbsoluteWithoutDirectory(): void
     {
         $faker = new FileFaker('en_US');
-        $file = $faker->generate(['absolute' => true]);
+        $file  = $faker->generate(['absolute' => true]);
 
         $this->assertIsString($file);
         $this->assertStringStartsWith('/', $file);
@@ -131,7 +131,7 @@ class FileFakerTest extends TestCase
     public function testGenerateWithDifferentLocale(): void
     {
         $faker = new FileFaker('es_ES');
-        $file = $faker->generate();
+        $file  = $faker->generate();
 
         $this->assertIsString($file);
         $this->assertNotEmpty($file);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Faker;
 
+use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Faker\PatternBasedFaker;
 use PHPUnit\Framework\TestCase;
 
@@ -20,13 +21,13 @@ class PatternBasedFakerTest extends TestCase
      */
     public function testGenerateFromSourceFieldWithPattern(): void
     {
-        $faker = new PatternBasedFaker('en_US');
-        $record = ['email' => 'john@example.com'];
+        $faker         = new PatternBasedFaker('en_US');
+        $record        = ['email' => 'john@example.com'];
         $originalValue = 'hola@pepe.com(15)';
 
         $result = $faker->generate([
-            'source_field' => 'email',
-            'record' => $record,
+            'source_field'   => 'email',
+            'record'         => $record,
             'original_value' => $originalValue,
         ]);
 
@@ -39,13 +40,13 @@ class PatternBasedFakerTest extends TestCase
      */
     public function testGenerateExtractsPattern(): void
     {
-        $faker = new PatternBasedFaker('en_US');
-        $record = ['email' => 'jane@test.com'];
+        $faker         = new PatternBasedFaker('en_US');
+        $record        = ['email' => 'jane@test.com'];
         $originalValue = 'user@domain.com(42)';
 
         $result = $faker->generate([
-            'source_field' => 'email',
-            'record' => $record,
+            'source_field'   => 'email',
+            'record'         => $record,
             'original_value' => $originalValue,
         ]);
 
@@ -58,15 +59,15 @@ class PatternBasedFakerTest extends TestCase
      */
     public function testGenerateWithCustomPattern(): void
     {
-        $faker = new PatternBasedFaker('en_US');
-        $record = ['email' => 'test@example.com'];
+        $faker         = new PatternBasedFaker('en_US');
+        $record        = ['email' => 'test@example.com'];
         $originalValue = 'old@email.com-ID123';
 
         $result = $faker->generate([
-            'source_field' => 'email',
-            'record' => $record,
-            'original_value' => $originalValue,
-            'pattern' => '/-ID(\\d+)$/',  // Extract -ID123
+            'source_field'        => 'email',
+            'record'              => $record,
+            'original_value'      => $originalValue,
+            'pattern'             => '/-ID(\\d+)$/',  // Extract -ID123
             'pattern_replacement' => '-ID$1',  // Keep as -ID123
         ]);
 
@@ -79,15 +80,15 @@ class PatternBasedFakerTest extends TestCase
      */
     public function testGenerateWithSeparator(): void
     {
-        $faker = new PatternBasedFaker('en_US');
-        $record = ['email' => 'user@test.com'];
+        $faker         = new PatternBasedFaker('en_US');
+        $record        = ['email' => 'user@test.com'];
         $originalValue = 'old@email.com(99)';
 
         $result = $faker->generate([
-            'source_field' => 'email',
-            'record' => $record,
+            'source_field'   => 'email',
+            'record'         => $record,
             'original_value' => $originalValue,
-            'separator' => '_',
+            'separator'      => '_',
         ]);
 
         $this->assertIsString($result);
@@ -99,13 +100,13 @@ class PatternBasedFakerTest extends TestCase
      */
     public function testGenerateWithFallbackWhenSourceIsNull(): void
     {
-        $faker = new PatternBasedFaker('en_US');
-        $record = ['email' => null];
+        $faker         = new PatternBasedFaker('en_US');
+        $record        = ['email' => null];
         $originalValue = 'old@email.com(15)';
 
         $result = $faker->generate([
-            'source_field' => 'email',
-            'record' => $record,
+            'source_field'   => 'email',
+            'record'         => $record,
             'original_value' => $originalValue,
             'fallback_faker' => 'username',
         ]);
@@ -122,11 +123,11 @@ class PatternBasedFakerTest extends TestCase
     {
         $faker = new PatternBasedFaker('en_US');
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('PatternBasedFaker requires a "source_field" option.');
 
         $faker->generate([
-            'record' => ['email' => 'test@example.com'],
+            'record'         => ['email' => 'test@example.com'],
             'original_value' => 'old@email.com(15)',
         ]);
     }
@@ -138,11 +139,11 @@ class PatternBasedFakerTest extends TestCase
     {
         $faker = new PatternBasedFaker('en_US');
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('PatternBasedFaker requires a "record" option with the full database record.');
 
         $faker->generate([
-            'source_field' => 'email',
+            'source_field'   => 'email',
             'original_value' => 'old@email.com(15)',
         ]);
     }
@@ -152,13 +153,13 @@ class PatternBasedFakerTest extends TestCase
      */
     public function testGenerateHandlesEmptyPattern(): void
     {
-        $faker = new PatternBasedFaker('en_US');
-        $record = ['email' => 'test@example.com'];
+        $faker         = new PatternBasedFaker('en_US');
+        $record        = ['email' => 'test@example.com'];
         $originalValue = 'old@email.com'; // No pattern to extract
 
         $result = $faker->generate([
-            'source_field' => 'email',
-            'record' => $record,
+            'source_field'   => 'email',
+            'record'         => $record,
             'original_value' => $originalValue,
         ]);
 
@@ -171,13 +172,13 @@ class PatternBasedFakerTest extends TestCase
      */
     public function testGenerateHandlesNullOriginalValue(): void
     {
-        $faker = new PatternBasedFaker('en_US');
-        $record = ['email' => 'test@example.com'];
+        $faker         = new PatternBasedFaker('en_US');
+        $record        = ['email' => 'test@example.com'];
         $originalValue = null;
 
         $result = $faker->generate([
-            'source_field' => 'email',
-            'record' => $record,
+            'source_field'   => 'email',
+            'record'         => $record,
             'original_value' => $originalValue,
         ]);
 
@@ -190,14 +191,14 @@ class PatternBasedFakerTest extends TestCase
      */
     public function testGenerateWithDifferentFieldNameVariations(): void
     {
-        $faker = new PatternBasedFaker('en_US');
+        $faker         = new PatternBasedFaker('en_US');
         $originalValue = 'old@email.com(15)';
 
         // Test lowercase
         $record1 = ['email' => 'test1@example.com'];
         $result1 = $faker->generate([
-            'source_field' => 'email',
-            'record' => $record1,
+            'source_field'   => 'email',
+            'record'         => $record1,
             'original_value' => $originalValue,
         ]);
         $this->assertEquals('test1@example.com(15)', $result1);
@@ -205,8 +206,8 @@ class PatternBasedFakerTest extends TestCase
         // Test uppercase
         $record2 = ['EMAIL' => 'test2@example.com'];
         $result2 = $faker->generate([
-            'source_field' => 'EMAIL',
-            'record' => $record2,
+            'source_field'   => 'EMAIL',
+            'record'         => $record2,
             'original_value' => $originalValue,
         ]);
         $this->assertEquals('test2@example.com(15)', $result2);
@@ -226,13 +227,13 @@ class PatternBasedFakerTest extends TestCase
      */
     public function testGenerateWithDifferentLocale(): void
     {
-        $faker = new PatternBasedFaker('es_ES');
-        $record = ['email' => 'test@example.com'];
+        $faker         = new PatternBasedFaker('es_ES');
+        $record        = ['email' => 'test@example.com'];
         $originalValue = 'old@email.com(15)';
 
         $result = $faker->generate([
-            'source_field' => 'email',
-            'record' => $record,
+            'source_field'   => 'email',
+            'record'         => $record,
             'original_value' => $originalValue,
         ]);
 
@@ -245,15 +246,15 @@ class PatternBasedFakerTest extends TestCase
      */
     public function testGenerateWithComplexPattern(): void
     {
-        $faker = new PatternBasedFaker('en_US');
-        $record = ['email' => 'new@test.com'];
+        $faker         = new PatternBasedFaker('en_US');
+        $record        = ['email' => 'new@test.com'];
         $originalValue = 'old@email.com-user-123';
 
         $result = $faker->generate([
-            'source_field' => 'email',
-            'record' => $record,
-            'original_value' => $originalValue,
-            'pattern' => '/-user-(\\d+)$/',  // Extract -user-123
+            'source_field'        => 'email',
+            'record'              => $record,
+            'original_value'      => $originalValue,
+            'pattern'             => '/-user-(\\d+)$/',  // Extract -user-123
             'pattern_replacement' => '-user-$1',  // Keep as -user-123
         ]);
 

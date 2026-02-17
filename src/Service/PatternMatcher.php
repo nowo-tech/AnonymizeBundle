@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Service;
 
+use function is_array;
+use function is_string;
+
 /**
  * Service for matching records against inclusion/exclusion patterns.
  *
@@ -22,6 +25,7 @@ final class PatternMatcher
      * @param array<string, mixed> $record The record to check
      * @param array<string> $includePatterns Array of patterns to include (e.g., ['id' => '>100', 'status' => 'active'])
      * @param array<string> $excludePatterns Array of patterns to exclude (e.g., ['id' => '<=100'])
+     *
      * @return bool True if the record matches (passes inclusion and doesn't match exclusion)
      */
     public function matches(array $record, array $includePatterns = [], array $excludePatterns = []): bool
@@ -44,7 +48,7 @@ final class PatternMatcher
      * Returns true if the record matches exclusion (exclude when any config matches).
      *
      * @param array<string, mixed> $record
-     * @param array<string|array<string>|array<int, array<string, string|array<string>>>> $excludePatterns Single AND-clause or list of AND-clauses (OR between them)
+     * @param array<array<int, array<string, array<string>|string>>|array<string>|string> $excludePatterns Single AND-clause or list of AND-clauses (OR between them)
      */
     private function matchesExcludePatterns(array $record, array $excludePatterns): bool
     {
@@ -54,8 +58,10 @@ final class PatternMatcher
                     return true;
                 }
             }
+
             return false;
         }
+
         return $this->matchesPatterns($record, $excludePatterns);
     }
 
@@ -63,7 +69,7 @@ final class PatternMatcher
      * Returns true if the record matches inclusion (include when any config matches, when using list of sets).
      *
      * @param array<string, mixed> $record
-     * @param array<string|array<string>|array<int, array<string, string|array<string>>>> $includePatterns Single AND-clause or list of AND-clauses (OR between them)
+     * @param array<array<int, array<string, array<string>|string>>|array<string>|string> $includePatterns Single AND-clause or list of AND-clauses (OR between them)
      */
     private function matchesIncludePatterns(array $record, array $includePatterns): bool
     {
@@ -73,8 +79,10 @@ final class PatternMatcher
                     return true;
                 }
             }
+
             return false;
         }
+
         return $this->matchesPatterns($record, $includePatterns);
     }
 
@@ -91,6 +99,7 @@ final class PatternMatcher
                 return false;
             }
         }
+
         return true;
     }
 
@@ -102,14 +111,15 @@ final class PatternMatcher
      * All patterns must match for the method to return true.
      *
      * @param array<string, mixed> $record The record to check
-     * @param array<string|array<string>> $patterns Array of patterns (e.g., ['id' => '>100', 'status' => 'active', 'email' => ['%@a.com', 'b@b.com']])
+     * @param array<array<string>|string> $patterns Array of patterns (e.g., ['id' => '>100', 'status' => 'active', 'email' => ['%@a.com', 'b@b.com']])
+     *
      * @return bool True if all patterns match
      */
     private function matchesPatterns(array $record, array $patterns): bool
     {
         foreach ($patterns as $field => $pattern) {
             // Normalize: allow value to be array of options (OR)
-            $options = is_array($pattern) ? $pattern : [$pattern];
+            $options      = is_array($pattern) ? $pattern : [$pattern];
             $fieldMatched = false;
 
             foreach ($options as $option) {
@@ -134,6 +144,7 @@ final class PatternMatcher
      * @param array<string, mixed> $record The record to check
      * @param string $field The field name (supports dot notation)
      * @param string $pattern Single pattern string
+     *
      * @return bool True if the field value matches the pattern
      */
     private function patternMatchesValue(array $record, string $field, string $pattern): bool
@@ -147,26 +158,32 @@ final class PatternMatcher
         // Handle comparison operators
         if (str_starts_with($pattern, '>=')) {
             $threshold = (float) substr($pattern, 2);
+
             return $value >= $threshold;
         }
         if (str_starts_with($pattern, '<=')) {
             $threshold = (float) substr($pattern, 2);
+
             return $value <= $threshold;
         }
         if (str_starts_with($pattern, '>')) {
             $threshold = (float) substr($pattern, 1);
+
             return $value > $threshold;
         }
         if (str_starts_with($pattern, '<')) {
             $threshold = (float) substr($pattern, 1);
+
             return $value < $threshold;
         }
         if (str_starts_with($pattern, '!=') || str_starts_with($pattern, '<>')) {
             $expected = substr($pattern, 2);
+
             return $value != $expected;
         }
         if (str_starts_with($pattern, '=')) {
             $expected = substr($pattern, 1);
+
             return $value == $expected;
         }
 
@@ -174,6 +191,7 @@ final class PatternMatcher
         if (is_string($value) && is_string($pattern)) {
             if (str_contains($pattern, '%')) {
                 $regex = '/^' . str_replace(['%', '_'], ['.*', '.'], preg_quote($pattern, '/')) . '$/i';
+
                 return (bool) preg_match($regex, $value);
             }
             if (str_contains($pattern, '|')) {
@@ -189,8 +207,10 @@ final class PatternMatcher
                         return true;
                     }
                 }
+
                 return false;
             }
+
             return $value === $pattern;
         }
 
@@ -202,6 +222,7 @@ final class PatternMatcher
      *
      * @param array<string, mixed> $record The record to get value from
      * @param string $field The field name, optionally with dot notation (e.g., 'type.name')
+     *
      * @return mixed The value or null if not found
      */
     private function getNestedValue(array $record, string $field): mixed
@@ -213,9 +234,9 @@ final class PatternMatcher
 
         // Relationship field access (e.g., 'type.name')
         if (str_contains($field, '.')) {
-            $parts = explode('.', $field, 2);
+            $parts           = explode('.', $field, 2);
             $associationName = $parts[0];
-            $relatedField = $parts[1];
+            $relatedField    = $parts[1];
 
             // Check if we have the relationship field directly (from JOIN)
             if (isset($record[$field])) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Faker;
 
+use DateTime;
 use Nowo\AnonymizeBundle\Faker\DateFaker;
 use PHPUnit\Framework\TestCase;
 
@@ -21,7 +22,7 @@ class DateFakerTest extends TestCase
     public function testGenerate(): void
     {
         $faker = new DateFaker('en_US');
-        $date = $faker->generate();
+        $date  = $faker->generate();
 
         $this->assertIsString($date);
         $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', $date);
@@ -33,7 +34,7 @@ class DateFakerTest extends TestCase
     public function testGenerateWithFormat(): void
     {
         $faker = new DateFaker('en_US');
-        $date = $faker->generate(['format' => 'Y-m-d H:i:s']);
+        $date  = $faker->generate(['format' => 'Y-m-d H:i:s']);
 
         $this->assertIsString($date);
         $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $date);
@@ -45,11 +46,11 @@ class DateFakerTest extends TestCase
     public function testGeneratePast(): void
     {
         $faker = new DateFaker('en_US');
-        $date = $faker->generate(['type' => 'past']);
+        $date  = $faker->generate(['type' => 'past']);
 
         $this->assertIsString($date);
-        $dateTime = new \DateTime($date);
-        $now = new \DateTime();
+        $dateTime = new DateTime($date);
+        $now      = new DateTime();
         $this->assertLessThanOrEqual($now, $dateTime);
     }
 
@@ -59,11 +60,11 @@ class DateFakerTest extends TestCase
     public function testGenerateFuture(): void
     {
         $faker = new DateFaker('en_US');
-        $date = $faker->generate(['type' => 'future', 'max_date' => '+1 year']);
+        $date  = $faker->generate(['type' => 'future', 'max_date' => '+1 year']);
 
         $this->assertIsString($date);
-        $dateTime = new \DateTime($date);
-        $now = new \DateTime();
+        $dateTime = new DateTime($date);
+        $now      = new DateTime();
         $this->assertGreaterThanOrEqual($now, $dateTime);
     }
 
@@ -73,12 +74,12 @@ class DateFakerTest extends TestCase
     public function testGenerateWithDateRange(): void
     {
         $faker = new DateFaker('en_US');
-        $date = $faker->generate(['min_date' => '2020-01-01', 'max_date' => '2020-12-31']);
+        $date  = $faker->generate(['min_date' => '2020-01-01', 'max_date' => '2020-12-31']);
 
         $this->assertIsString($date);
-        $dateTime = new \DateTime($date);
-        $minDate = new \DateTime('2020-01-01');
-        $maxDate = new \DateTime('2020-12-31');
+        $dateTime = new DateTime($date);
+        $minDate  = new DateTime('2020-01-01');
+        $maxDate  = new DateTime('2020-12-31');
         $this->assertGreaterThanOrEqual($minDate, $dateTime);
         $this->assertLessThanOrEqual($maxDate, $dateTime);
     }
@@ -88,14 +89,14 @@ class DateFakerTest extends TestCase
      */
     public function testGenerateWithTimestampMinDate(): void
     {
-        $faker = new DateFaker('en_US');
+        $faker     = new DateFaker('en_US');
         $timestamp = (string) strtotime('2020-01-01');
-        $date = $faker->generate(['min_date' => $timestamp, 'max_date' => '2020-12-31']);
+        $date      = $faker->generate(['min_date' => $timestamp, 'max_date' => '2020-12-31']);
 
         $this->assertIsString($date);
-        $dateTime = new \DateTime($date);
-        $minDate = new \DateTime('@' . $timestamp);
-        $maxDate = new \DateTime('2020-12-31');
+        $dateTime = new DateTime($date);
+        $minDate  = new DateTime('@' . $timestamp);
+        $maxDate  = new DateTime('2020-12-31');
         $this->assertGreaterThanOrEqual($minDate, $dateTime);
         $this->assertLessThanOrEqual($maxDate, $dateTime);
     }
@@ -106,11 +107,11 @@ class DateFakerTest extends TestCase
     public function testGenerateWithRelativeDates(): void
     {
         $faker = new DateFaker('en_US');
-        $date = $faker->generate(['min_date' => '-50 years', 'max_date' => '-10 years']);
+        $date  = $faker->generate(['min_date' => '-50 years', 'max_date' => '-10 years']);
 
         $this->assertIsString($date);
-        $dateTime = new \DateTime($date);
-        $now = new \DateTime();
+        $dateTime = new DateTime($date);
+        $now      = new DateTime();
         $this->assertLessThan($now, $dateTime);
     }
 
@@ -120,11 +121,11 @@ class DateFakerTest extends TestCase
     public function testGenerateWithNowAsMaxDate(): void
     {
         $faker = new DateFaker('en_US');
-        $date = $faker->generate(['min_date' => '-1 year', 'max_date' => 'now']);
+        $date  = $faker->generate(['min_date' => '-1 year', 'max_date' => 'now']);
 
         $this->assertIsString($date);
-        $dateTime = new \DateTime($date);
-        $now = new \DateTime();
+        $dateTime = new DateTime($date);
+        $now      = new DateTime();
         $this->assertLessThanOrEqual($now, $dateTime);
     }
 
@@ -134,7 +135,7 @@ class DateFakerTest extends TestCase
     public function testGenerateWithInvalidType(): void
     {
         $faker = new DateFaker('en_US');
-        $date = $faker->generate(['type' => 'invalid_type']);
+        $date  = $faker->generate(['type' => 'invalid_type']);
 
         $this->assertIsString($date);
         $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', $date);
@@ -146,7 +147,7 @@ class DateFakerTest extends TestCase
     public function testGenerateWithCustomDateTimeFormat(): void
     {
         $faker = new DateFaker('en_US');
-        $date = $faker->generate(['format' => 'Y-m-d H:i:s', 'type' => 'between']);
+        $date  = $faker->generate(['format' => 'Y-m-d H:i:s', 'type' => 'between']);
 
         $this->assertIsString($date);
         $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $date);
@@ -157,9 +158,9 @@ class DateFakerTest extends TestCase
      */
     public function testGenerateWithNumericTimestampString(): void
     {
-        $faker = new DateFaker('en_US');
+        $faker     = new DateFaker('en_US');
         $timestamp = (string) strtotime('2020-06-15');
-        $date = $faker->generate(['min_date' => $timestamp, 'max_date' => $timestamp]);
+        $date      = $faker->generate(['min_date' => $timestamp, 'max_date' => $timestamp]);
 
         $this->assertIsString($date);
         $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', $date);
@@ -171,7 +172,7 @@ class DateFakerTest extends TestCase
     public function testGenerateWithRelativeDatePlus(): void
     {
         $faker = new DateFaker('en_US');
-        $date = $faker->generate(['min_date' => '+1 day', 'max_date' => '+1 year']);
+        $date  = $faker->generate(['min_date' => '+1 day', 'max_date' => '+1 year']);
 
         $this->assertIsString($date);
         $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', $date);
@@ -183,7 +184,7 @@ class DateFakerTest extends TestCase
     public function testGenerateWithInvalidDateFormat(): void
     {
         $faker = new DateFaker('en_US');
-        $date = $faker->generate(['min_date' => 'invalid-date-format', 'max_date' => 'now']);
+        $date  = $faker->generate(['min_date' => 'invalid-date-format', 'max_date' => 'now']);
 
         $this->assertIsString($date);
         $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', $date);
@@ -195,7 +196,7 @@ class DateFakerTest extends TestCase
     public function testGenerateWithEmptyDateString(): void
     {
         $faker = new DateFaker('en_US');
-        $date = $faker->generate(['min_date' => '', 'max_date' => 'now']);
+        $date  = $faker->generate(['min_date' => '', 'max_date' => 'now']);
 
         $this->assertIsString($date);
         $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', $date);

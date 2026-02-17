@@ -7,6 +7,8 @@ namespace Nowo\AnonymizeBundle\Tests\Faker;
 use Nowo\AnonymizeBundle\Faker\UuidFaker;
 use PHPUnit\Framework\TestCase;
 
+use function strlen;
+
 /**
  * Test case for UuidFaker.
  *
@@ -21,7 +23,7 @@ class UuidFakerTest extends TestCase
     public function testGenerate(): void
     {
         $faker = new UuidFaker('en_US');
-        $uuid = $faker->generate();
+        $uuid  = $faker->generate();
 
         $this->assertIsString($uuid);
         $this->assertNotEmpty($uuid);
@@ -34,7 +36,7 @@ class UuidFakerTest extends TestCase
     public function testGenerateWithDashes(): void
     {
         $faker = new UuidFaker('en_US');
-        $uuid = $faker->generate(['format' => 'with_dashes']);
+        $uuid  = $faker->generate(['format' => 'with_dashes']);
 
         $this->assertIsString($uuid);
         $this->assertStringContainsString('-', $uuid);
@@ -47,7 +49,7 @@ class UuidFakerTest extends TestCase
     public function testGenerateWithoutDashes(): void
     {
         $faker = new UuidFaker('en_US');
-        $uuid = $faker->generate(['format' => 'without_dashes']);
+        $uuid  = $faker->generate(['format' => 'without_dashes']);
 
         $this->assertIsString($uuid);
         $this->assertStringNotContainsString('-', $uuid);
@@ -61,7 +63,7 @@ class UuidFakerTest extends TestCase
     public function testGenerateUuidV4(): void
     {
         $faker = new UuidFaker('en_US');
-        $uuid = $faker->generate(['version' => 4]);
+        $uuid  = $faker->generate(['version' => 4]);
 
         $this->assertIsString($uuid);
         $this->assertNotEmpty($uuid);
@@ -76,7 +78,7 @@ class UuidFakerTest extends TestCase
     public function testGenerateUuidV1(): void
     {
         $faker = new UuidFaker('en_US');
-        $uuid = $faker->generate(['version' => 1]);
+        $uuid  = $faker->generate(['version' => 1]);
 
         $this->assertIsString($uuid);
         $this->assertNotEmpty($uuid);
@@ -123,7 +125,7 @@ class UuidFakerTest extends TestCase
     public function testGenerateWithDifferentLocale(): void
     {
         $faker = new UuidFaker('es_ES');
-        $uuid = $faker->generate();
+        $uuid  = $faker->generate();
 
         $this->assertIsString($uuid);
         $this->assertNotEmpty($uuid);

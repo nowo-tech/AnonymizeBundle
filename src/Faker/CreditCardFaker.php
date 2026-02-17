@@ -36,24 +36,25 @@ final class CreditCardFaker implements FakerInterface
      * Generates an anonymized credit card number.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'type' (string): 'visa', 'mastercard', 'amex', or 'random' (default: 'random')
-     *   - 'valid' (bool): Generate valid Luhn numbers (default: true)
-     *   - 'formatted' (bool): Include spaces/dashes (default: false)
+     *                                      - 'type' (string): 'visa', 'mastercard', 'amex', or 'random' (default: 'random')
+     *                                      - 'valid' (bool): Generate valid Luhn numbers (default: true)
+     *                                      - 'formatted' (bool): Include spaces/dashes (default: false)
+     *
      * @return string The anonymized credit card number
      */
     public function generate(array $options = []): string
     {
-        $type = $options['type'] ?? 'random';
-        $valid = $options['valid'] ?? true;
+        $type      = $options['type'] ?? 'random';
+        $valid     = $options['valid'] ?? true;
         $formatted = $options['formatted'] ?? false;
 
         // Generate card number based on type
         $cardNumber = match ($type) {
-            'visa' => $this->faker->creditCardNumber('Visa'),
+            'visa'       => $this->faker->creditCardNumber('Visa'),
             'mastercard' => $this->faker->creditCardNumber('MasterCard'),
-            'amex' => $this->faker->creditCardNumber('American Express'),
-            'random' => $this->faker->creditCardNumber(),
-            default => $this->faker->creditCardNumber(),
+            'amex'       => $this->faker->creditCardNumber('American Express'),
+            'random'     => $this->faker->creditCardNumber(),
+            default      => $this->faker->creditCardNumber(),
         };
 
         // If valid is false, generate invalid number

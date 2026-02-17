@@ -26,14 +26,14 @@ class EnvironmentProtectionServiceTest extends TestCase
             ->willReturnCallback(function ($key) {
                 return match ($key) {
                     'kernel.environment' => 'dev',
-                    'kernel.debug' => true,
+                    'kernel.debug'       => true,
                     'kernel.project_dir' => sys_get_temp_dir(),
-                    default => null,
+                    default              => null,
                 };
             });
 
         $service = new EnvironmentProtectionService($parameterBag);
-        $errors = $service->performChecks();
+        $errors  = $service->performChecks();
 
         $this->assertIsArray($errors);
         $this->assertEmpty($errors);
@@ -49,14 +49,14 @@ class EnvironmentProtectionServiceTest extends TestCase
             ->willReturnCallback(function ($key) {
                 return match ($key) {
                     'kernel.environment' => 'test',
-                    'kernel.debug' => true,
+                    'kernel.debug'       => true,
                     'kernel.project_dir' => sys_get_temp_dir(),
-                    default => null,
+                    default              => null,
                 };
             });
 
         $service = new EnvironmentProtectionService($parameterBag);
-        $errors = $service->performChecks();
+        $errors  = $service->performChecks();
 
         $this->assertIsArray($errors);
         $this->assertEmpty($errors);
@@ -72,14 +72,14 @@ class EnvironmentProtectionServiceTest extends TestCase
             ->willReturnCallback(function ($key) {
                 return match ($key) {
                     'kernel.environment' => 'prod',
-                    'kernel.debug' => false,
+                    'kernel.debug'       => false,
                     'kernel.project_dir' => sys_get_temp_dir(),
-                    default => null,
+                    default              => null,
                 };
             });
 
         $service = new EnvironmentProtectionService($parameterBag);
-        $errors = $service->performChecks();
+        $errors  = $service->performChecks();
 
         $this->assertIsArray($errors);
         $this->assertNotEmpty($errors);
@@ -103,14 +103,14 @@ class EnvironmentProtectionServiceTest extends TestCase
             ->willReturnCallback(function ($key) use ($tempDir) {
                 return match ($key) {
                     'kernel.environment' => 'dev',
-                    'kernel.debug' => true,
+                    'kernel.debug'       => true,
                     'kernel.project_dir' => $tempDir,
-                    default => null,
+                    default              => null,
                 };
             });
 
         $service = new EnvironmentProtectionService($parameterBag);
-        $errors = $service->performChecks();
+        $errors  = $service->performChecks();
 
         // Cleanup
         unlink($tempDir . '/config/packages/prod/nowo_anonymize.yaml');
@@ -147,14 +147,14 @@ class EnvironmentProtectionServiceTest extends TestCase
             ->willReturnCallback(function ($key) use ($tempDir) {
                 return match ($key) {
                     'kernel.environment' => 'dev',
-                    'kernel.debug' => true,
+                    'kernel.debug'       => true,
                     'kernel.project_dir' => $tempDir,
-                    default => null,
+                    default              => null,
                 };
             });
 
         $service = new EnvironmentProtectionService($parameterBag);
-        $errors = $service->performChecks();
+        $errors  = $service->performChecks();
 
         // Cleanup
         unlink($tempDir . '/config/bundles.php');
@@ -176,7 +176,7 @@ class EnvironmentProtectionServiceTest extends TestCase
             ->with('kernel.environment')
             ->willReturn('dev');
 
-        $service = new EnvironmentProtectionService($parameterBag);
+        $service     = new EnvironmentProtectionService($parameterBag);
         $environment = $service->getEnvironment();
 
         $this->assertEquals('dev', $environment);
@@ -193,7 +193,7 @@ class EnvironmentProtectionServiceTest extends TestCase
             ->willReturn('dev');
 
         $service = new EnvironmentProtectionService($parameterBag);
-        $isSafe = $service->isSafeEnvironment();
+        $isSafe  = $service->isSafeEnvironment();
 
         $this->assertTrue($isSafe);
     }
@@ -209,7 +209,7 @@ class EnvironmentProtectionServiceTest extends TestCase
             ->willReturn('test');
 
         $service = new EnvironmentProtectionService($parameterBag);
-        $isSafe = $service->isSafeEnvironment();
+        $isSafe  = $service->isSafeEnvironment();
 
         $this->assertTrue($isSafe);
     }
@@ -225,7 +225,7 @@ class EnvironmentProtectionServiceTest extends TestCase
             ->willReturn('prod');
 
         $service = new EnvironmentProtectionService($parameterBag);
-        $isSafe = $service->isSafeEnvironment();
+        $isSafe  = $service->isSafeEnvironment();
 
         $this->assertFalse($isSafe);
     }
@@ -244,14 +244,14 @@ class EnvironmentProtectionServiceTest extends TestCase
             ->willReturnCallback(function ($key) use ($tempDir) {
                 return match ($key) {
                     'kernel.environment' => 'dev',
-                    'kernel.debug' => true,
+                    'kernel.debug'       => true,
                     'kernel.project_dir' => $tempDir,
-                    default => null,
+                    default              => null,
                 };
             });
 
         $service = new EnvironmentProtectionService($parameterBag);
-        $errors = $service->performChecks();
+        $errors  = $service->performChecks();
 
         // Cleanup
         rmdir($tempDir . '/config');
@@ -284,14 +284,14 @@ class EnvironmentProtectionServiceTest extends TestCase
             ->willReturnCallback(function ($key) use ($tempDir) {
                 return match ($key) {
                     'kernel.environment' => 'dev',
-                    'kernel.debug' => true,
+                    'kernel.debug'       => true,
                     'kernel.project_dir' => $tempDir,
-                    default => null,
+                    default              => null,
                 };
             });
 
         $service = new EnvironmentProtectionService($parameterBag);
-        $errors = $service->performChecks();
+        $errors  = $service->performChecks();
 
         // Cleanup
         unlink($tempDir . '/config/bundles.php');

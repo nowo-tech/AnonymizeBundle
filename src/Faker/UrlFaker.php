@@ -36,15 +36,16 @@ final class UrlFaker implements FakerInterface
      * Generates an anonymized URL.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'scheme' (string): URL scheme 'http' or 'https' (default: 'https')
-     *   - 'domain' (string): Specific domain to use
-     *   - 'path' (bool): Include path in URL (default: true)
+     *                                      - 'scheme' (string): URL scheme 'http' or 'https' (default: 'https')
+     *                                      - 'domain' (string): Specific domain to use
+     *                                      - 'path' (bool): Include path in URL (default: true)
+     *
      * @return string The anonymized URL
      */
     public function generate(array $options = []): string
     {
-        $scheme = $options['scheme'] ?? 'https';
-        $domain = $options['domain'] ?? null;
+        $scheme      = $options['scheme'] ?? 'https';
+        $domain      = $options['domain'] ?? null;
         $includePath = $options['path'] ?? true;
 
         if ($domain !== null) {

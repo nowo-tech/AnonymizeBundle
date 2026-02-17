@@ -32,7 +32,7 @@ final class AnonymizeExtension extends Extension
         $loader->load('services.yaml');
 
         $configuration = $this->getConfiguration($configs, $container);
-        $config = $this->processConfiguration($configuration, $configs);
+        $config        = $this->processConfiguration($configuration, $configs);
 
         // Set configuration parameters
         $container->setParameter('nowo_anonymize.locale', $config['locale'] ?? 'en_US');

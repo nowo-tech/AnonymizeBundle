@@ -29,6 +29,7 @@ interface EntityAnonymizerServiceInterface
      * @param ClassMetadata $metadata Class metadata for the entity (concrete class, e.g. child in STI)
      * @param array<string, mixed> $record Raw record from DB (column names as keys)
      * @param bool $dryRun If true, do not perform side effects; only return what would be updated
+     *
      * @return array<string, mixed> Map of column name => new value (only columns to update)
      */
     public function anonymize(

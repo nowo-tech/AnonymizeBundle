@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Faker\Example;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+
+use function is_string;
 
 /**
  * Example Custom Faker Service.
@@ -103,7 +106,8 @@ final class ExampleCustomFaker implements FakerInterface
      */
     public function __construct(
         private ?EntityManagerInterface $entityManager = null
-    ) {}
+    ) {
+    }
 
     /**
      * Generates an anonymized value.
@@ -115,11 +119,12 @@ final class ExampleCustomFaker implements FakerInterface
      * - Custom options passed in #[AnonymizeProperty] via $options['custom_option_name']
      *
      * @param array<string, mixed> $options Options:
-     *   - 'original_value' (mixed): The original value from the database (always provided)
-     *   - 'record' (array): The full database record with all fields (always provided)
-     *   - 'preserve_original' (bool): If true, return the original value unchanged (default: false)
-     *   - 'related_entity' (string): Class name of a related entity to query (optional)
-     *   - Any other custom options you define in #[AnonymizeProperty]
+     *                                      - 'original_value' (mixed): The original value from the database (always provided)
+     *                                      - 'record' (array): The full database record with all fields (always provided)
+     *                                      - 'preserve_original' (bool): If true, return the original value unchanged (default: false)
+     *                                      - 'related_entity' (string): Class name of a related entity to query (optional)
+     *                                      - Any other custom options you define in #[AnonymizeProperty]
+     *
      * @return mixed The anonymized value (or original if preserve_original is true)
      */
     public function generate(array $options = []): mixed
@@ -131,7 +136,7 @@ final class ExampleCustomFaker implements FakerInterface
         $record = $options['record'] ?? [];
 
         // Get custom options
-        $preserveOriginal = $options['preserve_original'] ?? false;
+        $preserveOriginal   = $options['preserve_original'] ?? false;
         $relatedEntityClass = $options['related_entity'] ?? null;
 
         // If preserve_original is true, return the original value unchanged
@@ -143,7 +148,7 @@ final class ExampleCustomFaker implements FakerInterface
         // EXAMPLE: Access other fields from the current record
         // You can access any field from the current entity's record
         $otherField = $record['other_field'] ?? null;
-        $relatedId = $record['related_entity_id'] ?? null;
+        $relatedId  = $record['related_entity_id'] ?? null;
 
         // EXAMPLE: Access related entities using EntityManager
         // This shows how to query related entities if needed
@@ -156,7 +161,7 @@ final class ExampleCustomFaker implements FakerInterface
                     // For example, if RelatedEntity has a 'name' field:
                     // $relatedEntityData = $relatedEntity->getName();
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Handle exception (e.g., entity not found, class doesn't exist)
                 // In production, you might want to log this
             }

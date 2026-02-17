@@ -7,7 +7,6 @@ namespace App\Controller;
 use App\Entity\SystemLog;
 use App\Form\SystemLogType;
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Nowo\AnonymizeBundle\Service\SchemaService;
@@ -16,23 +15,26 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+use function sprintf;
+
 #[Route('/{connection}/system-log')]
 class SystemLogController extends AbstractController
 {
     public function __construct(
         private readonly ManagerRegistry $doctrine,
         private readonly SchemaService $schemaService
-    ) {}
+    ) {
+    }
 
     #[Route('/', name: 'system_log_index', methods: ['GET'])]
     public function index(string $connection): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em                  = $this->doctrine->getManager($connection);
         $hasAnonymizedColumn = $this->schemaService->hasAnonymizedColumn($em, SystemLog::class);
 
         if (!$hasAnonymizedColumn) {
             /** @var ClassMetadata $metadata */
-            $metadata = $em->getClassMetadata(SystemLog::class);
+            $metadata  = $em->getClassMetadata(SystemLog::class);
             $tableName = $metadata->getTableName();
             /** @var Connection $dbConnection */
             $dbConnection = $em->getConnection();
@@ -41,11 +43,11 @@ class SystemLogController extends AbstractController
             foreach ($metadata->getFieldNames() as $fieldName) {
                 if ($fieldName !== 'anonymized') {
                     $fieldMapping = $metadata->getFieldMapping($fieldName);
-                    $columns[] = $dbConnection->quoteSingleIdentifier($fieldMapping['columnName'] ?? $fieldName);
+                    $columns[]    = $dbConnection->quoteSingleIdentifier($fieldMapping['columnName'] ?? $fieldName);
                 }
             }
 
-            $sql = sprintf('SELECT %s FROM %s', implode(', ', $columns), $dbConnection->quoteSingleIdentifier($tableName));
+            $sql     = sprintf('SELECT %s FROM %s', implode(', ', $columns), $dbConnection->quoteSingleIdentifier($tableName));
             $results = $dbConnection->fetchAllAssociative($sql);
 
             $logs = [];
@@ -66,8 +68,8 @@ class SystemLogController extends AbstractController
         }
 
         return $this->render('system_log/index.html.twig', [
-            'logs' => $logs,
-            'connection' => $connection,
+            'logs'                => $logs,
+            'connection'          => $connection,
             'hasAnonymizedColumn' => $hasAnonymizedColumn,
         ]);
     }
@@ -75,8 +77,8 @@ class SystemLogController extends AbstractController
     #[Route('/new', name: 'system_log_new', methods: ['GET', 'POST'])]
     public function new(Request $request, string $connection): Response
     {
-        $log = new SystemLog();
-        $em = $this->doctrine->getManager($connection);
+        $log  = new SystemLog();
+        $em   = $this->doctrine->getManager($connection);
         $form = $this->createForm(SystemLogType::class, $log);
         $form->handleRequest($request);
 
@@ -90,8 +92,8 @@ class SystemLogController extends AbstractController
         }
 
         return $this->render('system_log/new.html.twig', [
-            'log' => $log,
-            'form' => $form,
+            'log'        => $log,
+            'form'       => $form,
             'connection' => $connection,
         ]);
     }
@@ -99,17 +101,17 @@ class SystemLogController extends AbstractController
     #[Route('/{id}', name: 'system_log_show', methods: ['GET'])]
     public function show(string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em                  = $this->doctrine->getManager($connection);
         $hasAnonymizedColumn = $this->schemaService->hasAnonymizedColumn($em, SystemLog::class);
-        $log = $em->getRepository(SystemLog::class)->find($id);
+        $log                 = $em->getRepository(SystemLog::class)->find($id);
 
         if (!$log) {
             throw $this->createNotFoundException('System log not found');
         }
 
         return $this->render('system_log/show.html.twig', [
-            'log' => $log,
-            'connection' => $connection,
+            'log'                 => $log,
+            'connection'          => $connection,
             'hasAnonymizedColumn' => $hasAnonymizedColumn,
         ]);
     }
@@ -117,7 +119,7 @@ class SystemLogController extends AbstractController
     #[Route('/{id}/edit', name: 'system_log_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em  = $this->doctrine->getManager($connection);
         $log = $em->getRepository(SystemLog::class)->find($id);
 
         if (!$log) {
@@ -136,8 +138,8 @@ class SystemLogController extends AbstractController
         }
 
         return $this->render('system_log/edit.html.twig', [
-            'log' => $log,
-            'form' => $form,
+            'log'        => $log,
+            'form'       => $form,
             'connection' => $connection,
         ]);
     }
@@ -145,7 +147,7 @@ class SystemLogController extends AbstractController
     #[Route('/{id}', name: 'system_log_delete', methods: ['POST'])]
     public function delete(Request $request, string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em  = $this->doctrine->getManager($connection);
         $log = $em->getRepository(SystemLog::class)->find($id);
 
         if (!$log) {

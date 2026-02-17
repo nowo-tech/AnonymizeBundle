@@ -20,39 +20,39 @@ class UserType extends AbstractType
         $builder
             ->add('email', EmailType::class, [
                 'required' => true,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('firstName', TextType::class, [
                 'required' => true,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('lastName', TextType::class, [
                 'required' => true,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('age', IntegerType::class, [
                 'required' => true,
-                'attr' => ['class' => 'form-control', 'min' => 1],
+                'attr'     => ['class' => 'form-control', 'min' => 1],
             ])
             ->add('phone', TextType::class, [
                 'required' => false,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('iban', TextType::class, [
                 'required' => false,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('creditCard', TextType::class, [
                 'required' => false,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('status', ChoiceType::class, [
                 'choices' => [
-                    'Active' => 'active',
+                    'Active'   => 'active',
                     'Inactive' => 'inactive',
                 ],
                 'required' => true,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ]);
     }
 

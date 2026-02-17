@@ -20,8 +20,8 @@ class AfterEntityAnonymizeEventTest extends TestCase
 {
     public function testGetEntityManager(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $metadata = $this->createMock(ClassMetadata::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $metadata   = $this->createMock(ClassMetadata::class);
         $reflection = new ReflectionClass($this);
 
         $event = new AfterEntityAnonymizeEvent($em, $metadata, $reflection, 10, 8, [], false);
@@ -31,8 +31,8 @@ class AfterEntityAnonymizeEventTest extends TestCase
 
     public function testGetMetadata(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $metadata = $this->createMock(ClassMetadata::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $metadata   = $this->createMock(ClassMetadata::class);
         $reflection = new ReflectionClass($this);
 
         $event = new AfterEntityAnonymizeEvent($em, $metadata, $reflection, 10, 8, [], false);
@@ -42,8 +42,8 @@ class AfterEntityAnonymizeEventTest extends TestCase
 
     public function testGetReflection(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $metadata = $this->createMock(ClassMetadata::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $metadata   = $this->createMock(ClassMetadata::class);
         $reflection = new ReflectionClass($this);
 
         $event = new AfterEntityAnonymizeEvent($em, $metadata, $reflection, 10, 8, [], false);
@@ -53,8 +53,8 @@ class AfterEntityAnonymizeEventTest extends TestCase
 
     public function testGetProcessed(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $metadata = $this->createMock(ClassMetadata::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $metadata   = $this->createMock(ClassMetadata::class);
         $reflection = new ReflectionClass($this);
 
         $event = new AfterEntityAnonymizeEvent($em, $metadata, $reflection, 100, 80, ['email' => 80], false);
@@ -64,8 +64,8 @@ class AfterEntityAnonymizeEventTest extends TestCase
 
     public function testGetUpdated(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $metadata = $this->createMock(ClassMetadata::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $metadata   = $this->createMock(ClassMetadata::class);
         $reflection = new ReflectionClass($this);
 
         $event = new AfterEntityAnonymizeEvent($em, $metadata, $reflection, 100, 80, ['email' => 80], false);
@@ -73,12 +73,11 @@ class AfterEntityAnonymizeEventTest extends TestCase
         $this->assertEquals(80, $event->getUpdated());
     }
 
-
     public function testGetPropertyStats(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $metadata = $this->createMock(ClassMetadata::class);
-        $reflection = new ReflectionClass($this);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $metadata      = $this->createMock(ClassMetadata::class);
+        $reflection    = new ReflectionClass($this);
         $propertyStats = ['email' => 80, 'name' => 75];
 
         $event = new AfterEntityAnonymizeEvent($em, $metadata, $reflection, 100, 80, $propertyStats, false);
@@ -88,7 +87,7 @@ class AfterEntityAnonymizeEventTest extends TestCase
 
     public function testGetEntityClass(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em       = $this->createMock(EntityManagerInterface::class);
         $metadata = $this->createMock(ClassMetadata::class);
         $metadata->method('getName')
             ->willReturn('App\Entity\User');
@@ -101,8 +100,8 @@ class AfterEntityAnonymizeEventTest extends TestCase
 
     public function testIsDryRun(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $metadata = $this->createMock(ClassMetadata::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $metadata   = $this->createMock(ClassMetadata::class);
         $reflection = new ReflectionClass($this);
 
         $event1 = new AfterEntityAnonymizeEvent($em, $metadata, $reflection, 10, 8, [], true);

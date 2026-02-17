@@ -36,16 +36,17 @@ final class AddressFaker implements FakerInterface
      * Generates an anonymized street address.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'country' (string): Specific country code (e.g., 'US', 'ES', 'FR')
-     *   - 'include_postal_code' (bool): Include postal code in address (default: false)
-     *   - 'format' (string): 'full' for full address, 'short' for street only (default: 'full')
+     *                                      - 'country' (string): Specific country code (e.g., 'US', 'ES', 'FR')
+     *                                      - 'include_postal_code' (bool): Include postal code in address (default: false)
+     *                                      - 'format' (string): 'full' for full address, 'short' for street only (default: 'full')
+     *
      * @return string The anonymized address
      */
     public function generate(array $options = []): string
     {
         $includePostalCode = $options['include_postal_code'] ?? false;
-        $format = $options['format'] ?? 'full';
-        $country = $options['country'] ?? null;
+        $format            = $options['format'] ?? 'full';
+        $country           = $options['country'] ?? null;
 
         if ($country !== null) {
             $this->faker = Factory::create($this->getLocaleForCountry($country));
@@ -70,6 +71,7 @@ final class AddressFaker implements FakerInterface
      * Gets the appropriate locale for a country code.
      *
      * @param string $country The country code
+     *
      * @return string The locale string
      */
     private function getLocaleForCountry(string $country): string

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
@@ -43,9 +44,9 @@ class MarketingCampaign
         type: FakerType::UTM,
         weight: 1,
         options: [
-            'type' => 'source',
+            'type'   => 'source',
             'format' => 'snake_case',
-        ]
+        ],
     )]
     #[ORM\Column(type: Types::STRING, length: 100)]
     private ?string $utmSource = null;
@@ -57,9 +58,9 @@ class MarketingCampaign
         type: FakerType::UTM,
         weight: 2,
         options: [
-            'type' => 'medium',
+            'type'   => 'medium',
             'format' => 'snake_case',
-        ]
+        ],
     )]
     #[ORM\Column(type: Types::STRING, length: 100)]
     private ?string $utmMedium = null;
@@ -71,11 +72,11 @@ class MarketingCampaign
         type: FakerType::UTM,
         weight: 3,
         options: [
-            'type' => 'campaign',
-            'format' => 'snake_case',
+            'type'       => 'campaign',
+            'format'     => 'snake_case',
             'min_length' => 5,
             'max_length' => 30,
-        ]
+        ],
     )]
     #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $utmCampaign = null;
@@ -87,11 +88,11 @@ class MarketingCampaign
         type: FakerType::UTM,
         weight: 4,
         options: [
-            'type' => 'term',
-            'format' => 'snake_case',
+            'type'       => 'term',
+            'format'     => 'snake_case',
             'min_length' => 3,
             'max_length' => 20,
-        ]
+        ],
     )]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $utmTerm = null;
@@ -103,11 +104,11 @@ class MarketingCampaign
         type: FakerType::UTM,
         weight: 5,
         options: [
-            'type' => 'content',
-            'format' => 'snake_case',
+            'type'       => 'content',
+            'format'     => 'snake_case',
             'min_length' => 5,
             'max_length' => 25,
-        ]
+        ],
     )]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $utmContent = null;
@@ -119,9 +120,9 @@ class MarketingCampaign
         type: FakerType::UTM,
         weight: 6,
         options: [
-            'type' => 'source',
+            'type'   => 'source',
             'format' => 'kebab-case',
-        ]
+        ],
     )]
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true)]
     private ?string $utmSourceKebab = null;
@@ -133,15 +134,15 @@ class MarketingCampaign
         type: FakerType::UTM,
         weight: 7,
         options: [
-            'type' => 'source',
+            'type'           => 'source',
             'custom_sources' => ['partner_a', 'partner_b', 'partner_c'],
-        ]
+        ],
     )]
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true)]
     private ?string $utmSourceCustom = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $createdAt = null;
+    private ?DateTimeImmutable $createdAt = null;
 
     public function getId(): ?int
     {
@@ -232,12 +233,12 @@ class MarketingCampaign
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): ?DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(?\DateTimeImmutable $createdAt): static
+    public function setCreatedAt(?DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
 

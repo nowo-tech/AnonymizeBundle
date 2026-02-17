@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Helper;
 
 use Doctrine\DBAL\Connection;
+use Exception;
 
 /**
  * Helper class for Doctrine DBAL operations.
@@ -23,6 +24,7 @@ final class DbalHelper
      *
      * @param Connection $connection The database connection
      * @param string $identifier The identifier to quote
+     *
      * @return string The quoted identifier
      */
     public static function quoteIdentifier(Connection $connection, string $identifier): string
@@ -46,6 +48,7 @@ final class DbalHelper
      * Gets the database driver name in a compatible way across DBAL versions.
      *
      * @param Connection $connection The database connection
+     *
      * @return string The driver name (e.g., 'pdo_mysql', 'pdo_pgsql', 'pdo_sqlite')
      */
     public static function getDriverName(Connection $connection): string
@@ -59,7 +62,7 @@ final class DbalHelper
 
         // Try getDatabasePlatform() and get name from platform (DBAL 3.x)
         try {
-            $platform = $connection->getDatabasePlatform();
+            $platform     = $connection->getDatabasePlatform();
             $platformName = $platform::class;
 
             // Extract driver name from platform class name
@@ -90,7 +93,7 @@ final class DbalHelper
                     return 'pdo_sqlite';
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Fall through to default
         }
 

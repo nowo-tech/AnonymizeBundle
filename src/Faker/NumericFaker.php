@@ -36,21 +36,23 @@ final class NumericFaker implements FakerInterface
      * Generates an anonymized numeric value.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'type' (string): Number type ('int', 'float', default: 'int')
-     *   - 'min' (int|float): Minimum value (default: 0)
-     *   - 'max' (int|float): Maximum value (default: 1000)
-     *   - 'precision' (int): Decimal precision for floats (default: 2)
-     * @return int|float|string The anonymized numeric value
+     *                                      - 'type' (string): Number type ('int', 'float', default: 'int')
+     *                                      - 'min' (int|float): Minimum value (default: 0)
+     *                                      - 'max' (int|float): Maximum value (default: 1000)
+     *                                      - 'precision' (int): Decimal precision for floats (default: 2)
+     *
+     * @return float|int|string The anonymized numeric value
      */
     public function generate(array $options = []): int|float|string
     {
-        $type = $options['type'] ?? 'int';
-        $min = $options['min'] ?? 0;
-        $max = $options['max'] ?? 1000;
+        $type      = $options['type'] ?? 'int';
+        $min       = $options['min'] ?? 0;
+        $max       = $options['max'] ?? 1000;
         $precision = (int) ($options['precision'] ?? 2);
 
         if ($type === 'float') {
             $value = $this->faker->randomFloat($precision, (float) $min, (float) $max);
+
             return $value;
         }
 

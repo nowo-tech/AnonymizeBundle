@@ -7,6 +7,9 @@ namespace Nowo\AnonymizeBundle\Tests\Faker;
 use Nowo\AnonymizeBundle\Faker\ColorFaker;
 use PHPUnit\Framework\TestCase;
 
+use function count;
+use function strlen;
+
 /**
  * Test case for ColorFaker.
  *
@@ -73,7 +76,7 @@ class ColorFakerTest extends TestCase
      */
     public function testGenerateWithDifferentAlphaValues(): void
     {
-        $faker = new ColorFaker('en_US');
+        $faker       = new ColorFaker('en_US');
         $alphaValues = [0.0, 0.25, 0.5, 0.75, 1.0];
 
         foreach ($alphaValues as $alpha) {
@@ -122,10 +125,10 @@ class ColorFakerTest extends TestCase
      */
     public function testGenerateDifferentColors(): void
     {
-        $faker = new ColorFaker('en_US');
+        $faker  = new ColorFaker('en_US');
         $colors = [];
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             $colors[] = $faker->generate();
         }
 

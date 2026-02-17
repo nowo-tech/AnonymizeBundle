@@ -6,6 +6,11 @@ namespace Nowo\AnonymizeBundle\Tests\Service;
 
 use Nowo\AnonymizeBundle\Service\AnonymizeStatistics;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+
+use function count;
+
+use const JSON_UNESCAPED_UNICODE;
 
 /**
  * Test case for AnonymizeStatistics.
@@ -261,13 +266,13 @@ class AnonymizeStatisticsTest extends TestCase
         $stats = new AnonymizeStatistics();
         $stats->start();
         // Simulate 65 seconds by setting times directly
-        $reflection = new \ReflectionClass($stats);
+        $reflection          = new ReflectionClass($stats);
         $globalStatsProperty = $reflection->getProperty('globalStats');
         $globalStatsProperty->setAccessible(true);
-        $globalStats = $globalStatsProperty->getValue($stats);
+        $globalStats               = $globalStatsProperty->getValue($stats);
         $globalStats['start_time'] = microtime(true) - 65;
-        $globalStats['end_time'] = microtime(true);
-        $globalStats['duration'] = 65;
+        $globalStats['end_time']   = microtime(true);
+        $globalStats['duration']   = 65;
         $globalStatsProperty->setValue($stats, $globalStats);
 
         $summary = $stats->getSummary();
@@ -279,11 +284,11 @@ class AnonymizeStatisticsTest extends TestCase
      */
     public function testFormatDurationWithHours(): void
     {
-        $stats = new AnonymizeStatistics();
-        $reflection = new \ReflectionClass($stats);
+        $stats               = new AnonymizeStatistics();
+        $reflection          = new ReflectionClass($stats);
         $globalStatsProperty = $reflection->getProperty('globalStats');
         $globalStatsProperty->setAccessible(true);
-        $globalStats = $globalStatsProperty->getValue($stats);
+        $globalStats             = $globalStatsProperty->getValue($stats);
         $globalStats['duration'] = 3665; // 1 hour 1 minute 5 seconds
         $globalStatsProperty->setValue($stats, $globalStats);
 
@@ -307,14 +312,14 @@ class AnonymizeStatisticsTest extends TestCase
         // The code checks if properties array is empty for each entity, so it should skip property rows
         // but the header might still be present if there are other entities with properties
         // In this case, we only have one entity with no properties, so no property rows should appear
-        $lines = explode("\n", $csv);
+        $lines            = explode("\n", $csv);
         $propertyRowCount = 0;
         foreach ($lines as $line) {
             if (str_contains($line, 'App\Entity\User,default,') && str_contains($line, ',')) {
                 $parts = explode(',', $line);
                 // Property rows have 4 parts: Entity,Connection,Property,Count
                 if (count($parts) === 4 && $parts[2] !== 'Property') {
-                    $propertyRowCount++;
+                    ++$propertyRowCount;
                 }
             }
         }
@@ -426,11 +431,11 @@ class AnonymizeStatisticsTest extends TestCase
      */
     public function testFormatDurationWithExactlyOneSecond(): void
     {
-        $stats = new AnonymizeStatistics();
-        $reflection = new \ReflectionClass($stats);
+        $stats               = new AnonymizeStatistics();
+        $reflection          = new ReflectionClass($stats);
         $globalStatsProperty = $reflection->getProperty('globalStats');
         $globalStatsProperty->setAccessible(true);
-        $globalStats = $globalStatsProperty->getValue($stats);
+        $globalStats             = $globalStatsProperty->getValue($stats);
         $globalStats['duration'] = 1.0;
         $globalStatsProperty->setValue($stats, $globalStats);
 
@@ -444,11 +449,11 @@ class AnonymizeStatisticsTest extends TestCase
      */
     public function testFormatDurationWithExactlySixtySeconds(): void
     {
-        $stats = new AnonymizeStatistics();
-        $reflection = new \ReflectionClass($stats);
+        $stats               = new AnonymizeStatistics();
+        $reflection          = new ReflectionClass($stats);
         $globalStatsProperty = $reflection->getProperty('globalStats');
         $globalStatsProperty->setAccessible(true);
-        $globalStats = $globalStatsProperty->getValue($stats);
+        $globalStats             = $globalStatsProperty->getValue($stats);
         $globalStats['duration'] = 60.0;
         $globalStatsProperty->setValue($stats, $globalStats);
 
@@ -461,11 +466,11 @@ class AnonymizeStatisticsTest extends TestCase
      */
     public function testFormatDurationWithExactlyOneHour(): void
     {
-        $stats = new AnonymizeStatistics();
-        $reflection = new \ReflectionClass($stats);
+        $stats               = new AnonymizeStatistics();
+        $reflection          = new ReflectionClass($stats);
         $globalStatsProperty = $reflection->getProperty('globalStats');
         $globalStatsProperty->setAccessible(true);
-        $globalStats = $globalStatsProperty->getValue($stats);
+        $globalStats             = $globalStatsProperty->getValue($stats);
         $globalStats['duration'] = 3600.0;
         $globalStatsProperty->setValue($stats, $globalStats);
 
@@ -478,11 +483,11 @@ class AnonymizeStatisticsTest extends TestCase
      */
     public function testFormatDurationWithZeroSeconds(): void
     {
-        $stats = new AnonymizeStatistics();
-        $reflection = new \ReflectionClass($stats);
+        $stats               = new AnonymizeStatistics();
+        $reflection          = new ReflectionClass($stats);
         $globalStatsProperty = $reflection->getProperty('globalStats');
         $globalStatsProperty->setAccessible(true);
-        $globalStats = $globalStatsProperty->getValue($stats);
+        $globalStats             = $globalStatsProperty->getValue($stats);
         $globalStats['duration'] = 0.0;
         $globalStatsProperty->setValue($stats, $globalStats);
 

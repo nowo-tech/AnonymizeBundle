@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
@@ -29,7 +30,7 @@ use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 #[ORM\Table(name: 'temp_data')]
 #[Anonymize(
     truncate: true,  // This table will be emptied before anonymization
-    truncate_order: 1  // Execute truncation first (lower numbers = earlier)
+    truncate_order: 1,  // Execute truncation first (lower numbers = earlier)
 )]
 class TempData
 {
@@ -53,7 +54,7 @@ class TempData
     private ?string $phone = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $createdAt = null;
+    private ?DateTimeImmutable $createdAt = null;
 
     public function getId(): ?int
     {
@@ -96,12 +97,12 @@ class TempData
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): ?DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(?\DateTimeImmutable $createdAt): static
+    public function setCreatedAt(?DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
 

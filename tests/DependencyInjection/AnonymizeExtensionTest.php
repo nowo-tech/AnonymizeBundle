@@ -39,13 +39,13 @@ class AnonymizeExtensionTest extends TestCase
     public function testLoadSetsDefaultParameters(): void
     {
         $container = new ContainerBuilder(new ParameterBag());
-        $configs = [];
+        $configs   = [];
 
         $this->extension->load($configs, $container);
 
         $this->assertEquals('en_US', $container->getParameter('nowo_anonymize.locale'));
         $this->assertEquals([], $container->getParameter('nowo_anonymize.connections'));
-        $this->assertEquals(false, $container->getParameter('nowo_anonymize.dry_run'));
+        $this->assertFalse($container->getParameter('nowo_anonymize.dry_run'));
         $this->assertEquals(100, $container->getParameter('nowo_anonymize.batch_size'));
         $this->assertStringContainsString('var/stats', $container->getParameter('nowo_anonymize.stats_output_dir'));
         $this->assertStringContainsString('var/anonymize_history', $container->getParameter('nowo_anonymize.history_dir'));
@@ -57,14 +57,14 @@ class AnonymizeExtensionTest extends TestCase
     public function testLoadSetsCustomParameters(): void
     {
         $container = new ContainerBuilder(new ParameterBag());
-        $configs = [
+        $configs   = [
             [
-                'locale' => 'es_ES',
-                'connections' => ['default', 'custom'],
-                'dry_run' => true,
-                'batch_size' => 50,
+                'locale'           => 'es_ES',
+                'connections'      => ['default', 'custom'],
+                'dry_run'          => true,
+                'batch_size'       => 50,
                 'stats_output_dir' => '/custom/stats',
-                'history_dir' => '/custom/history',
+                'history_dir'      => '/custom/history',
             ],
         ];
 
@@ -72,7 +72,7 @@ class AnonymizeExtensionTest extends TestCase
 
         $this->assertEquals('es_ES', $container->getParameter('nowo_anonymize.locale'));
         $this->assertEquals(['default', 'custom'], $container->getParameter('nowo_anonymize.connections'));
-        $this->assertEquals(true, $container->getParameter('nowo_anonymize.dry_run'));
+        $this->assertTrue($container->getParameter('nowo_anonymize.dry_run'));
         $this->assertEquals(50, $container->getParameter('nowo_anonymize.batch_size'));
         $this->assertEquals('/custom/stats', $container->getParameter('nowo_anonymize.stats_output_dir'));
         $this->assertEquals('/custom/history', $container->getParameter('nowo_anonymize.history_dir'));
@@ -84,16 +84,16 @@ class AnonymizeExtensionTest extends TestCase
     public function testLoadSetsDefaultExportParameters(): void
     {
         $container = new ContainerBuilder(new ParameterBag());
-        $configs = [];
+        $configs   = [];
 
         $this->extension->load($configs, $container);
 
-        $this->assertEquals(false, $container->getParameter('nowo_anonymize.export.enabled'));
+        $this->assertFalse($container->getParameter('nowo_anonymize.export.enabled'));
         $this->assertStringContainsString('var/exports', $container->getParameter('nowo_anonymize.export.output_dir'));
         $this->assertEquals('{connection}_{database}_{date}_{time}.{format}', $container->getParameter('nowo_anonymize.export.filename_pattern'));
         $this->assertEquals('gzip', $container->getParameter('nowo_anonymize.export.compression'));
         $this->assertEquals([], $container->getParameter('nowo_anonymize.export.connections'));
-        $this->assertEquals(true, $container->getParameter('nowo_anonymize.export.auto_gitignore'));
+        $this->assertTrue($container->getParameter('nowo_anonymize.export.auto_gitignore'));
     }
 
     /**
@@ -102,27 +102,27 @@ class AnonymizeExtensionTest extends TestCase
     public function testLoadSetsCustomExportParameters(): void
     {
         $container = new ContainerBuilder(new ParameterBag());
-        $configs = [
+        $configs   = [
             [
                 'export' => [
-                    'enabled' => true,
-                    'output_dir' => '/custom/exports',
+                    'enabled'          => true,
+                    'output_dir'       => '/custom/exports',
                     'filename_pattern' => 'backup_{database}.sql',
-                    'compression' => 'zip',
-                    'connections' => ['default'],
-                    'auto_gitignore' => false,
+                    'compression'      => 'zip',
+                    'connections'      => ['default'],
+                    'auto_gitignore'   => false,
                 ],
             ],
         ];
 
         $this->extension->load($configs, $container);
 
-        $this->assertEquals(true, $container->getParameter('nowo_anonymize.export.enabled'));
+        $this->assertTrue($container->getParameter('nowo_anonymize.export.enabled'));
         $this->assertEquals('/custom/exports', $container->getParameter('nowo_anonymize.export.output_dir'));
         $this->assertEquals('backup_{database}.sql', $container->getParameter('nowo_anonymize.export.filename_pattern'));
         $this->assertEquals('zip', $container->getParameter('nowo_anonymize.export.compression'));
         $this->assertEquals(['default'], $container->getParameter('nowo_anonymize.export.connections'));
-        $this->assertEquals(false, $container->getParameter('nowo_anonymize.export.auto_gitignore'));
+        $this->assertFalse($container->getParameter('nowo_anonymize.export.auto_gitignore'));
     }
 
     /**
@@ -131,10 +131,10 @@ class AnonymizeExtensionTest extends TestCase
     public function testLoadHandlesPartialExportConfiguration(): void
     {
         $container = new ContainerBuilder(new ParameterBag());
-        $configs = [
+        $configs   = [
             [
                 'export' => [
-                    'enabled' => true,
+                    'enabled'     => true,
                     'compression' => 'bzip2',
                 ],
             ],
@@ -142,7 +142,7 @@ class AnonymizeExtensionTest extends TestCase
 
         $this->extension->load($configs, $container);
 
-        $this->assertEquals(true, $container->getParameter('nowo_anonymize.export.enabled'));
+        $this->assertTrue($container->getParameter('nowo_anonymize.export.enabled'));
         $this->assertEquals('bzip2', $container->getParameter('nowo_anonymize.export.compression'));
         // Other export parameters should use defaults
         $this->assertStringContainsString('var/exports', $container->getParameter('nowo_anonymize.export.output_dir'));
@@ -155,13 +155,13 @@ class AnonymizeExtensionTest extends TestCase
     public function testLoadHandlesMultipleConfigArrays(): void
     {
         $container = new ContainerBuilder(new ParameterBag());
-        $configs = [
+        $configs   = [
             [
-                'locale' => 'es_ES',
+                'locale'     => 'es_ES',
                 'batch_size' => 50,
             ],
             [
-                'locale' => 'fr_FR',
+                'locale'      => 'fr_FR',
                 'connections' => ['default'],
             ],
         ];

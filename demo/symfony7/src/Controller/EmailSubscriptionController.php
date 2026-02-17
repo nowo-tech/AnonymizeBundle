@@ -7,7 +7,6 @@ namespace App\Controller;
 use App\Entity\EmailSubscription;
 use App\Form\EmailSubscriptionType;
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Nowo\AnonymizeBundle\Service\SchemaService;
@@ -16,23 +15,26 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+use function sprintf;
+
 #[Route('/{connection}/email-subscription')]
 class EmailSubscriptionController extends AbstractController
 {
     public function __construct(
         private readonly ManagerRegistry $doctrine,
         private readonly SchemaService $schemaService
-    ) {}
+    ) {
+    }
 
     #[Route('/', name: 'email_subscription_index', methods: ['GET'])]
     public function index(string $connection): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em                  = $this->doctrine->getManager($connection);
         $hasAnonymizedColumn = $this->schemaService->hasAnonymizedColumn($em, EmailSubscription::class);
 
         if (!$hasAnonymizedColumn) {
             /** @var ClassMetadata $metadata */
-            $metadata = $em->getClassMetadata(EmailSubscription::class);
+            $metadata  = $em->getClassMetadata(EmailSubscription::class);
             $tableName = $metadata->getTableName();
             /** @var Connection $dbConnection */
             $dbConnection = $em->getConnection();
@@ -41,11 +43,11 @@ class EmailSubscriptionController extends AbstractController
             foreach ($metadata->getFieldNames() as $fieldName) {
                 if ($fieldName !== 'anonymized') {
                     $fieldMapping = $metadata->getFieldMapping($fieldName);
-                    $columns[] = $dbConnection->quoteSingleIdentifier($fieldMapping['columnName'] ?? $fieldName);
+                    $columns[]    = $dbConnection->quoteSingleIdentifier($fieldMapping['columnName'] ?? $fieldName);
                 }
             }
 
-            $sql = sprintf('SELECT %s FROM %s', implode(', ', $columns), $dbConnection->quoteSingleIdentifier($tableName));
+            $sql     = sprintf('SELECT %s FROM %s', implode(', ', $columns), $dbConnection->quoteSingleIdentifier($tableName));
             $results = $dbConnection->fetchAllAssociative($sql);
 
             $subscriptions = [];
@@ -66,8 +68,8 @@ class EmailSubscriptionController extends AbstractController
         }
 
         return $this->render('email_subscription/index.html.twig', [
-            'subscriptions' => $subscriptions,
-            'connection' => $connection,
+            'subscriptions'       => $subscriptions,
+            'connection'          => $connection,
             'hasAnonymizedColumn' => $hasAnonymizedColumn,
         ]);
     }
@@ -76,8 +78,8 @@ class EmailSubscriptionController extends AbstractController
     public function new(Request $request, string $connection): Response
     {
         $subscription = new EmailSubscription();
-        $em = $this->doctrine->getManager($connection);
-        $form = $this->createForm(EmailSubscriptionType::class, $subscription);
+        $em           = $this->doctrine->getManager($connection);
+        $form         = $this->createForm(EmailSubscriptionType::class, $subscription);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -91,25 +93,25 @@ class EmailSubscriptionController extends AbstractController
 
         return $this->render('email_subscription/new.html.twig', [
             'subscription' => $subscription,
-            'form' => $form,
-            'connection' => $connection,
+            'form'         => $form,
+            'connection'   => $connection,
         ]);
     }
 
     #[Route('/{id}', name: 'email_subscription_show', methods: ['GET'])]
     public function show(string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em                  = $this->doctrine->getManager($connection);
         $hasAnonymizedColumn = $this->schemaService->hasAnonymizedColumn($em, EmailSubscription::class);
-        $subscription = $em->getRepository(EmailSubscription::class)->find($id);
+        $subscription        = $em->getRepository(EmailSubscription::class)->find($id);
 
         if (!$subscription) {
             throw $this->createNotFoundException('Email subscription not found');
         }
 
         return $this->render('email_subscription/show.html.twig', [
-            'subscription' => $subscription,
-            'connection' => $connection,
+            'subscription'        => $subscription,
+            'connection'          => $connection,
             'hasAnonymizedColumn' => $hasAnonymizedColumn,
         ]);
     }
@@ -117,7 +119,7 @@ class EmailSubscriptionController extends AbstractController
     #[Route('/{id}/edit', name: 'email_subscription_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em           = $this->doctrine->getManager($connection);
         $subscription = $em->getRepository(EmailSubscription::class)->find($id);
 
         if (!$subscription) {
@@ -137,15 +139,15 @@ class EmailSubscriptionController extends AbstractController
 
         return $this->render('email_subscription/edit.html.twig', [
             'subscription' => $subscription,
-            'form' => $form,
-            'connection' => $connection,
+            'form'         => $form,
+            'connection'   => $connection,
         ]);
     }
 
     #[Route('/{id}', name: 'email_subscription_delete', methods: ['POST'])]
     public function delete(Request $request, string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em           = $this->doctrine->getManager($connection);
         $subscription = $em->getRepository(EmailSubscription::class)->find($id);
 
         if (!$subscription) {

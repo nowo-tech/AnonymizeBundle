@@ -4,17 +4,24 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Command;
 
-use Doctrine\ORM\EntityManagerInterface;
+use Exception;
+use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use Nowo\AnonymizeBundle\Service\DatabaseExportService;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Psr\Container\ContainerInterface;
+use ReflectionClass;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use UnitEnum;
+
+use function count;
+use function in_array;
+use function sprintf;
 
 /**
  * Command to export databases.
@@ -26,7 +33,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
  */
 #[AsCommand(
     name: 'nowo:anonymize:export-db',
-    description: 'Export databases to files with optional compression'
+    description: 'Export databases to files with optional compression',
 )]
 final class ExportDatabaseCommand extends AbstractCommand
 {
@@ -77,6 +84,7 @@ final class ExportDatabaseCommand extends AbstractCommand
      *
      * @param InputInterface $input The input
      * @param OutputInterface $output The output
+     *
      * @return int The exit code
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -84,7 +92,7 @@ final class ExportDatabaseCommand extends AbstractCommand
         $io = new SymfonyStyle($input, $output);
 
         // Enhanced environment protection checks
-        $parameterBag = $this->getParameterBag();
+        $parameterBag          = $this->getParameterBag();
         $environmentProtection = new EnvironmentProtectionService($parameterBag);
 
         $protectionErrors = $environmentProtection->performChecks();
@@ -101,18 +109,18 @@ final class ExportDatabaseCommand extends AbstractCommand
         if (!$environmentProtection->isSafeEnvironment()) {
             $io->error(sprintf(
                 'This command can only be executed in "dev" or "test" environment. Current environment: "%s".',
-                $environmentProtection->getEnvironment()
+                $environmentProtection->getEnvironment(),
             ));
 
             return self::FAILURE;
         }
 
         // Get configuration
-        $outputDir = $input->getOption('output-dir');
+        $outputDir       = $input->getOption('output-dir');
         $filenamePattern = $input->getOption('filename-pattern');
-        $compression = $input->getOption('compression');
-        $noGitignore = $input->getOption('no-gitignore');
-        $connections = $input->getOption('connection');
+        $compression     = $input->getOption('compression');
+        $noGitignore     = $input->getOption('no-gitignore');
+        $connections     = $input->getOption('connection');
 
         // Get default values from configuration if not provided
         $parameterBag = $this->getParameterBag();
@@ -144,9 +152,9 @@ final class ExportDatabaseCommand extends AbstractCommand
         // Resolve kernel.project_dir if present
         if (str_contains($outputDir, '%kernel.project_dir%')) {
             if ($this->container->has('kernel')) {
-                $kernel = $this->container->get('kernel');
+                $kernel     = $this->container->get('kernel');
                 $projectDir = $kernel->getProjectDir();
-                $outputDir = str_replace('%kernel.project_dir%', $projectDir, $outputDir);
+                $outputDir  = str_replace('%kernel.project_dir%', $projectDir, $outputDir);
             }
         }
 
@@ -158,12 +166,12 @@ final class ExportDatabaseCommand extends AbstractCommand
         }
 
         // Get Doctrine registry
-        $doctrine = $this->container->get(SymfonyService::DOCTRINE);
+        $doctrine    = $this->container->get(SymfonyService::DOCTRINE);
         $allManagers = $doctrine->getManagerNames();
 
         // Check for MongoDB connection from environment
-        $mongodbUrl = $_ENV['MONGODB_URL'] ?? getenv('MONGODB_URL');
-        $hasMongoRequested = !empty($connections) && in_array('mongodb', $connections, true);
+        $mongodbUrl         = $_ENV['MONGODB_URL'] ?? getenv('MONGODB_URL');
+        $hasMongoRequested  = !empty($connections) && in_array('mongodb', $connections, true);
         $shouldIncludeMongo = (empty($connections) && $mongodbUrl) || $hasMongoRequested;
 
         // Build list of managers to process
@@ -186,7 +194,7 @@ final class ExportDatabaseCommand extends AbstractCommand
             $outputDir,
             $filenamePattern,
             $compression,
-            $autoGitignore
+            $autoGitignore,
         );
 
         $io->title('Database Export');
@@ -199,13 +207,13 @@ final class ExportDatabaseCommand extends AbstractCommand
                 ['Compression', $compression],
                 ['Auto .gitignore', $autoGitignore ? 'Yes' : 'No'],
                 ['Connections', implode(', ', $managersToProcess)],
-            ]
+            ],
         );
 
         $io->section('Exporting Databases');
 
-        $successCount = 0;
-        $failureCount = 0;
+        $successCount  = 0;
+        $failureCount  = 0;
         $exportedFiles = [];
 
         foreach ($managersToProcess as $managerName) {
@@ -219,9 +227,9 @@ final class ExportDatabaseCommand extends AbstractCommand
 
                     if ($mongodbUrl) {
                         // Parse MongoDB URL
-                        $parsedUrl = parse_url(str_replace('mongodb://', 'http://', $mongodbUrl));
-                        $host = $parsedUrl['host'] ?? 'localhost';
-                        $port = $parsedUrl['port'] ?? 27017;
+                        $parsedUrl    = parse_url(str_replace('mongodb://', 'http://', $mongodbUrl));
+                        $host         = $parsedUrl['host'] ?? 'localhost';
+                        $port         = $parsedUrl['port'] ?? 27017;
                         $databaseName = trim($parsedUrl['path'] ?? 'anonymize_demo', '/');
                         $databaseName = explode('?', $databaseName)[0]; // Remove query params
 
@@ -229,43 +237,43 @@ final class ExportDatabaseCommand extends AbstractCommand
                     } else {
                         // Try to get from Doctrine connection if available
                         try {
-                            $em = $doctrine->getManager($managerName);
-                            $connection = $em->getConnection();
-                            $params = $connection->getParams();
-                            $host = $params['host'] ?? 'localhost';
-                            $port = $params['port'] ?? 27017;
-                            $database = $connection->getDatabase();
+                            $em           = $doctrine->getManager($managerName);
+                            $connection   = $em->getConnection();
+                            $params       = $connection->getParams();
+                            $host         = $params['host'] ?? 'localhost';
+                            $port         = $params['port'] ?? 27017;
+                            $database     = $connection->getDatabase();
                             $exportedFile = $exportService->exportMongoDB($managerName, $database, $host, $port);
-                        } catch (\Exception $e) {
-                            $io->writeln(sprintf('  ⚠️  MongoDB connection not found. Set MONGODB_URL environment variable or configure MongoDB in Doctrine.'));
-                            $failureCount++;
+                        } catch (Exception $e) {
+                            $io->writeln('  ⚠️  MongoDB connection not found. Set MONGODB_URL environment variable or configure MongoDB in Doctrine.');
+                            ++$failureCount;
                             continue;
                         }
                     }
                 } else {
                     // Handle ORM connections (MySQL, PostgreSQL, SQLite)
-                    $em = $doctrine->getManager($managerName);
+                    $em         = $doctrine->getManager($managerName);
                     $connection = $em->getConnection();
-                    $driver = \Nowo\AnonymizeBundle\Helper\DbalHelper::getDriverName($connection);
-                    $database = $connection->getDatabase();
+                    $driver     = \Nowo\AnonymizeBundle\Helper\DbalHelper::getDriverName($connection);
+                    $database   = $connection->getDatabase();
 
                     $io->writeln(sprintf('Exporting <info>%s</info> (%s)...', $managerName, $driver));
                     $exportedFile = $exportService->exportConnection($em, $managerName);
                 }
 
                 if ($exportedFile !== null && file_exists($exportedFile)) {
-                    $fileSize = filesize($exportedFile);
+                    $fileSize          = filesize($exportedFile);
                     $fileSizeFormatted = $this->formatBytes($fileSize);
                     $io->writeln(sprintf('  ✓ Exported to: <info>%s</info> (%s)', $exportedFile, $fileSizeFormatted));
                     $exportedFiles[] = $exportedFile;
-                    $successCount++;
+                    ++$successCount;
                 } else {
                     $io->writeln(sprintf('  ✗ Failed to export %s', $managerName));
-                    $failureCount++;
+                    ++$failureCount;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $io->writeln(sprintf('  ✗ Error exporting %s: %s', $managerName, $e->getMessage()));
-                $failureCount++;
+                ++$failureCount;
             }
         }
 
@@ -277,7 +285,7 @@ final class ExportDatabaseCommand extends AbstractCommand
                 ['Total Connections', count($managersToProcess)],
                 ['Successful', $successCount],
                 ['Failed', $failureCount],
-            ]
+            ],
         );
 
         if ($autoGitignore) {
@@ -306,20 +314,24 @@ final class ExportDatabaseCommand extends AbstractCommand
         if ($this->container->has('parameter_bag')) {
             try {
                 return $this->container->get('parameter_bag');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // parameter_bag not available
             }
         }
 
         // Fallback: create a wrapper that accesses parameters via kernel
         $container = $this->container;
-        return new class ($container) implements ParameterBagInterface {
-            public function __construct(private ContainerInterface $container) {}
-            public function get(string $name): array|bool|string|int|float|\UnitEnum|null
+
+        return new class($container) implements ParameterBagInterface {
+            public function __construct(private ContainerInterface $container)
+            {
+            }
+
+            public function get(string $name): array|bool|string|int|float|UnitEnum|null
             {
                 if ($this->container->has('kernel')) {
-                    $kernel = $this->container->get('kernel');
-                    $reflection = new \ReflectionClass($kernel);
+                    $kernel     = $this->container->get('kernel');
+                    $reflection = new ReflectionClass($kernel);
                     if ($reflection->hasProperty('container')) {
                         $property = $reflection->getProperty('container');
                         $property->setAccessible(true);
@@ -337,35 +349,59 @@ final class ExportDatabaseCommand extends AbstractCommand
                         }
                     }
                 }
-                throw new \InvalidArgumentException(sprintf('Parameter "%s" not found', $name));
+                throw new InvalidArgumentException(sprintf('Parameter "%s" not found', $name));
             }
+
             public function has(string $name): bool
             {
                 try {
                     $this->get($name);
+
                     return true;
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     return false;
                 }
             }
-            public function set(string $name, array|bool|string|int|float|\UnitEnum|null $value): void {}
-            public function remove(string $name): void {}
+
+            public function set(string $name, array|bool|string|int|float|UnitEnum|null $value): void
+            {
+            }
+
+            public function remove(string $name): void
+            {
+            }
+
             public function all(): array
             {
                 return [];
             }
-            public function replace(array $parameters): void {}
-            public function add(array $parameters): void {}
-            public function clear(): void {}
-            public function resolve(): void {}
+
+            public function replace(array $parameters): void
+            {
+            }
+
+            public function add(array $parameters): void
+            {
+            }
+
+            public function clear(): void
+            {
+            }
+
+            public function resolve(): void
+            {
+            }
+
             public function resolveValue(mixed $value): mixed
             {
                 return $value;
             }
+
             public function escapeValue(mixed $value): mixed
             {
                 return $value;
             }
+
             public function unescapeValue(mixed $value): mixed
             {
                 return $value;
@@ -377,14 +413,15 @@ final class ExportDatabaseCommand extends AbstractCommand
      * Formats bytes to human-readable format.
      *
      * @param int $bytes The number of bytes
+     *
      * @return string The formatted string
      */
     private function formatBytes(int $bytes): string
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
+        $pow   = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow   = min($pow, count($units) - 1);
         $bytes /= (1 << (10 * $pow));
 
         return round($bytes, 2) . ' ' . $units[$pow];

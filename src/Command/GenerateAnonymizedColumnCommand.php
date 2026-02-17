@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Command;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
-use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Psr\Container\ContainerInterface;
+use ReflectionClass;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+
+use function sprintf;
 
 /**
  * Command to generate migrations for adding the `anonymized` column to anonymizable entities.
@@ -27,7 +30,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 #[AsCommand(
     name: 'nowo:anonymize:generate-column-migration',
-    description: 'Generate migration SQL to add anonymized column to anonymizable entities'
+    description: 'Generate migration SQL to add anonymized column to anonymizable entities',
 )]
 final class GenerateAnonymizedColumnCommand extends AbstractCommand
 {
@@ -76,13 +79,13 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
                 'connection',
                 'c',
                 InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
-                'The Doctrine connection to use'
+                'The Doctrine connection to use',
             )
             ->addOption(
                 'output',
                 'o',
                 InputOption::VALUE_OPTIONAL,
-                'Output file path for the migration SQL (default: prints to console)'
+                'Output file path for the migration SQL (default: prints to console)',
             );
     }
 
@@ -91,6 +94,7 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
      *
      * @param InputInterface $input The input interface
      * @param OutputInterface $output The output interface
+     *
      * @return int The command exit code
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -106,7 +110,7 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
             }
         }
 
-        $outputFile = $input->getOption('output');
+        $outputFile    = $input->getOption('output');
         $sqlStatements = [];
 
         foreach ($connections as $connectionName) {
@@ -119,11 +123,11 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
                     continue;
                 }
 
-                $entities = $this->anonymizeService->getAnonymizableEntities($em);
+                $entities   = $this->anonymizeService->getAnonymizableEntities($em);
                 $connection = $em->getConnection();
 
                 foreach ($entities as $className => $entityData) {
-                    $metadata = $entityData['metadata'];
+                    $metadata   = $entityData['metadata'];
                     $reflection = $entityData['reflection'];
 
                     // Check if entity uses AnonymizableTrait
@@ -131,12 +135,12 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
                         continue;
                     }
 
-                    $tableName = $metadata->getTableName();
+                    $tableName     = $metadata->getTableName();
                     $schemaManager = $connection->createSchemaManager();
 
                     // Check if column already exists
                     if ($schemaManager->tablesExist([$tableName])) {
-                        $columns = $schemaManager->listTableColumns($tableName);
+                        $columns      = $schemaManager->listTableColumns($tableName);
                         $columnExists = false;
                         foreach ($columns as $column) {
                             if ($column->getName() === 'anonymized') {
@@ -155,19 +159,19 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
                     $sql = sprintf(
                         'ALTER TABLE %s ADD COLUMN %s BOOLEAN NOT NULL DEFAULT FALSE;',
                         $this->quoteIdentifier($connection, $tableName),
-                        $this->quoteIdentifier($connection, 'anonymized')
+                        $this->quoteIdentifier($connection, 'anonymized'),
                     );
 
                     $sqlStatements[] = [
                         'connection' => $connectionName,
-                        'table' => $tableName,
-                        'entity' => $className,
-                        'sql' => $sql,
+                        'table'      => $tableName,
+                        'entity'     => $className,
+                        'sql'        => $sql,
                     ];
 
                     $io->text(sprintf('  + Generated migration for <info>%s</info> (<comment>%s</comment>)', $tableName, $className));
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $io->error(sprintf('Error processing connection "%s": %s', $connectionName, $e->getMessage()));
                 continue;
             }
@@ -175,12 +179,13 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
 
         if (empty($sqlStatements)) {
             $io->success('No migrations needed. All tables already have the anonymized column or no entities use AnonymizableTrait.');
+
             return self::SUCCESS;
         }
 
         // Generate SQL output
         $sqlOutput = "-- Anonymized Column Migration\n";
-        $sqlOutput .= "-- Generated: " . date('Y-m-d H:i:s') . "\n\n";
+        $sqlOutput .= '-- Generated: ' . date('Y-m-d H:i:s') . "\n\n";
 
         foreach ($sqlStatements as $statement) {
             $sqlOutput .= sprintf("-- Connection: %s, Table: %s, Entity: %s\n", $statement['connection'], $statement['table'], $statement['entity']);
@@ -203,12 +208,13 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
      * Gets the entity manager for the given connection name.
      *
      * @param string $connectionName The connection name
+     *
      * @return EntityManagerInterface|null The entity manager or null if not found
      */
     private function getEntityManager(string $connectionName): ?EntityManagerInterface
     {
         try {
-            $doctrine = $this->container->get(SymfonyService::DOCTRINE);
+            $doctrine    = $this->container->get(SymfonyService::DOCTRINE);
             $allManagers = $doctrine->getManagerNames();
 
             // Try to get manager by name
@@ -230,7 +236,7 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
             }
 
             return null;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
     }
@@ -238,10 +244,11 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
     /**
      * Checks if a class uses the AnonymizableTrait.
      *
-     * @param \ReflectionClass $reflection The reflection class
+     * @param ReflectionClass $reflection The reflection class
+     *
      * @return bool True if the class uses AnonymizableTrait
      */
-    private function usesAnonymizableTrait(\ReflectionClass $reflection): bool
+    private function usesAnonymizableTrait(ReflectionClass $reflection): bool
     {
         $traitName = 'Nowo\\AnonymizeBundle\\Trait\\AnonymizableTrait';
 

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Faker;
 
+use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+
+use function is_array;
 
 /**
  * Faker for shuffling values within a column while maintaining distribution.
@@ -23,33 +26,37 @@ final class ShuffleFaker implements FakerInterface
     /**
      * Creates a new ShuffleFaker instance.
      */
-    public function __construct() {}
+    public function __construct()
+    {
+    }
 
     /**
      * Generates a shuffled value from a pool of existing values.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'values' (array<mixed>): Pool of values to shuffle from (required).
-     *   - 'seed' (int|null): Optional seed for reproducible shuffling.
-     *   - 'exclude' (mixed|null): Value to exclude from selection.
-     * @return mixed A randomly selected value from the pool.
-     * @throws \InvalidArgumentException If 'values' option is missing or empty.
+     *                                      - 'values' (array<mixed>): Pool of values to shuffle from (required).
+     *                                      - 'seed' (int|null): Optional seed for reproducible shuffling.
+     *                                      - 'exclude' (mixed|null): Value to exclude from selection.
+     *
+     * @throws InvalidArgumentException if 'values' option is missing or empty
+     *
+     * @return mixed a randomly selected value from the pool
      */
     public function generate(array $options = []): mixed
     {
         if (!isset($options['values']) || !is_array($options['values']) || empty($options['values'])) {
-            throw new \InvalidArgumentException('ShuffleFaker requires a "values" option with a non-empty array of values to shuffle from.');
+            throw new InvalidArgumentException('ShuffleFaker requires a "values" option with a non-empty array of values to shuffle from.');
         }
 
-        $values = $options['values'];
-        $seed = $options['seed'] ?? null;
+        $values  = $options['values'];
+        $seed    = $options['seed'] ?? null;
         $exclude = $options['exclude'] ?? null;
 
         // Filter out excluded value if specified
         if ($exclude !== null) {
-            $values = array_filter($values, fn($value) => $value !== $exclude);
+            $values = array_filter($values, fn ($value) => $value !== $exclude);
             if (empty($values)) {
-                throw new \InvalidArgumentException('ShuffleFaker: All values were excluded. At least one value must remain.');
+                throw new InvalidArgumentException('ShuffleFaker: All values were excluded. At least one value must remain.');
             }
         }
 

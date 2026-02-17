@@ -18,7 +18,7 @@ class BeforeAnonymizeEventTest extends TestCase
 {
     public function testGetEntityManager(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em    = $this->createMock(EntityManagerInterface::class);
         $event = new BeforeAnonymizeEvent($em, ['App\Entity\User'], false);
 
         $this->assertSame($em, $event->getEntityManager());
@@ -26,16 +26,16 @@ class BeforeAnonymizeEventTest extends TestCase
 
     public function testGetEntityClasses(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
         $entityClasses = ['App\Entity\User', 'App\Entity\Customer'];
-        $event = new BeforeAnonymizeEvent($em, $entityClasses, false);
+        $event         = new BeforeAnonymizeEvent($em, $entityClasses, false);
 
         $this->assertEquals($entityClasses, $event->getEntityClasses());
     }
 
     public function testSetEntityClasses(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em    = $this->createMock(EntityManagerInterface::class);
         $event = new BeforeAnonymizeEvent($em, ['App\Entity\User'], false);
 
         $newClasses = ['App\Entity\Product'];

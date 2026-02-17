@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Command;
 
+use Exception;
 use Nowo\AnonymizeBundle\Command\AnonymizationHistoryCommand;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -64,7 +65,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testCommandConfigureSetsOptions(): void
     {
-        $command = new AnonymizationHistoryCommand();
+        $command    = new AnonymizationHistoryCommand();
         $definition = $command->getDefinition();
 
         $this->assertTrue($definition->hasOption('limit'));
@@ -83,7 +84,7 @@ class AnonymizationHistoryCommandTest extends TestCase
     {
         $command = new AnonymizationHistoryCommand();
 
-        $input = new ArrayInput(['--compare' => 'single_id']);
+        $input  = new ArrayInput(['--compare' => 'single_id']);
         $output = new BufferedOutput();
 
         // The command will try to access getHistoryDir which may fail, but we're testing option parsing
@@ -94,7 +95,7 @@ class AnonymizationHistoryCommandTest extends TestCase
             if ($result === 1) {
                 $this->assertStringContainsString('exactly 2 run IDs', $outputContent);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Expected - command may fail due to missing history dir setup
             $this->assertTrue(true);
         }

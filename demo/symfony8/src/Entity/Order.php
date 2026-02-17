@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Entity\Type;
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
@@ -21,7 +21,7 @@ use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 #[Anonymize(
     // Example: Anonymize orders where type.name contains 'HR' (e.g., 'HR%', '%HR%', '%HR')
     includePatterns: ['type.name' => '%HR', 'status' => 'completed'],
-    excludePatterns: ['id' => '<=5']
+    excludePatterns: ['id' => '<=5'],
 )]
 class Order
 {
@@ -37,7 +37,7 @@ class Order
         type: 'service',
         service: 'App\Service\CustomReferenceFaker',
         weight: 1,
-        options: ['prefix' => 'ORD', 'length' => 10, 'separator' => '-']
+        options: ['prefix' => 'ORD', 'length' => 10, 'separator' => '-'],
     )]
     private ?string $orderNumber = null;
 
@@ -55,7 +55,7 @@ class Order
 
     #[ORM\Column(type: 'datetime')]
     #[AnonymizeProperty(type: 'date', weight: 5, options: ['type' => 'past', 'min_date' => '-1 year', 'max_date' => 'now', 'format' => 'Y-m-d H:i:s'])]
-    private ?\DateTimeInterface $orderDate = null;
+    private ?DateTimeInterface $orderDate = null;
 
     #[ORM\Column(length: 50)]
     private ?string $status = null;
@@ -121,12 +121,12 @@ class Order
         return $this;
     }
 
-    public function getOrderDate(): ?\DateTimeInterface
+    public function getOrderDate(): ?DateTimeInterface
     {
         return $this->orderDate;
     }
 
-    public function setOrderDate(?\DateTimeInterface $orderDate): static
+    public function setOrderDate(?DateTimeInterface $orderDate): static
     {
         $this->orderDate = $orderDate;
 

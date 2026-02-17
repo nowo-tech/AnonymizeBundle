@@ -36,25 +36,26 @@ final class DateFaker implements FakerInterface
      * Generates an anonymized date.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'min_date' (string): Minimum date (Y-m-d format or relative like '-100 years')
-     *   - 'max_date' (string): Maximum date (Y-m-d format or relative like 'now')
-     *   - 'format' (string): Date format (default: 'Y-m-d')
-     *   - 'type' (string): 'past', 'future', or 'between' (default: 'between')
+     *                                      - 'min_date' (string): Minimum date (Y-m-d format or relative like '-100 years')
+     *                                      - 'max_date' (string): Maximum date (Y-m-d format or relative like 'now')
+     *                                      - 'format' (string): Date format (default: 'Y-m-d')
+     *                                      - 'type' (string): 'past', 'future', or 'between' (default: 'between')
+     *
      * @return string The anonymized date
      */
     public function generate(array $options = []): string
     {
         $format = $options['format'] ?? 'Y-m-d';
-        $type = $options['type'] ?? 'between';
+        $type   = $options['type'] ?? 'between';
 
         $minDate = $this->parseDate($options['min_date'] ?? '-100 years');
         $maxDate = $this->parseDate($options['max_date'] ?? 'now');
 
         $date = match ($type) {
-            'past' => $this->faker->dateTimeBetween($minDate, 'now'),
-            'future' => $this->faker->dateTimeBetween('now', $maxDate),
+            'past'    => $this->faker->dateTimeBetween($minDate, 'now'),
+            'future'  => $this->faker->dateTimeBetween('now', $maxDate),
             'between' => $this->faker->dateTimeBetween($minDate, $maxDate),
-            default => $this->faker->dateTimeBetween($minDate, $maxDate),
+            default   => $this->faker->dateTimeBetween($minDate, $maxDate),
         };
 
         return $date->format($format);
@@ -64,6 +65,7 @@ final class DateFaker implements FakerInterface
      * Parses a date string to a format usable by Faker.
      *
      * @param string $date The date string
+     *
      * @return string The parsed date string
      */
     private function parseDate(string $date): string

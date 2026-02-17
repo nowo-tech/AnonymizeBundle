@@ -6,6 +6,10 @@ namespace Nowo\AnonymizeBundle\Service;
 
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
+use function in_array;
+use function is_array;
+use function sprintf;
+
 /**
  * Service for enhanced environment protection checks.
  *
@@ -24,7 +28,8 @@ final class EnvironmentProtectionService
      */
     public function __construct(
         private ParameterBagInterface $parameterBag
-    ) {}
+    ) {
+    }
 
     /**
      * Performs comprehensive environment protection checks.
@@ -54,13 +59,13 @@ final class EnvironmentProtectionService
      */
     private function checkEnvironment(): array
     {
-        $errors = [];
+        $errors      = [];
         $environment = $this->parameterBag->get('kernel.environment');
 
         if (!in_array($environment, ['dev', 'test'], true)) {
             $errors[] = sprintf(
                 'Unsafe environment detected: "%s". Anonymization can only run in "dev" or "test" environments.',
-                $environment
+                $environment,
             );
         }
 
@@ -75,7 +80,7 @@ final class EnvironmentProtectionService
     private function checkDebugMode(): array
     {
         $errors = [];
-        $debug = $this->parameterBag->get('kernel.debug');
+        $debug  = $this->parameterBag->get('kernel.debug');
 
         // In production-like environments, debug should be false
         // But we allow it in dev/test for development purposes
@@ -95,7 +100,7 @@ final class EnvironmentProtectionService
      */
     private function checkConfigurationFiles(): array
     {
-        $errors = [];
+        $errors     = [];
         $projectDir = $this->parameterBag->get('kernel.project_dir');
 
         // Check if bundle is configured in production config
@@ -103,21 +108,21 @@ final class EnvironmentProtectionService
         if (file_exists($prodConfigPath)) {
             $errors[] = sprintf(
                 'Production configuration file detected: %s. This bundle should not be configured for production environments.',
-                $prodConfigPath
+                $prodConfigPath,
             );
         }
 
         // Check if bundle is registered in bundles.php for production
         $bundlesPath = $projectDir . '/config/bundles.php';
         if (file_exists($bundlesPath)) {
-            $bundles = require $bundlesPath;
+            $bundles     = require $bundlesPath;
             $bundleClass = 'Nowo\\AnonymizeBundle\\AnonymizeBundle';
             if (isset($bundles[$bundleClass])) {
                 $allowedEnvs = $bundles[$bundleClass];
                 if (is_array($allowedEnvs) && isset($allowedEnvs['prod']) && $allowedEnvs['prod'] === true) {
                     $errors[] = sprintf(
                         'Bundle is registered for production environment in %s. This bundle should only be enabled for "dev" and "test" environments.',
-                        $bundlesPath
+                        $bundlesPath,
                     );
                 }
             }

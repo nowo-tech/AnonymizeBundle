@@ -9,6 +9,9 @@ use Faker\Generator as FakerGenerator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+use function is_array;
+use function strlen;
+
 /**
  * Faker for generating anonymized UTM (Urchin Tracking Module) parameters.
  *
@@ -27,16 +30,16 @@ final class UtmFaker implements FakerInterface
 {
     private FakerGenerator $faker;
 
-    public const SOURCE_TYPE = 'source';
-    public const MEDIUM_TYPE = 'medium';
+    public const SOURCE_TYPE   = 'source';
+    public const MEDIUM_TYPE   = 'medium';
     public const CAMPAIGN_TYPE = 'campaign';
-    public const TERM_TYPE = 'term';
-    public const CONTENT_TYPE = 'content';
+    public const TERM_TYPE     = 'term';
+    public const CONTENT_TYPE  = 'content';
 
-    public const SNAKE_CASE_FORMAT = 'snake_case';
-    public const KEBAB_CASE_FORMAT = 'kebab-case';
-    public const CAMEL_CASE_FORMAT = 'camelCase';
-    public const LOWERCASE_FORMAT = 'lowercase';
+    public const SNAKE_CASE_FORMAT  = 'snake_case';
+    public const KEBAB_CASE_FORMAT  = 'kebab-case';
+    public const CAMEL_CASE_FORMAT  = 'camelCase';
+    public const LOWERCASE_FORMAT   = 'lowercase';
     public const PASCAL_CASE_FORMAT = 'PascalCase';
 
     /**
@@ -89,31 +92,32 @@ final class UtmFaker implements FakerInterface
      * Generates an anonymized UTM parameter value.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'type' (string): The UTM parameter type - 'source', 'medium', 'campaign', 'term', or 'content' (default: 'source')
-     *   - 'format' (string): Format style - 'snake_case', 'kebab-case', 'camelCase', or 'lowercase' (default: 'snake_case')
-     *   - 'custom_sources' (array): Custom list of sources to use instead of defaults
-     *   - 'custom_mediums' (array): Custom list of mediums to use instead of defaults
-     *   - 'custom_campaigns' (array): Custom list of campaign patterns to use instead of defaults
-     *   - 'prefix' (string): Optional prefix to add to the generated value
-     *   - 'suffix' (string): Optional suffix to add to the generated value
-     *   - 'min_length' (int): Minimum length for generated values (for campaign/term/content)
-     *   - 'max_length' (int): Maximum length for generated values (for campaign/term/content)
+     *                                      - 'type' (string): The UTM parameter type - 'source', 'medium', 'campaign', 'term', or 'content' (default: 'source')
+     *                                      - 'format' (string): Format style - 'snake_case', 'kebab-case', 'camelCase', or 'lowercase' (default: 'snake_case')
+     *                                      - 'custom_sources' (array): Custom list of sources to use instead of defaults
+     *                                      - 'custom_mediums' (array): Custom list of mediums to use instead of defaults
+     *                                      - 'custom_campaigns' (array): Custom list of campaign patterns to use instead of defaults
+     *                                      - 'prefix' (string): Optional prefix to add to the generated value
+     *                                      - 'suffix' (string): Optional suffix to add to the generated value
+     *                                      - 'min_length' (int): Minimum length for generated values (for campaign/term/content)
+     *                                      - 'max_length' (int): Maximum length for generated values (for campaign/term/content)
+     *
      * @return string The anonymized UTM parameter value
      */
     public function generate(array $options = []): string
     {
-        $type = $options['type'] ?? self::SOURCE_TYPE;
+        $type   = $options['type'] ?? self::SOURCE_TYPE;
         $format = $options['format'] ?? self::SNAKE_CASE_FORMAT;
         $prefix = $options['prefix'] ?? '';
         $suffix = $options['suffix'] ?? '';
 
         $value = match ($type) {
-            'source' => $this->generateSource($options),
-            'medium' => $this->generateMedium($options),
+            'source'   => $this->generateSource($options),
+            'medium'   => $this->generateMedium($options),
             'campaign' => $this->generateCampaign($options),
-            'term' => $this->generateTerm($options),
-            'content' => $this->generateContent($options),
-            default => $this->generateSource($options),
+            'term'     => $this->generateTerm($options),
+            'content'  => $this->generateContent($options),
+            default    => $this->generateSource($options),
         };
 
         // Apply format
@@ -124,7 +128,7 @@ final class UtmFaker implements FakerInterface
             $value = $prefix . $value;
         }
         if ($suffix !== '') {
-            $value = $value . $suffix;
+            $value .= $suffix;
         }
 
         return $value;
@@ -134,11 +138,13 @@ final class UtmFaker implements FakerInterface
      * Generates a UTM source value.
      *
      * @param array<string, mixed> $options Options
+     *
      * @return string The generated source
      */
     private function generateSource(array $options): string
     {
         $sources = $options['custom_sources'] ?? self::SOURCES;
+
         return $this->faker->randomElement($sources);
     }
 
@@ -146,11 +152,13 @@ final class UtmFaker implements FakerInterface
      * Generates a UTM medium value.
      *
      * @param array<string, mixed> $options Options
+     *
      * @return string The generated medium
      */
     private function generateMedium(array $options): string
     {
         $mediums = $options['custom_mediums'] ?? self::MEDIUMS;
+
         return $this->faker->randomElement($mediums);
     }
 
@@ -158,6 +166,7 @@ final class UtmFaker implements FakerInterface
      * Generates a UTM campaign value.
      *
      * @param array<string, mixed> $options Options
+     *
      * @return string The generated campaign
      */
     private function generateCampaign(array $options): string
@@ -185,13 +194,14 @@ final class UtmFaker implements FakerInterface
                     $pattern .= '_' . $this->faker->word();
                 }
             }
+
             return strlen($pattern) <= $maxLength ? $pattern : substr($pattern, 0, $maxLength);
         }
 
         // Generate random campaign name; ensure at least min_length
-        $words = [];
+        $words         = [];
         $currentLength = 0;
-        $targetLength = $this->faker->numberBetween($minLength, $maxLength);
+        $targetLength  = $this->faker->numberBetween($minLength, $maxLength);
 
         while ($currentLength < $targetLength) {
             $word = $this->faker->word();
@@ -215,6 +225,7 @@ final class UtmFaker implements FakerInterface
      * Generates a UTM term value (search term).
      *
      * @param array<string, mixed> $options Options
+     *
      * @return string The generated term
      */
     private function generateTerm(array $options): string
@@ -224,8 +235,8 @@ final class UtmFaker implements FakerInterface
 
         // Generate a search term (1-3 words), then enforce min_length and max_length
         $wordCount = $this->faker->numberBetween(1, 3);
-        $words = [];
-        for ($i = 0; $i < $wordCount; $i++) {
+        $words     = [];
+        for ($i = 0; $i < $wordCount; ++$i) {
             $words[] = $this->faker->word();
         }
         $value = implode('_', $words);
@@ -245,6 +256,7 @@ final class UtmFaker implements FakerInterface
      * Generates a UTM content value.
      *
      * @param array<string, mixed> $options Options
+     *
      * @return string The generated content
      */
     private function generateContent(array $options): string
@@ -280,17 +292,18 @@ final class UtmFaker implements FakerInterface
      *
      * @param string $value The value to format
      * @param string $format The format to apply
+     *
      * @return string The formatted value
      */
     private function applyFormat(string $value, string $format): string
     {
         return match ($format) {
-            self::SNAKE_CASE_FORMAT => $value, // Already in snake_case
-            self::KEBAB_CASE_FORMAT => str_replace('_', '-', $value),
-            self::CAMEL_CASE_FORMAT => $this->toCamelCase($value),
-            self::LOWERCASE_FORMAT => str_replace('_', '', strtolower($value)),
+            self::SNAKE_CASE_FORMAT  => $value, // Already in snake_case
+            self::KEBAB_CASE_FORMAT  => str_replace('_', '-', $value),
+            self::CAMEL_CASE_FORMAT  => $this->toCamelCase($value),
+            self::LOWERCASE_FORMAT   => str_replace('_', '', strtolower($value)),
             self::PASCAL_CASE_FORMAT => $this->toPascalCase($value),
-            default => $value,
+            default                  => $value,
         };
     }
 
@@ -298,13 +311,15 @@ final class UtmFaker implements FakerInterface
      * Converts a string to camelCase.
      *
      * @param string $value The value to convert
+     *
      * @return string The camelCase value
      */
     private function toCamelCase(string $value): string
     {
         $parts = explode('_', $value);
         $first = array_shift($parts);
-        $rest = array_map('ucfirst', $parts);
+        $rest  = array_map('ucfirst', $parts);
+
         return $first . implode('', $rest);
     }
 
@@ -312,11 +327,13 @@ final class UtmFaker implements FakerInterface
      * Converts a string to PascalCase.
      *
      * @param string $value The value to convert
+     *
      * @return string The PascalCase value
      */
     private function toPascalCase(string $value): string
     {
         $parts = explode('_', $value);
+
         return implode('', array_map('ucfirst', $parts));
     }
 }

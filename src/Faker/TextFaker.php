@@ -36,21 +36,22 @@ final class TextFaker implements FakerInterface
      * Generates anonymized text content.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'type' (string): 'sentence' or 'paragraph' (default: 'sentence')
-     *   - 'min_words' (int): Minimum number of words (default: 5)
-     *   - 'max_words' (int): Maximum number of words (default: 20)
+     *                                      - 'type' (string): 'sentence' or 'paragraph' (default: 'sentence')
+     *                                      - 'min_words' (int): Minimum number of words (default: 5)
+     *                                      - 'max_words' (int): Maximum number of words (default: 20)
+     *
      * @return string The anonymized text content
      */
     public function generate(array $options = []): string
     {
-        $type = $options['type'] ?? 'sentence';
+        $type     = $options['type'] ?? 'sentence';
         $minWords = (int) ($options['min_words'] ?? 5);
         $maxWords = (int) ($options['max_words'] ?? 20);
 
         return match ($type) {
             'paragraph' => $this->faker->paragraph($this->faker->numberBetween($minWords, $maxWords)),
-            'sentence' => $this->faker->sentence($this->faker->numberBetween($minWords, $maxWords)),
-            default => $this->faker->sentence($this->faker->numberBetween($minWords, $maxWords)),
+            'sentence'  => $this->faker->sentence($this->faker->numberBetween($minWords, $maxWords)),
+            default     => $this->faker->sentence($this->faker->numberBetween($minWords, $maxWords)),
         };
     }
 }

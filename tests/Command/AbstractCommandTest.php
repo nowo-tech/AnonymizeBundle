@@ -54,7 +54,7 @@ class AbstractCommandTest extends TestCase
         };
 
         $connection = $this->createMock(Connection::class);
-        $platform = $this->createMock(AbstractPlatform::class);
+        $platform   = $this->createMock(AbstractPlatform::class);
 
         $connection->method('getDatabasePlatform')
             ->willReturn($platform);

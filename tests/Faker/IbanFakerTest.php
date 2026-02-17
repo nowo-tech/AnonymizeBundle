@@ -7,6 +7,8 @@ namespace Nowo\AnonymizeBundle\Tests\Faker;
 use Nowo\AnonymizeBundle\Faker\IbanFaker;
 use PHPUnit\Framework\TestCase;
 
+use function strlen;
+
 /**
  * Test case for IbanFaker.
  *
@@ -21,7 +23,7 @@ class IbanFakerTest extends TestCase
     public function testGenerate(): void
     {
         $faker = new IbanFaker('en_US');
-        $iban = $faker->generate();
+        $iban  = $faker->generate();
 
         $this->assertIsString($iban);
         $this->assertNotEmpty($iban);
@@ -34,7 +36,7 @@ class IbanFakerTest extends TestCase
     public function testGenerateWithCountry(): void
     {
         $faker = new IbanFaker('en_US');
-        $iban = $faker->generate(['country' => 'FR']);
+        $iban  = $faker->generate(['country' => 'FR']);
 
         $this->assertIsString($iban);
         $this->assertNotEmpty($iban);
@@ -60,7 +62,7 @@ class IbanFakerTest extends TestCase
     public function testGenerateWithFormatted(): void
     {
         $faker = new IbanFaker('en_US');
-        $iban = $faker->generate(['formatted' => true]);
+        $iban  = $faker->generate(['formatted' => true]);
 
         $this->assertIsString($iban);
         $this->assertStringContainsString(' ', $iban);
@@ -73,7 +75,7 @@ class IbanFakerTest extends TestCase
     public function testGenerateWithoutFormatted(): void
     {
         $faker = new IbanFaker('en_US');
-        $iban = $faker->generate(['formatted' => false]);
+        $iban  = $faker->generate(['formatted' => false]);
 
         $this->assertIsString($iban);
         $this->assertStringNotContainsString(' ', $iban);
@@ -86,7 +88,7 @@ class IbanFakerTest extends TestCase
     public function testGenerateValid(): void
     {
         $faker = new IbanFaker('en_US');
-        $iban = $faker->generate(['valid' => true]);
+        $iban  = $faker->generate(['valid' => true]);
 
         $this->assertIsString($iban);
         $this->assertNotEmpty($iban);
@@ -102,7 +104,7 @@ class IbanFakerTest extends TestCase
     public function testGenerateWithValidFalse(): void
     {
         $faker = new IbanFaker('en_US');
-        $iban = $faker->generate(['valid' => false]);
+        $iban  = $faker->generate(['valid' => false]);
 
         $this->assertIsString($iban);
         $this->assertNotEmpty($iban);
@@ -116,7 +118,7 @@ class IbanFakerTest extends TestCase
      */
     public function testGenerateWithDifferentCountries(): void
     {
-        $faker = new IbanFaker('en_US');
+        $faker     = new IbanFaker('en_US');
         $countries = ['DE', 'GB', 'IT', 'NL', 'PT'];
 
         foreach ($countries as $country) {
@@ -141,7 +143,7 @@ class IbanFakerTest extends TestCase
     public function testGenerateWithDifferentLocale(): void
     {
         $faker = new IbanFaker('es_ES');
-        $iban = $faker->generate();
+        $iban  = $faker->generate();
 
         $this->assertIsString($iban);
         $this->assertNotEmpty($iban);
@@ -153,7 +155,7 @@ class IbanFakerTest extends TestCase
     public function testGenerateFormattedRemovesSpaces(): void
     {
         $faker = new IbanFaker('en_US');
-        $iban = $faker->generate(['formatted' => false]);
+        $iban  = $faker->generate(['formatted' => false]);
 
         $this->assertIsString($iban);
         $this->assertStringNotContainsString(' ', $iban);

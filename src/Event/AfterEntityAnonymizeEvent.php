@@ -38,7 +38,8 @@ final class AfterEntityAnonymizeEvent extends Event
         private readonly int $updated,
         private readonly array $propertyStats,
         private readonly bool $dryRun = false
-    ) {}
+    ) {
+    }
 
     /**
      * Gets the entity manager.

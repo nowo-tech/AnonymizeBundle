@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\DataFixtures;
 
+use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use MongoDB\Client;
-use MongoDB\Database;
+
+use function sprintf;
 
 /**
  * UserActivity fixtures for MongoDB.
@@ -56,17 +58,15 @@ class UserActivityFixtures extends Fixture
 
     /**
      * Get sample user activities data.
-     *
-     * @return array
      */
     private function getSampleActivities(): array
     {
-        $actions = ['login', 'logout', 'view_page', 'update_profile', 'create_order', 'cancel_order', 'add_to_cart', 'remove_from_cart'];
+        $actions    = ['login', 'logout', 'view_page', 'update_profile', 'create_order', 'cancel_order', 'add_to_cart', 'remove_from_cart'];
         $activities = [];
-        $now = new \DateTime();
+        $now        = new DateTime();
 
         // Generate 30 sample activities
-        for ($i = 1; $i <= 30; $i++) {
+        for ($i = 1; $i <= 30; ++$i) {
             $timestamp = clone $now;
             $timestamp->modify(sprintf('-%d days', rand(0, 365)));
             $timestamp->modify(sprintf('-%d hours', rand(0, 23)));
@@ -74,14 +74,14 @@ class UserActivityFixtures extends Fixture
 
             $activities[] = [
                 'userEmail' => sprintf('user%d@example.com', $i),
-                'userName' => sprintf('User %d', $i),
+                'userName'  => sprintf('User %d', $i),
                 'ipAddress' => sprintf('%d.%d.%d.%d', rand(1, 255), rand(1, 255), rand(1, 255), rand(1, 255)),
-                'action' => $actions[array_rand($actions)],
+                'action'    => $actions[array_rand($actions)],
                 'timestamp' => new \MongoDB\BSON\UTCDateTime($timestamp->getTimestamp() * 1000),
-                'metadata' => [
+                'metadata'  => [
                     'userAgent' => sprintf('Mozilla/5.0 (Browser %d)', $i),
                     'sessionId' => sprintf('session_%s', bin2hex(random_bytes(8))),
-                    'referrer' => $i % 2 === 0 ? 'https://example.com' : null,
+                    'referrer'  => $i % 2 === 0 ? 'https://example.com' : null,
                 ],
             ];
         }

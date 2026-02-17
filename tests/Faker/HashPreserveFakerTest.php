@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Faker;
 
+use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Faker\HashPreserveFaker;
 use PHPUnit\Framework\TestCase;
+
+use function strlen;
 
 /**
  * Test case for HashPreserveFaker.
@@ -21,7 +24,7 @@ class HashPreserveFakerTest extends TestCase
     public function testGenerate(): void
     {
         $faker = new HashPreserveFaker();
-        $hash = $faker->generate(['value' => 'test@example.com']);
+        $hash  = $faker->generate(['value' => 'test@example.com']);
 
         $this->assertIsString($hash);
         $this->assertNotEmpty($hash);
@@ -33,7 +36,7 @@ class HashPreserveFakerTest extends TestCase
      */
     public function testGenerateDeterministic(): void
     {
-        $faker = new HashPreserveFaker();
+        $faker         = new HashPreserveFaker();
         $originalValue = 'test@example.com';
 
         $hash1 = $faker->generate(['value' => $originalValue]);
@@ -49,10 +52,10 @@ class HashPreserveFakerTest extends TestCase
      */
     public function testGenerateWithAlgorithm(): void
     {
-        $faker = new HashPreserveFaker();
+        $faker         = new HashPreserveFaker();
         $originalValue = 'test@example.com';
 
-        $md5Hash = $faker->generate(['value' => $originalValue, 'algorithm' => 'md5']);
+        $md5Hash    = $faker->generate(['value' => $originalValue, 'algorithm' => 'md5']);
         $sha256Hash = $faker->generate(['value' => $originalValue, 'algorithm' => 'sha256']);
 
         $this->assertNotEquals($md5Hash, $sha256Hash);
@@ -65,7 +68,7 @@ class HashPreserveFakerTest extends TestCase
      */
     public function testGenerateWithSalt(): void
     {
-        $faker = new HashPreserveFaker();
+        $faker         = new HashPreserveFaker();
         $originalValue = 'test@example.com';
 
         $hash1 = $faker->generate(['value' => $originalValue, 'salt' => 'salt1']);
@@ -79,7 +82,7 @@ class HashPreserveFakerTest extends TestCase
      */
     public function testGenerateWithLength(): void
     {
-        $faker = new HashPreserveFaker();
+        $faker         = new HashPreserveFaker();
         $originalValue = 'test@example.com';
 
         $hash = $faker->generate(['value' => $originalValue, 'length' => 10]);
@@ -92,7 +95,7 @@ class HashPreserveFakerTest extends TestCase
      */
     public function testGenerateWithPreserveFormatNumeric(): void
     {
-        $faker = new HashPreserveFaker();
+        $faker         = new HashPreserveFaker();
         $originalValue = '12345';
 
         $hash = $faker->generate(['value' => $originalValue, 'preserve_format' => true]);
@@ -119,7 +122,7 @@ class HashPreserveFakerTest extends TestCase
      */
     public function testGenerateThrowsExceptionWhenNoValue(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('HashPreserveFaker requires an "original_value"');
 
         $faker = new HashPreserveFaker();
@@ -132,7 +135,7 @@ class HashPreserveFakerTest extends TestCase
     public function testGenerateWithSha1(): void
     {
         $faker = new HashPreserveFaker();
-        $hash = $faker->generate(['value' => 'test', 'algorithm' => 'sha1']);
+        $hash  = $faker->generate(['value' => 'test', 'algorithm' => 'sha1']);
 
         $this->assertIsString($hash);
         $this->assertEquals(40, strlen($hash)); // SHA1 is 40 chars
@@ -144,7 +147,7 @@ class HashPreserveFakerTest extends TestCase
     public function testGenerateWithSha512(): void
     {
         $faker = new HashPreserveFaker();
-        $hash = $faker->generate(['value' => 'test', 'algorithm' => 'sha512']);
+        $hash  = $faker->generate(['value' => 'test', 'algorithm' => 'sha512']);
 
         $this->assertIsString($hash);
         $this->assertEquals(128, strlen($hash)); // SHA512 is 128 chars
@@ -156,7 +159,7 @@ class HashPreserveFakerTest extends TestCase
     public function testGenerateWithInvalidAlgorithm(): void
     {
         $faker = new HashPreserveFaker();
-        $hash = $faker->generate(['value' => 'test', 'algorithm' => 'invalid']);
+        $hash  = $faker->generate(['value' => 'test', 'algorithm' => 'invalid']);
 
         $this->assertIsString($hash);
         // Should default to sha256
@@ -169,7 +172,7 @@ class HashPreserveFakerTest extends TestCase
     public function testGenerateWithPreserveFormatNonNumeric(): void
     {
         $faker = new HashPreserveFaker();
-        $hash = $faker->generate(['value' => 'test@example.com', 'preserve_format' => true]);
+        $hash  = $faker->generate(['value' => 'test@example.com', 'preserve_format' => true]);
 
         $this->assertIsString($hash);
         $this->assertNotEmpty($hash);
@@ -183,7 +186,7 @@ class HashPreserveFakerTest extends TestCase
     public function testGenerateWithZeroLength(): void
     {
         $faker = new HashPreserveFaker();
-        $hash = $faker->generate(['value' => 'test', 'length' => 0]);
+        $hash  = $faker->generate(['value' => 'test', 'length' => 0]);
 
         $this->assertIsString($hash);
         // Should return full hash when length is 0
@@ -196,7 +199,7 @@ class HashPreserveFakerTest extends TestCase
     public function testGenerateWithNegativeLength(): void
     {
         $faker = new HashPreserveFaker();
-        $hash = $faker->generate(['value' => 'test', 'length' => -5]);
+        $hash  = $faker->generate(['value' => 'test', 'length' => -5]);
 
         $this->assertIsString($hash);
         // Should return full hash when length is negative
@@ -247,7 +250,7 @@ class HashPreserveFakerTest extends TestCase
     public function testGenerateWithPreserveFormatFloatNumeric(): void
     {
         $faker = new HashPreserveFaker();
-        $hash = $faker->generate(['value' => '123.45', 'preserve_format' => true]);
+        $hash  = $faker->generate(['value' => '123.45', 'preserve_format' => true]);
 
         $this->assertIsString($hash);
         $this->assertMatchesRegularExpression('/^[0-9]+$/', $hash);
@@ -260,7 +263,7 @@ class HashPreserveFakerTest extends TestCase
     public function testGenerateWithPreserveFormatInteger(): void
     {
         $faker = new HashPreserveFaker();
-        $hash = $faker->generate(['value' => 12345, 'preserve_format' => true]);
+        $hash  = $faker->generate(['value' => 12345, 'preserve_format' => true]);
 
         $this->assertIsString($hash);
         $this->assertMatchesRegularExpression('/^[0-9]+$/', $hash);
@@ -273,7 +276,7 @@ class HashPreserveFakerTest extends TestCase
     public function testGenerateWithPreserveFormatFloat(): void
     {
         $faker = new HashPreserveFaker();
-        $hash = $faker->generate(['value' => 123.45, 'preserve_format' => true]);
+        $hash  = $faker->generate(['value' => 123.45, 'preserve_format' => true]);
 
         $this->assertIsString($hash);
         $this->assertMatchesRegularExpression('/^[0-9]+$/', $hash);

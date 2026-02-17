@@ -33,7 +33,8 @@ final class AfterAnonymizeEvent extends Event
         private readonly int $totalProcessed,
         private readonly int $totalUpdated,
         private readonly bool $dryRun = false
-    ) {}
+    ) {
+    }
 
     /**
      * Gets the entity manager.

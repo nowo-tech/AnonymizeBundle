@@ -20,8 +20,8 @@ class BeforeEntityAnonymizeEventTest extends TestCase
 {
     public function testGetEntityManager(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $metadata = $this->createMock(ClassMetadata::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $metadata   = $this->createMock(ClassMetadata::class);
         $reflection = new ReflectionClass($this);
 
         $event = new BeforeEntityAnonymizeEvent($em, $metadata, $reflection, 10, false);
@@ -31,8 +31,8 @@ class BeforeEntityAnonymizeEventTest extends TestCase
 
     public function testGetMetadata(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $metadata = $this->createMock(ClassMetadata::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $metadata   = $this->createMock(ClassMetadata::class);
         $reflection = new ReflectionClass($this);
 
         $event = new BeforeEntityAnonymizeEvent($em, $metadata, $reflection, 10, false);
@@ -42,8 +42,8 @@ class BeforeEntityAnonymizeEventTest extends TestCase
 
     public function testGetReflection(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $metadata = $this->createMock(ClassMetadata::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $metadata   = $this->createMock(ClassMetadata::class);
         $reflection = new ReflectionClass($this);
 
         $event = new BeforeEntityAnonymizeEvent($em, $metadata, $reflection, 10, false);
@@ -53,8 +53,8 @@ class BeforeEntityAnonymizeEventTest extends TestCase
 
     public function testGetTotalRecords(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $metadata = $this->createMock(ClassMetadata::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $metadata   = $this->createMock(ClassMetadata::class);
         $reflection = new ReflectionClass($this);
 
         $event = new BeforeEntityAnonymizeEvent($em, $metadata, $reflection, 100, false);
@@ -64,7 +64,7 @@ class BeforeEntityAnonymizeEventTest extends TestCase
 
     public function testGetEntityClass(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em       = $this->createMock(EntityManagerInterface::class);
         $metadata = $this->createMock(ClassMetadata::class);
         $metadata->method('getName')
             ->willReturn('App\Entity\User');
@@ -77,8 +77,8 @@ class BeforeEntityAnonymizeEventTest extends TestCase
 
     public function testIsDryRun(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $metadata = $this->createMock(ClassMetadata::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $metadata   = $this->createMock(ClassMetadata::class);
         $reflection = new ReflectionClass($this);
 
         $event1 = new BeforeEntityAnonymizeEvent($em, $metadata, $reflection, 10, true);

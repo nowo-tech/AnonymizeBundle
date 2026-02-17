@@ -9,6 +9,7 @@ use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Exception;
 use Nowo\AnonymizeBundle\Service\SchemaService;
 use PHPUnit\Framework\TestCase;
 
@@ -110,7 +111,7 @@ class SchemaServiceTest extends TestCase
     public function testHasAnonymizedColumnReturnsFalseOnException(): void
     {
         $em = $this->createMock(EntityManagerInterface::class);
-        $em->method('getClassMetadata')->willThrowException(new \Exception('Test exception'));
+        $em->method('getClassMetadata')->willThrowException(new Exception('Test exception'));
 
         $result = $this->service->hasAnonymizedColumn($em, 'App\Entity\User');
 
@@ -177,7 +178,7 @@ class SchemaServiceTest extends TestCase
     public function testHasColumnReturnsFalseOnException(): void
     {
         $em = $this->createMock(EntityManagerInterface::class);
-        $em->method('getClassMetadata')->willThrowException(new \Exception('Test exception'));
+        $em->method('getClassMetadata')->willThrowException(new Exception('Test exception'));
 
         $result = $this->service->hasColumn($em, 'App\Entity\User', 'email');
 

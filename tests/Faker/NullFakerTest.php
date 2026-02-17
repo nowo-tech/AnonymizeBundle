@@ -46,7 +46,7 @@ class NullFakerTest extends TestCase
      */
     public function testGenerateWithEmptyOptions(): void
     {
-        $faker = new NullFaker();
+        $faker  = new NullFaker();
         $result = $faker->generate([]);
         $this->assertNull($result);
     }

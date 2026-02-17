@@ -36,13 +36,14 @@ final class SurnameFaker implements FakerInterface
      * Generates an anonymized surname.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'gender' (string): Gender-specific surname if available ('male', 'female', or 'random', default: 'random')
-     *   - 'locale_specific' (bool): Use locale-specific surnames (default: true, uses constructor locale)
+     *                                      - 'gender' (string): Gender-specific surname if available ('male', 'female', or 'random', default: 'random')
+     *                                      - 'locale_specific' (bool): Use locale-specific surnames (default: true, uses constructor locale)
+     *
      * @return string The anonymized surname
      */
     public function generate(array $options = []): string
     {
-        $gender = $options['gender'] ?? 'random';
+        $gender         = $options['gender'] ?? 'random';
         $localeSpecific = $options['locale_specific'] ?? true;
 
         // Note: Faker library doesn't have gender-specific surnames in most locales

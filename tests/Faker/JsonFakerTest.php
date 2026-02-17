@@ -7,6 +7,8 @@ namespace Nowo\AnonymizeBundle\Tests\Faker;
 use Nowo\AnonymizeBundle\Faker\JsonFaker;
 use PHPUnit\Framework\TestCase;
 
+use function count;
+
 /**
  * Test case for JsonFaker.
  *
@@ -21,7 +23,7 @@ class JsonFakerTest extends TestCase
     public function testGenerate(): void
     {
         $faker = new JsonFaker('en_US');
-        $json = $faker->generate();
+        $json  = $faker->generate();
 
         $this->assertIsString($json);
         $this->assertNotEmpty($json);
@@ -34,7 +36,7 @@ class JsonFakerTest extends TestCase
     public function testGenerateWithDepth(): void
     {
         $faker = new JsonFaker('en_US');
-        $json = $faker->generate(['depth' => 1]);
+        $json  = $faker->generate(['depth' => 1]);
 
         $this->assertIsString($json);
         $this->assertJson($json);
@@ -48,7 +50,7 @@ class JsonFakerTest extends TestCase
     public function testGenerateWithMaxItems(): void
     {
         $faker = new JsonFaker('en_US');
-        $json = $faker->generate(['max_items' => 3]);
+        $json  = $faker->generate(['max_items' => 3]);
 
         $this->assertIsString($json);
         $this->assertJson($json);
@@ -62,10 +64,10 @@ class JsonFakerTest extends TestCase
      */
     public function testGenerateWithSchema(): void
     {
-        $faker = new JsonFaker('en_US');
+        $faker  = new JsonFaker('en_US');
         $schema = [
-            'name' => ['type' => 'string'],
-            'age' => ['type' => 'integer'],
+            'name'   => ['type' => 'string'],
+            'age'    => ['type' => 'integer'],
             'active' => ['type' => 'boolean'],
         ];
         $json = $faker->generate(['schema' => $schema]);
@@ -84,11 +86,11 @@ class JsonFakerTest extends TestCase
      */
     public function testGenerateWithNestedSchema(): void
     {
-        $faker = new JsonFaker('en_US');
+        $faker  = new JsonFaker('en_US');
         $schema = [
             'user' => [
                 'name' => ['type' => 'string'],
-                'age' => ['type' => 'integer'],
+                'age'  => ['type' => 'integer'],
             ],
             'settings' => [
                 'active' => ['type' => 'boolean'],
@@ -109,14 +111,14 @@ class JsonFakerTest extends TestCase
      */
     public function testGenerateWithSchemaTypes(): void
     {
-        $faker = new JsonFaker('en_US');
+        $faker  = new JsonFaker('en_US');
         $schema = [
-            'string_field' => ['type' => 'string'],
+            'string_field'  => ['type' => 'string'],
             'integer_field' => ['type' => 'integer'],
-            'float_field' => ['type' => 'float'],
+            'float_field'   => ['type' => 'float'],
             'boolean_field' => ['type' => 'boolean'],
-            'array_field' => ['type' => 'array'],
-            'object_field' => ['type' => 'object'],
+            'array_field'   => ['type' => 'array'],
+            'object_field'  => ['type' => 'object'],
         ];
         $json = $faker->generate(['schema' => $schema, 'depth' => 2]);
 
@@ -131,9 +133,9 @@ class JsonFakerTest extends TestCase
      */
     public function testGenerateWithSchemaNonArrayValues(): void
     {
-        $faker = new JsonFaker('en_US');
+        $faker  = new JsonFaker('en_US');
         $schema = [
-            'simple_key' => 'simple_value',
+            'simple_key'  => 'simple_value',
             'complex_key' => ['type' => 'string'],
         ];
         $json = $faker->generate(['schema' => $schema]);
@@ -150,7 +152,7 @@ class JsonFakerTest extends TestCase
     public function testGenerateWithZeroDepth(): void
     {
         $faker = new JsonFaker('en_US');
-        $json = $faker->generate(['depth' => 0]);
+        $json  = $faker->generate(['depth' => 0]);
 
         $this->assertIsString($json);
         $this->assertJson($json);
@@ -163,7 +165,7 @@ class JsonFakerTest extends TestCase
      */
     public function testGenerateWithSchemaZeroDepth(): void
     {
-        $faker = new JsonFaker('en_US');
+        $faker  = new JsonFaker('en_US');
         $schema = [
             'nested' => [
                 'deep' => ['type' => 'string'],
@@ -182,7 +184,7 @@ class JsonFakerTest extends TestCase
      */
     public function testGenerateWithInvalidSchemaType(): void
     {
-        $faker = new JsonFaker('en_US');
+        $faker  = new JsonFaker('en_US');
         $schema = [
             'field' => ['type' => 'invalid_type'],
         ];
@@ -207,7 +209,7 @@ class JsonFakerTest extends TestCase
     public function testGenerateWithDifferentLocale(): void
     {
         $faker = new JsonFaker('es_ES');
-        $json = $faker->generate();
+        $json  = $faker->generate();
 
         $this->assertIsString($json);
         $this->assertJson($json);
@@ -218,7 +220,7 @@ class JsonFakerTest extends TestCase
      */
     public function testGenerateWithNestedArraysWithoutType(): void
     {
-        $faker = new JsonFaker('en_US');
+        $faker  = new JsonFaker('en_US');
         $schema = [
             'level1' => [
                 'level2' => [
@@ -240,7 +242,7 @@ class JsonFakerTest extends TestCase
      */
     public function testGenerateWithObjectTypeZeroDepth(): void
     {
-        $faker = new JsonFaker('en_US');
+        $faker  = new JsonFaker('en_US');
         $schema = [
             'object_field' => ['type' => 'object'],
         ];
@@ -261,7 +263,7 @@ class JsonFakerTest extends TestCase
      */
     public function testGenerateWithNumberType(): void
     {
-        $faker = new JsonFaker('en_US');
+        $faker  = new JsonFaker('en_US');
         $schema = [
             'number_field' => ['type' => 'number'],
         ];
@@ -281,7 +283,7 @@ class JsonFakerTest extends TestCase
     public function testGenerateRandomStructureWithZeroDepth(): void
     {
         $faker = new JsonFaker('en_US');
-        $json = $faker->generate(['depth' => 0, 'max_items' => 5]);
+        $json  = $faker->generate(['depth' => 0, 'max_items' => 5]);
 
         $this->assertIsString($json);
         $this->assertJson($json);
@@ -298,7 +300,7 @@ class JsonFakerTest extends TestCase
     public function testGenerateRandomStructureWithNegativeDepth(): void
     {
         $faker = new JsonFaker('en_US');
-        $json = $faker->generate(['depth' => -1, 'max_items' => 5]);
+        $json  = $faker->generate(['depth' => -1, 'max_items' => 5]);
 
         $this->assertIsString($json);
         $this->assertJson($json);

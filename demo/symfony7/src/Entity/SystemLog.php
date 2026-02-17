@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
@@ -93,7 +94,7 @@ class SystemLog
 
     #[ORM\Column(type: 'datetime')]
     #[AnonymizeProperty(type: 'date', weight: 16, options: ['type' => 'past', 'min_date' => '-1 year', 'max_date' => 'now', 'format' => 'Y-m-d H:i:s'])]
-    private ?\DateTimeInterface $createdAt = null;
+    private ?DateTimeInterface $createdAt = null;
 
     #[ORM\Column(length: 64, nullable: true)]
     #[AnonymizeProperty(type: 'hash_preserve', weight: 17, options: ['algorithm' => 'sha256', 'salt' => 'demo-salt'])]
@@ -292,12 +293,12 @@ class SystemLog
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
+    public function getCreatedAt(): ?DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(?\DateTimeInterface $createdAt): static
+    public function setCreatedAt(?DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
 

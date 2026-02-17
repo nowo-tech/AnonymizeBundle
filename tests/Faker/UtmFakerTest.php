@@ -7,6 +7,9 @@ namespace Nowo\AnonymizeBundle\Tests\Faker;
 use Nowo\AnonymizeBundle\Faker\UtmFaker;
 use PHPUnit\Framework\TestCase;
 
+use function count;
+use function strlen;
+
 /**
  * Tests for UtmFaker.
  *
@@ -85,8 +88,8 @@ final class UtmFakerTest extends TestCase
     public function testGenerateWithCustomSources(): void
     {
         $customSources = ['custom1', 'custom2', 'custom3'];
-        $result = $this->faker->generate([
-            'type' => 'source',
+        $result        = $this->faker->generate([
+            'type'           => 'source',
             'custom_sources' => $customSources,
         ]);
 
@@ -97,8 +100,8 @@ final class UtmFakerTest extends TestCase
     public function testGenerateWithCustomMediums(): void
     {
         $customMediums = ['custom1', 'custom2', 'custom3'];
-        $result = $this->faker->generate([
-            'type' => 'medium',
+        $result        = $this->faker->generate([
+            'type'           => 'medium',
             'custom_mediums' => $customMediums,
         ]);
 
@@ -109,8 +112,8 @@ final class UtmFakerTest extends TestCase
     public function testGenerateWithCustomCampaigns(): void
     {
         $customCampaigns = ['campaign1', 'campaign2', 'campaign3'];
-        $result = $this->faker->generate([
-            'type' => 'campaign',
+        $result          = $this->faker->generate([
+            'type'             => 'campaign',
             'custom_campaigns' => $customCampaigns,
         ]);
 
@@ -121,7 +124,7 @@ final class UtmFakerTest extends TestCase
     public function testGenerateWithFormatSnakeCase(): void
     {
         $result = $this->faker->generate([
-            'type' => 'source',
+            'type'   => 'source',
             'format' => 'snake_case',
         ]);
 
@@ -132,7 +135,7 @@ final class UtmFakerTest extends TestCase
     public function testGenerateWithFormatKebabCase(): void
     {
         $result = $this->faker->generate([
-            'type' => 'source',
+            'type'   => 'source',
             'format' => 'kebab-case',
         ]);
 
@@ -143,7 +146,7 @@ final class UtmFakerTest extends TestCase
     public function testGenerateWithFormatCamelCase(): void
     {
         $result = $this->faker->generate([
-            'type' => 'source',
+            'type'   => 'source',
             'format' => 'camelCase',
         ]);
 
@@ -154,7 +157,7 @@ final class UtmFakerTest extends TestCase
     public function testGenerateWithFormatLowercase(): void
     {
         $result = $this->faker->generate([
-            'type' => 'source',
+            'type'   => 'source',
             'format' => 'lowercase',
         ]);
 
@@ -166,7 +169,7 @@ final class UtmFakerTest extends TestCase
     public function testGenerateWithFormatPascalCase(): void
     {
         $result = $this->faker->generate([
-            'type' => 'source',
+            'type'   => 'source',
             'format' => 'PascalCase',
         ]);
 
@@ -178,7 +181,7 @@ final class UtmFakerTest extends TestCase
     {
         $prefix = 'pre_';
         $result = $this->faker->generate([
-            'type' => 'source',
+            'type'   => 'source',
             'prefix' => $prefix,
         ]);
 
@@ -189,7 +192,7 @@ final class UtmFakerTest extends TestCase
     {
         $suffix = '_suf';
         $result = $this->faker->generate([
-            'type' => 'source',
+            'type'   => 'source',
             'suffix' => $suffix,
         ]);
 
@@ -201,7 +204,7 @@ final class UtmFakerTest extends TestCase
         $prefix = 'pre_';
         $suffix = '_suf';
         $result = $this->faker->generate([
-            'type' => 'source',
+            'type'   => 'source',
             'prefix' => $prefix,
             'suffix' => $suffix,
         ]);
@@ -213,7 +216,7 @@ final class UtmFakerTest extends TestCase
     public function testGenerateCampaignWithMinMaxLength(): void
     {
         $result = $this->faker->generate([
-            'type' => 'campaign',
+            'type'       => 'campaign',
             'min_length' => 10,
             'max_length' => 20,
         ]);
@@ -226,7 +229,7 @@ final class UtmFakerTest extends TestCase
     public function testGenerateTermWithMinMaxLength(): void
     {
         $result = $this->faker->generate([
-            'type' => 'term',
+            'type'       => 'term',
             'min_length' => 5,
             'max_length' => 15,
         ]);
@@ -239,7 +242,7 @@ final class UtmFakerTest extends TestCase
     public function testGenerateContentWithMinMaxLength(): void
     {
         $result = $this->faker->generate([
-            'type' => 'content',
+            'type'       => 'content',
             'min_length' => 8,
             'max_length' => 20,
         ]);
@@ -263,7 +266,7 @@ final class UtmFakerTest extends TestCase
     public function testGenerateMultipleTimesReturnsDifferentValues(): void
     {
         $results = [];
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             $results[] = $this->faker->generate(['type' => 'source']);
         }
 
@@ -275,7 +278,7 @@ final class UtmFakerTest extends TestCase
     public function testGenerateCampaignMultipleTimes(): void
     {
         $results = [];
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             $results[] = $this->faker->generate(['type' => 'campaign']);
         }
 
@@ -289,7 +292,7 @@ final class UtmFakerTest extends TestCase
     public function testGenerateTermMultipleTimes(): void
     {
         $results = [];
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             $results[] = $this->faker->generate(['type' => 'term']);
         }
 
@@ -303,7 +306,7 @@ final class UtmFakerTest extends TestCase
     public function testGenerateContentMultipleTimes(): void
     {
         $results = [];
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             $results[] = $this->faker->generate(['type' => 'content']);
         }
 

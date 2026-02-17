@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Document;
 
+use DateTimeInterface;
+
 /**
  * TransactionLog document for MongoDB.
  *
@@ -14,18 +16,18 @@ namespace App\Document;
  */
 class TransactionLog
 {
-    private ?string $id = null;
-    private ?string $transactionId = null;
-    private ?string $customerEmail = null;
-    private ?string $iban = null;
-    private ?string $creditCard = null;
-    private ?string $maskedCard = null; // Last 4 digits visible
-    private ?float $amount = null;
-    private ?string $currency = null;
-    private ?string $transactionHash = null;
-    private ?string $status = null; // 'pending', 'completed', 'failed', 'refunded'
-    private ?\DateTimeInterface $transactionDate = null;
-    private bool $anonymized = false;
+    private ?string $id                         = null;
+    private ?string $transactionId              = null;
+    private ?string $customerEmail              = null;
+    private ?string $iban                       = null;
+    private ?string $creditCard                 = null;
+    private ?string $maskedCard                 = null; // Last 4 digits visible
+    private ?float $amount                      = null;
+    private ?string $currency                   = null;
+    private ?string $transactionHash            = null;
+    private ?string $status                     = null; // 'pending', 'completed', 'failed', 'refunded'
+    private ?DateTimeInterface $transactionDate = null;
+    private bool $anonymized                    = false;
 
     public function getId(): ?string
     {
@@ -35,6 +37,7 @@ class TransactionLog
     public function setId(?string $id): static
     {
         $this->id = $id;
+
         return $this;
     }
 
@@ -46,6 +49,7 @@ class TransactionLog
     public function setTransactionId(?string $transactionId): static
     {
         $this->transactionId = $transactionId;
+
         return $this;
     }
 
@@ -57,6 +61,7 @@ class TransactionLog
     public function setCustomerEmail(?string $customerEmail): static
     {
         $this->customerEmail = $customerEmail;
+
         return $this;
     }
 
@@ -68,6 +73,7 @@ class TransactionLog
     public function setIban(?string $iban): static
     {
         $this->iban = $iban;
+
         return $this;
     }
 
@@ -79,6 +85,7 @@ class TransactionLog
     public function setCreditCard(?string $creditCard): static
     {
         $this->creditCard = $creditCard;
+
         return $this;
     }
 
@@ -90,6 +97,7 @@ class TransactionLog
     public function setMaskedCard(?string $maskedCard): static
     {
         $this->maskedCard = $maskedCard;
+
         return $this;
     }
 
@@ -101,6 +109,7 @@ class TransactionLog
     public function setAmount(?float $amount): static
     {
         $this->amount = $amount;
+
         return $this;
     }
 
@@ -112,6 +121,7 @@ class TransactionLog
     public function setCurrency(?string $currency): static
     {
         $this->currency = $currency;
+
         return $this;
     }
 
@@ -123,6 +133,7 @@ class TransactionLog
     public function setTransactionHash(?string $transactionHash): static
     {
         $this->transactionHash = $transactionHash;
+
         return $this;
     }
 
@@ -134,17 +145,19 @@ class TransactionLog
     public function setStatus(?string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
-    public function getTransactionDate(): ?\DateTimeInterface
+    public function getTransactionDate(): ?DateTimeInterface
     {
         return $this->transactionDate;
     }
 
-    public function setTransactionDate(?\DateTimeInterface $transactionDate): static
+    public function setTransactionDate(?DateTimeInterface $transactionDate): static
     {
         $this->transactionDate = $transactionDate;
+
         return $this;
     }
 
@@ -156,6 +169,7 @@ class TransactionLog
     public function setAnonymized(bool $anonymized): static
     {
         $this->anonymized = $anonymized;
+
         return $this;
     }
 }

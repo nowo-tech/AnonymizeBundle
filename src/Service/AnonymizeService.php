@@ -6,21 +6,29 @@ namespace Nowo\AnonymizeBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Exception;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
 use Nowo\AnonymizeBundle\Event\AfterEntityAnonymizeEvent;
-use Nowo\AnonymizeBundle\Event\AfterAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent;
-use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
-use Nowo\AnonymizeBundle\Event\BeforeEntityAnonymizeEvent;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
-use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionProperty;
+use RuntimeException;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use Throwable;
+
+use function count;
+use function in_array;
+use function is_array;
+use function is_bool;
+use function is_object;
+use function sprintf;
+
+use const PHP_INT_MAX;
 
 /**
  * Service for anonymizing database records.
@@ -48,20 +56,22 @@ final class AnonymizeService
         private PatternMatcher $patternMatcher,
         private ?EventDispatcherInterface $eventDispatcher = null,
         private ?ContainerInterface $container = null
-    ) {}
+    ) {
+    }
 
     /**
      * Gets all entities from the entity manager that have the Anonymize attribute.
      *
      * @param EntityManagerInterface $em The entity manager
+     *
      * @return array<string, array{metadata: ClassMetadata, reflection: ReflectionClass, attribute: Anonymize}> Array of entities with their metadata
      */
     public function getAnonymizableEntities(EntityManagerInterface $em): array
     {
-        $entities = [];
+        $entities       = [];
         $metadataDriver = $em->getConfiguration()->getMetadataDriverImpl();
 
-        if (null === $metadataDriver) {
+        if ($metadataDriver === null) {
             return $entities;
         }
 
@@ -69,7 +79,7 @@ final class AnonymizeService
 
         foreach ($classNames as $className) {
             try {
-                $metadata = $em->getClassMetadata($className);
+                $metadata   = $em->getClassMetadata($className);
                 $reflection = new ReflectionClass($className);
 
                 $attributes = $reflection->getAttributes(Anonymize::class);
@@ -77,13 +87,13 @@ final class AnonymizeService
                     continue;
                 }
 
-                $attribute = $attributes[0]->newInstance();
+                $attribute            = $attributes[0]->newInstance();
                 $entities[$className] = [
-                    'metadata' => $metadata,
+                    'metadata'   => $metadata,
                     'reflection' => $reflection,
-                    'attribute' => $attribute,
+                    'attribute'  => $attribute,
                 ];
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Skip entities that can't be loaded
                 continue;
             }
@@ -96,11 +106,12 @@ final class AnonymizeService
      * Gets all properties from an entity that have the AnonymizeProperty attribute.
      *
      * @param ReflectionClass $reflection The entity reflection class
+     *
      * @return array<string, array{property: ReflectionProperty, attribute: AnonymizeProperty, weight: int}> Array of properties with their attributes and weights
      */
     public function getAnonymizableProperties(ReflectionClass $reflection): array
     {
-        $properties = [];
+        $properties              = [];
         $propertiesWithoutWeight = [];
 
         foreach ($reflection->getProperties() as $property) {
@@ -110,12 +121,12 @@ final class AnonymizeService
             }
 
             $attribute = $attributes[0]->newInstance();
-            $weight = $attribute->weight ?? PHP_INT_MAX;
+            $weight    = $attribute->weight ?? PHP_INT_MAX;
 
             $propertyData = [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $attribute,
-                'weight' => $weight,
+                'weight'    => $weight,
             ];
 
             if ($weight === PHP_INT_MAX) {
@@ -126,10 +137,10 @@ final class AnonymizeService
         }
 
         // Sort by weight
-        usort($properties, fn($a, $b) => $a['weight'] <=> $b['weight']);
+        usort($properties, fn ($a, $b) => $a['weight'] <=> $b['weight']);
 
         // Sort properties without weight alphabetically
-        usort($propertiesWithoutWeight, fn($a, $b) => $a['property']->getName() <=> $b['property']->getName());
+        usort($propertiesWithoutWeight, fn ($a, $b) => $a['property']->getName() <=> $b['property']->getName());
 
         // Append properties without weight at the end
         return array_merge($properties, $propertiesWithoutWeight);
@@ -146,6 +157,7 @@ final class AnonymizeService
      * @param array<string, array{metadata: ClassMetadata, reflection: ReflectionClass, attribute: Anonymize}> $entities Array of entities with their metadata
      * @param bool $dryRun If true, only show what would be truncated without making changes
      * @param callable|null $progressCallback Optional progress callback (tableName, message)
+     *
      * @return array<string, int> Array of table names and number of records deleted (or would be deleted in dry-run)
      */
     public function truncateTables(
@@ -155,23 +167,23 @@ final class AnonymizeService
         ?callable $progressCallback = null
     ): array {
         $connection = $em->getConnection();
-        $driverName = \Nowo\AnonymizeBundle\Helper\DbalHelper::getDriverName($connection);
-        $results = [];
+        $driverName = DbalHelper::getDriverName($connection);
+        $results    = [];
 
         // Filter entities that have truncate=true; detect polymorphic (inheritance) to truncate only this discriminator's rows
         $tablesToTruncate = [];
         foreach ($entities as $className => $entityData) {
             $attribute = $entityData['attribute'];
             if ($attribute->truncate) {
-                $metadata = $entityData['metadata'];
-                $tableName = $metadata->getTableName();
-                $discriminator = $this->getDiscriminatorForTruncate($metadata);
+                $metadata           = $entityData['metadata'];
+                $tableName          = $metadata->getTableName();
+                $discriminator      = $this->getDiscriminatorForTruncate($metadata);
                 $tablesToTruncate[] = [
-                    'className' => $className,
-                    'tableName' => $tableName,
-                    'order' => $attribute->truncate_order ?? PHP_INT_MAX, // null = last
+                    'className'           => $className,
+                    'tableName'           => $tableName,
+                    'order'               => $attribute->truncate_order ?? PHP_INT_MAX, // null = last
                     'discriminatorColumn' => $discriminator['column'],
-                    'discriminatorValue' => $discriminator['value'],
+                    'discriminatorValue'  => $discriminator['value'],
                 ];
             }
         }
@@ -185,6 +197,7 @@ final class AnonymizeService
             if ($a['order'] !== $b['order']) {
                 return $a['order'] <=> $b['order'];
             }
+
             return strcmp($a['tableName'], $b['tableName']);
         });
 
@@ -207,11 +220,11 @@ final class AnonymizeService
 
         try {
             foreach ($tablesToTruncate as $tableData) {
-                $tableName = $tableData['tableName'];
-                $className = $tableData['className'];
-                $discCol = $tableData['discriminatorColumn'];
-                $discValue = $tableData['discriminatorValue'];
-                $quotedTableName = \Nowo\AnonymizeBundle\Helper\DbalHelper::quoteIdentifier($connection, $tableName);
+                $tableName             = $tableData['tableName'];
+                $className             = $tableData['className'];
+                $discCol               = $tableData['discriminatorColumn'];
+                $discValue             = $tableData['discriminatorValue'];
+                $quotedTableName       = DbalHelper::quoteIdentifier($connection, $tableName);
                 $isPolymorphicTruncate = $discCol !== null && $discValue !== null;
 
                 if ($progressCallback !== null) {
@@ -227,12 +240,12 @@ final class AnonymizeService
                             'SELECT COUNT(*) as total FROM %s WHERE %s = %s',
                             $quotedTableName,
                             DbalHelper::quoteIdentifier($connection, $discCol),
-                            $connection->quote($discValue)
+                            $connection->quote($discValue),
                         );
                     } else {
                         $countQuery = sprintf('SELECT COUNT(*) as total FROM %s', $quotedTableName);
                     }
-                    $count = (int) $connection->fetchOne($countQuery);
+                    $count               = (int) $connection->fetchOne($countQuery);
                     $results[$tableName] = $count;
                 } else {
                     if ($isPolymorphicTruncate) {
@@ -241,7 +254,7 @@ final class AnonymizeService
                             'DELETE FROM %s WHERE %s = %s',
                             $quotedTableName,
                             DbalHelper::quoteIdentifier($connection, $discCol),
-                            $connection->quote($discValue)
+                            $connection->quote($discValue),
                         ));
                         $results[$tableName] = 0;
                     } else {
@@ -286,12 +299,12 @@ final class AnonymizeService
      */
     private function getDiscriminatorForTruncate(ClassMetadata $metadata): array
     {
-        $none = 0;
+        $none            = 0;
         $inheritanceType = $metadata->inheritanceType ?? $none;
         if ($inheritanceType === $none) {
             return ['column' => null, 'value' => null];
         }
-        $discCol = $metadata->discriminatorColumn ?? null;
+        $discCol   = $metadata->discriminatorColumn ?? null;
         $discValue = $metadata->discriminatorValue ?? null;
         if ($discCol === null || $discValue === null) {
             return ['column' => null, 'value' => null];
@@ -305,6 +318,7 @@ final class AnonymizeService
         if ($columnName === null || $columnName === '') {
             return ['column' => null, 'value' => null];
         }
+
         return ['column' => $columnName, 'value' => (string) $discValue];
     }
 
@@ -320,6 +334,7 @@ final class AnonymizeService
      * @param AnonymizeStatistics|null $statistics Optional statistics collector
      * @param callable|null $progressCallback Optional progress callback (current, total, message)
      * @param Anonymize|null $entityAttribute Optional entity-level Anonymize attribute for filtering records
+     *
      * @return array{processed: int, updated: int, propertyStats: array<string, int>} Statistics about the anonymization
      */
     public function anonymizeEntity(
@@ -333,26 +348,26 @@ final class AnonymizeService
         ?callable $progressCallback = null,
         ?Anonymize $entityAttribute = null
     ): array {
-        $processed = 0;
-        $updated = 0;
+        $processed     = 0;
+        $updated       = 0;
         $propertyStats = [];
-        $tableName = $metadata->getTableName();
-        $connection = $em->getConnection();
+        $tableName     = $metadata->getTableName();
+        $connection    = $em->getConnection();
 
         // Detect relationships in patterns and build query with JOINs
         $allPatterns = [];
         if ($entityAttribute !== null) {
             $allPatterns = array_merge(
                 $this->getPatternFieldNames($entityAttribute->includePatterns),
-                $this->getPatternFieldNames($entityAttribute->excludePatterns)
+                $this->getPatternFieldNames($entityAttribute->excludePatterns),
             );
         }
         foreach ($properties as $propertyData) {
-            $attr = $propertyData['attribute'];
+            $attr        = $propertyData['attribute'];
             $allPatterns = array_merge(
                 $allPatterns,
                 $this->getPatternFieldNames($attr->includePatterns),
-                $this->getPatternFieldNames($attr->excludePatterns)
+                $this->getPatternFieldNames($attr->excludePatterns),
             );
         }
 
@@ -364,10 +379,10 @@ final class AnonymizeService
             $query .= sprintf(
                 ' WHERE %s = %s',
                 DbalHelper::quoteIdentifier($connection, $disc['column']),
-                $connection->quote($disc['value'])
+                $connection->quote($disc['value']),
             );
         }
-        $records = $connection->fetchAllAssociative($query);
+        $records      = $connection->fetchAllAssociative($query);
         $totalRecords = count($records);
 
         if ($progressCallback !== null && $totalRecords > 0) {
@@ -375,7 +390,7 @@ final class AnonymizeService
         }
 
         foreach ($records as $index => $record) {
-            $processed++;
+            ++$processed;
 
             // Check entity-level inclusion/exclusion patterns first
             $isEntityExcluded = false;
@@ -396,18 +411,18 @@ final class AnonymizeService
                 }
                 try {
                     $anonymizer = $this->container->get($entityAttribute->anonymizeService);
-                } catch (\Throwable $e) {
-                    throw new \RuntimeException(sprintf('Cannot get anonymizer service "%s": %s', $entityAttribute->anonymizeService, $e->getMessage()), 0, $e);
+                } catch (Throwable $e) {
+                    throw new RuntimeException(sprintf('Cannot get anonymizer service "%s": %s', $entityAttribute->anonymizeService, $e->getMessage()), 0, $e);
                 }
                 if (!$anonymizer instanceof EntityAnonymizerServiceInterface) {
-                    throw new \RuntimeException(sprintf('Service "%s" must implement %s.', $entityAttribute->anonymizeService, EntityAnonymizerServiceInterface::class));
+                    throw new RuntimeException(sprintf('Service "%s" must implement %s.', $entityAttribute->anonymizeService, EntityAnonymizerServiceInterface::class));
                 }
                 $updates = $anonymizer->anonymize($em, $metadata, $record, $dryRun);
                 if (!empty($updates)) {
                     if (!$dryRun) {
                         $this->updateRecord($connection, $tableName, $record, $updates, $metadata);
                     }
-                    $updated++;
+                    ++$updated;
                 }
                 if ($progressCallback !== null && (($index + 1) % max(1, (int) ($totalRecords / 100)) === 0 || $index + 1 === $totalRecords)) {
                     $progressCallback($index + 1, $totalRecords, sprintf('Processed %d/%d records (%d updated)', $index + 1, $totalRecords, $updated));
@@ -416,11 +431,11 @@ final class AnonymizeService
             }
 
             $shouldAnonymize = false;
-            $updates = [];
+            $updates         = [];
 
             foreach ($properties as $propertyData) {
-                $property = $propertyData['property'];
-                $attribute = $propertyData['attribute'];
+                $property     = $propertyData['property'];
+                $attribute    = $propertyData['attribute'];
                 $propertyName = $property->getName();
 
                 // Check if property exists in metadata
@@ -432,7 +447,7 @@ final class AnonymizeService
                 $columnName = $propertyName;
                 if ($metadata->hasField($propertyName)) {
                     $fieldMapping = $metadata->getFieldMapping($propertyName);
-                    $columnName = $fieldMapping['columnName'] ?? $propertyName;
+                    $columnName   = $fieldMapping['columnName'] ?? $propertyName;
                 }
 
                 // Check if column exists in record
@@ -461,7 +476,7 @@ final class AnonymizeService
                 // Always pass the original value to all fakers for consistency and versatility
                 // This allows fakers to use the original value if needed (e.g., hash_preserve, masking)
                 // or ignore it if not needed (most fakers)
-                $fakerOptions = $attribute->options;
+                $fakerOptions  = $attribute->options;
                 $originalValue = $record[$columnName] ?? null;
 
                 // Check if we should preserve null values (skip anonymization if original is null)
@@ -491,12 +506,12 @@ final class AnonymizeService
                 if (in_array($attribute->type, ['pattern_based', 'copy']) && !isset($fakerOptions['record'])) {
                     // Merge original record with already anonymized values from $updates
                     // This ensures these fakers can access the anonymized value of source_field
-                    $mergedRecord = array_merge($record, $updates);
+                    $mergedRecord           = array_merge($record, $updates);
                     $fakerOptions['record'] = $mergedRecord;
                 }
 
                 // Check if value should be null based on nullable option
-                $nullable = $fakerOptions['nullable'] ?? false;
+                $nullable        = $fakerOptions['nullable'] ?? false;
                 $nullProbability = (int) ($fakerOptions['null_probability'] ?? 0);
 
                 // If nullable is enabled and random chance determines it should be null
@@ -529,7 +544,7 @@ final class AnonymizeService
                         $record[$columnName] ?? null,
                         $anonymizedValue,
                         $record,
-                        $dryRun
+                        $dryRun,
                     );
                     $this->eventDispatcher->dispatch($event);
 
@@ -543,13 +558,13 @@ final class AnonymizeService
                 }
 
                 $updates[$columnName] = $anonymizedValue;
-                $shouldAnonymize = true;
+                $shouldAnonymize      = true;
 
                 // Track property statistics
                 if (!isset($propertyStats[$propertyName])) {
                     $propertyStats[$propertyName] = 0;
                 }
-                $propertyStats[$propertyName]++;
+                ++$propertyStats[$propertyName];
             }
 
             if ($shouldAnonymize && !$dryRun) {
@@ -557,7 +572,7 @@ final class AnonymizeService
                 if ($this->usesAnonymizableTrait($reflection)) {
                     $schemaManager = $connection->createSchemaManager();
                     if ($schemaManager->tablesExist([$tableName])) {
-                        $columns = $schemaManager->listTableColumns($tableName);
+                        $columns             = $schemaManager->listTableColumns($tableName);
                         $hasAnonymizedColumn = false;
                         foreach ($columns as $column) {
                             if ($column->getName() === 'anonymized') {
@@ -573,9 +588,9 @@ final class AnonymizeService
                 }
 
                 $this->updateRecord($connection, $tableName, $record, $updates, $metadata);
-                $updated++;
+                ++$updated;
             } elseif ($shouldAnonymize && $dryRun) {
-                $updated++;
+                ++$updated;
             }
 
             // Update progress
@@ -593,14 +608,14 @@ final class AnonymizeService
                 $processed,
                 $updated,
                 $propertyStats,
-                $dryRun
+                $dryRun,
             );
             $this->eventDispatcher->dispatch($event);
         }
 
         return [
-            'processed' => $processed,
-            'updated' => $updated,
+            'processed'     => $processed,
+            'updated'       => $updated,
             'propertyStats' => $propertyStats,
         ];
     }
@@ -610,6 +625,7 @@ final class AnonymizeService
      *
      * @param string $type The faker type
      * @param string|null $serviceName The service name if type is 'service'
+     *
      * @return FakerInterface The faker instance
      */
     private function getFaker(string $type, ?string $serviceName = null): FakerInterface
@@ -629,6 +645,7 @@ final class AnonymizeService
      * @param mixed $value The value to convert
      * @param ClassMetadata $metadata The entity metadata
      * @param string $columnName The column name
+     *
      * @return mixed The converted value
      */
     private function convertValue(mixed $value, ClassMetadata $metadata, string $columnName): mixed
@@ -668,7 +685,7 @@ final class AnonymizeService
         ClassMetadata $metadata
     ): void {
         $identifier = $metadata->getIdentifierColumnNames();
-        $where = [];
+        $where      = [];
 
         foreach ($identifier as $idColumn) {
             $idValue = $record[$idColumn];
@@ -676,7 +693,7 @@ final class AnonymizeService
             $where[] = sprintf(
                 '%s = %s',
                 DbalHelper::quoteIdentifier($connection, $idColumn),
-                $connection->quote((string) $idValue)
+                $connection->quote((string) $idValue),
             );
         }
 
@@ -695,7 +712,7 @@ final class AnonymizeService
             $set[] = sprintf(
                 '%s = %s',
                 DbalHelper::quoteIdentifier($connection, $column),
-                $quotedValue
+                $quotedValue,
             );
         }
 
@@ -703,7 +720,7 @@ final class AnonymizeService
             'UPDATE %s SET %s WHERE %s',
             DbalHelper::quoteIdentifier($connection, $tableName),
             implode(', ', $set),
-            implode(' AND ', $where)
+            implode(' AND ', $where),
         );
 
         $connection->executeStatement($query);
@@ -713,6 +730,7 @@ final class AnonymizeService
      * Checks if a class uses the AnonymizableTrait.
      *
      * @param ReflectionClass $reflection The reflection class
+     *
      * @return bool True if the class uses AnonymizableTrait
      */
     private function usesAnonymizableTrait(ReflectionClass $reflection): bool
@@ -742,7 +760,8 @@ final class AnonymizeService
     /**
      * Extracts all field names from a patterns array (single config or list of configs).
      *
-     * @param array<string|array<string>|array<int, array<string, string|array<string>>>> $patterns
+     * @param array<array<int, array<string, array<string>|string>>|array<string>|string> $patterns
+     *
      * @return array<int, string>
      */
     private function getPatternFieldNames(array $patterns): array
@@ -755,8 +774,10 @@ final class AnonymizeService
             foreach ($patterns as $set) {
                 $names = array_merge($names, array_keys($set));
             }
+
             return array_values(array_unique($names));
         }
+
         return array_keys($patterns);
     }
 
@@ -770,6 +791,7 @@ final class AnonymizeService
                 return false;
             }
         }
+
         return true;
     }
 
@@ -780,6 +802,7 @@ final class AnonymizeService
      * @param ClassMetadata $metadata The entity metadata
      * @param string $tableName The main table name
      * @param array<string> $patternFields Array of pattern field names (e.g., ['id', 'type.name', 'status'])
+     *
      * @return string The SQL query with JOINs
      */
     private function buildQueryWithRelationships(
@@ -788,11 +811,11 @@ final class AnonymizeService
         string $tableName,
         array $patternFields
     ): string {
-        $connection = $em->getConnection();
+        $connection     = $em->getConnection();
         $mainTableAlias = 't0';
-        $joins = [];
-        $selectFields = [DbalHelper::quoteIdentifier($connection, $mainTableAlias) . '.*'];
-        $joinCounter = 1;
+        $joins          = [];
+        $selectFields   = [DbalHelper::quoteIdentifier($connection, $mainTableAlias) . '.*'];
+        $joinCounter    = 1;
 
         // Detect relationship patterns (fields with dots, e.g., 'type.name')
         foreach ($patternFields as $patternField) {
@@ -800,9 +823,9 @@ final class AnonymizeService
                 continue; // Not a relationship pattern
             }
 
-            $parts = explode('.', $patternField, 2);
+            $parts           = explode('.', $patternField, 2);
             $associationName = $parts[0];
-            $relatedField = $parts[1];
+            $relatedField    = $parts[1];
 
             // Check if association exists
             if (!$metadata->hasAssociation($associationName)) {
@@ -810,10 +833,10 @@ final class AnonymizeService
             }
 
             $associationMapping = $metadata->getAssociationMapping($associationName);
-            $targetEntity = $associationMapping['targetEntity'];
-            $targetMetadata = $em->getClassMetadata($targetEntity);
-            $targetTable = $targetMetadata->getTableName();
-            $alias = 't' . $joinCounter;
+            $targetEntity       = $associationMapping['targetEntity'];
+            $targetMetadata     = $em->getClassMetadata($targetEntity);
+            $targetTable        = $targetMetadata->getTableName();
+            $alias              = 't' . $joinCounter;
 
             // Get join columns
             $joinColumns = $associationMapping['joinColumns'] ?? [];
@@ -821,11 +844,11 @@ final class AnonymizeService
                 // ManyToOne or OneToOne - use source column
                 $sourceColumn = $metadata->getSingleAssociationJoinColumnName($associationName);
                 // Get target ID column name
-                $targetIdField = $targetMetadata->getSingleIdentifierFieldName();
+                $targetIdField   = $targetMetadata->getSingleIdentifierFieldName();
                 $targetIdMapping = $targetMetadata->getFieldMapping($targetIdField);
-                $targetColumn = $targetIdMapping['columnName'] ?? 'id';
+                $targetColumn    = $targetIdMapping['columnName'] ?? 'id';
             } else {
-                $joinColumn = $joinColumns[0];
+                $joinColumn   = $joinColumns[0];
                 $sourceColumn = $joinColumn['name'] ?? $associationName . '_id';
                 $targetColumn = $joinColumn['referencedColumnName'] ?? 'id';
             }
@@ -834,22 +857,22 @@ final class AnonymizeService
             $joinKey = $associationName;
             if (!isset($joins[$joinKey])) {
                 $joins[$joinKey] = [
-                    'table' => $targetTable,
-                    'alias' => $alias,
+                    'table'        => $targetTable,
+                    'alias'        => $alias,
                     'sourceColumn' => $sourceColumn,
                     'targetColumn' => $targetColumn,
-                    'counter' => $joinCounter,
+                    'counter'      => $joinCounter,
                 ];
 
                 // Add related field to SELECT if it exists in target metadata
                 if ($targetMetadata->hasField($relatedField)) {
                     $relatedFieldMapping = $targetMetadata->getFieldMapping($relatedField);
-                    $relatedColumnName = $relatedFieldMapping['columnName'] ?? $relatedField;
+                    $relatedColumnName   = $relatedFieldMapping['columnName'] ?? $relatedField;
 
                     // Validate that we have valid identifiers before adding to SELECT
                     if (!empty($relatedColumnName) && !empty($alias)) {
-                        $quotedAlias = DbalHelper::quoteIdentifier($connection, $alias);
-                        $quotedColumn = DbalHelper::quoteIdentifier($connection, $relatedColumnName);
+                        $quotedAlias   = DbalHelper::quoteIdentifier($connection, $alias);
+                        $quotedColumn  = DbalHelper::quoteIdentifier($connection, $relatedColumnName);
                         $quotedPattern = DbalHelper::quoteIdentifier($connection, $patternField);
 
                         // Only add if all quoted identifiers are non-empty
@@ -858,13 +881,13 @@ final class AnonymizeService
                                 '%s.%s AS %s',
                                 $quotedAlias,
                                 $quotedColumn,
-                                $quotedPattern
+                                $quotedPattern,
                             );
                         }
                     }
                 }
 
-                $joinCounter++;
+                ++$joinCounter;
             }
         }
 
@@ -890,7 +913,7 @@ final class AnonymizeService
         $fromClause = sprintf(
             '%s AS %s',
             DbalHelper::quoteIdentifier($connection, $tableName),
-            DbalHelper::quoteIdentifier($connection, $mainTableAlias)
+            DbalHelper::quoteIdentifier($connection, $mainTableAlias),
         );
 
         // Build JOIN clauses
@@ -903,7 +926,7 @@ final class AnonymizeService
                 DbalHelper::quoteIdentifier($connection, $mainTableAlias),
                 DbalHelper::quoteIdentifier($connection, $join['sourceColumn']),
                 DbalHelper::quoteIdentifier($connection, $join['alias']),
-                DbalHelper::quoteIdentifier($connection, $join['targetColumn'])
+                DbalHelper::quoteIdentifier($connection, $join['targetColumn']),
             );
         }
 

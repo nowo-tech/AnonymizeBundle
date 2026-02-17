@@ -7,6 +7,8 @@ namespace Nowo\AnonymizeBundle\Tests\Faker;
 use Nowo\AnonymizeBundle\Faker\TextFaker;
 use PHPUnit\Framework\TestCase;
 
+use const PHP_INT_MAX;
+
 /**
  * Test case for TextFaker.
  *
@@ -21,7 +23,7 @@ class TextFakerTest extends TestCase
     public function testGenerate(): void
     {
         $faker = new TextFaker('en_US');
-        $text = $faker->generate();
+        $text  = $faker->generate();
 
         $this->assertIsString($text);
         $this->assertNotEmpty($text);
@@ -33,7 +35,7 @@ class TextFakerTest extends TestCase
     public function testGenerateSentence(): void
     {
         $faker = new TextFaker('en_US');
-        $text = $faker->generate(['type' => 'sentence']);
+        $text  = $faker->generate(['type' => 'sentence']);
 
         $this->assertIsString($text);
         $this->assertNotEmpty($text);
@@ -45,7 +47,7 @@ class TextFakerTest extends TestCase
     public function testGenerateParagraph(): void
     {
         $faker = new TextFaker('en_US');
-        $text = $faker->generate(['type' => 'paragraph']);
+        $text  = $faker->generate(['type' => 'paragraph']);
 
         $this->assertIsString($text);
         $this->assertNotEmpty($text);
@@ -60,10 +62,10 @@ class TextFakerTest extends TestCase
 
         // Run multiple times to account for Faker's randomness
         // Faker may occasionally generate slightly fewer words than requested
-        $allValid = false;
+        $allValid     = false;
         $minWordCount = PHP_INT_MAX;
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             $text = $faker->generate(['min_words' => 5, 'max_words' => 20]);
 
             $this->assertIsString($text);
@@ -124,7 +126,7 @@ class TextFakerTest extends TestCase
     public function testGenerateWithDifferentLocale(): void
     {
         $faker = new TextFaker('es_ES');
-        $text = $faker->generate();
+        $text  = $faker->generate();
 
         $this->assertIsString($text);
         $this->assertNotEmpty($text);
@@ -136,7 +138,7 @@ class TextFakerTest extends TestCase
     public function testGenerateParagraphWithWordLimits(): void
     {
         $faker = new TextFaker('en_US');
-        $text = $faker->generate(['type' => 'paragraph', 'min_words' => 10, 'max_words' => 30]);
+        $text  = $faker->generate(['type' => 'paragraph', 'min_words' => 10, 'max_words' => 30]);
 
         $this->assertIsString($text);
         $this->assertNotEmpty($text);
@@ -150,7 +152,7 @@ class TextFakerTest extends TestCase
     public function testGenerateWithMinGreaterThanMax(): void
     {
         $faker = new TextFaker('en_US');
-        $text = $faker->generate(['min_words' => 20, 'max_words' => 10]);
+        $text  = $faker->generate(['min_words' => 20, 'max_words' => 10]);
 
         $this->assertIsString($text);
         $this->assertNotEmpty($text);

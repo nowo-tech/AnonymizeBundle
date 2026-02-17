@@ -8,8 +8,8 @@ use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\DiscriminatorColumnMapping;
-use Doctrine\ORM\Mapping\Driver\AttributeDriver;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
+use Exception;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
@@ -19,6 +19,10 @@ use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
+use RuntimeException;
+use stdClass;
+
+use function in_array;
 
 /**
  * Test case for AnonymizeService.
@@ -34,9 +38,9 @@ class AnonymizeServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->fakerFactory = new FakerFactory('en_US');
+        $this->fakerFactory   = new FakerFactory('en_US');
         $this->patternMatcher = new PatternMatcher();
-        $this->service = new AnonymizeService($this->fakerFactory, $this->patternMatcher);
+        $this->service        = new AnonymizeService($this->fakerFactory, $this->patternMatcher);
     }
 
     /**
@@ -44,7 +48,7 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testGetAnonymizableEntitiesReturnsEmptyWhenNoMetadataDriver(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em     = $this->createMock(EntityManagerInterface::class);
         $config = $this->createMock(Configuration::class);
 
         $em->method('getConfiguration')
@@ -77,10 +81,10 @@ class AnonymizeServiceTest extends TestCase
 
         $className = 'Nowo\AnonymizeBundle\Tests\Service\TestEntity';
 
-        $metadata = $this->createMock(ClassMetadata::class);
+        $metadata       = $this->createMock(ClassMetadata::class);
         $metadataDriver = $this->createMock(MappingDriver::class);
-        $config = $this->createMock(Configuration::class);
-        $em = $this->createMock(EntityManagerInterface::class);
+        $config         = $this->createMock(Configuration::class);
+        $em             = $this->createMock(EntityManagerInterface::class);
 
         $em->method('getConfiguration')
             ->willReturn($config);
@@ -117,10 +121,10 @@ class AnonymizeServiceTest extends TestCase
 
         $className = $testEntity::class;
 
-        $metadata = $this->createMock(ClassMetadata::class);
+        $metadata       = $this->createMock(ClassMetadata::class);
         $metadataDriver = $this->createMock(MappingDriver::class);
-        $config = $this->createMock(Configuration::class);
-        $em = $this->createMock(EntityManagerInterface::class);
+        $config         = $this->createMock(Configuration::class);
+        $em             = $this->createMock(EntityManagerInterface::class);
 
         $em->method('getConfiguration')
             ->willReturn($config);
@@ -159,12 +163,12 @@ class AnonymizeServiceTest extends TestCase
         };
 
         $reflection = new ReflectionClass($testEntity);
-        $result = $this->service->getAnonymizableProperties($reflection);
+        $result     = $this->service->getAnonymizableProperties($reflection);
 
         $this->assertIsArray($result);
         $this->assertCount(2, $result);
         // The result is an indexed array, not associative by property name
-        $propertyNames = array_map(fn($item) => $item['property']->getName(), $result);
+        $propertyNames = array_map(fn ($item) => $item['property']->getName(), $result);
         $this->assertContains('email', $propertyNames);
         $this->assertContains('name', $propertyNames);
         $this->assertArrayHasKey('property', $result[0]);
@@ -190,12 +194,12 @@ class AnonymizeServiceTest extends TestCase
         };
 
         $reflection = new ReflectionClass($testEntity);
-        $result = $this->service->getAnonymizableProperties($reflection);
+        $result     = $this->service->getAnonymizableProperties($reflection);
 
         $this->assertIsArray($result);
         $this->assertCount(3, $result);
         // The result is sorted by weight, so email (1) should come first, then phone (2), then name (3)
-        $propertyNames = array_map(fn($item) => $item['property']->getName(), $result);
+        $propertyNames = array_map(fn ($item) => $item['property']->getName(), $result);
         $this->assertEquals('email', $propertyNames[0]);
         $this->assertEquals('phone', $propertyNames[1]);
         $this->assertEquals('name', $propertyNames[2]);
@@ -216,12 +220,12 @@ class AnonymizeServiceTest extends TestCase
         };
 
         $reflection = new ReflectionClass($testEntity);
-        $result = $this->service->getAnonymizableProperties($reflection);
+        $result     = $this->service->getAnonymizableProperties($reflection);
 
         $this->assertIsArray($result);
         $this->assertCount(2, $result);
         // Properties with weight should come first
-        $propertyNames = array_map(fn($item) => $item['property']->getName(), $result);
+        $propertyNames = array_map(fn ($item) => $item['property']->getName(), $result);
         $this->assertEquals('email', $propertyNames[0]);
         $this->assertEquals('name', $propertyNames[1]);
     }
@@ -237,7 +241,7 @@ class AnonymizeServiceTest extends TestCase
         };
 
         $reflection = new ReflectionClass($testEntity);
-        $result = $this->service->getAnonymizableProperties($reflection);
+        $result     = $this->service->getAnonymizableProperties($reflection);
 
         $this->assertIsArray($result);
         $this->assertEmpty($result);
@@ -249,8 +253,8 @@ class AnonymizeServiceTest extends TestCase
     public function testGetAnonymizableEntitiesHandlesExceptions(): void
     {
         $metadataDriver = $this->createMock(MappingDriver::class);
-        $config = $this->createMock(Configuration::class);
-        $em = $this->createMock(EntityManagerInterface::class);
+        $config         = $this->createMock(Configuration::class);
+        $em             = $this->createMock(EntityManagerInterface::class);
 
         $em->method('getConfiguration')
             ->willReturn($config);
@@ -262,7 +266,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(['NonExistentClass']);
 
         $em->method('getClassMetadata')
-            ->willThrowException(new \Exception('Class not found'));
+            ->willThrowException(new Exception('Class not found'));
 
         $result = $this->service->getAnonymizableEntities($em);
 
@@ -284,7 +288,7 @@ class AnonymizeServiceTest extends TestCase
         };
 
         $reflection = new ReflectionClass($testEntity);
-        $result = $this->service->getAnonymizableProperties($reflection);
+        $result     = $this->service->getAnonymizableProperties($reflection);
 
         $this->assertIsArray($result);
         $this->assertCount(2, $result);
@@ -316,7 +320,7 @@ class AnonymizeServiceTest extends TestCase
         };
 
         $reflection = new ReflectionClass($testEntity);
-        $result = $this->service->getAnonymizableProperties($reflection);
+        $result     = $this->service->getAnonymizableProperties($reflection);
 
         $this->assertIsArray($result);
         $this->assertCount(5, $result);
@@ -327,9 +331,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesEmptyRecords(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
         $reflection = $this->createMock(ReflectionClass::class);
@@ -344,7 +348,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn([]);
 
         $properties = [];
-        $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties);
+        $result     = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties);
 
         $this->assertIsArray($result);
         $this->assertEquals(0, $result['processed']);
@@ -357,9 +361,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesProgressCallback(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
         $reflection = $this->createMock(ReflectionClass::class);
@@ -373,8 +377,8 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([]);
 
-        $properties = [];
-        $progressCalled = false;
+        $properties       = [];
+        $progressCalled   = false;
         $progressCallback = function ($current, $total, $message) use (&$progressCalled) {
             $progressCalled = true;
         };
@@ -391,9 +395,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesStatistics(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
         $reflection = $this->createMock(ReflectionClass::class);
@@ -409,7 +413,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn([]);
 
         $properties = [];
-        $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, $statistics);
+        $result     = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, $statistics);
 
         $this->assertIsArray($result);
         $this->assertEquals(0, $result['processed']);
@@ -420,9 +424,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesEntityLevelPatterns(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
         $reflection = $this->createMock(ReflectionClass::class);
@@ -436,11 +440,11 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([]);
 
-        $entityAttribute = new Anonymize();
+        $entityAttribute                  = new Anonymize();
         $entityAttribute->includePatterns = ['id' => '>100'];
 
         $properties = [];
-        $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, null, $entityAttribute);
+        $result     = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, null, $entityAttribute);
 
         $this->assertIsArray($result);
         $this->assertEquals(0, $result['processed']);
@@ -451,9 +455,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesDryRunMode(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
         $reflection = $this->createMock(ReflectionClass::class);
@@ -468,7 +472,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn([]);
 
         $properties = [];
-        $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, true);
+        $result     = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, true);
 
         $this->assertIsArray($result);
         $this->assertEquals(0, $result['processed']);
@@ -480,9 +484,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesNonExistentProperties(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -509,18 +513,18 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
-        $property = $reflection->getProperty('email');
+        $property   = $reflection->getProperty('email');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -541,9 +545,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesRelationshipPatterns(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -569,14 +573,14 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
 
-        $property = $reflection->getProperty('email');
+        $property   = $reflection->getProperty('email');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -591,9 +595,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityAddsDiscriminatorToQueryWhenPolymorphic(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -606,26 +610,27 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(['id', 'message']);
         $metadata->method('getIdentifierColumnNames')
             ->willReturn(['id']);
-        $metadata->inheritanceType = 1; // SINGLE_TABLE
+        $metadata->inheritanceType     = 1; // SINGLE_TABLE
         $metadata->discriminatorColumn = class_exists(DiscriminatorColumnMapping::class)
             ? new DiscriminatorColumnMapping('string', 'type', 'type')
             : ['name' => 'type'];
         $metadata->discriminatorValue = 'sms';
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . str_replace("'", "''", (string) $val) . "'");
+            ->willReturnCallback(fn ($val) => "'" . str_replace("'", "''", (string) $val) . "'");
 
         $capturedQuery = null;
         $connection->method('fetchAllAssociative')
             ->willReturnCallback(function ($query) use (&$capturedQuery) {
                 $capturedQuery = $query;
+
                 return [];
             });
 
         $reflection = $this->createMock(ReflectionClass::class);
-        $result = $this->service->anonymizeEntity($em, $metadata, $reflection, [], 100, false);
+        $result     = $this->service->anonymizeEntity($em, $metadata, $reflection, [], 100, false);
 
         $this->assertIsArray($result);
         $this->assertNotNull($capturedQuery, 'Query should have been passed to fetchAllAssociative');
@@ -640,9 +645,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesEntityLevelExcludePatterns(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
         $reflection = $this->createMock(ReflectionClass::class);
@@ -660,13 +665,13 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
 
-        $entityAttribute = new Anonymize();
+        $entityAttribute                  = new Anonymize();
         $entityAttribute->excludePatterns = ['status' => 'deleted'];
 
         $properties = [];
-        $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, null, $entityAttribute);
+        $result     = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, null, $entityAttribute);
 
         $this->assertIsArray($result);
         $this->assertEquals(0, $result['processed']);
@@ -677,9 +682,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesEntityLevelMultipleExcludeConfigs(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
         $reflection = $this->createMock(ReflectionClass::class);
@@ -697,16 +702,16 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'role' => 'admin', 'status' => 'active']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
 
-        $entityAttribute = new Anonymize();
+        $entityAttribute                  = new Anonymize();
         $entityAttribute->excludePatterns = [
             ['status' => 'deleted'],
             ['role' => 'admin'],
         ];
 
         $properties = [];
-        $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, null, $entityAttribute);
+        $result     = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, null, $entityAttribute);
 
         $this->assertIsArray($result);
         $this->assertEquals(1, $result['processed'], 'Record was iterated');
@@ -718,9 +723,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesEntityLevelExcludePatternsArrayValue(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
         $reflection = $this->createMock(ReflectionClass::class);
@@ -738,13 +743,13 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'user@nowo.tech']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
 
-        $entityAttribute = new Anonymize();
+        $entityAttribute                  = new Anonymize();
         $entityAttribute->excludePatterns = ['email' => ['%@nowo.tech', 'operador@example.com']];
 
         $properties = [];
-        $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, null, $entityAttribute);
+        $result     = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, null, $entityAttribute);
 
         $this->assertIsArray($result);
         $this->assertEquals(1, $result['processed'], 'Record was iterated');
@@ -756,9 +761,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesPropertyIncludePatterns(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -790,18 +795,18 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 50, 'email' => 'test@example.com']]); // ID doesn't match pattern
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
-        $property = $reflection->getProperty('email');
+        $property   = $reflection->getProperty('email');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -821,9 +826,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesPropertyExcludePatterns(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -855,18 +860,18 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com', 'status' => 'deleted']]); // Status matches exclude pattern
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
-        $property = $reflection->getProperty('email');
+        $property   = $reflection->getProperty('email');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -886,10 +891,10 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesAnonymizableTrait(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(\Doctrine\DBAL\Connection::class);
         $schemaManager = $this->createMock(\Doctrine\DBAL\Schema\AbstractSchemaManager::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata      = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -936,18 +941,18 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(['anonymized' => $column]);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
-        $property = $reflection->getProperty('email');
+        $property   = $reflection->getProperty('email');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -966,10 +971,10 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesAnonymizableTraitWithoutColumn(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(\Doctrine\DBAL\Connection::class);
         $schemaManager = $this->createMock(\Doctrine\DBAL\Schema\AbstractSchemaManager::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata      = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -1016,18 +1021,18 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(['other_column' => $column]);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
-        $property = $reflection->getProperty('email');
+        $property   = $reflection->getProperty('email');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -1046,10 +1051,10 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesEventDispatcherSkipAnonymization(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $em              = $this->createMock(EntityManagerInterface::class);
+        $connection      = $this->createMock(\Doctrine\DBAL\Connection::class);
         $eventDispatcher = $this->createMock(\Symfony\Contracts\EventDispatcher\EventDispatcherInterface::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata        = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -1060,9 +1065,9 @@ class AnonymizeServiceTest extends TestCase
         $reflection = new ReflectionClass($testEntity);
 
         // Create service with event dispatcher using real instances
-        $patternMatcher = new \Nowo\AnonymizeBundle\Service\PatternMatcher();
-        $fakerFactory = new \Nowo\AnonymizeBundle\Faker\FakerFactory('en_US');
-        $service = new AnonymizeService($fakerFactory, $patternMatcher, $eventDispatcher);
+        $patternMatcher = new PatternMatcher();
+        $fakerFactory   = new FakerFactory('en_US');
+        $service        = new AnonymizeService($fakerFactory, $patternMatcher, $eventDispatcher);
 
         $em->method('getConnection')
             ->willReturn($connection);
@@ -1086,9 +1091,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
@@ -1098,15 +1103,16 @@ class AnonymizeServiceTest extends TestCase
                 if ($event instanceof \Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent) {
                     $event->setSkipAnonymization(true);
                 }
+
                 return $event;
             });
 
-        $property = $reflection->getProperty('email');
+        $property   = $reflection->getProperty('email');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -1126,10 +1132,10 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesEventDispatcherModifiedValue(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $em              = $this->createMock(EntityManagerInterface::class);
+        $connection      = $this->createMock(\Doctrine\DBAL\Connection::class);
         $eventDispatcher = $this->createMock(\Symfony\Contracts\EventDispatcher\EventDispatcherInterface::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata        = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -1140,9 +1146,9 @@ class AnonymizeServiceTest extends TestCase
         $reflection = new ReflectionClass($testEntity);
 
         // Create service with event dispatcher using real instances
-        $patternMatcher = new \Nowo\AnonymizeBundle\Service\PatternMatcher();
-        $fakerFactory = new \Nowo\AnonymizeBundle\Faker\FakerFactory('en_US');
-        $service = new AnonymizeService($fakerFactory, $patternMatcher, $eventDispatcher);
+        $patternMatcher = new PatternMatcher();
+        $fakerFactory   = new FakerFactory('en_US');
+        $service        = new AnonymizeService($fakerFactory, $patternMatcher, $eventDispatcher);
 
         $em->method('getConnection')
             ->willReturn($connection);
@@ -1166,9 +1172,9 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
@@ -1178,15 +1184,16 @@ class AnonymizeServiceTest extends TestCase
                 if ($event instanceof \Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent) {
                     $event->setAnonymizedValue('modified@example.com');
                 }
+
                 return $event;
             });
 
-        $property = $reflection->getProperty('email');
+        $property   = $reflection->getProperty('email');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -1205,9 +1212,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesIntegerFieldType(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -1239,18 +1246,18 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'age' => '25']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
-        $property = $reflection->getProperty('age');
+        $property   = $reflection->getProperty('age');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -1269,9 +1276,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesFloatFieldType(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -1303,18 +1310,18 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'price' => '99.99']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
-        $property = $reflection->getProperty('price');
+        $property   = $reflection->getProperty('price');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -1333,9 +1340,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesBooleanFieldType(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -1367,18 +1374,18 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'active' => '1']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
-        $property = $reflection->getProperty('active');
+        $property   = $reflection->getProperty('active');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -1397,9 +1404,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesNullValues(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -1432,23 +1439,24 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => null]]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
             ->willReturnCallback(function ($val) {
                 if ($val === null) {
                     return 'NULL';
                 }
+
                 return "'" . (string) $val . "'";
             });
         $connection->method('executeStatement')
             ->willReturn(1);
 
-        $property = $reflection->getProperty('email');
+        $property   = $reflection->getProperty('email');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -1468,9 +1476,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesBooleanTrueValue(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -1502,18 +1510,18 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'active' => '0']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
-        $property = $reflection->getProperty('active');
+        $property   = $reflection->getProperty('active');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -1532,9 +1540,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesBooleanFalseValue(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -1566,18 +1574,18 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'active' => '1']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
-        $property = $reflection->getProperty('active');
+        $property   = $reflection->getProperty('active');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -1596,9 +1604,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesDifferentIntegerTypes(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -1630,18 +1638,18 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'count' => '10']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
-        $property = $reflection->getProperty('count');
+        $property   = $reflection->getProperty('count');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -1660,9 +1668,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesDecimalFieldType(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -1694,18 +1702,18 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'amount' => '50.50']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
-        $property = $reflection->getProperty('amount');
+        $property   = $reflection->getProperty('amount');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -1724,9 +1732,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testBuildQueryWithRelationshipsHandlesNonExistentAssociations(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -1757,20 +1765,20 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(['id']);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
-        $property = $reflection->getProperty('email');
+        $property   = $reflection->getProperty('email');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -1791,9 +1799,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testBuildQueryWithRelationshipsHandlesDuplicatePatternFields(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -1817,16 +1825,16 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(['id']);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('fetchAllAssociative')
             ->willReturn([]);
 
-        $property = $reflection->getProperty('email');
+        $property   = $reflection->getProperty('email');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -1844,9 +1852,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testConvertValueHandlesDifferentFieldTypes(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -1878,18 +1886,18 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'count' => '10']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
         $connection->method('executeStatement')
             ->willReturn(1);
 
-        $property = $reflection->getProperty('count');
+        $property   = $reflection->getProperty('count');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -1908,9 +1916,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesNullableOption(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -1942,17 +1950,18 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
             ->willReturnCallback(function ($val) {
                 if ($val === null) {
                     return 'NULL';
                 }
+
                 return "'" . (string) $val . "'";
             });
 
         // Track if null was used in SQL and capture SQL for debugging
-        $nullUsed = false;
+        $nullUsed    = false;
         $capturedSql = '';
         $connection->method('executeStatement')
             ->willReturnCallback(function ($sql) use (&$nullUsed, &$capturedSql) {
@@ -1962,15 +1971,16 @@ class AnonymizeServiceTest extends TestCase
                 if (preg_match('/`email`\s*=\s*NULL\b/i', $sql) || preg_match('/email\s*=\s*NULL\b/i', $sql)) {
                     $nullUsed = true;
                 }
+
                 return 1;
             });
 
-        $property = $reflection->getProperty('email');
+        $property   = $reflection->getProperty('email');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -1992,9 +2002,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityHandlesNullableOptionZeroProbability(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -2026,12 +2036,13 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
             ->willReturnCallback(function ($val) {
                 if ($val === null) {
                     return 'NULL';
                 }
+
                 return "'" . (string) $val . "'";
             });
 
@@ -2043,15 +2054,16 @@ class AnonymizeServiceTest extends TestCase
                 if (preg_match('/`email`\s*=\s*NULL\b/i', $sql) || preg_match('/email\s*=\s*NULL\b/i', $sql)) {
                     $nullUsed = true;
                 }
+
                 return 1;
             });
 
-        $property = $reflection->getProperty('email');
+        $property   = $reflection->getProperty('email');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -2061,9 +2073,9 @@ class AnonymizeServiceTest extends TestCase
 
         // Run multiple times to ensure 0% null probability never returns null
         $neverNull = true;
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             $nullUsed = false;
-            $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
+            $result   = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
 
             if ($nullUsed) {
                 $neverNull = false;
@@ -2083,9 +2095,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityPreservesNullValues(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -2118,12 +2130,13 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => null]]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
             ->willReturnCallback(function ($val) {
                 if ($val === null) {
                     return 'NULL';
                 }
+
                 return "'" . (string) $val . "'";
             });
 
@@ -2132,15 +2145,16 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('executeStatement')
             ->willReturnCallback(function ($sql) use (&$sqlExecuted) {
                 $sqlExecuted = true;
+
                 return 1;
             });
 
-        $property = $reflection->getProperty('email');
+        $property   = $reflection->getProperty('email');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -2161,9 +2175,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityAnonymizesNonNullValuesWithPreserveNull(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -2196,23 +2210,24 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'original@example.com']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
             ->willReturnCallback(function ($val) {
                 if ($val === null) {
                     return 'NULL';
                 }
+
                 return "'" . (string) $val . "'";
             });
         $connection->method('executeStatement')
             ->willReturn(1);
 
-        $property = $reflection->getProperty('email');
+        $property   = $reflection->getProperty('email');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
@@ -2232,16 +2247,16 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityBypassesEntityExclusion(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
         $testEntity = new class {
             #[AnonymizeProperty(
                 type: 'null',
-                options: ['bypass_entity_exclusion' => true]
+                options: ['bypass_entity_exclusion' => true],
             )]
             public ?string $sensitiveNotes = 'Sensitive data';
         };
@@ -2270,12 +2285,13 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'sensitive_notes' => 'Sensitive data', 'role' => 'admin']]);
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
             ->willReturnCallback(function ($val) {
                 if ($val === null) {
                     return 'NULL';
                 }
+
                 return "'" . (string) $val . "'";
             });
 
@@ -2283,20 +2299,21 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('executeStatement')
             ->willReturnCallback(function ($sql) use (&$capturedSql) {
                 $capturedSql = $sql;
+
                 return 1;
             });
 
-        $property = $reflection->getProperty('sensitiveNotes');
+        $property   = $reflection->getProperty('sensitiveNotes');
         $properties = [
             [
-                'property' => $property,
+                'property'  => $property,
                 'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
-                'weight' => 1,
+                'weight'    => 1,
             ],
         ];
 
         // Entity attribute with exclusion pattern that matches the record
-        $entityAttribute = new Anonymize();
+        $entityAttribute                  = new Anonymize();
         $entityAttribute->excludePatterns = ['role' => 'admin'];
 
         $progressCallback = function ($current, $total, $message) {
@@ -2317,9 +2334,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityDelegatesToAnonymizeServiceWhenSet(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -2338,9 +2355,9 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn([]);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . str_replace("'", "''", (string) $val) . "'");
+            ->willReturnCallback(fn ($val) => "'" . str_replace("'", "''", (string) $val) . "'");
 
         $record = ['id' => 1, 'recipient' => '+34600000000', 'message' => 'Hello'];
         $connection->method('fetchAllAssociative')
@@ -2350,6 +2367,7 @@ class AnonymizeServiceTest extends TestCase
         $connection->method('executeStatement')
             ->willReturnCallback(function ($sql) use (&$capturedSql) {
                 $capturedSql = $sql;
+
                 return 1;
             });
 
@@ -2366,8 +2384,8 @@ class AnonymizeServiceTest extends TestCase
         $service = new AnonymizeService($this->fakerFactory, $this->patternMatcher, null, $container);
 
         $entityAttribute = new Anonymize(anonymizeService: 'App\Service\SmsAnonymizer');
-        $reflection = $this->createMock(ReflectionClass::class);
-        $properties = [];
+        $reflection      = $this->createMock(ReflectionClass::class);
+        $properties      = [];
 
         $result = $service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, null, $entityAttribute);
 
@@ -2386,9 +2404,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityDelegatesToAnonymizeServiceDryRun(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -2420,7 +2438,7 @@ class AnonymizeServiceTest extends TestCase
         $service = new AnonymizeService($this->fakerFactory, $this->patternMatcher, null, $container);
 
         $entityAttribute = new Anonymize(anonymizeService: 'App\Service\SmsAnonymizer');
-        $reflection = $this->createMock(ReflectionClass::class);
+        $reflection      = $this->createMock(ReflectionClass::class);
 
         $result = $service->anonymizeEntity($em, $metadata, $reflection, [], 100, true, null, null, $entityAttribute);
 
@@ -2434,9 +2452,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityThrowsWhenAnonymizeServiceNotImplementInterface(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -2453,14 +2471,14 @@ class AnonymizeServiceTest extends TestCase
         $container = $this->createMock(ContainerInterface::class);
         $container->method('get')
             ->with('invalid_service')
-            ->willReturn(new \stdClass());
+            ->willReturn(new stdClass());
 
         $service = new AnonymizeService($this->fakerFactory, $this->patternMatcher, null, $container);
 
         $entityAttribute = new Anonymize(anonymizeService: 'invalid_service');
-        $reflection = $this->createMock(ReflectionClass::class);
+        $reflection      = $this->createMock(ReflectionClass::class);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('must implement');
         $service->anonymizeEntity($em, $metadata, $reflection, [], 100, false, null, null, $entityAttribute);
     }
@@ -2470,9 +2488,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testAnonymizeEntityWithAnonymizeServiceSkipsExcludedRecord(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -2497,9 +2515,9 @@ class AnonymizeServiceTest extends TestCase
 
         $service = new AnonymizeService($this->fakerFactory, $this->patternMatcher, null, $container);
 
-        $entityAttribute = new Anonymize(anonymizeService: 'App\Service\SmsAnonymizer');
+        $entityAttribute                  = new Anonymize(anonymizeService: 'App\Service\SmsAnonymizer');
         $entityAttribute->excludePatterns = ['role' => 'admin'];
-        $reflection = $this->createMock(ReflectionClass::class);
+        $reflection                       = $this->createMock(ReflectionClass::class);
 
         $result = $service->anonymizeEntity($em, $metadata, $reflection, [], 100, false, null, null, $entityAttribute);
 
@@ -2512,9 +2530,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testTruncateTablesReturnsEmptyWhenNoTruncateEntities(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -2532,9 +2550,9 @@ class AnonymizeServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => new Anonymize(truncate: false),
+                'attribute'  => new Anonymize(truncate: false),
             ],
         ];
 
@@ -2549,9 +2567,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testTruncateTablesTruncatesForMySQL(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -2578,20 +2596,21 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn($platform);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
 
         $executedStatements = [];
         $connection->method('executeStatement')
             ->willReturnCallback(function ($sql) use (&$executedStatements) {
                 $executedStatements[] = $sql;
+
                 return 0;
             });
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => new Anonymize(truncate: true),
+                'attribute'  => new Anonymize(truncate: true),
             ],
         ];
 
@@ -2609,9 +2628,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testTruncateTablesOrdersByTruncateOrder(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata1 = $this->getMockBuilder(ClassMetadata::class)
+        $metadata1  = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
         $metadata2 = $this->getMockBuilder(ClassMetadata::class)
@@ -2642,7 +2661,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn($platform);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
 
         $truncateStatements = [];
         $connection->method('executeStatement')
@@ -2650,24 +2669,25 @@ class AnonymizeServiceTest extends TestCase
                 if (str_contains($sql, 'TRUNCATE TABLE')) {
                     $truncateStatements[] = $sql;
                 }
+
                 return 0;
             });
 
         $entities = [
             'Entity1' => [
-                'metadata' => $metadata1,
+                'metadata'   => $metadata1,
                 'reflection' => $this->createMock(ReflectionClass::class),
-                'attribute' => new Anonymize(truncate: true, truncate_order: 3), // Last
+                'attribute'  => new Anonymize(truncate: true, truncate_order: 3), // Last
             ],
             'Entity2' => [
-                'metadata' => $metadata2,
+                'metadata'   => $metadata2,
                 'reflection' => $this->createMock(ReflectionClass::class),
-                'attribute' => new Anonymize(truncate: true, truncate_order: 1), // First
+                'attribute'  => new Anonymize(truncate: true, truncate_order: 1), // First
             ],
             'Entity3' => [
-                'metadata' => $metadata3,
+                'metadata'   => $metadata3,
                 'reflection' => $this->createMock(ReflectionClass::class),
-                'attribute' => new Anonymize(truncate: true, truncate_order: null), // After explicit orders
+                'attribute'  => new Anonymize(truncate: true, truncate_order: null), // After explicit orders
             ],
         ];
 
@@ -2686,9 +2706,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testTruncateTablesHandlesDryRun(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -2699,15 +2719,15 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn('test_table');
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('fetchOne')
             ->willReturn('10'); // 10 records would be deleted
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $this->createMock(ReflectionClass::class),
-                'attribute' => new Anonymize(truncate: true),
+                'attribute'  => new Anonymize(truncate: true),
             ],
         ];
 
@@ -2723,9 +2743,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testTruncateTablesHandlesPostgreSQL(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -2746,20 +2766,21 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn($platform);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '"' . $id . '"');
+            ->willReturnCallback(fn ($id) => '"' . $id . '"');
 
         $executedStatements = [];
         $connection->method('executeStatement')
             ->willReturnCallback(function ($sql) use (&$executedStatements) {
                 $executedStatements[] = $sql;
+
                 return 0;
             });
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $this->createMock(ReflectionClass::class),
-                'attribute' => new Anonymize(truncate: true),
+                'attribute'  => new Anonymize(truncate: true),
             ],
         ];
 
@@ -2771,7 +2792,7 @@ class AnonymizeServiceTest extends TestCase
         $this->assertTrue(
             in_array('TRUNCATE TABLE "test_table" CASCADE', $executedStatements, true)
             || str_contains(implode(' ', $executedStatements), 'TRUNCATE')
-            && str_contains(implode(' ', $executedStatements), 'CASCADE')
+            && str_contains(implode(' ', $executedStatements), 'CASCADE'),
         );
     }
 
@@ -2780,9 +2801,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testTruncateTablesHandlesSQLite(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -2807,22 +2828,23 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(['driver' => 'pdo_sqlite']);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '"' . $id . '"');
+            ->willReturnCallback(fn ($id) => '"' . $id . '"');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . $val . "'");
+            ->willReturnCallback(fn ($val) => "'" . $val . "'");
 
         $executedStatements = [];
         $connection->method('executeStatement')
             ->willReturnCallback(function ($sql) use (&$executedStatements) {
                 $executedStatements[] = $sql;
+
                 return 0;
             });
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $this->createMock(ReflectionClass::class),
-                'attribute' => new Anonymize(truncate: true),
+                'attribute'  => new Anonymize(truncate: true),
             ],
         ];
 
@@ -2841,9 +2863,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testTruncateTablesCallsProgressCallback(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -2864,22 +2886,22 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn($platform);
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('executeStatement')
             ->willReturn(0);
 
-        $callbackCalled = false;
-        $callbackTable = '';
+        $callbackCalled   = false;
+        $callbackTable    = '';
         $progressCallback = function (string $tableName, string $message) use (&$callbackCalled, &$callbackTable): void {
             $callbackCalled = true;
-            $callbackTable = $tableName;
+            $callbackTable  = $tableName;
         };
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $this->createMock(ReflectionClass::class),
-                'attribute' => new Anonymize(truncate: true),
+                'attribute'  => new Anonymize(truncate: true),
             ],
         ];
 
@@ -2894,9 +2916,9 @@ class AnonymizeServiceTest extends TestCase
      */
     public function testTruncateTablesUsesDeleteByDiscriminatorWhenPolymorphic(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -2907,29 +2929,30 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn('person');
 
         // Polymorphic entity: Single Table Inheritance
-        $metadata->inheritanceType = 1; // SINGLE_TABLE
+        $metadata->inheritanceType     = 1; // SINGLE_TABLE
         $metadata->discriminatorColumn = class_exists(DiscriminatorColumnMapping::class)
             ? new DiscriminatorColumnMapping('string', 'type', 'type')
             : ['name' => 'type'];
         $metadata->discriminatorValue = 'customer';
 
         $connection->method('quoteSingleIdentifier')
-            ->willReturnCallback(fn($id) => '`' . $id . '`');
+            ->willReturnCallback(fn ($id) => '`' . $id . '`');
         $connection->method('quote')
-            ->willReturnCallback(fn($val) => "'" . str_replace("'", "''", (string) $val) . "'");
+            ->willReturnCallback(fn ($val) => "'" . str_replace("'", "''", (string) $val) . "'");
 
         $executedStatements = [];
         $connection->method('executeStatement')
             ->willReturnCallback(function ($sql) use (&$executedStatements) {
                 $executedStatements[] = $sql;
+
                 return 0;
             });
 
         $entities = [
             'App\Entity\Customer' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $this->createMock(ReflectionClass::class),
-                'attribute' => new Anonymize(truncate: true),
+                'attribute'  => new Anonymize(truncate: true),
             ],
         ];
 
@@ -2938,7 +2961,7 @@ class AnonymizeServiceTest extends TestCase
         $this->assertIsArray($result);
         $this->assertArrayHasKey('person', $result);
         $this->assertNotEmpty($executedStatements);
-        $deleteSql = array_values(array_filter($executedStatements, fn($s) => str_contains($s, 'DELETE FROM')));
+        $deleteSql = array_values(array_filter($executedStatements, fn ($s) => str_contains($s, 'DELETE FROM')));
         $this->assertCount(1, $deleteSql, 'Should execute one DELETE statement for polymorphic truncate');
         $this->assertStringContainsString('DELETE FROM `person`', $deleteSql[0]);
         $this->assertStringContainsString('`type` = \'customer\'', $deleteSql[0]);

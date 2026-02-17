@@ -21,7 +21,7 @@ class IpAddressFakerTest extends TestCase
     public function testGenerateIpv4(): void
     {
         $faker = new IpAddressFaker('en_US');
-        $ip = $faker->generate();
+        $ip    = $faker->generate();
 
         $this->assertIsString($ip);
         $this->assertMatchesRegularExpression('/^(\d{1,3}\.){3}\d{1,3}$/', $ip);
@@ -33,7 +33,7 @@ class IpAddressFakerTest extends TestCase
     public function testGenerateIpv4WithVersion(): void
     {
         $faker = new IpAddressFaker('en_US');
-        $ip = $faker->generate(['version' => 4]);
+        $ip    = $faker->generate(['version' => 4]);
 
         $this->assertIsString($ip);
         $this->assertMatchesRegularExpression('/^(\d{1,3}\.){3}\d{1,3}$/', $ip);
@@ -45,7 +45,7 @@ class IpAddressFakerTest extends TestCase
     public function testGenerateIpv6(): void
     {
         $faker = new IpAddressFaker('en_US');
-        $ip = $faker->generate(['version' => 6]);
+        $ip    = $faker->generate(['version' => 6]);
 
         $this->assertIsString($ip);
         $this->assertMatchesRegularExpression('/^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/', $ip);
@@ -57,7 +57,7 @@ class IpAddressFakerTest extends TestCase
     public function testGenerateIpv6Localhost(): void
     {
         $faker = new IpAddressFaker('en_US');
-        $ip = $faker->generate(['version' => 6, 'type' => 'localhost']);
+        $ip    = $faker->generate(['version' => 6, 'type' => 'localhost']);
 
         $this->assertEquals('::1', $ip);
     }
@@ -68,7 +68,7 @@ class IpAddressFakerTest extends TestCase
     public function testGenerateIpv6Private(): void
     {
         $faker = new IpAddressFaker('en_US');
-        $ip = $faker->generate(['version' => 6, 'type' => 'private']);
+        $ip    = $faker->generate(['version' => 6, 'type' => 'private']);
 
         $this->assertIsString($ip);
         $this->assertStringStartsWith('fe80:', $ip);
@@ -80,7 +80,7 @@ class IpAddressFakerTest extends TestCase
     public function testGenerateIpv4Private(): void
     {
         $faker = new IpAddressFaker('en_US');
-        $ip = $faker->generate(['version' => 4, 'type' => 'private']);
+        $ip    = $faker->generate(['version' => 4, 'type' => 'private']);
 
         $this->assertIsString($ip);
         $this->assertMatchesRegularExpression('/^(\d{1,3}\.){3}\d{1,3}$/', $ip);
@@ -92,7 +92,7 @@ class IpAddressFakerTest extends TestCase
     public function testGenerateIpv4Localhost(): void
     {
         $faker = new IpAddressFaker('en_US');
-        $ip = $faker->generate(['version' => 4, 'type' => 'localhost']);
+        $ip    = $faker->generate(['version' => 4, 'type' => 'localhost']);
 
         $this->assertIsString($ip);
         $this->assertMatchesRegularExpression('/^(\d{1,3}\.){3}\d{1,3}$/', $ip);
@@ -104,7 +104,7 @@ class IpAddressFakerTest extends TestCase
     public function testGenerateIpv4Public(): void
     {
         $faker = new IpAddressFaker('en_US');
-        $ip = $faker->generate(['version' => 4, 'type' => 'public']);
+        $ip    = $faker->generate(['version' => 4, 'type' => 'public']);
 
         $this->assertIsString($ip);
         $this->assertMatchesRegularExpression('/^(\d{1,3}\.){3}\d{1,3}$/', $ip);
@@ -116,7 +116,7 @@ class IpAddressFakerTest extends TestCase
     public function testGenerateIpv6Public(): void
     {
         $faker = new IpAddressFaker('en_US');
-        $ip = $faker->generate(['version' => 6, 'type' => 'public']);
+        $ip    = $faker->generate(['version' => 6, 'type' => 'public']);
 
         $this->assertIsString($ip);
         $this->assertMatchesRegularExpression('/^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/', $ip);

@@ -7,6 +7,15 @@ namespace Nowo\AnonymizeBundle\Service;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Container\ContainerInterface;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use ZipArchive;
+
+use function sprintf;
+use function strlen;
+
+use const PATHINFO_FILENAME;
+use const PHP_OS;
 
 /**
  * Service for exporting databases.
@@ -33,23 +42,25 @@ final class DatabaseExportService
         private string $filenamePattern,
         private string $compression,
         private bool $autoGitignore
-    ) {}
+    ) {
+    }
 
     /**
      * Exports a database connection.
      *
      * @param EntityManagerInterface $em The entity manager
      * @param string $connectionName The connection name
+     *
      * @return string|null The path to the exported file, or null on failure
      */
     public function exportConnection(EntityManagerInterface $em, string $connectionName): ?string
     {
         $connection = $em->getConnection();
-        $driver = \Nowo\AnonymizeBundle\Helper\DbalHelper::getDriverName($connection);
-        $database = $connection->getDatabase();
+        $driver     = \Nowo\AnonymizeBundle\Helper\DbalHelper::getDriverName($connection);
+        $database   = $connection->getDatabase();
 
         // Generate filename
-        $filename = $this->generateFilename($connectionName, $database, $driver);
+        $filename   = $this->generateFilename($connectionName, $database, $driver);
         $outputPath = rtrim($this->outputDir, '/') . '/' . $filename;
 
         // Ensure output directory exists
@@ -59,10 +70,10 @@ final class DatabaseExportService
 
         // Export based on driver
         $exportedFile = match ($driver) {
-            'pdo_mysql' => $this->exportMySQL($connection, $outputPath),
-            'pdo_pgsql' => $this->exportPostgreSQL($connection, $outputPath),
+            'pdo_mysql'  => $this->exportMySQL($connection, $outputPath),
+            'pdo_pgsql'  => $this->exportPostgreSQL($connection, $outputPath),
             'pdo_sqlite' => $this->exportSQLite($connection, $outputPath),
-            default => null,
+            default      => null,
         };
 
         if ($exportedFile === null) {
@@ -94,6 +105,7 @@ final class DatabaseExportService
      * @param string $database The database name
      * @param string $host The MongoDB host
      * @param int $port The MongoDB port
+     *
      * @return string|null The path to the exported file, or null on failure
      */
     public function exportMongoDB(string $connectionName, string $database, string $host = 'localhost', int $port = 27017): ?string
@@ -104,7 +116,7 @@ final class DatabaseExportService
         }
 
         // Generate filename
-        $filename = $this->generateFilename($connectionName, $database, 'mongodb');
+        $filename   = $this->generateFilename($connectionName, $database, 'mongodb');
         $outputPath = rtrim($this->outputDir, '/') . '/' . $filename;
 
         // Ensure output directory exists
@@ -118,7 +130,7 @@ final class DatabaseExportService
             escapeshellarg($host),
             $port,
             escapeshellarg($database),
-            escapeshellarg($this->outputDir)
+            escapeshellarg($this->outputDir),
         );
 
         exec($command, $output, $returnCode);
@@ -161,6 +173,7 @@ final class DatabaseExportService
      *
      * @param Connection $connection The database connection
      * @param string $outputPath The output file path
+     *
      * @return string|null The path to the exported file, or null on failure
      */
     private function exportMySQL(Connection $connection, string $outputPath): ?string
@@ -169,10 +182,10 @@ final class DatabaseExportService
             return null;
         }
 
-        $params = $connection->getParams();
-        $host = $params['host'] ?? 'localhost';
-        $port = $params['port'] ?? 3306;
-        $user = $params['user'] ?? 'root';
+        $params   = $connection->getParams();
+        $host     = $params['host'] ?? 'localhost';
+        $port     = $params['port'] ?? 3306;
+        $user     = $params['user'] ?? 'root';
         $password = $params['password'] ?? '';
         $database = $connection->getDatabase();
 
@@ -183,7 +196,7 @@ final class DatabaseExportService
             escapeshellarg($user),
             $password ? '--password=' . escapeshellarg($password) : '',
             escapeshellarg($database),
-            escapeshellarg($outputPath)
+            escapeshellarg($outputPath),
         );
 
         exec($command, $output, $returnCode);
@@ -196,6 +209,7 @@ final class DatabaseExportService
      *
      * @param Connection $connection The database connection
      * @param string $outputPath The output file path
+     *
      * @return string|null The path to the exported file, or null on failure
      */
     private function exportPostgreSQL(Connection $connection, string $outputPath): ?string
@@ -204,10 +218,10 @@ final class DatabaseExportService
             return null;
         }
 
-        $params = $connection->getParams();
-        $host = $params['host'] ?? 'localhost';
-        $port = $params['port'] ?? 5432;
-        $user = $params['user'] ?? 'postgres';
+        $params   = $connection->getParams();
+        $host     = $params['host'] ?? 'localhost';
+        $port     = $params['port'] ?? 5432;
+        $user     = $params['user'] ?? 'postgres';
         $password = $params['password'] ?? '';
         $database = $connection->getDatabase();
 
@@ -221,7 +235,7 @@ final class DatabaseExportService
             $port,
             escapeshellarg($user),
             escapeshellarg($database),
-            escapeshellarg($outputPath)
+            escapeshellarg($outputPath),
         );
 
         exec($command, $output, $returnCode);
@@ -234,12 +248,13 @@ final class DatabaseExportService
      *
      * @param Connection $connection The database connection
      * @param string $outputPath The output file path
+     *
      * @return string|null The path to the exported file, or null on failure
      */
     private function exportSQLite(Connection $connection, string $outputPath): ?string
     {
         $params = $connection->getParams();
-        $path = $params['path'] ?? null;
+        $path   = $params['path'] ?? null;
 
         if ($path === null || !file_exists($path)) {
             return null;
@@ -259,12 +274,13 @@ final class DatabaseExportService
      * @param string $connectionName The connection name
      * @param string $database The database name
      * @param string $driver The driver name
+     *
      * @return string The generated filename
      */
     private function generateFilename(string $connectionName, string $database, string $driver): string
     {
-        $date = date('Y-m-d');
-        $time = date('H-i-s');
+        $date   = date('Y-m-d');
+        $time   = date('H-i-s');
         $format = $this->getFileExtension($driver);
 
         $filename = $this->filenamePattern;
@@ -281,16 +297,17 @@ final class DatabaseExportService
      * Gets the file extension for a driver.
      *
      * @param string $driver The driver name
+     *
      * @return string The file extension
      */
     private function getFileExtension(string $driver): string
     {
         return match ($driver) {
-            'pdo_mysql' => 'sql',
-            'pdo_pgsql' => 'sql',
+            'pdo_mysql'  => 'sql',
+            'pdo_pgsql'  => 'sql',
             'pdo_sqlite' => 'sqlite',
-            'mongodb' => 'bson',
-            default => 'sql',
+            'mongodb'    => 'bson',
+            default      => 'sql',
         };
     }
 
@@ -298,6 +315,7 @@ final class DatabaseExportService
      * Compresses a file.
      *
      * @param string $filePath The file path to compress
+     *
      * @return string|null The path to the compressed file, or null on failure
      */
     private function compressFile(string $filePath): ?string
@@ -320,10 +338,10 @@ final class DatabaseExportService
                 break;
 
             case 'zip':
-                if (class_exists(\ZipArchive::class)) {
+                if (class_exists(ZipArchive::class)) {
                     $zipPath = $filePath . '.zip';
-                    $zip = new \ZipArchive();
-                    if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+                    $zip     = new ZipArchive();
+                    if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
                         $zip->addFile($filePath, basename($filePath));
                         $zip->close();
                         $compressedPath = $zipPath;
@@ -340,27 +358,28 @@ final class DatabaseExportService
      *
      * @param string $directory The directory to archive
      * @param string $zipPath The output ZIP file path
+     *
      * @return bool True on success, false on failure
      */
     private function createZipArchive(string $directory, string $zipPath): bool
     {
-        if (!class_exists(\ZipArchive::class)) {
+        if (!class_exists(ZipArchive::class)) {
             return false;
         }
 
-        $zip = new \ZipArchive();
-        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+        $zip = new ZipArchive();
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
             return false;
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($directory),
-            \RecursiveIteratorIterator::LEAVES_ONLY
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($directory),
+            RecursiveIteratorIterator::LEAVES_ONLY,
         );
 
         foreach ($iterator as $file) {
             if (!$file->isDir()) {
-                $filePath = $file->getRealPath();
+                $filePath     = $file->getRealPath();
                 $relativePath = substr($filePath, strlen($directory) + 1);
                 $zip->addFile($filePath, $relativePath);
             }
@@ -374,6 +393,7 @@ final class DatabaseExportService
      *
      * @param string $directory The directory to archive
      * @param string $tarPath The output TAR file path
+     *
      * @return bool True on success, false on failure
      */
     private function createTarArchive(string $directory, string $tarPath): bool
@@ -393,7 +413,7 @@ final class DatabaseExportService
             'tar -c%sf %s -C %s . 2>&1',
             $compressionFlag,
             escapeshellarg($tarPath),
-            escapeshellarg($directory)
+            escapeshellarg($directory),
         );
 
         exec($command, $output, $returnCode);
@@ -405,6 +425,7 @@ final class DatabaseExportService
      * Removes a directory recursively.
      *
      * @param string $directory The directory to remove
+     *
      * @return bool True on success, false on failure
      */
     private function removeDirectory(string $directory): bool
@@ -430,26 +451,27 @@ final class DatabaseExportService
      * Checks if a command exists.
      *
      * @param string $command The command name
+     *
      * @return bool True if the command exists, false otherwise
      */
     private function commandExists(string $command): bool
     {
         $whereIsCommand = (PHP_OS === 'WINNT') ? 'where' : 'which';
-        $process = proc_open(
-            "$whereIsCommand $command",
+        $process        = proc_open(
+            "{$whereIsCommand} {$command}",
             [
                 0 => ['pipe', 'r'],
                 1 => ['pipe', 'w'],
                 2 => ['pipe', 'w'],
             ],
-            $pipes
+            $pipes,
         );
 
         if ($process === false) {
             return false;
         }
 
-        $stdout = stream_get_contents($pipes[1]);
+        $stdout     = stream_get_contents($pipes[1]);
         $returnCode = proc_close($process);
 
         return $returnCode === 0 && !empty($stdout);
@@ -457,8 +479,6 @@ final class DatabaseExportService
 
     /**
      * Updates the .gitignore file to exclude the export directory.
-     *
-     * @return void
      */
     private function updateGitignore(): void
     {
@@ -467,13 +487,13 @@ final class DatabaseExportService
             return;
         }
 
-        $kernel = $this->container->get('kernel');
-        $projectDir = $kernel->getProjectDir();
+        $kernel        = $this->container->get('kernel');
+        $projectDir    = $kernel->getProjectDir();
         $gitignorePath = $projectDir . '/.gitignore';
 
         // Calculate relative path from project root
         $relativeExportDir = str_replace($projectDir . '/', '', $this->outputDir);
-        $gitignoreEntry = $relativeExportDir . '/';
+        $gitignoreEntry    = $relativeExportDir . '/';
 
         // Read existing .gitignore
         $content = file_exists($gitignorePath) ? file_get_contents($gitignorePath) : '';

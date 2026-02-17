@@ -36,18 +36,19 @@ final class UuidFaker implements FakerInterface
      * Generates an anonymized UUID.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'version' (int): UUID version (1 or 4, default: 4)
-     *   - 'format' (string): Format ('with_dashes' or 'without_dashes', default: 'with_dashes')
+     *                                      - 'version' (int): UUID version (1 or 4, default: 4)
+     *                                      - 'format' (string): Format ('with_dashes' or 'without_dashes', default: 'with_dashes')
+     *
      * @return string The anonymized UUID
      */
     public function generate(array $options = []): string
     {
         $version = (int) ($options['version'] ?? 4);
-        $format = $options['format'] ?? 'with_dashes';
+        $format  = $options['format'] ?? 'with_dashes';
 
         // Generate UUID based on version
         $uuid = match ($version) {
-            1 => $this->generateUuidV1(),
+            1       => $this->generateUuidV1(),
             default => $this->faker->uuid(),
         };
 

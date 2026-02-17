@@ -45,7 +45,7 @@ class CustomFakerExample
         weight: 1,
         options: [
             'preserve_original' => true,  // Set to false to actually anonymize
-        ]
+        ],
     )]
     #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $preservedField = null;
@@ -60,7 +60,7 @@ class CustomFakerExample
         weight: 2,
         options: [
             'preserve_original' => false,  // This will anonymize
-        ]
+        ],
     )]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $anonymizedField = null;
@@ -82,8 +82,8 @@ class CustomFakerExample
         weight: 3,
         options: [
             'preserve_original' => false,
-            'custom_option' => 'example_value',
-        ]
+            'custom_option'     => 'example_value',
+        ],
     )]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $customOptionField = null;

@@ -8,6 +8,8 @@ use App\Entity\Customer;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
+use const STR_PAD_LEFT;
+
 class CustomerFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void

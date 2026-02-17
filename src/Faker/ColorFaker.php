@@ -9,6 +9,8 @@ use Faker\Generator as FakerGenerator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+use function sprintf;
+
 /**
  * Faker for generating anonymized color values.
  *
@@ -36,18 +38,19 @@ final class ColorFaker implements FakerInterface
      * Generates an anonymized color value.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'format' (string): Color format ('hex', 'rgb', 'rgba', default: 'hex')
-     *   - 'alpha' (float): Alpha channel value for rgba (0.0-1.0, default: 1.0)
+     *                                      - 'format' (string): Color format ('hex', 'rgb', 'rgba', default: 'hex')
+     *                                      - 'alpha' (float): Alpha channel value for rgba (0.0-1.0, default: 1.0)
+     *
      * @return string The anonymized color value
      */
     public function generate(array $options = []): string
     {
         $format = $options['format'] ?? 'hex';
-        $alpha = (float) ($options['alpha'] ?? 1.0);
+        $alpha  = (float) ($options['alpha'] ?? 1.0);
 
         return match ($format) {
-            'rgb' => sprintf('rgb(%d, %d, %d)', $this->faker->numberBetween(0, 255), $this->faker->numberBetween(0, 255), $this->faker->numberBetween(0, 255)),
-            'rgba' => sprintf('rgba(%d, %d, %d, %.2f)', $this->faker->numberBetween(0, 255), $this->faker->numberBetween(0, 255), $this->faker->numberBetween(0, 255), $alpha),
+            'rgb'   => sprintf('rgb(%d, %d, %d)', $this->faker->numberBetween(0, 255), $this->faker->numberBetween(0, 255), $this->faker->numberBetween(0, 255)),
+            'rgba'  => sprintf('rgba(%d, %d, %d, %.2f)', $this->faker->numberBetween(0, 255), $this->faker->numberBetween(0, 255), $this->faker->numberBetween(0, 255), $alpha),
             default => $this->faker->hexColor(),
         };
     }

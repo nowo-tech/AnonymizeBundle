@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Faker;
 
+use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Faker\MapFaker;
 use PHPUnit\Framework\TestCase;
 
@@ -21,10 +22,10 @@ class MapFakerTest extends TestCase
     public function testGenerateReturnsMappedValue(): void
     {
         $faker = new MapFaker();
-        $map = [
-            'active' => 'status_a',
+        $map   = [
+            'active'   => 'status_a',
             'inactive' => 'status_b',
-            'pending' => 'status_c',
+            'pending'  => 'status_c',
         ];
 
         $this->assertEquals('status_a', $faker->generate(['map' => $map, 'original_value' => 'active']));
@@ -38,12 +39,12 @@ class MapFakerTest extends TestCase
     public function testGenerateReturnsDefaultWhenNotInMap(): void
     {
         $faker = new MapFaker();
-        $map = ['active' => 'status_a', 'inactive' => 'status_b'];
+        $map   = ['active' => 'status_a', 'inactive' => 'status_b'];
 
         $result = $faker->generate([
-            'map' => $map,
+            'map'            => $map,
             'original_value' => 'unknown',
-            'default' => 'status_unknown',
+            'default'        => 'status_unknown',
         ]);
         $this->assertEquals('status_unknown', $result);
     }
@@ -54,7 +55,7 @@ class MapFakerTest extends TestCase
     public function testGenerateReturnsOriginalWhenNotInMapAndNoDefault(): void
     {
         $faker = new MapFaker();
-        $map = ['active' => 'status_a'];
+        $map   = ['active' => 'status_a'];
 
         $result = $faker->generate(['map' => $map, 'original_value' => 'other']);
         $this->assertEquals('other', $result);
@@ -65,7 +66,7 @@ class MapFakerTest extends TestCase
      */
     public function testGenerateThrowsExceptionWhenMapMissing(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('MapFaker requires a "map" option');
 
         $faker = new MapFaker();
@@ -77,7 +78,7 @@ class MapFakerTest extends TestCase
      */
     public function testGenerateThrowsExceptionWhenMapEmpty(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('MapFaker requires a "map" option');
 
         $faker = new MapFaker();
@@ -90,7 +91,7 @@ class MapFakerTest extends TestCase
     public function testGenerateWithNumericKeysAndNullDefault(): void
     {
         $faker = new MapFaker();
-        $map = [1 => 'one', 2 => 'two', 3 => 'three'];
+        $map   = [1 => 'one', 2 => 'two', 3 => 'three'];
 
         $this->assertEquals('two', $faker->generate(['map' => $map, 'original_value' => 2]));
         $this->assertNull($faker->generate(['map' => $map, 'original_value' => 99, 'default' => null]));

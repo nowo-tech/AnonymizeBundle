@@ -23,15 +23,16 @@ final class CustomReferenceFaker implements FakerInterface
      * Generates an anonymized reference code.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'prefix' (string): Prefix for the reference (default: 'REF')
-     *   - 'length' (int): Length of the numeric part (default: 8)
-     *   - 'separator' (string): Separator between prefix and number (default: '-')
+     *                                      - 'prefix' (string): Prefix for the reference (default: 'REF')
+     *                                      - 'length' (int): Length of the numeric part (default: 8)
+     *                                      - 'separator' (string): Separator between prefix and number (default: '-')
+     *
      * @return string The anonymized reference code
      */
     public function generate(array $options = []): string
     {
-        $prefix = $options['prefix'] ?? 'REF';
-        $length = (int) ($options['length'] ?? 8);
+        $prefix    = $options['prefix'] ?? 'REF';
+        $length    = (int) ($options['length'] ?? 8);
         $separator = $options['separator'] ?? '-';
 
         // Generate random numeric part

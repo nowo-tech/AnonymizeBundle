@@ -7,7 +7,6 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\UserType;
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Nowo\AnonymizeBundle\Service\SchemaService;
@@ -16,24 +15,27 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+use function sprintf;
+
 #[Route('/{connection}/user')]
 class UserController extends AbstractController
 {
     public function __construct(
         private readonly ManagerRegistry $doctrine,
         private readonly SchemaService $schemaService
-    ) {}
+    ) {
+    }
 
     #[Route('/', name: 'user_index', methods: ['GET'])]
     public function index(string $connection): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em                  = $this->doctrine->getManager($connection);
         $hasAnonymizedColumn = $this->schemaService->hasAnonymizedColumn($em, User::class);
 
         // Use native query if column doesn't exist to avoid SQL errors
         if (!$hasAnonymizedColumn) {
             /** @var ClassMetadata $metadata */
-            $metadata = $em->getClassMetadata(User::class);
+            $metadata  = $em->getClassMetadata(User::class);
             $tableName = $metadata->getTableName();
             /** @var Connection $dbConnection */
             $dbConnection = $em->getConnection(); // @phpstan-ignore-line
@@ -43,11 +45,11 @@ class UserController extends AbstractController
             foreach ($metadata->getFieldNames() as $fieldName) {
                 if ($fieldName !== 'anonymized') {
                     $fieldMapping = $metadata->getFieldMapping($fieldName);
-                    $columns[] = $dbConnection->quoteSingleIdentifier($fieldMapping['columnName'] ?? $fieldName);
+                    $columns[]    = $dbConnection->quoteSingleIdentifier($fieldMapping['columnName'] ?? $fieldName);
                 }
             }
 
-            $sql = sprintf('SELECT %s FROM %s', implode(', ', $columns), $dbConnection->quoteSingleIdentifier($tableName));
+            $sql     = sprintf('SELECT %s FROM %s', implode(', ', $columns), $dbConnection->quoteSingleIdentifier($tableName));
             $results = $dbConnection->fetchAllAssociative($sql);
 
             // Convert results to entities
@@ -69,8 +71,8 @@ class UserController extends AbstractController
         }
 
         return $this->render('user/index.html.twig', [
-            'users' => $users,
-            'connection' => $connection,
+            'users'               => $users,
+            'connection'          => $connection,
             'hasAnonymizedColumn' => $hasAnonymizedColumn,
         ]);
     }
@@ -79,7 +81,7 @@ class UserController extends AbstractController
     public function new(Request $request, string $connection): Response
     {
         $user = new User();
-        $em = $this->doctrine->getManager($connection);
+        $em   = $this->doctrine->getManager($connection);
         $form = $this->createForm(UserType::class, $user);
         $form->handleRequest($request);
 
@@ -93,8 +95,8 @@ class UserController extends AbstractController
         }
 
         return $this->render('user/new.html.twig', [
-            'user' => $user,
-            'form' => $form,
+            'user'       => $user,
+            'form'       => $form,
             'connection' => $connection,
         ]);
     }
@@ -102,17 +104,17 @@ class UserController extends AbstractController
     #[Route('/{id}', name: 'user_show', methods: ['GET'])]
     public function show(string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em                  = $this->doctrine->getManager($connection);
         $hasAnonymizedColumn = $this->schemaService->hasAnonymizedColumn($em, User::class);
-        $user = $em->getRepository(User::class)->find($id);
+        $user                = $em->getRepository(User::class)->find($id);
 
         if (!$user) {
             throw $this->createNotFoundException('User not found');
         }
 
         return $this->render('user/show.html.twig', [
-            'user' => $user,
-            'connection' => $connection,
+            'user'                => $user,
+            'connection'          => $connection,
             'hasAnonymizedColumn' => $hasAnonymizedColumn,
         ]);
     }
@@ -120,7 +122,7 @@ class UserController extends AbstractController
     #[Route('/{id}/edit', name: 'user_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em   = $this->doctrine->getManager($connection);
         $user = $em->getRepository(User::class)->find($id);
 
         if (!$user) {
@@ -139,8 +141,8 @@ class UserController extends AbstractController
         }
 
         return $this->render('user/edit.html.twig', [
-            'user' => $user,
-            'form' => $form,
+            'user'       => $user,
+            'form'       => $form,
             'connection' => $connection,
         ]);
     }
@@ -148,7 +150,7 @@ class UserController extends AbstractController
     #[Route('/{id}', name: 'user_delete', methods: ['POST'])]
     public function delete(Request $request, string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em   = $this->doctrine->getManager($connection);
         $user = $em->getRepository(User::class)->find($id);
 
         if (!$user) {

@@ -9,6 +9,9 @@ use Faker\Generator as FakerGenerator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+use function count;
+use function strlen;
+
 /**
  * Faker for generating anonymized passwords.
  *
@@ -36,24 +39,25 @@ final class PasswordFaker implements FakerInterface
      * Generates an anonymized password.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'length' (int): Password length (default: 12)
-     *   - 'include_special' (bool): Include special characters (default: true)
-     *   - 'include_numbers' (bool): Include numbers (default: true)
-     *   - 'include_uppercase' (bool): Include uppercase letters (default: true)
+     *                                      - 'length' (int): Password length (default: 12)
+     *                                      - 'include_special' (bool): Include special characters (default: true)
+     *                                      - 'include_numbers' (bool): Include numbers (default: true)
+     *                                      - 'include_uppercase' (bool): Include uppercase letters (default: true)
+     *
      * @return string The anonymized password
      */
     public function generate(array $options = []): string
     {
-        $length = (int) ($options['length'] ?? 12);
-        $includeSpecial = $options['include_special'] ?? true;
-        $includeNumbers = $options['include_numbers'] ?? true;
+        $length           = (int) ($options['length'] ?? 12);
+        $includeSpecial   = $options['include_special'] ?? true;
+        $includeNumbers   = $options['include_numbers'] ?? true;
         $includeUppercase = $options['include_uppercase'] ?? true;
 
         // Define character sets
         $lowercase = 'abcdefghijklmnopqrstuvwxyz';
         $uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $numbers = '0123456789';
-        $special = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+        $numbers   = '0123456789';
+        $special   = '!@#$%^&*()_+-=[]{}|;:,.<>?';
 
         // Build full character set
         $chars = $lowercase;
@@ -83,10 +87,10 @@ final class PasswordFaker implements FakerInterface
         }
 
         // Fill the rest with random characters from the full set
-        $charsLength = strlen($chars);
+        $charsLength     = strlen($chars);
         $remainingLength = $length - count($passwordChars);
 
-        for ($i = 0; $i < $remainingLength; $i++) {
+        for ($i = 0; $i < $remainingLength; ++$i) {
             $passwordChars[] = $chars[$this->faker->numberBetween(0, $charsLength - 1)];
         }
 

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Document;
 
+use DateTimeInterface;
+
 /**
  * CustomerProfile document for MongoDB.
  *
@@ -14,19 +16,19 @@ namespace App\Document;
  */
 class CustomerProfile
 {
-    private ?string $id = null;
-    private ?string $email = null;
-    private ?string $firstName = null;
-    private ?string $lastName = null;
-    private ?string $phone = null;
-    private ?string $address = null;
-    private ?string $company = null;
-    private ?string $username = null;
-    private ?string $website = null;
-    private ?int $age = null;
-    private ?string $status = null; // 'active', 'inactive', 'suspended'
-    private ?\DateTimeInterface $createdAt = null;
-    private bool $anonymized = false;
+    private ?string $id                   = null;
+    private ?string $email                = null;
+    private ?string $firstName            = null;
+    private ?string $lastName             = null;
+    private ?string $phone                = null;
+    private ?string $address              = null;
+    private ?string $company              = null;
+    private ?string $username             = null;
+    private ?string $website              = null;
+    private ?int $age                     = null;
+    private ?string $status               = null; // 'active', 'inactive', 'suspended'
+    private ?DateTimeInterface $createdAt = null;
+    private bool $anonymized              = false;
 
     public function getId(): ?string
     {
@@ -36,6 +38,7 @@ class CustomerProfile
     public function setId(?string $id): static
     {
         $this->id = $id;
+
         return $this;
     }
 
@@ -47,6 +50,7 @@ class CustomerProfile
     public function setEmail(?string $email): static
     {
         $this->email = $email;
+
         return $this;
     }
 
@@ -58,6 +62,7 @@ class CustomerProfile
     public function setFirstName(?string $firstName): static
     {
         $this->firstName = $firstName;
+
         return $this;
     }
 
@@ -69,6 +74,7 @@ class CustomerProfile
     public function setLastName(?string $lastName): static
     {
         $this->lastName = $lastName;
+
         return $this;
     }
 
@@ -80,6 +86,7 @@ class CustomerProfile
     public function setPhone(?string $phone): static
     {
         $this->phone = $phone;
+
         return $this;
     }
 
@@ -91,6 +98,7 @@ class CustomerProfile
     public function setAddress(?string $address): static
     {
         $this->address = $address;
+
         return $this;
     }
 
@@ -102,6 +110,7 @@ class CustomerProfile
     public function setCompany(?string $company): static
     {
         $this->company = $company;
+
         return $this;
     }
 
@@ -113,6 +122,7 @@ class CustomerProfile
     public function setUsername(?string $username): static
     {
         $this->username = $username;
+
         return $this;
     }
 
@@ -124,6 +134,7 @@ class CustomerProfile
     public function setWebsite(?string $website): static
     {
         $this->website = $website;
+
         return $this;
     }
 
@@ -135,6 +146,7 @@ class CustomerProfile
     public function setAge(?int $age): static
     {
         $this->age = $age;
+
         return $this;
     }
 
@@ -146,17 +158,19 @@ class CustomerProfile
     public function setStatus(?string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
+    public function getCreatedAt(): ?DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(?\DateTimeInterface $createdAt): static
+    public function setCreatedAt(?DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -168,6 +182,7 @@ class CustomerProfile
     public function setAnonymized(bool $anonymized): static
     {
         $this->anonymized = $anonymized;
+
         return $this;
     }
 }

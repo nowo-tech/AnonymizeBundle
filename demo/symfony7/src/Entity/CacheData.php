@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
@@ -30,7 +31,7 @@ use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 #[ORM\Table(name: 'cache_data')]
 #[Anonymize(
     truncate: true,  // This table will be emptied before anonymization
-    truncate_order: 2  // Execute truncation after TempData (order 1)
+    truncate_order: 2,  // Execute truncation after TempData (order 1)
 )]
 class CacheData
 {
@@ -50,7 +51,7 @@ class CacheData
     private array $cacheValue = [];
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $expiresAt = null;
+    private ?DateTimeImmutable $expiresAt = null;
 
     public function getId(): ?int
     {
@@ -81,12 +82,12 @@ class CacheData
         return $this;
     }
 
-    public function getExpiresAt(): ?\DateTimeImmutable
+    public function getExpiresAt(): ?DateTimeImmutable
     {
         return $this->expiresAt;
     }
 
-    public function setExpiresAt(?\DateTimeImmutable $expiresAt): static
+    public function setExpiresAt(?DateTimeImmutable $expiresAt): static
     {
         $this->expiresAt = $expiresAt;
 

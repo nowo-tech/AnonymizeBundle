@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Service;
 
+use function sprintf;
+
+use const JSON_PRETTY_PRINT;
+use const JSON_UNESCAPED_SLASHES;
+
 /**
  * Statistics collector for anonymization process.
  *
@@ -18,16 +23,16 @@ final class AnonymizeStatistics
     private array $entityStats = [];
 
     /**
-     * @var array<string, int|float> Global statistics (total_entities, total_processed, total_updated, total_skipped, start_time, end_time, duration)
+     * @var array<string, float|int> Global statistics (total_entities, total_processed, total_updated, total_skipped, start_time, end_time, duration)
      */
     private array $globalStats = [
-        'total_entities' => 0,
+        'total_entities'  => 0,
         'total_processed' => 0,
-        'total_updated' => 0,
-        'total_skipped' => 0,
-        'start_time' => 0,
-        'end_time' => 0,
-        'duration' => 0,
+        'total_updated'   => 0,
+        'total_skipped'   => 0,
+        'start_time'      => 0,
+        'end_time'        => 0,
+        'duration'        => 0,
     ];
 
     /**
@@ -69,14 +74,14 @@ final class AnonymizeStatistics
 
         if (!isset($this->entityStats[$key])) {
             $this->entityStats[$key] = [
-                'entity' => $entityClass,
+                'entity'     => $entityClass,
                 'connection' => $connection,
-                'processed' => 0,
-                'updated' => 0,
-                'skipped' => 0,
+                'processed'  => 0,
+                'updated'    => 0,
+                'skipped'    => 0,
                 'properties' => [],
             ];
-            $this->globalStats['total_entities']++;
+            ++$this->globalStats['total_entities'];
         }
 
         $this->entityStats[$key]['processed'] += $processed;
@@ -84,7 +89,7 @@ final class AnonymizeStatistics
         $this->entityStats[$key]['skipped'] += ($processed - $updated);
         $this->entityStats[$key]['properties'] = array_merge_recursive(
             $this->entityStats[$key]['properties'],
-            $propertyStats
+            $propertyStats,
         );
 
         $this->globalStats['total_processed'] += $processed;
@@ -110,11 +115,11 @@ final class AnonymizeStatistics
 
         if (!isset($this->entityStats[$key])) {
             $this->entityStats[$key] = [
-                'entity' => $entityClass,
+                'entity'     => $entityClass,
                 'connection' => $connection,
-                'processed' => 0,
-                'updated' => 0,
-                'skipped' => 0,
+                'processed'  => 0,
+                'updated'    => 0,
+                'skipped'    => 0,
                 'properties' => [],
             ];
         }
@@ -134,7 +139,7 @@ final class AnonymizeStatistics
     public function getAll(): array
     {
         return [
-            'global' => $this->globalStats,
+            'global'   => $this->globalStats,
             'entities' => $this->entityStats,
         ];
     }
@@ -163,6 +168,7 @@ final class AnonymizeStatistics
      * Get statistics as JSON.
      *
      * @param int $flags JSON encoding flags
+     *
      * @return string JSON encoded statistics
      */
     public function toJson(int $flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES): string
@@ -209,7 +215,7 @@ final class AnonymizeStatistics
                 $entityData['processed'],
                 $entityData['updated'],
                 $entityData['skipped'],
-                $successRate
+                $successRate,
             );
         }
 
@@ -228,7 +234,7 @@ final class AnonymizeStatistics
                         $entityData['entity'],
                         $entityData['connection'],
                         $property,
-                        $count
+                        $count,
                     );
                 }
             }
@@ -245,11 +251,11 @@ final class AnonymizeStatistics
     public function getSummary(): array
     {
         return [
-            'total_entities' => $this->globalStats['total_entities'],
-            'total_processed' => $this->globalStats['total_processed'],
-            'total_updated' => $this->globalStats['total_updated'],
-            'total_skipped' => $this->globalStats['total_skipped'],
-            'duration_seconds' => round($this->globalStats['duration'], 2),
+            'total_entities'     => $this->globalStats['total_entities'],
+            'total_processed'    => $this->globalStats['total_processed'],
+            'total_updated'      => $this->globalStats['total_updated'],
+            'total_skipped'      => $this->globalStats['total_skipped'],
+            'duration_seconds'   => round($this->globalStats['duration'], 2),
             'duration_formatted' => $this->formatDuration($this->globalStats['duration']),
             'average_per_second' => $this->globalStats['duration'] > 0
                 ? round($this->globalStats['total_processed'] / $this->globalStats['duration'], 2)
@@ -261,6 +267,7 @@ final class AnonymizeStatistics
      * Format duration in human-readable format.
      *
      * @param float $seconds Duration in seconds
+     *
      * @return string Formatted duration
      */
     private function formatDuration(float $seconds): string
@@ -273,14 +280,14 @@ final class AnonymizeStatistics
             return round($seconds, 2) . ' s';
         }
 
-        $minutes = floor($seconds / 60);
+        $minutes          = floor($seconds / 60);
         $remainingSeconds = $seconds % 60;
 
         if ($minutes < 60) {
             return sprintf('%d m %d s', (int) $minutes, (int) $remainingSeconds);
         }
 
-        $hours = floor($minutes / 60);
+        $hours            = floor($minutes / 60);
         $remainingMinutes = $minutes % 60;
 
         return sprintf('%d h %d m %d s', (int) $hours, (int) $remainingMinutes, (int) $remainingSeconds);
@@ -293,13 +300,13 @@ final class AnonymizeStatistics
     {
         $this->entityStats = [];
         $this->globalStats = [
-            'total_entities' => 0,
+            'total_entities'  => 0,
             'total_processed' => 0,
-            'total_updated' => 0,
-            'total_skipped' => 0,
-            'start_time' => 0,
-            'end_time' => 0,
-            'duration' => 0,
+            'total_updated'   => 0,
+            'total_skipped'   => 0,
+            'start_time'      => 0,
+            'end_time'        => 0,
+            'duration'        => 0,
         ];
     }
 }

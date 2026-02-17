@@ -9,6 +9,8 @@ use Faker\Generator as FakerGenerator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+use function is_string;
+
 /**
  * Faker for generating anonymized Spanish DNI, CIF, and NIF numbers.
  *
@@ -20,9 +22,9 @@ final class DniCifFaker implements FakerInterface
 {
     private FakerGenerator $faker;
 
-    public const DNI_TYPE = 'dni';
-    public const CIF_TYPE = 'cif';
-    public const NIF_TYPE = 'nif';
+    public const DNI_TYPE  = 'dni';
+    public const CIF_TYPE  = 'cif';
+    public const NIF_TYPE  = 'nif';
     public const AUTO_TYPE = 'auto';
 
     /**
@@ -51,18 +53,19 @@ final class DniCifFaker implements FakerInterface
      * Generates an anonymized DNI, CIF, or NIF.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'type' (string): 'dni', 'cif', 'nif', or 'auto' (default: 'auto')
-     *     - 'dni': Generates DNI format (8 digits + 1 letter)
-     *     - 'cif': Generates CIF format (1 letter + 7 digits + 1 letter/digit)
-     *     - 'nif': Same as DNI (8 digits + 1 letter)
-     *     - 'auto': Automatically detects type from original value if available, otherwise generates DNI
-     *   - 'formatted' (bool): Include separator (default: false)
+     *                                      - 'type' (string): 'dni', 'cif', 'nif', or 'auto' (default: 'auto')
+     *                                      - 'dni': Generates DNI format (8 digits + 1 letter)
+     *                                      - 'cif': Generates CIF format (1 letter + 7 digits + 1 letter/digit)
+     *                                      - 'nif': Same as DNI (8 digits + 1 letter)
+     *                                      - 'auto': Automatically detects type from original value if available, otherwise generates DNI
+     *                                      - 'formatted' (bool): Include separator (default: false)
+     *
      * @return string The anonymized DNI/CIF/NIF
      */
     public function generate(array $options = []): string
     {
-        $type = $options['type'] ?? 'auto';
-        $formatted = $options['formatted'] ?? false;
+        $type          = $options['type'] ?? 'auto';
+        $formatted     = $options['formatted'] ?? false;
         $originalValue = $options['original_value'] ?? null;
 
         // Auto-detect type from original value if available
@@ -77,7 +80,7 @@ final class DniCifFaker implements FakerInterface
 
         $result = match (strtolower($type)) {
             'dni', 'nif' => $this->generateDni(),
-            'cif' => $this->generateCif(),
+            'cif'   => $this->generateCif(),
             default => $this->generateDni(),
         };
 
@@ -101,7 +104,7 @@ final class DniCifFaker implements FakerInterface
 
         // Calculate checksum letter (mod 23)
         $letterIndex = $number % 23;
-        $letter = self::DNI_LETTERS[$letterIndex];
+        $letter      = self::DNI_LETTERS[$letterIndex];
 
         return (string) $number . $letter;
     }
@@ -129,12 +132,13 @@ final class DniCifFaker implements FakerInterface
      * Calculates the CIF checksum character.
      *
      * @param int $number The 7-digit number
+     *
      * @return string The checksum character (letter or digit)
      */
     private function calculateCifChecksum(int $number): string
     {
         $digits = str_split((string) $number);
-        $sum = 0;
+        $sum    = 0;
 
         // Sum even positions (0-indexed, so positions 1, 3, 5)
         for ($i = 1; $i < 7; $i += 2) {
@@ -148,7 +152,7 @@ final class DniCifFaker implements FakerInterface
         }
 
         $remainder = $sum % 10;
-        $checksum = $remainder === 0 ? 0 : 10 - $remainder;
+        $checksum  = $remainder === 0 ? 0 : 10 - $remainder;
 
         // Convert to letter if checksum is 10 (shouldn't happen with our calculation, but for safety)
         if ($checksum === 10) {
@@ -162,6 +166,7 @@ final class DniCifFaker implements FakerInterface
      * Detects the type (DNI, CIF, NIF) from a value.
      *
      * @param string $value The value to analyze
+     *
      * @return string The detected type ('dni', 'cif', or 'nif')
      */
     private function detectType(string $value): string
@@ -188,6 +193,7 @@ final class DniCifFaker implements FakerInterface
      *
      * @param string $value The value to format
      * @param string $type The type ('dni', 'cif', 'nif')
+     *
      * @return string The formatted value
      */
     private function format(string $value, string $type): string

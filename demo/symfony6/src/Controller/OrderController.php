@@ -7,7 +7,6 @@ namespace App\Controller;
 use App\Entity\Order;
 use App\Form\OrderType;
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Nowo\AnonymizeBundle\Service\SchemaService;
@@ -16,23 +15,26 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+use function sprintf;
+
 #[Route('/{connection}/order')]
 class OrderController extends AbstractController
 {
     public function __construct(
         private readonly ManagerRegistry $doctrine,
         private readonly SchemaService $schemaService
-    ) {}
+    ) {
+    }
 
     #[Route('/', name: 'order_index', methods: ['GET'])]
     public function index(string $connection): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em                  = $this->doctrine->getManager($connection);
         $hasAnonymizedColumn = $this->schemaService->hasAnonymizedColumn($em, Order::class);
 
         if (!$hasAnonymizedColumn) {
             /** @var ClassMetadata $metadata */
-            $metadata = $em->getClassMetadata(Order::class);
+            $metadata  = $em->getClassMetadata(Order::class);
             $tableName = $metadata->getTableName();
             /** @var Connection $dbConnection */
             $dbConnection = $em->getConnection(); // @phpstan-ignore-line
@@ -41,11 +43,11 @@ class OrderController extends AbstractController
             foreach ($metadata->getFieldNames() as $fieldName) {
                 if ($fieldName !== 'anonymized') {
                     $fieldMapping = $metadata->getFieldMapping($fieldName);
-                    $columns[] = $dbConnection->quoteSingleIdentifier($fieldMapping['columnName'] ?? $fieldName);
+                    $columns[]    = $dbConnection->quoteSingleIdentifier($fieldMapping['columnName'] ?? $fieldName);
                 }
             }
 
-            $sql = sprintf('SELECT %s FROM %s', implode(', ', $columns), $dbConnection->quoteSingleIdentifier($tableName));
+            $sql     = sprintf('SELECT %s FROM %s', implode(', ', $columns), $dbConnection->quoteSingleIdentifier($tableName));
             $results = $dbConnection->fetchAllAssociative($sql);
 
             $orders = [];
@@ -66,8 +68,8 @@ class OrderController extends AbstractController
         }
 
         return $this->render('order/index.html.twig', [
-            'orders' => $orders,
-            'connection' => $connection,
+            'orders'              => $orders,
+            'connection'          => $connection,
             'hasAnonymizedColumn' => $hasAnonymizedColumn,
         ]);
     }
@@ -76,8 +78,8 @@ class OrderController extends AbstractController
     public function new(Request $request, string $connection): Response
     {
         $order = new Order();
-        $em = $this->doctrine->getManager($connection);
-        $form = $this->createForm(OrderType::class, $order);
+        $em    = $this->doctrine->getManager($connection);
+        $form  = $this->createForm(OrderType::class, $order);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -90,8 +92,8 @@ class OrderController extends AbstractController
         }
 
         return $this->render('order/new.html.twig', [
-            'order' => $order,
-            'form' => $form,
+            'order'      => $order,
+            'form'       => $form,
             'connection' => $connection,
         ]);
     }
@@ -99,17 +101,17 @@ class OrderController extends AbstractController
     #[Route('/{id}', name: 'order_show', methods: ['GET'])]
     public function show(string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em                  = $this->doctrine->getManager($connection);
         $hasAnonymizedColumn = $this->schemaService->hasAnonymizedColumn($em, Order::class);
-        $order = $em->getRepository(Order::class)->find($id);
+        $order               = $em->getRepository(Order::class)->find($id);
 
         if (!$order) {
             throw $this->createNotFoundException('Order not found');
         }
 
         return $this->render('order/show.html.twig', [
-            'order' => $order,
-            'connection' => $connection,
+            'order'               => $order,
+            'connection'          => $connection,
             'hasAnonymizedColumn' => $hasAnonymizedColumn,
         ]);
     }
@@ -117,7 +119,7 @@ class OrderController extends AbstractController
     #[Route('/{id}/edit', name: 'order_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em    = $this->doctrine->getManager($connection);
         $order = $em->getRepository(Order::class)->find($id);
 
         if (!$order) {
@@ -136,8 +138,8 @@ class OrderController extends AbstractController
         }
 
         return $this->render('order/edit.html.twig', [
-            'order' => $order,
-            'form' => $form,
+            'order'      => $order,
+            'form'       => $form,
             'connection' => $connection,
         ]);
     }
@@ -145,7 +147,7 @@ class OrderController extends AbstractController
     #[Route('/{id}', name: 'order_delete', methods: ['POST'])]
     public function delete(Request $request, string $connection, int $id): Response
     {
-        $em = $this->doctrine->getManager($connection);
+        $em    = $this->doctrine->getManager($connection);
         $order = $em->getRepository(Order::class)->find($id);
 
         if (!$order) {

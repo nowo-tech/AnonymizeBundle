@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
@@ -18,7 +19,7 @@ use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 #[ORM\Entity]
 #[ORM\Table(name: 'employees')]
 #[Anonymize(
-    excludePatterns: ['department' => 'HR']
+    excludePatterns: ['department' => 'HR'],
 )]
 class Employee
 {
@@ -51,7 +52,7 @@ class Employee
 
     #[ORM\Column(type: 'date', nullable: true)]
     #[AnonymizeProperty(type: 'date', weight: 6, options: ['type' => 'past', 'min_date' => '-65 years', 'max_date' => '-18 years', 'format' => 'Y-m-d'])]
-    private ?\DateTimeInterface $birthDate = null;
+    private ?DateTimeInterface $birthDate = null;
 
     #[ORM\Column]
     #[AnonymizeProperty(type: 'age', weight: 7, options: ['min' => 22, 'max' => 65])]
@@ -66,7 +67,7 @@ class Employee
 
     #[ORM\Column(type: 'datetime')]
     #[AnonymizeProperty(type: 'date', weight: 9, options: ['type' => 'past', 'min_date' => '-10 years', 'max_date' => 'now', 'format' => 'Y-m-d H:i:s'])]
-    private ?\DateTimeInterface $hireDate = null;
+    private ?DateTimeInterface $hireDate = null;
 
     public function getId(): ?int
     {
@@ -133,12 +134,12 @@ class Employee
         return $this;
     }
 
-    public function getBirthDate(): ?\DateTimeInterface
+    public function getBirthDate(): ?DateTimeInterface
     {
         return $this->birthDate;
     }
 
-    public function setBirthDate(?\DateTimeInterface $birthDate): static
+    public function setBirthDate(?DateTimeInterface $birthDate): static
     {
         $this->birthDate = $birthDate;
 
@@ -181,12 +182,12 @@ class Employee
         return $this;
     }
 
-    public function getHireDate(): ?\DateTimeInterface
+    public function getHireDate(): ?DateTimeInterface
     {
         return $this->hireDate;
     }
 
-    public function setHireDate(?\DateTimeInterface $hireDate): static
+    public function setHireDate(?DateTimeInterface $hireDate): static
     {
         $this->hireDate = $hireDate;
 

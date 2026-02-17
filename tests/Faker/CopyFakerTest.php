@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Faker;
 
+use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Faker\CopyFaker;
 use PHPUnit\Framework\TestCase;
 
@@ -20,12 +21,12 @@ class CopyFakerTest extends TestCase
      */
     public function testGenerateCopiesFromSourceField(): void
     {
-        $faker = new CopyFaker();
+        $faker  = new CopyFaker();
         $record = ['email' => 'john@example.com'];
 
         $result = $faker->generate([
             'source_field' => 'email',
-            'record' => $record,
+            'record'       => $record,
         ]);
 
         $this->assertEquals('john@example.com', $result);
@@ -59,12 +60,12 @@ class CopyFakerTest extends TestCase
      */
     public function testGenerateUsesFallbackWhenSourceIsNull(): void
     {
-        $faker = new CopyFaker();
+        $faker  = new CopyFaker();
         $record = ['email' => null];
 
         $result = $faker->generate([
-            'source_field' => 'email',
-            'record' => $record,
+            'source_field'   => 'email',
+            'record'         => $record,
             'fallback_faker' => 'email',
         ]);
 
@@ -78,12 +79,12 @@ class CopyFakerTest extends TestCase
      */
     public function testGenerateUsesFallbackWhenSourceIsEmpty(): void
     {
-        $faker = new CopyFaker();
+        $faker  = new CopyFaker();
         $record = ['email' => ''];
 
         $result = $faker->generate([
-            'source_field' => 'email',
-            'record' => $record,
+            'source_field'   => 'email',
+            'record'         => $record,
             'fallback_faker' => 'email',
         ]);
 
@@ -98,7 +99,7 @@ class CopyFakerTest extends TestCase
     {
         $faker = new CopyFaker();
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('CopyFaker requires a "source_field" option.');
 
         $faker->generate([
@@ -113,7 +114,7 @@ class CopyFakerTest extends TestCase
     {
         $faker = new CopyFaker();
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('CopyFaker requires a "record" option with the full database record.');
 
         $faker->generate([
@@ -158,13 +159,13 @@ class CopyFakerTest extends TestCase
      */
     public function testGenerateWithCustomFallbackOptions(): void
     {
-        $faker = new CopyFaker();
+        $faker  = new CopyFaker();
         $record = ['email' => null];
 
         $result = $faker->generate([
-            'source_field' => 'email',
-            'record' => $record,
-            'fallback_faker' => 'name',
+            'source_field'     => 'email',
+            'record'           => $record,
+            'fallback_faker'   => 'name',
             'fallback_options' => ['gender' => 'male'],
         ]);
 

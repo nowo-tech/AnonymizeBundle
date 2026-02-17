@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\DataFixtures;
 
 use App\Entity\EmailSignature;
+use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
@@ -14,7 +15,7 @@ class EmailSignatureFixtures extends Fixture
     {
         $signatures = [
             [
-                'email' => 'john.doe@example.com',
+                'email'     => 'john.doe@example.com',
                 'signature' => '<div style="font-family: Arial, sans-serif; font-size: 12px;">
                     <p><strong>John Doe</strong><br>
                     Senior Developer<br>
@@ -24,12 +25,12 @@ class EmailSignatureFixtures extends Fixture
                     Website: <a href="https://www.techsolutions.com">www.techsolutions.com</a></p>
                     <p>Best regards,<br>John</p>
                 </div>',
-                'emailBody' => '<p>Dear Customer,</p><p>Thank you for your interest in our services. We are pleased to inform you that your request has been processed successfully.</p><p>If you have any questions, please do not hesitate to contact us.</p>',
+                'emailBody'  => '<p>Dear Customer,</p><p>Thank you for your interest in our services. We are pleased to inform you that your request has been processed successfully.</p><p>If you have any questions, please do not hesitate to contact us.</p>',
                 'senderName' => 'John Doe',
-                'sentAt' => new \DateTime('-30 days'),
+                'sentAt'     => new DateTime('-30 days'),
             ],
             [
-                'email' => 'jane.smith@company.com',
+                'email'     => 'jane.smith@company.com',
                 'signature' => '<div>
                     <p><strong>Jane Smith</strong><br>
                     Marketing Director<br>
@@ -38,12 +39,12 @@ class EmailSignatureFixtures extends Fixture
                     Email: jane.smith@company.com<br>
                     Website: www.globalmarketing.com</p>
                 </div>',
-                'emailBody' => '<p>Hello,</p><p>We wanted to reach out regarding your recent inquiry. Our team is ready to assist you with any questions you may have.</p>',
+                'emailBody'  => '<p>Hello,</p><p>We wanted to reach out regarding your recent inquiry. Our team is ready to assist you with any questions you may have.</p>',
                 'senderName' => 'Jane Smith',
-                'sentAt' => new \DateTime('-15 days'),
+                'sentAt'     => new DateTime('-15 days'),
             ],
             [
-                'email' => 'bob.wilson@startup.io',
+                'email'     => 'bob.wilson@startup.io',
                 'signature' => '<div style="color: #333;">
                     <p><strong>Bob Wilson</strong><br>
                     CEO & Founder<br>
@@ -52,12 +53,12 @@ class EmailSignatureFixtures extends Fixture
                     Email: <a href="mailto:bob.wilson@startup.io">bob.wilson@startup.io</a></p>
                     <p>Follow us on <a href="https://twitter.com/startup">Twitter</a> | <a href="https://linkedin.com/company/startup">LinkedIn</a></p>
                 </div>',
-                'emailBody' => '<p>Hi there,</p><p>I hope this email finds you well. I wanted to personally thank you for your interest in our company.</p><p>We are excited about the possibility of working together.</p>',
+                'emailBody'  => '<p>Hi there,</p><p>I hope this email finds you well. I wanted to personally thank you for your interest in our company.</p><p>We are excited about the possibility of working together.</p>',
                 'senderName' => 'Bob Wilson',
-                'sentAt' => new \DateTime('-7 days'),
+                'sentAt'     => new DateTime('-7 days'),
             ],
             [
-                'email' => 'alice.brown@corp.com',
+                'email'     => 'alice.brown@corp.com',
                 'signature' => '<div>
                     <p><strong>Alice Brown</strong><br>
                     HR Manager<br>
@@ -66,12 +67,12 @@ class EmailSignatureFixtures extends Fixture
                     Email: alice.brown@corp.com</p>
                     <p>This email and any attachments are confidential and may be legally privileged.</p>
                 </div>',
-                'emailBody' => '<p>Dear Applicant,</p><p>Thank you for applying to our position. We have reviewed your application and would like to schedule an interview.</p>',
+                'emailBody'  => '<p>Dear Applicant,</p><p>Thank you for applying to our position. We have reviewed your application and would like to schedule an interview.</p>',
                 'senderName' => 'Alice Brown',
-                'sentAt' => new \DateTime('-3 days'),
+                'sentAt'     => new DateTime('-3 days'),
             ],
             [
-                'email' => 'charlie.davis@agency.net',
+                'email'     => 'charlie.davis@agency.net',
                 'signature' => '<div style="font-size: 11px; color: #666;">
                     <p><strong>Charlie Davis</strong><br>
                     Creative Director<br>
@@ -82,12 +83,12 @@ class EmailSignatureFixtures extends Fixture
                         <li>Portfolio: <a href="https://portfolio.charlie.com">portfolio.charlie.com</a></li>
                     </ul>
                 </div>',
-                'emailBody' => '<p>Greetings,</p><p>I am writing to discuss a potential collaboration opportunity. We believe there is great potential for a partnership between our organizations.</p>',
+                'emailBody'  => '<p>Greetings,</p><p>I am writing to discuss a potential collaboration opportunity. We believe there is great potential for a partnership between our organizations.</p>',
                 'senderName' => 'Charlie Davis',
-                'sentAt' => new \DateTime('-1 day'),
+                'sentAt'     => new DateTime('-1 day'),
             ],
             [
-                'email' => 'david.miller@consulting.com',
+                'email'     => 'david.miller@consulting.com',
                 'signature' => '<div>
                     <p><strong>David Miller</strong><br>
                     Senior Consultant<br>
@@ -97,12 +98,12 @@ class EmailSignatureFixtures extends Fixture
                     Email: david.miller@consulting.com</p>
                     <p>Available: Monday - Friday, 9:00 - 18:00 CET</p>
                 </div>',
-                'emailBody' => '<p>Dear Client,</p><p>Following our recent conversation, I am pleased to provide you with the requested information. Please find the details attached.</p><p>Should you require any clarification, I am at your disposal.</p>',
+                'emailBody'  => '<p>Dear Client,</p><p>Following our recent conversation, I am pleased to provide you with the requested information. Please find the details attached.</p><p>Should you require any clarification, I am at your disposal.</p>',
                 'senderName' => 'David Miller',
-                'sentAt' => new \DateTime('-5 days'),
+                'sentAt'     => new DateTime('-5 days'),
             ],
             [
-                'email' => 'emma.jones@finance.bank',
+                'email'     => 'emma.jones@finance.bank',
                 'signature' => '<div style="border-top: 2px solid #0066cc; padding-top: 10px;">
                     <p><strong>Emma Jones</strong><br>
                     Financial Advisor<br>
@@ -112,12 +113,12 @@ class EmailSignatureFixtures extends Fixture
                     Website: <a href="https://www.trustbank.com">www.trustbank.com</a></p>
                     <p><small>This message is confidential and intended only for the addressee.</small></p>
                 </div>',
-                'emailBody' => '<p>Dear Valued Customer,</p><p>We are writing to inform you about important updates to your account. Please review the attached statement at your earliest convenience.</p>',
+                'emailBody'  => '<p>Dear Valued Customer,</p><p>We are writing to inform you about important updates to your account. Please review the attached statement at your earliest convenience.</p>',
                 'senderName' => 'Emma Jones',
-                'sentAt' => new \DateTime('-10 days'),
+                'sentAt'     => new DateTime('-10 days'),
             ],
             [
-                'email' => 'frank.taylor@legal.firm',
+                'email'     => 'frank.taylor@legal.firm',
                 'signature' => '<div>
                     <p><strong>Frank Taylor, Esq.</strong><br>
                     Partner<br>
@@ -127,9 +128,9 @@ class EmailSignatureFixtures extends Fixture
                     Email: frank.taylor@legal.firm</p>
                     <p>Address: 123 Legal Street, Madrid, Spain</p>
                 </div>',
-                'emailBody' => '<p>Dear Sir/Madam,</p><p>I am writing in reference to the matter we discussed. Please find enclosed the relevant documentation for your review.</p><p>We look forward to your response.</p>',
+                'emailBody'  => '<p>Dear Sir/Madam,</p><p>I am writing in reference to the matter we discussed. Please find enclosed the relevant documentation for your review.</p><p>We look forward to your response.</p>',
                 'senderName' => 'Frank Taylor',
-                'sentAt' => new \DateTime('-20 days'),
+                'sentAt'     => new DateTime('-20 days'),
             ],
         ];
 

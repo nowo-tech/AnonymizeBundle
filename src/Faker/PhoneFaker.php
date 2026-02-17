@@ -36,15 +36,16 @@ final class PhoneFaker implements FakerInterface
      * Generates an anonymized phone number.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'country_code' (string): Specific country code (e.g., '+1', '+34')
-     *   - 'format' (string): 'international' or 'national' (default: 'international')
-     *   - 'include_extension' (bool): Include extension (default: false)
+     *                                      - 'country_code' (string): Specific country code (e.g., '+1', '+34')
+     *                                      - 'format' (string): 'international' or 'national' (default: 'international')
+     *                                      - 'include_extension' (bool): Include extension (default: false)
+     *
      * @return string The anonymized phone number
      */
     public function generate(array $options = []): string
     {
-        $countryCode = $options['country_code'] ?? null;
-        $format = $options['format'] ?? 'international';
+        $countryCode      = $options['country_code'] ?? null;
+        $format           = $options['format'] ?? 'international';
         $includeExtension = $options['include_extension'] ?? false;
 
         $phoneNumber = $this->faker->phoneNumber();

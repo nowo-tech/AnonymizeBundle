@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use DateTime;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+
+use function extension_loaded;
 
 #[Route('/mongodb/customer-profile')]
 class CustomerProfileController extends AbstractController
@@ -26,8 +30,9 @@ class CustomerProfileController extends AbstractController
         }
         try {
             $clientClass = class_exists('\MongoDB\Client') ? '\MongoDB\Client' : 'MongoDB\Client';
+
             return new $clientClass($mongodbUrl);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
     }
@@ -38,11 +43,12 @@ class CustomerProfileController extends AbstractController
         if (!$client) {
             return null;
         }
-        $mongodbUrl = $_ENV['MONGODB_URL'] ?? getenv('MONGODB_URL');
-        $parsedUrl = parse_url(str_replace('mongodb://', 'http://', $mongodbUrl));
+        $mongodbUrl   = $_ENV['MONGODB_URL'] ?? getenv('MONGODB_URL');
+        $parsedUrl    = parse_url(str_replace('mongodb://', 'http://', $mongodbUrl));
         $databaseName = trim($parsedUrl['path'] ?? 'anonymize_demo', '/');
         $databaseName = explode('?', $databaseName)[0];
-        $database = $client->selectDatabase($databaseName);
+        $database     = $client->selectDatabase($databaseName);
+
         return $database->selectCollection('customer_profiles');
     }
 
@@ -52,10 +58,11 @@ class CustomerProfileController extends AbstractController
         if (!extension_loaded('mongodb') || (!class_exists('\MongoDB\Client') && !class_exists('MongoDB\Client'))) {
             $errorMsg = 'MongoDB PHP extension or MongoDB\Client class not found.';
             $this->addFlash('error', $errorMsg);
+
             return $this->render('customer_profile/index.html.twig', [
-                'profiles' => [],
+                'profiles'   => [],
                 'connection' => 'mongodb',
-                'error' => $errorMsg,
+                'error'      => $errorMsg,
             ]);
         }
 
@@ -63,27 +70,28 @@ class CustomerProfileController extends AbstractController
         if (!$collection) {
             $errorMsg = 'MongoDB connection not available.';
             $this->addFlash('error', $errorMsg);
+
             return $this->render('customer_profile/index.html.twig', [
-                'profiles' => [],
+                'profiles'   => [],
                 'connection' => 'mongodb',
-                'error' => $errorMsg,
+                'error'      => $errorMsg,
             ]);
         }
 
         try {
-            $profiles = $collection->find([], ['sort' => ['createdAt' => -1]]);
+            $profiles      = $collection->find([], ['sort' => ['createdAt' => -1]]);
             $profilesArray = [];
             foreach ($profiles as $profile) {
                 $profilesArray[] = $profile;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->addFlash('error', 'Error loading profiles: ' . $e->getMessage());
             $profilesArray = [];
         }
 
         return $this->render('customer_profile/index.html.twig', [
-            'profiles' => $profilesArray,
-            'connection' => 'mongodb',
+            'profiles'            => $profilesArray,
+            'connection'          => 'mongodb',
             'hasAnonymizedColumn' => true,
         ]);
     }
@@ -95,28 +103,30 @@ class CustomerProfileController extends AbstractController
             $collection = $this->getCollection();
             if (!$collection) {
                 $this->addFlash('error', 'MongoDB connection not available.');
+
                 return $this->redirectToRoute('mongodb_customer_profile_index');
             }
 
             try {
                 $data = [
-                    'email' => $request->request->get('email', ''),
-                    'firstName' => $request->request->get('firstName', ''),
-                    'lastName' => $request->request->get('lastName', ''),
-                    'phone' => $request->request->get('phone', ''),
-                    'address' => $request->request->get('address', ''),
-                    'company' => $request->request->get('company', ''),
-                    'username' => $request->request->get('username', ''),
-                    'website' => $request->request->get('website', ''),
-                    'age' => (int) $request->request->get('age', 0),
-                    'status' => $request->request->get('status', 'active'),
-                    'createdAt' => new \MongoDB\BSON\UTCDateTime(new \DateTime($request->request->get('createdAt', 'now'))),
+                    'email'      => $request->request->get('email', ''),
+                    'firstName'  => $request->request->get('firstName', ''),
+                    'lastName'   => $request->request->get('lastName', ''),
+                    'phone'      => $request->request->get('phone', ''),
+                    'address'    => $request->request->get('address', ''),
+                    'company'    => $request->request->get('company', ''),
+                    'username'   => $request->request->get('username', ''),
+                    'website'    => $request->request->get('website', ''),
+                    'age'        => (int) $request->request->get('age', 0),
+                    'status'     => $request->request->get('status', 'active'),
+                    'createdAt'  => new \MongoDB\BSON\UTCDateTime(new DateTime($request->request->get('createdAt', 'now'))),
                     'anonymized' => false,
                 ];
                 $collection->insertOne($data);
                 $this->addFlash('success', 'Customer profile created successfully!');
+
                 return $this->redirectToRoute('mongodb_customer_profile_index');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->addFlash('error', 'Error creating profile: ' . $e->getMessage());
             }
         }
@@ -132,6 +142,7 @@ class CustomerProfileController extends AbstractController
         $collection = $this->getCollection();
         if (!$collection) {
             $this->addFlash('error', 'MongoDB connection not available.');
+
             return $this->redirectToRoute('mongodb_customer_profile_index');
         }
 
@@ -140,14 +151,15 @@ class CustomerProfileController extends AbstractController
             if (!$profile) {
                 throw $this->createNotFoundException('Customer profile not found');
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->addFlash('error', 'Error loading profile: ' . $e->getMessage());
+
             return $this->redirectToRoute('mongodb_customer_profile_index');
         }
 
         return $this->render('customer_profile/show.html.twig', [
-            'profile' => $profile,
-            'connection' => 'mongodb',
+            'profile'             => $profile,
+            'connection'          => 'mongodb',
             'hasAnonymizedColumn' => true,
         ]);
     }
@@ -158,6 +170,7 @@ class CustomerProfileController extends AbstractController
         $collection = $this->getCollection();
         if (!$collection) {
             $this->addFlash('error', 'MongoDB connection not available.');
+
             return $this->redirectToRoute('mongodb_customer_profile_index');
         }
 
@@ -166,8 +179,9 @@ class CustomerProfileController extends AbstractController
             if (!$profile) {
                 throw $this->createNotFoundException('Customer profile not found');
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->addFlash('error', 'Error loading profile: ' . $e->getMessage());
+
             return $this->redirectToRoute('mongodb_customer_profile_index');
         }
 
@@ -175,29 +189,30 @@ class CustomerProfileController extends AbstractController
             try {
                 $updateData = [
                     '$set' => [
-                        'email' => $request->request->get('email', ''),
+                        'email'     => $request->request->get('email', ''),
                         'firstName' => $request->request->get('firstName', ''),
-                        'lastName' => $request->request->get('lastName', ''),
-                        'phone' => $request->request->get('phone', ''),
-                        'address' => $request->request->get('address', ''),
-                        'company' => $request->request->get('company', ''),
-                        'username' => $request->request->get('username', ''),
-                        'website' => $request->request->get('website', ''),
-                        'age' => (int) $request->request->get('age', 0),
-                        'status' => $request->request->get('status', 'active'),
-                        'createdAt' => new \MongoDB\BSON\UTCDateTime(new \DateTime($request->request->get('createdAt', 'now'))),
+                        'lastName'  => $request->request->get('lastName', ''),
+                        'phone'     => $request->request->get('phone', ''),
+                        'address'   => $request->request->get('address', ''),
+                        'company'   => $request->request->get('company', ''),
+                        'username'  => $request->request->get('username', ''),
+                        'website'   => $request->request->get('website', ''),
+                        'age'       => (int) $request->request->get('age', 0),
+                        'status'    => $request->request->get('status', 'active'),
+                        'createdAt' => new \MongoDB\BSON\UTCDateTime(new DateTime($request->request->get('createdAt', 'now'))),
                     ],
                 ];
                 $collection->updateOne(['_id' => new \MongoDB\BSON\ObjectId($id)], $updateData);
                 $this->addFlash('success', 'Customer profile updated successfully!');
+
                 return $this->redirectToRoute('mongodb_customer_profile_index');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->addFlash('error', 'Error updating profile: ' . $e->getMessage());
             }
         }
 
         return $this->render('customer_profile/edit.html.twig', [
-            'profile' => $profile,
+            'profile'    => $profile,
             'connection' => 'mongodb',
         ]);
     }
@@ -208,6 +223,7 @@ class CustomerProfileController extends AbstractController
         $collection = $this->getCollection();
         if (!$collection) {
             $this->addFlash('error', 'MongoDB connection not available.');
+
             return $this->redirectToRoute('mongodb_customer_profile_index');
         }
 
@@ -215,7 +231,7 @@ class CustomerProfileController extends AbstractController
             try {
                 $collection->deleteOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
                 $this->addFlash('success', 'Customer profile deleted successfully!');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->addFlash('error', 'Error deleting profile: ' . $e->getMessage());
             }
         }

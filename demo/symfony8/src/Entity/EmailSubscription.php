@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
@@ -38,7 +39,7 @@ class EmailSubscription
         // Only anonymize emails from specific domains (e.g., internal test domains)
         // Uses | (OR) operator to match multiple domains
         includePatterns: ['email' => '%@test-domain.com|%@example.com|%@demo.local'],
-        options: ['domain' => 'anonymized.local', 'format' => 'random']
+        options: ['domain' => 'anonymized.local', 'format' => 'random'],
     )]
     private ?string $email = null;
 
@@ -56,13 +57,13 @@ class EmailSubscription
         // Only anonymize if status is 'inactive' or 'unsubscribed'
         // Uses | (OR) operator to match multiple status values
         includePatterns: ['status' => 'inactive|unsubscribed'],
-        options: ['domain' => 'removed.local', 'format' => 'random']
+        options: ['domain' => 'removed.local', 'format' => 'random'],
     )]
     private ?string $backupEmail = null;
 
     #[ORM\Column(type: 'datetime')]
     #[AnonymizeProperty(type: 'date', weight: 4, options: ['type' => 'past', 'min_date' => '-2 years', 'max_date' => 'now', 'format' => 'Y-m-d H:i:s'])]
-    private ?\DateTimeInterface $subscribedAt = null;
+    private ?DateTimeInterface $subscribedAt = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     #[AnonymizeProperty(
@@ -70,9 +71,9 @@ class EmailSubscription
         weight: 5,
         // Only anonymize unsubscribed dates (not active subscriptions)
         includePatterns: ['status' => 'unsubscribed'],
-        options: ['type' => 'past', 'min_date' => '-1 year', 'max_date' => 'now', 'format' => 'Y-m-d H:i:s']
+        options: ['type' => 'past', 'min_date' => '-1 year', 'max_date' => 'now', 'format' => 'Y-m-d H:i:s'],
     )]
-    private ?\DateTimeInterface $unsubscribedAt = null;
+    private ?DateTimeInterface $unsubscribedAt = null;
 
     #[ORM\Column(length: 50)]
     private ?string $source = null; // 'website', 'newsletter', 'promotion', 'partner'
@@ -83,7 +84,7 @@ class EmailSubscription
         weight: 6,
         // Only anonymize notes for inactive/unsubscribed users
         includePatterns: ['status' => 'inactive|unsubscribed'],
-        options: ['type' => 'sentence', 'min_words' => 5, 'max_words' => 15]
+        options: ['type' => 'sentence', 'min_words' => 5, 'max_words' => 15],
     )]
     private ?string $notes = null;
 
@@ -140,24 +141,24 @@ class EmailSubscription
         return $this;
     }
 
-    public function getSubscribedAt(): ?\DateTimeInterface
+    public function getSubscribedAt(): ?DateTimeInterface
     {
         return $this->subscribedAt;
     }
 
-    public function setSubscribedAt(?\DateTimeInterface $subscribedAt): static
+    public function setSubscribedAt(?DateTimeInterface $subscribedAt): static
     {
         $this->subscribedAt = $subscribedAt;
 
         return $this;
     }
 
-    public function getUnsubscribedAt(): ?\DateTimeInterface
+    public function getUnsubscribedAt(): ?DateTimeInterface
     {
         return $this->unsubscribedAt;
     }
 
-    public function setUnsubscribedAt(?\DateTimeInterface $unsubscribedAt): static
+    public function setUnsubscribedAt(?DateTimeInterface $unsubscribedAt): static
     {
         $this->unsubscribedAt = $unsubscribedAt;
 

@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\DataFixtures;
 
 use App\Entity\TempData;
+use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+
+use function sprintf;
 
 class TempDataFixtures extends Fixture
 {
@@ -15,42 +18,42 @@ class TempDataFixtures extends Fixture
         $tempDataRecords = [
             [
                 'email' => 'temp1@example.com',
-                'name' => 'Temporary User 1',
+                'name'  => 'Temporary User 1',
                 'phone' => '+1234567890',
             ],
             [
                 'email' => 'temp2@example.com',
-                'name' => 'Temporary User 2',
+                'name'  => 'Temporary User 2',
                 'phone' => '+1234567891',
             ],
             [
                 'email' => 'temp3@example.com',
-                'name' => 'Temporary User 3',
+                'name'  => 'Temporary User 3',
                 'phone' => '+1234567892',
             ],
             [
                 'email' => 'temp4@example.com',
-                'name' => 'Temporary User 4',
+                'name'  => 'Temporary User 4',
                 'phone' => null,
             ],
             [
                 'email' => 'temp5@example.com',
-                'name' => 'Temporary User 5',
+                'name'  => 'Temporary User 5',
                 'phone' => '+1234567894',
             ],
             [
                 'email' => 'temp6@example.com',
-                'name' => 'Temporary User 6',
+                'name'  => 'Temporary User 6',
                 'phone' => '+1234567895',
             ],
             [
                 'email' => 'temp7@example.com',
-                'name' => 'Temporary User 7',
+                'name'  => 'Temporary User 7',
                 'phone' => null,
             ],
             [
                 'email' => 'temp8@example.com',
-                'name' => 'Temporary User 8',
+                'name'  => 'Temporary User 8',
                 'phone' => '+1234567897',
             ],
         ];
@@ -60,7 +63,7 @@ class TempDataFixtures extends Fixture
             $tempData->setEmail($data['email']);
             $tempData->setName($data['name']);
             $tempData->setPhone($data['phone']);
-            $tempData->setCreatedAt(new \DateTimeImmutable(sprintf('-%d days', 10 - $index)));
+            $tempData->setCreatedAt(new DateTimeImmutable(sprintf('-%d days', 10 - $index)));
 
             $manager->persist($tempData);
         }

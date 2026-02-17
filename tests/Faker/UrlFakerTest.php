@@ -21,7 +21,7 @@ class UrlFakerTest extends TestCase
     public function testGenerate(): void
     {
         $faker = new UrlFaker('en_US');
-        $url = $faker->generate();
+        $url   = $faker->generate();
 
         $this->assertIsString($url);
         $this->assertStringStartsWith('http', $url);
@@ -34,7 +34,7 @@ class UrlFakerTest extends TestCase
     public function testGenerateWithScheme(): void
     {
         $faker = new UrlFaker('en_US');
-        $url = $faker->generate(['scheme' => 'http']);
+        $url   = $faker->generate(['scheme' => 'http']);
 
         $this->assertIsString($url);
         $this->assertStringStartsWith('http://', $url);
@@ -46,7 +46,7 @@ class UrlFakerTest extends TestCase
     public function testGenerateWithDomain(): void
     {
         $faker = new UrlFaker('en_US');
-        $url = $faker->generate(['domain' => 'example.com']);
+        $url   = $faker->generate(['domain' => 'example.com']);
 
         $this->assertIsString($url);
         $this->assertStringContainsString('example.com', $url);
@@ -58,7 +58,7 @@ class UrlFakerTest extends TestCase
     public function testGenerateWithoutPath(): void
     {
         $faker = new UrlFaker('en_US');
-        $url = $faker->generate(['path' => false]);
+        $url   = $faker->generate(['path' => false]);
 
         $this->assertIsString($url);
         $parsed = parse_url($url);
@@ -76,7 +76,7 @@ class UrlFakerTest extends TestCase
     public function testGenerateWithSchemeAndDomain(): void
     {
         $faker = new UrlFaker('en_US');
-        $url = $faker->generate(['scheme' => 'http', 'domain' => 'example.com']);
+        $url   = $faker->generate(['scheme' => 'http', 'domain' => 'example.com']);
 
         $this->assertIsString($url);
         $this->assertStringStartsWith('http://example.com', $url);
@@ -88,7 +88,7 @@ class UrlFakerTest extends TestCase
     public function testGenerateWithDomainAndPath(): void
     {
         $faker = new UrlFaker('en_US');
-        $url = $faker->generate(['domain' => 'example.com', 'path' => true]);
+        $url   = $faker->generate(['domain' => 'example.com', 'path' => true]);
 
         $this->assertIsString($url);
         $this->assertStringContainsString('example.com', $url);
@@ -100,7 +100,7 @@ class UrlFakerTest extends TestCase
     public function testGenerateWithDomainAndPathFalse(): void
     {
         $faker = new UrlFaker('en_US');
-        $url = $faker->generate(['domain' => 'example.com', 'path' => false]);
+        $url   = $faker->generate(['domain' => 'example.com', 'path' => false]);
 
         $this->assertIsString($url);
         $this->assertEquals('https://example.com', $url);
@@ -121,7 +121,7 @@ class UrlFakerTest extends TestCase
     public function testGenerateWithDifferentLocale(): void
     {
         $faker = new UrlFaker('es_ES');
-        $url = $faker->generate();
+        $url   = $faker->generate();
 
         $this->assertIsString($url);
         $this->assertStringStartsWith('http', $url);
@@ -133,7 +133,7 @@ class UrlFakerTest extends TestCase
     public function testGenerateWithCustomScheme(): void
     {
         $faker = new UrlFaker('en_US');
-        $url = $faker->generate(['scheme' => 'ftp', 'domain' => 'example.com']);
+        $url   = $faker->generate(['scheme' => 'ftp', 'domain' => 'example.com']);
 
         $this->assertIsString($url);
         $this->assertStringStartsWith('ftp://example.com', $url);

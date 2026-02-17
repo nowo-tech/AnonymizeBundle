@@ -4,17 +4,24 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Command;
 
-use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
+use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Psr\Container\ContainerInterface;
+
+use function count;
+use function sprintf;
+
+use const JSON_PRETTY_PRINT;
+use const JSON_UNESCAPED_SLASHES;
+use const PHP_INT_MAX;
 
 /**
  * Command to display information about anonymizers defined in the application.
@@ -30,7 +37,7 @@ use Psr\Container\ContainerInterface;
  */
 #[AsCommand(
     name: 'nowo:anonymize:info',
-    description: 'Display information about anonymizers defined in the application'
+    description: 'Display information about anonymizers defined in the application',
 )]
 final class AnonymizeInfoCommand extends AbstractCommand
 {
@@ -87,8 +94,8 @@ final class AnonymizeInfoCommand extends AbstractCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
-        $locale = $input->getOption('locale') ?? $this->locale;
+        $io          = new SymfonyStyle($input, $output);
+        $locale      = $input->getOption('locale') ?? $this->locale;
         $connections = $input->getOption('connection');
 
         $io->title('Anonymizer Information');
@@ -97,7 +104,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
         $doctrine = $this->container->get(SymfonyService::DOCTRINE);
 
         // Get all entity manager names
-        $allManagers = $doctrine->getManagerNames();
+        $allManagers       = $doctrine->getManagerNames();
         $managersToProcess = empty($connections) ? array_keys($allManagers) : array_intersect(array_keys($allManagers), $connections);
 
         if (empty($managersToProcess)) {
@@ -107,8 +114,8 @@ final class AnonymizeInfoCommand extends AbstractCommand
         }
 
         // Initialize services
-        $fakerFactory = new FakerFactory($locale, $this->container);
-        $patternMatcher = new PatternMatcher();
+        $fakerFactory     = new FakerFactory($locale, $this->container);
+        $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
 
         $allAnonymizers = [];
@@ -118,8 +125,8 @@ final class AnonymizeInfoCommand extends AbstractCommand
             $io->section(sprintf('Entity Manager: <info>%s</info>', $managerName));
 
             try {
-                $em = $doctrine->getManager($managerName);
-                $connection = $em->getConnection();
+                $em             = $doctrine->getManager($managerName);
+                $connection     = $em->getConnection();
                 $connectionName = $connection->getDatabase();
 
                 // Get all anonymizable entities
@@ -134,10 +141,10 @@ final class AnonymizeInfoCommand extends AbstractCommand
 
                 // Process each entity
                 foreach ($entities as $className => $entityData) {
-                    $metadata = $entityData['metadata'];
-                    $reflection = $entityData['reflection'];
+                    $metadata        = $entityData['metadata'];
+                    $reflection      = $entityData['reflection'];
                     $entityAttribute = $entityData['attribute'];
-                    $tableName = $metadata->getTableName();
+                    $tableName       = $metadata->getTableName();
 
                     // Get anonymizable properties
                     $properties = $anonymizeService->getAnonymizableProperties($reflection);
@@ -147,11 +154,11 @@ final class AnonymizeInfoCommand extends AbstractCommand
                     }
 
                     // Get total records count
-                    $countQuery = sprintf('SELECT COUNT(*) as total FROM %s', $this->quoteIdentifier($connection, $tableName));
+                    $countQuery   = sprintf('SELECT COUNT(*) as total FROM %s', $this->quoteIdentifier($connection, $tableName));
                     $totalRecords = (int) $connection->fetchOne($countQuery);
 
                     // Get all records for pattern matching
-                    $query = sprintf('SELECT * FROM %s', $this->quoteIdentifier($connection, $tableName));
+                    $query      = sprintf('SELECT * FROM %s', $this->quoteIdentifier($connection, $tableName));
                     $allRecords = $connection->fetchAllAssociative($query);
 
                     $io->writeln('');
@@ -186,16 +193,16 @@ final class AnonymizeInfoCommand extends AbstractCommand
 
                     // Display each property
                     foreach ($properties as $index => $propertyData) {
-                        $property = $propertyData['property'];
-                        $attribute = $propertyData['attribute'];
-                        $weight = $propertyData['weight'] ?? PHP_INT_MAX;
+                        $property     = $propertyData['property'];
+                        $attribute    = $propertyData['attribute'];
+                        $weight       = $propertyData['weight'] ?? PHP_INT_MAX;
                         $propertyName = $property->getName();
 
                         // Get column name
                         $columnName = $propertyName;
                         if ($metadata->hasField($propertyName)) {
                             $fieldMapping = $metadata->getFieldMapping($propertyName);
-                            $columnName = $fieldMapping['columnName'] ?? $propertyName;
+                            $columnName   = $fieldMapping['columnName'] ?? $propertyName;
                         }
 
                         // Count records that will be anonymized for this property
@@ -205,7 +212,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
                             $entityMatches = $patternMatcher->matches(
                                 $record,
                                 $entityAttribute->includePatterns ?? [],
-                                $entityAttribute->excludePatterns ?? []
+                                $entityAttribute->excludePatterns ?? [],
                             );
 
                             if (!$entityMatches) {
@@ -216,9 +223,9 @@ final class AnonymizeInfoCommand extends AbstractCommand
                             if ($patternMatcher->matches(
                                 $record,
                                 $attribute->includePatterns ?? [],
-                                $attribute->excludePatterns ?? []
+                                $attribute->excludePatterns ?? [],
                             )) {
-                                $recordsToAnonymize++;
+                                ++$recordsToAnonymize;
                             }
                         }
 
@@ -249,24 +256,24 @@ final class AnonymizeInfoCommand extends AbstractCommand
 
                         // Store for summary
                         $allAnonymizers[] = [
-                            'connection' => $connectionName,
-                            'entity' => $className,
-                            'table' => $tableName,
-                            'property' => $propertyName,
-                            'column' => $columnName,
-                            'faker_type' => $attribute->type,
-                            'service' => $attribute->service,
-                            'weight' => $weight,
-                            'options' => $attribute->options ?? [],
-                            'include_patterns' => $attribute->includePatterns ?? [],
-                            'exclude_patterns' => $attribute->excludePatterns ?? [],
-                            'total_records' => $totalRecords,
+                            'connection'           => $connectionName,
+                            'entity'               => $className,
+                            'table'                => $tableName,
+                            'property'             => $propertyName,
+                            'column'               => $columnName,
+                            'faker_type'           => $attribute->type,
+                            'service'              => $attribute->service,
+                            'weight'               => $weight,
+                            'options'              => $attribute->options ?? [],
+                            'include_patterns'     => $attribute->includePatterns ?? [],
+                            'exclude_patterns'     => $attribute->excludePatterns ?? [],
+                            'total_records'        => $totalRecords,
                             'records_to_anonymize' => $recordsToAnonymize,
-                            'percentage' => $percentage,
+                            'percentage'           => $percentage,
                         ];
                     }
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $io->error(sprintf('Error processing entity manager %s: %s', $managerName, $e->getMessage()));
 
                 return self::FAILURE;
@@ -284,15 +291,15 @@ final class AnonymizeInfoCommand extends AbstractCommand
                 $key = $anonymizer['connection'] . '::' . $anonymizer['entity'];
                 if (!isset($byEntity[$key])) {
                     $byEntity[$key] = [
-                        'connection' => $anonymizer['connection'],
-                        'entity' => $anonymizer['entity'],
-                        'table' => $anonymizer['table'],
-                        'total_records' => $anonymizer['total_records'],
-                        'properties' => 0,
+                        'connection'         => $anonymizer['connection'],
+                        'entity'             => $anonymizer['entity'],
+                        'table'              => $anonymizer['table'],
+                        'total_records'      => $anonymizer['total_records'],
+                        'properties'         => 0,
                         'total_to_anonymize' => 0,
                     ];
                 }
-                $byEntity[$key]['properties']++;
+                ++$byEntity[$key]['properties'];
                 $byEntity[$key]['total_to_anonymize'] += $anonymizer['records_to_anonymize'];
             }
 
@@ -305,7 +312,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
                     $entityInfo['table'],
                     $entityInfo['properties'],
                     $entityInfo['total_to_anonymize'],
-                    $entityInfo['total_records']
+                    $entityInfo['total_records'],
                 ));
             }
         }

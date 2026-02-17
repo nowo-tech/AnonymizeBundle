@@ -34,7 +34,8 @@ final class BeforeEntityAnonymizeEvent extends Event
         private readonly ReflectionClass $reflection,
         private readonly int $totalRecords,
         private readonly bool $dryRun = false
-    ) {}
+    ) {
+    }
 
     /**
      * Gets the entity manager.

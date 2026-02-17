@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Document;
 
+use DateTimeInterface;
+
 /**
  * DeviceInfo document for MongoDB.
  *
@@ -14,19 +16,19 @@ namespace App\Document;
  */
 class DeviceInfo
 {
-    private ?string $id = null;
-    private ?string $deviceId = null; // UUID
-    private ?string $ipAddress = null;
-    private ?string $macAddress = null;
-    private ?string $deviceHash = null;
-    private ?string $location = null; // Coordinates
-    private ?string $themeColor = null;
-    private ?string $deviceName = null;
-    private ?string $osVersion = null;
-    private ?string $browserVersion = null;
-    private ?bool $isActive = null;
-    private ?\DateTimeInterface $lastSeen = null;
-    private bool $anonymized = false;
+    private ?string $id                  = null;
+    private ?string $deviceId            = null; // UUID
+    private ?string $ipAddress           = null;
+    private ?string $macAddress          = null;
+    private ?string $deviceHash          = null;
+    private ?string $location            = null; // Coordinates
+    private ?string $themeColor          = null;
+    private ?string $deviceName          = null;
+    private ?string $osVersion           = null;
+    private ?string $browserVersion      = null;
+    private ?bool $isActive              = null;
+    private ?DateTimeInterface $lastSeen = null;
+    private bool $anonymized             = false;
 
     public function getId(): ?string
     {
@@ -36,6 +38,7 @@ class DeviceInfo
     public function setId(?string $id): static
     {
         $this->id = $id;
+
         return $this;
     }
 
@@ -47,6 +50,7 @@ class DeviceInfo
     public function setDeviceId(?string $deviceId): static
     {
         $this->deviceId = $deviceId;
+
         return $this;
     }
 
@@ -58,6 +62,7 @@ class DeviceInfo
     public function setIpAddress(?string $ipAddress): static
     {
         $this->ipAddress = $ipAddress;
+
         return $this;
     }
 
@@ -69,6 +74,7 @@ class DeviceInfo
     public function setMacAddress(?string $macAddress): static
     {
         $this->macAddress = $macAddress;
+
         return $this;
     }
 
@@ -80,6 +86,7 @@ class DeviceInfo
     public function setDeviceHash(?string $deviceHash): static
     {
         $this->deviceHash = $deviceHash;
+
         return $this;
     }
 
@@ -91,6 +98,7 @@ class DeviceInfo
     public function setLocation(?string $location): static
     {
         $this->location = $location;
+
         return $this;
     }
 
@@ -102,6 +110,7 @@ class DeviceInfo
     public function setThemeColor(?string $themeColor): static
     {
         $this->themeColor = $themeColor;
+
         return $this;
     }
 
@@ -113,6 +122,7 @@ class DeviceInfo
     public function setDeviceName(?string $deviceName): static
     {
         $this->deviceName = $deviceName;
+
         return $this;
     }
 
@@ -124,6 +134,7 @@ class DeviceInfo
     public function setOsVersion(?string $osVersion): static
     {
         $this->osVersion = $osVersion;
+
         return $this;
     }
 
@@ -135,6 +146,7 @@ class DeviceInfo
     public function setBrowserVersion(?string $browserVersion): static
     {
         $this->browserVersion = $browserVersion;
+
         return $this;
     }
 
@@ -146,17 +158,19 @@ class DeviceInfo
     public function setIsActive(?bool $isActive): static
     {
         $this->isActive = $isActive;
+
         return $this;
     }
 
-    public function getLastSeen(): ?\DateTimeInterface
+    public function getLastSeen(): ?DateTimeInterface
     {
         return $this->lastSeen;
     }
 
-    public function setLastSeen(?\DateTimeInterface $lastSeen): static
+    public function setLastSeen(?DateTimeInterface $lastSeen): static
     {
         $this->lastSeen = $lastSeen;
+
         return $this;
     }
 
@@ -168,6 +182,7 @@ class DeviceInfo
     public function setAnonymized(bool $anonymized): static
     {
         $this->anonymized = $anonymized;
+
         return $this;
     }
 }

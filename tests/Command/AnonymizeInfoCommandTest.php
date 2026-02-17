@@ -6,9 +6,7 @@ namespace Nowo\AnonymizeBundle\Tests\Command;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadata;
-use Nowo\AnonymizeBundle\Attribute\Anonymize;
-use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
+use Exception;
 use Nowo\AnonymizeBundle\Command\AnonymizeInfoCommand;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
@@ -30,7 +28,7 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandCanBeInstantiated(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $command = new AnonymizeInfoCommand($container, 'en_US', []);
+        $command   = new AnonymizeInfoCommand($container, 'en_US', []);
 
         $this->assertInstanceOf(AnonymizeInfoCommand::class, $command);
     }
@@ -41,7 +39,7 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandReturnsFailureWhenNoEntityManagers(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine  = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
 
         $container->method('get')
             ->with('doctrine')
@@ -51,8 +49,8 @@ class AnonymizeInfoCommandTest extends TestCase
             ->willReturn([]);
 
         $command = new AnonymizeInfoCommand($container, 'en_US', []);
-        $input = new ArrayInput([]);
-        $output = new BufferedOutput();
+        $input   = new ArrayInput([]);
+        $output  = new BufferedOutput();
 
         $result = $command->run($input, $output);
 
@@ -65,9 +63,9 @@ class AnonymizeInfoCommandTest extends TestCase
      */
     public function testCommandHandlesEmptyConnections(): void
     {
-        $container = $this->createMock(ContainerInterface::class);
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
-        $em = $this->createMock(EntityManagerInterface::class);
+        $container  = $this->createMock(ContainerInterface::class);
+        $doctrine   = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $container->method('get')
@@ -89,8 +87,8 @@ class AnonymizeInfoCommandTest extends TestCase
 
         // Mock AnonymizeService to return empty entities
         $command = new AnonymizeInfoCommand($container, 'en_US', []);
-        $input = new ArrayInput([]);
-        $output = new BufferedOutput();
+        $input   = new ArrayInput([]);
+        $output  = new BufferedOutput();
 
         // We need to mock the service container to return the services
         // Since AnonymizeService is instantiated directly, we need to ensure it works
@@ -106,7 +104,7 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandHandlesExceptionDuringProcessing(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine  = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
 
         $container->method('get')
             ->with('doctrine')
@@ -117,11 +115,11 @@ class AnonymizeInfoCommandTest extends TestCase
 
         $doctrine->method('getManager')
             ->with('default')
-            ->willThrowException(new \Exception('Test exception'));
+            ->willThrowException(new Exception('Test exception'));
 
         $command = new AnonymizeInfoCommand($container, 'en_US', []);
-        $input = new ArrayInput([]);
-        $output = new BufferedOutput();
+        $input   = new ArrayInput([]);
+        $output  = new BufferedOutput();
 
         $result = $command->run($input, $output);
 
@@ -135,7 +133,7 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandUsesDefaultLocale(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $command = new AnonymizeInfoCommand($container, 'es_ES', []);
+        $command   = new AnonymizeInfoCommand($container, 'es_ES', []);
 
         $this->assertInstanceOf(AnonymizeInfoCommand::class, $command);
     }
@@ -146,7 +144,7 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandUsesProvidedConnections(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $command = new AnonymizeInfoCommand($container, 'en_US', ['default', 'postgres']);
+        $command   = new AnonymizeInfoCommand($container, 'en_US', ['default', 'postgres']);
 
         $this->assertInstanceOf(AnonymizeInfoCommand::class, $command);
     }
@@ -157,7 +155,7 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandConfigureSetsOptions(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $command = new AnonymizeInfoCommand($container, 'en_US', []);
+        $command   = new AnonymizeInfoCommand($container, 'en_US', []);
 
         $definition = $command->getDefinition();
 
@@ -171,7 +169,7 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandHandlesLocaleOption(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine  = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
 
         $container->method('get')
             ->with('doctrine')
@@ -181,8 +179,8 @@ class AnonymizeInfoCommandTest extends TestCase
             ->willReturn([]);
 
         $command = new AnonymizeInfoCommand($container, 'en_US', []);
-        $input = new ArrayInput(['--locale' => 'es_ES']);
-        $output = new BufferedOutput();
+        $input   = new ArrayInput(['--locale' => 'es_ES']);
+        $output  = new BufferedOutput();
 
         $result = $command->run($input, $output);
 
@@ -196,7 +194,7 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandHandlesConnectionOption(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine  = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
 
         $container->method('get')
             ->with('doctrine')
@@ -206,12 +204,12 @@ class AnonymizeInfoCommandTest extends TestCase
             ->willReturn(['default' => 'default']);
 
         $command = new AnonymizeInfoCommand($container, 'en_US', []);
-        $input = new ArrayInput(['--connection' => ['default']]);
-        $output = new BufferedOutput();
+        $input   = new ArrayInput(['--connection' => ['default']]);
+        $output  = new BufferedOutput();
 
         // Mock getManager to avoid actual execution
         $doctrine->method('getManager')
-            ->willThrowException(new \Exception('Test'));
+            ->willThrowException(new Exception('Test'));
 
         $result = $command->run($input, $output);
 

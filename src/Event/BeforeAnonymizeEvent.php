@@ -29,7 +29,8 @@ final class BeforeAnonymizeEvent extends Event
         private readonly EntityManagerInterface $entityManager,
         private array $entityClasses,
         private readonly bool $dryRun = false
-    ) {}
+    ) {
+    }
 
     /**
      * Gets the entity manager.

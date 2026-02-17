@@ -9,14 +9,13 @@ use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Exception;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
-use Nowo\AnonymizeBundle\Enum\FakerType;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use ReflectionProperty;
 
 /**
  * Test case for PreFlightCheckService.
@@ -32,7 +31,7 @@ class PreFlightCheckServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->fakerFactory = new FakerFactory('en_US');
-        $this->service = new PreFlightCheckService($this->fakerFactory);
+        $this->service      = new PreFlightCheckService($this->fakerFactory);
     }
 
     /**
@@ -40,8 +39,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testValidEntitiesPassChecks(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -58,7 +57,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -89,9 +88,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -104,7 +103,7 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testDatabaseConnectivityCheckFails(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -112,7 +111,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willThrowException(new \Exception('Connection failed'));
+            ->willThrowException(new Exception('Connection failed'));
 
         $entities = [];
 
@@ -126,8 +125,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testMissingTableIsDetected(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -144,7 +143,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('missing_table');
 
@@ -160,9 +159,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -176,8 +175,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testInvalidFakerTypeIsDetected(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -194,7 +193,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -228,9 +227,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -244,8 +243,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testServiceFakerWithoutServiceNameIsDetected(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -262,7 +261,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -296,9 +295,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -312,7 +311,7 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testMappedSuperclassIsSkipped(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -326,7 +325,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = true;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
 
         $reflection = $this->createMock(ReflectionClass::class);
         $reflection->method('getProperties')
@@ -336,9 +335,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -352,8 +351,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testMissingColumnIsDetected(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -370,7 +369,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -401,9 +400,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -417,8 +416,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testInvalidIncludePatternIsDetected(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -435,7 +434,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -468,9 +467,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -484,8 +483,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testInvalidExcludePatternIsDetected(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -502,7 +501,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -535,9 +534,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -551,7 +550,7 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testEmbeddedClassIsSkipped(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -565,7 +564,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = true;
+        $metadata->isEmbeddedClass    = true;
 
         $reflection = $this->createMock(ReflectionClass::class);
         $reflection->method('getProperties')
@@ -575,9 +574,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -591,8 +590,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testCheckEntityExistenceHandlesExceptions(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -609,12 +608,12 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
 
         $schemaManager->method('tablesExist')
-            ->willThrowException(new \Exception('Schema error'));
+            ->willThrowException(new Exception('Schema error'));
 
         $reflection = $this->createMock(ReflectionClass::class);
         $reflection->method('getProperties')
@@ -624,9 +623,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -640,8 +639,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testCheckColumnExistenceHandlesExceptions(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -658,7 +657,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -670,7 +669,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->willReturn(true);
         $schemaManager->method('listTableColumns')
-            ->willThrowException(new \Exception('Column check error'));
+            ->willThrowException(new Exception('Column check error'));
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
@@ -682,9 +681,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -698,8 +697,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testValidatePatternsHandlesValidPatterns(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -716,7 +715,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -745,9 +744,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -760,8 +759,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testValidatePatternsHandlesValidExcludePatterns(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -778,7 +777,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -807,9 +806,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -822,8 +821,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testValidatePatternsHandlesValidExcludePatternsListOfConfigs(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -840,7 +839,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -872,9 +871,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -887,8 +886,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testValidatePatternsHandlesValidExcludePatternsArrayValue(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -905,7 +904,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -934,9 +933,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -949,8 +948,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testValidateFakerTypeHandlesEnumFaker(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -967,7 +966,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -996,9 +995,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -1011,8 +1010,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testCheckColumnExistenceDetectsMissingColumnWithCaseInsensitiveMatch(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -1029,7 +1028,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -1058,9 +1057,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -1074,8 +1073,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testCheckColumnExistenceShowsAvailableColumns(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -1092,7 +1091,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -1116,8 +1115,8 @@ class PreFlightCheckServiceTest extends TestCase
 
         $schemaManager->method('listTableColumns')
             ->willReturn([
-                'id' => $column1,
-                'name' => $column2,
+                'id'    => $column1,
+                'name'  => $column2,
                 'email' => $column3,
             ]);
 
@@ -1131,9 +1130,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -1147,8 +1146,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testCheckColumnExistenceLimitsAvailableColumns(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -1165,7 +1164,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -1178,11 +1177,11 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn(true);
 
         $columns = [];
-        for ($i = 1; $i <= 15; $i++) {
+        for ($i = 1; $i <= 15; ++$i) {
             $column = $this->createMock(Column::class);
             $column->method('getName')
-                ->willReturn("column_$i");
-            $columns["column_$i"] = $column;
+                ->willReturn("column_{$i}");
+            $columns["column_{$i}"] = $column;
         }
 
         $schemaManager->method('listTableColumns')
@@ -1198,9 +1197,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -1214,8 +1213,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testValidatePatternsDetectsInvalidIncludePatternWithEmptyField(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -1232,7 +1231,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -1261,9 +1260,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -1277,8 +1276,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testValidatePatternsDetectsInvalidIncludePatternWithEmptyPattern(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -1295,7 +1294,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -1324,9 +1323,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -1340,8 +1339,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testValidatePatternsDetectsInvalidExcludePatternWithEmptyField(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -1358,7 +1357,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -1387,9 +1386,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -1403,8 +1402,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testValidatePatternsDetectsInvalidExcludePatternWithEmptyPattern(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -1421,7 +1420,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -1450,9 +1449,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -1466,8 +1465,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testValidateFakerTypeDetectsServiceTypeWithoutServiceName(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -1484,7 +1483,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -1513,9 +1512,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -1529,7 +1528,7 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testCheckEntityExistenceSkipsMappedSuperclass(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -1543,7 +1542,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = true;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
 
         $reflection = $this->createMock(ReflectionClass::class);
         $reflection->method('getProperties')
@@ -1553,9 +1552,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -1568,7 +1567,7 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testCheckEntityExistenceSkipsEmbeddedClass(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -1582,7 +1581,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = true;
+        $metadata->isEmbeddedClass    = true;
 
         $reflection = $this->createMock(ReflectionClass::class);
         $reflection->method('getProperties')
@@ -1592,9 +1591,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 
@@ -1607,8 +1606,8 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testCheckColumnExistenceSkipsWhenTableDoesNotExist(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(Connection::class);
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')
@@ -1625,7 +1624,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $metadata->isMappedSuperclass = false;
-        $metadata->isEmbeddedClass = false;
+        $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -1647,9 +1646,9 @@ class PreFlightCheckServiceTest extends TestCase
 
         $entities = [
             'TestEntity' => [
-                'metadata' => $metadata,
+                'metadata'   => $metadata,
                 'reflection' => $reflection,
-                'attribute' => $attribute,
+                'attribute'  => $attribute,
             ],
         ];
 

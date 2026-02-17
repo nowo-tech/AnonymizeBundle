@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Command;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
+use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use Nowo\AnonymizeBundle\Event\AfterAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
@@ -14,15 +16,20 @@ use Nowo\AnonymizeBundle\Service\AnonymizeStatistics;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
+use Psr\Container\ContainerInterface;
+use ReflectionClass;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Psr\Container\ContainerInterface;
+use UnitEnum;
+
+use function count;
+use function in_array;
+use function sprintf;
 
 /**
  * Command to anonymize database records.
@@ -36,7 +43,7 @@ use Psr\Container\ContainerInterface;
  */
 #[AsCommand(
     name: 'nowo:anonymize:run',
-    description: 'Anonymize database records using Doctrine attributes'
+    description: 'Anonymize database records using Doctrine attributes',
 )]
 final class AnonymizeCommand extends AbstractCommand
 {
@@ -126,6 +133,7 @@ final class AnonymizeCommand extends AbstractCommand
      *
      * @param InputInterface $input The input
      * @param OutputInterface $output The output
+     *
      * @return int The exit code
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -140,7 +148,7 @@ final class AnonymizeCommand extends AbstractCommand
         if ($this->container->has('parameter_bag')) {
             try {
                 $parameterBag = $this->container->get('parameter_bag');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // parameter_bag not available
             }
         }
@@ -149,14 +157,17 @@ final class AnonymizeCommand extends AbstractCommand
         if ($parameterBag === null) {
             $container = $this->container;
             // Create a simple parameter bag wrapper
-            $parameterBag = new class ($container) implements ParameterBagInterface {
-                public function __construct(private ContainerInterface $container) {}
-                public function get(string $name): array|bool|string|int|float|\UnitEnum|null
+            $parameterBag = new class($container) implements ParameterBagInterface {
+                public function __construct(private ContainerInterface $container)
+                {
+                }
+
+                public function get(string $name): array|bool|string|int|float|UnitEnum|null
                 {
                     // Access kernel container's parameter bag via reflection
                     if ($this->container->has('kernel')) {
-                        $kernel = $this->container->get('kernel');
-                        $reflection = new \ReflectionClass($kernel);
+                        $kernel     = $this->container->get('kernel');
+                        $reflection = new ReflectionClass($kernel);
                         if ($reflection->hasProperty('container')) {
                             $property = $reflection->getProperty('container');
                             $property->setAccessible(true);
@@ -170,7 +181,7 @@ final class AnonymizeCommand extends AbstractCommand
                                     }
                                 }
                                 // Fallback: access parameterBag property via reflection
-                                $paramReflection = new \ReflectionClass($kernelContainer);
+                                $paramReflection = new ReflectionClass($kernelContainer);
                                 if ($paramReflection->hasProperty('parameterBag')) {
                                     $paramProperty = $paramReflection->getProperty('parameterBag');
                                     $paramProperty->setAccessible(true);
@@ -186,35 +197,59 @@ final class AnonymizeCommand extends AbstractCommand
                             }
                         }
                     }
-                    throw new \InvalidArgumentException(sprintf('Parameter "%s" not found', $name));
+                    throw new InvalidArgumentException(sprintf('Parameter "%s" not found', $name));
                 }
+
                 public function has(string $name): bool
                 {
                     try {
                         $this->get($name);
+
                         return true;
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         return false;
                     }
                 }
-                public function set(string $name, array|bool|string|int|float|\UnitEnum|null $value): void {}
-                public function remove(string $name): void {}
+
+                public function set(string $name, array|bool|string|int|float|UnitEnum|null $value): void
+                {
+                }
+
+                public function remove(string $name): void
+                {
+                }
+
                 public function all(): array
                 {
                     return [];
                 }
-                public function replace(array $parameters): void {}
-                public function add(array $parameters): void {}
-                public function clear(): void {}
-                public function resolve(): void {}
+
+                public function replace(array $parameters): void
+                {
+                }
+
+                public function add(array $parameters): void
+                {
+                }
+
+                public function clear(): void
+                {
+                }
+
+                public function resolve(): void
+                {
+                }
+
                 public function resolveValue(mixed $value): mixed
                 {
                     return $value;
                 }
+
                 public function escapeValue(mixed $value): mixed
                 {
                     return $value;
                 }
+
                 public function unescapeValue(mixed $value): mixed
                 {
                     return $value;
@@ -240,7 +275,7 @@ final class AnonymizeCommand extends AbstractCommand
         if (!$environmentProtection->isSafeEnvironment()) {
             $io->error(sprintf(
                 'This command can only be executed in "dev" or "test" environment. Current environment: "%s".',
-                $environmentProtection->getEnvironment()
+                $environmentProtection->getEnvironment(),
             ));
             $io->warning('This bundle is intended for development purposes only and should not be used in production.');
 
@@ -249,11 +284,11 @@ final class AnonymizeCommand extends AbstractCommand
 
         // Get options
         $connections = $input->getOption('connection') ?: $this->connections;
-        $dryRun = $input->getOption('dry-run') || $this->dryRun;
-        $batchSize = (int) ($input->getOption('batch-size') ?: $this->batchSize);
-        $locale = $input->getOption('locale') ?: $this->locale;
-        $verbose = $input->getOption('verbose') || $output->isVerbose();
-        $debug = $input->getOption('debug') || $output->isDebug();
+        $dryRun      = $input->getOption('dry-run') || $this->dryRun;
+        $batchSize   = (int) ($input->getOption('batch-size') ?: $this->batchSize);
+        $locale      = $input->getOption('locale') ?: $this->locale;
+        $verbose     = $input->getOption('verbose') || $output->isVerbose();
+        $debug       = $input->getOption('debug') || $output->isDebug();
         $interactive = $input->getOption('interactive');
 
         if ($dryRun) {
@@ -272,7 +307,7 @@ final class AnonymizeCommand extends AbstractCommand
         $doctrine = $this->container->get(SymfonyService::DOCTRINE);
 
         // Get all entity manager names (not connection names)
-        $allManagers = $doctrine->getManagerNames();
+        $allManagers       = $doctrine->getManagerNames();
         $managersToProcess = empty($connections) ? array_keys($allManagers) : array_intersect(array_keys($allManagers), $connections);
 
         // Check if MongoDB connection is requested but not supported yet
@@ -289,17 +324,17 @@ final class AnonymizeCommand extends AbstractCommand
         }
 
         // Initialize services
-        $fakerFactory = new FakerFactory($locale, $this->container);
-        $patternMatcher = new PatternMatcher();
-        $eventDispatcher = $this->container->has('event_dispatcher') ? $this->container->get('event_dispatcher') : null;
+        $fakerFactory     = new FakerFactory($locale, $this->container);
+        $patternMatcher   = new PatternMatcher();
+        $eventDispatcher  = $this->container->has('event_dispatcher') ? $this->container->get('event_dispatcher') : null;
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher, $eventDispatcher);
-        $preFlightCheck = new PreFlightCheckService($fakerFactory);
-        $statistics = new AnonymizeStatistics();
+        $preFlightCheck   = new PreFlightCheckService($fakerFactory);
+        $statistics       = new AnonymizeStatistics();
         $statistics->start();
 
         $statsOnly = $input->getOption('stats-only');
         $statsJson = $input->getOption('stats-json');
-        $statsCsv = $input->getOption('stats-csv');
+        $statsCsv  = $input->getOption('stats-csv');
 
         // Get stats output directory from configuration
         $statsOutputDir = $this->getParameter('nowo_anonymize.stats_output_dir', '%kernel.project_dir%/var/stats');
@@ -307,8 +342,8 @@ final class AnonymizeCommand extends AbstractCommand
         // Resolve kernel.project_dir if present
         if (str_contains($statsOutputDir, '%kernel.project_dir%')) {
             if ($this->container->has('kernel')) {
-                $kernel = $this->container->get('kernel');
-                $projectDir = $kernel->getProjectDir();
+                $kernel         = $this->container->get('kernel');
+                $projectDir     = $kernel->getProjectDir();
                 $statsOutputDir = str_replace('%kernel.project_dir%', $projectDir, $statsOutputDir);
             }
         }
@@ -400,7 +435,7 @@ final class AnonymizeCommand extends AbstractCommand
                 }
 
                 $this->processConnection($io, $em, $anonymizeService, $batchSize, $dryRun, $managerName, $statistics, $statsOnly, $input, $output, $verbose, $debug, $interactive);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $io->error(sprintf('Error processing entity manager %s: %s', $managerName, $e->getMessage()));
 
                 return self::FAILURE;
@@ -414,23 +449,23 @@ final class AnonymizeCommand extends AbstractCommand
             $historyDir = $this->getParameter('nowo_anonymize.history_dir', '%kernel.project_dir%/var/anonymize_history');
             if (str_contains($historyDir, '%kernel.project_dir%')) {
                 if ($this->container->has('kernel')) {
-                    $kernel = $this->container->get('kernel');
+                    $kernel     = $this->container->get('kernel');
                     $projectDir = $kernel->getProjectDir();
                     $historyDir = str_replace('%kernel.project_dir%', $projectDir, $historyDir);
                 }
             }
 
             $historyService = new \Nowo\AnonymizeBundle\Service\AnonymizationHistoryService($historyDir);
-            $metadata = [
-                'command' => 'nowo:anonymize:run',
+            $metadata       = [
+                'command'     => 'nowo:anonymize:run',
                 'connections' => $connections,
-                'batch_size' => $batchSize,
-                'locale' => $locale,
-                'dry_run' => $dryRun,
+                'batch_size'  => $batchSize,
+                'locale'      => $locale,
+                'dry_run'     => $dryRun,
                 'interactive' => $interactive,
             ];
             $historyService->saveRun($statistics->getAll(), $metadata);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Silently fail if history cannot be saved
             if ($debug) {
                 $io->writeln(sprintf('<comment>[DEBUG]</comment> Failed to save history: %s', $e->getMessage()));
@@ -459,7 +494,6 @@ final class AnonymizeCommand extends AbstractCommand
      * @param bool $verbose If true, enable verbose output
      * @param bool $debug If true, enable debug output
      * @param bool $interactive If true, enable interactive mode with confirmations
-     * @return void
      */
     private function processConnection(
         SymfonyStyle $io,
@@ -492,7 +526,7 @@ final class AnonymizeCommand extends AbstractCommand
         $eventDispatcher = $this->container->has('event_dispatcher') ? $this->container->get('event_dispatcher') : null;
         if ($eventDispatcher !== null) {
             $entityClasses = array_keys($entities);
-            $event = new BeforeAnonymizeEvent($em, $entityClasses, $dryRun);
+            $event         = new BeforeAnonymizeEvent($em, $entityClasses, $dryRun);
             $eventDispatcher->dispatch($event);
             // Allow listeners to modify entity classes
             $entities = array_intersect_key($entities, array_flip($event->getEntityClasses()));
@@ -586,16 +620,16 @@ final class AnonymizeCommand extends AbstractCommand
         }
 
         $totalProcessed = 0;
-        $totalUpdated = 0;
+        $totalUpdated   = 0;
 
         // Process each entity
         foreach ($entities as $className => $entityData) {
-            $metadata = $entityData['metadata'];
+            $metadata   = $entityData['metadata'];
             $reflection = $entityData['reflection'];
-            $attribute = $entityData['attribute'];
+            $attribute  = $entityData['attribute'];
 
             // Check if connection matches
-            if (null !== $attribute->connection) {
+            if ($attribute->connection !== null) {
                 $connectionName = $em->getConnection()->getDatabase();
                 // Note: This is a simplified check. You might need to adjust based on your setup
             }
@@ -650,9 +684,9 @@ final class AnonymizeCommand extends AbstractCommand
             if ($verbose || $debug) {
                 $io->writeln('  Properties to anonymize:');
                 foreach ($properties as $propertyData) {
-                    $property = $propertyData['property'];
+                    $property  = $propertyData['property'];
                     $attribute = $propertyData['attribute'];
-                    $weight = $propertyData['weight'] ?? 'N/A';
+                    $weight    = $propertyData['weight'] ?? 'N/A';
                     $io->writeln(sprintf('    - %s (type: %s, weight: %s)', $property->getName(), $attribute->type, $weight));
                     if ($debug) {
                         if (!empty($attribute->includePatterns)) {
@@ -669,9 +703,9 @@ final class AnonymizeCommand extends AbstractCommand
             }
 
             // Get total records count for progress bar
-            $tableName = $metadata->getTableName();
-            $connection = $em->getConnection();
-            $countQuery = sprintf('SELECT COUNT(*) as total FROM %s', $this->quoteIdentifier($connection, $tableName));
+            $tableName    = $metadata->getTableName();
+            $connection   = $em->getConnection();
+            $countQuery   = sprintf('SELECT COUNT(*) as total FROM %s', $this->quoteIdentifier($connection, $tableName));
             $totalRecords = (int) $connection->fetchOne($countQuery);
 
             if ($debug) {
@@ -679,7 +713,7 @@ final class AnonymizeCommand extends AbstractCommand
             }
 
             // Create progress bar if not in stats-only mode and progress is enabled
-            $noProgress = $input !== null && $input->getOption('no-progress');
+            $noProgress  = $input !== null && $input->getOption('no-progress');
             $progressBar = null;
             if (!$statsOnly && !$noProgress && $totalRecords > 0 && $output !== null) {
                 $progressBar = new ProgressBar($output, $totalRecords);
@@ -707,7 +741,7 @@ final class AnonymizeCommand extends AbstractCommand
                 $dryRun,
                 $statistics,
                 $progressCallback,
-                $attribute // Pass entity-level Anonymize attribute for filtering
+                $attribute, // Pass entity-level Anonymize attribute for filtering
             );
 
             // Finish progress bar
@@ -722,7 +756,7 @@ final class AnonymizeCommand extends AbstractCommand
                 $managerName,
                 $stats['processed'],
                 $stats['updated'],
-                $stats['propertyStats'] ?? []
+                $stats['propertyStats'] ?? [],
             );
 
             // Accumulate totals
@@ -734,8 +768,8 @@ final class AnonymizeCommand extends AbstractCommand
                     sprintf(
                         '  Processed: %d records, Updated: %d records',
                         $stats['processed'],
-                        $stats['updated']
-                    )
+                        $stats['updated'],
+                    ),
                 );
             }
 
@@ -753,7 +787,7 @@ final class AnonymizeCommand extends AbstractCommand
                     '<comment>[DEBUG]</comment> Entity processing completed: %d processed, %d updated, %d skipped',
                     $stats['processed'],
                     $stats['updated'],
-                    $stats['processed'] - $stats['updated']
+                    $stats['processed'] - $stats['updated'],
                 ));
             }
         }
@@ -761,7 +795,7 @@ final class AnonymizeCommand extends AbstractCommand
         // Dispatch AfterAnonymizeEvent
         if ($eventDispatcher !== null) {
             $entityClasses = array_keys($entities);
-            $event = new AfterAnonymizeEvent($em, $entityClasses, $totalProcessed, $totalUpdated, $dryRun);
+            $event         = new AfterAnonymizeEvent($em, $entityClasses, $totalProcessed, $totalUpdated, $dryRun);
             $eventDispatcher->dispatch($event);
         }
     }
@@ -774,7 +808,6 @@ final class AnonymizeCommand extends AbstractCommand
      * @param bool $statsOnly If true, show only statistics summary
      * @param string|null $statsJson Path to export JSON statistics file
      * @param string|null $statsCsv Path to export CSV statistics file
-     * @return void
      */
     private function displayStatistics(
         SymfonyStyle $io,
@@ -783,18 +816,18 @@ final class AnonymizeCommand extends AbstractCommand
         ?string $statsJson,
         ?string $statsCsv = null
     ): void {
-        $summary = $statistics->getSummary();
+        $summary  = $statistics->getSummary();
         $entities = $statistics->getEntities();
 
         // Export to JSON if requested
-        if (null !== $statsJson) {
+        if ($statsJson !== null) {
             $json = $statistics->toJson();
             file_put_contents($statsJson, $json);
             $io->success(sprintf('Statistics exported to JSON: %s', $statsJson));
         }
 
         // Export to CSV if requested
-        if (null !== $statsCsv) {
+        if ($statsCsv !== null) {
             $csv = $statistics->toCsv();
             file_put_contents($statsCsv, $csv);
             $io->success(sprintf('Statistics exported to CSV: %s', $statsCsv));
@@ -815,7 +848,7 @@ final class AnonymizeCommand extends AbstractCommand
 
         // Add success rate if we have processed records
         if ($summary['total_processed'] > 0) {
-            $successRate = round(($summary['total_updated'] / $summary['total_processed']) * 100, 2);
+            $successRate   = round(($summary['total_updated'] / $summary['total_processed']) * 100, 2);
             $summaryRows[] = ['Success Rate', sprintf('%.2f%%', $successRate)];
         }
 
@@ -843,7 +876,7 @@ final class AnonymizeCommand extends AbstractCommand
 
             $io->table(
                 ['Entity', 'Connection', 'Processed', 'Updated', 'Skipped', 'Success Rate'],
-                $rows
+                $rows,
             );
 
             // Display property statistics
@@ -872,8 +905,8 @@ final class AnonymizeCommand extends AbstractCommand
                     'Anonymization complete! Processed: %d records, Updated: %d records in %s',
                     $summary['total_processed'],
                     $summary['total_updated'],
-                    $summary['duration_formatted']
-                )
+                    $summary['duration_formatted'],
+                ),
             );
         }
     }
@@ -883,13 +916,14 @@ final class AnonymizeCommand extends AbstractCommand
      *
      * @param string $name The parameter name
      * @param mixed $default The default value if parameter doesn't exist
+     *
      * @return mixed The parameter value or default if not found
      */
     private function getParameter(string $name, mixed $default = null): mixed
     {
         if ($this->container->has('kernel')) {
-            $kernel = $this->container->get('kernel');
-            $reflection = new \ReflectionClass($kernel);
+            $kernel     = $this->container->get('kernel');
+            $reflection = new ReflectionClass($kernel);
             if ($reflection->hasProperty('container')) {
                 $property = $reflection->getProperty('container');
                 $property->setAccessible(true);

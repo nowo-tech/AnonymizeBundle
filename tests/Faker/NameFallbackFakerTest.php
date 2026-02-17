@@ -21,10 +21,10 @@ class NameFallbackFakerTest extends TestCase
     public function testGenerateWhenCurrentNullButRelatedHasValue(): void
     {
         $faker = new NameFallbackFaker('en_US');
-        $name = $faker->generate([
+        $name  = $faker->generate([
             'original_value' => null,
             'fallback_field' => 'firstname',
-            'record' => ['firstname' => 'John'],
+            'record'         => ['firstname' => 'John'],
         ]);
 
         $this->assertIsString($name);
@@ -37,10 +37,10 @@ class NameFallbackFakerTest extends TestCase
     public function testGenerateWhenCurrentHasValue(): void
     {
         $faker = new NameFallbackFaker('en_US');
-        $name = $faker->generate([
+        $name  = $faker->generate([
             'original_value' => 'John',
             'fallback_field' => 'firstname',
-            'record' => ['firstname' => null],
+            'record'         => ['firstname' => null],
         ]);
 
         $this->assertIsString($name);
@@ -54,10 +54,10 @@ class NameFallbackFakerTest extends TestCase
     public function testGenerateWhenBothNull(): void
     {
         $faker = new NameFallbackFaker('en_US');
-        $name = $faker->generate([
+        $name  = $faker->generate([
             'original_value' => null,
             'fallback_field' => 'firstname',
-            'record' => ['firstname' => null],
+            'record'         => ['firstname' => null],
         ]);
 
         $this->assertIsString($name);
@@ -70,10 +70,10 @@ class NameFallbackFakerTest extends TestCase
     public function testGenerateWhenBothHaveValues(): void
     {
         $faker = new NameFallbackFaker('en_US');
-        $name = $faker->generate([
+        $name  = $faker->generate([
             'original_value' => 'John',
             'fallback_field' => 'firstname',
-            'record' => ['firstname' => 'Jane'],
+            'record'         => ['firstname' => 'Jane'],
         ]);
 
         $this->assertIsString($name);
@@ -87,7 +87,7 @@ class NameFallbackFakerTest extends TestCase
     public function testGenerateWithoutFallbackField(): void
     {
         $faker = new NameFallbackFaker('en_US');
-        $name = $faker->generate([
+        $name  = $faker->generate([
             'original_value' => 'John',
         ]);
 
@@ -101,9 +101,9 @@ class NameFallbackFakerTest extends TestCase
     public function testGenerateWithGender(): void
     {
         $faker = new NameFallbackFaker('en_US');
-        $name = $faker->generate([
+        $name  = $faker->generate([
             'original_value' => 'John',
-            'gender' => 'male',
+            'gender'         => 'male',
         ]);
 
         $this->assertIsString($name);
@@ -116,10 +116,10 @@ class NameFallbackFakerTest extends TestCase
     public function testGenerateWithEmptyString(): void
     {
         $faker = new NameFallbackFaker('en_US');
-        $name = $faker->generate([
+        $name  = $faker->generate([
             'original_value' => '',
             'fallback_field' => 'firstname',
-            'record' => ['firstname' => 'John'],
+            'record'         => ['firstname' => 'John'],
         ]);
 
         $this->assertIsString($name);
@@ -141,7 +141,7 @@ class NameFallbackFakerTest extends TestCase
     public function testGenerateWithDifferentLocale(): void
     {
         $faker = new NameFallbackFaker('es_ES');
-        $name = $faker->generate([
+        $name  = $faker->generate([
             'original_value' => 'Juan',
         ]);
 
@@ -160,7 +160,7 @@ class NameFallbackFakerTest extends TestCase
         $name1 = $faker->generate([
             'original_value' => null,
             'fallback_field' => 'firstname',
-            'record' => ['firstname' => 'John'],
+            'record'         => ['firstname' => 'John'],
         ]);
         $this->assertIsString($name1);
         $this->assertNotEmpty($name1);
@@ -169,7 +169,7 @@ class NameFallbackFakerTest extends TestCase
         $name2 = $faker->generate([
             'original_value' => null,
             'fallback_field' => 'FirstName',
-            'record' => ['FirstName' => 'John'],
+            'record'         => ['FirstName' => 'John'],
         ]);
         $this->assertIsString($name2);
         $this->assertNotEmpty($name2);

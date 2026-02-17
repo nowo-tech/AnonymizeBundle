@@ -20,7 +20,7 @@ class LanguageFakerTest extends TestCase
      */
     public function testGenerate(): void
     {
-        $faker = new LanguageFaker('en_US');
+        $faker    = new LanguageFaker('en_US');
         $language = $faker->generate();
 
         $this->assertIsString($language);
@@ -32,7 +32,7 @@ class LanguageFakerTest extends TestCase
      */
     public function testGenerateCode(): void
     {
-        $faker = new LanguageFaker('en_US');
+        $faker    = new LanguageFaker('en_US');
         $language = $faker->generate(['format' => 'code']);
 
         $this->assertIsString($language);
@@ -44,7 +44,7 @@ class LanguageFakerTest extends TestCase
      */
     public function testGenerateName(): void
     {
-        $faker = new LanguageFaker('en_US');
+        $faker    = new LanguageFaker('en_US');
         $language = $faker->generate(['format' => 'name']);
 
         $this->assertIsString($language);
@@ -57,7 +57,7 @@ class LanguageFakerTest extends TestCase
      */
     public function testGenerateWithLocale(): void
     {
-        $faker = new LanguageFaker('en_US');
+        $faker    = new LanguageFaker('en_US');
         $language = $faker->generate(['locale' => 'es_ES']);
 
         $this->assertIsString($language);
@@ -69,7 +69,7 @@ class LanguageFakerTest extends TestCase
      */
     public function testGenerateWithInvalidFormat(): void
     {
-        $faker = new LanguageFaker('en_US');
+        $faker    = new LanguageFaker('en_US');
         $language = $faker->generate(['format' => 'invalid']);
 
         $this->assertIsString($language);
@@ -81,7 +81,7 @@ class LanguageFakerTest extends TestCase
      */
     public function testGenerateWithFormatAndLocale(): void
     {
-        $faker = new LanguageFaker('en_US');
+        $faker    = new LanguageFaker('en_US');
         $language = $faker->generate(['format' => 'name', 'locale' => 'fr_FR']);
 
         $this->assertIsString($language);

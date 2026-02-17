@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadata;
+use Exception;
 
 /**
  * Service for checking database schema information.
@@ -23,14 +23,15 @@ final class SchemaService
      *
      * @param EntityManagerInterface $em The entity manager
      * @param string $entityClass The fully qualified entity class name
+     *
      * @return bool True if the anonymized column exists, false otherwise
      */
     public function hasAnonymizedColumn(EntityManagerInterface $em, string $entityClass): bool
     {
         try {
-            $metadata = $em->getClassMetadata($entityClass);
-            $tableName = $metadata->getTableName();
-            $connection = $em->getConnection();
+            $metadata      = $em->getClassMetadata($entityClass);
+            $tableName     = $metadata->getTableName();
+            $connection    = $em->getConnection();
             $schemaManager = $connection->createSchemaManager();
 
             if (!$schemaManager->tablesExist([$tableName])) {
@@ -45,7 +46,7 @@ final class SchemaService
             }
 
             return false;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }
@@ -56,14 +57,15 @@ final class SchemaService
      * @param EntityManagerInterface $em The entity manager
      * @param string $entityClass The fully qualified entity class name
      * @param string $columnName The column name to check
+     *
      * @return bool True if the column exists, false otherwise
      */
     public function hasColumn(EntityManagerInterface $em, string $entityClass, string $columnName): bool
     {
         try {
-            $metadata = $em->getClassMetadata($entityClass);
-            $tableName = $metadata->getTableName();
-            $connection = $em->getConnection();
+            $metadata      = $em->getClassMetadata($entityClass);
+            $tableName     = $metadata->getTableName();
+            $connection    = $em->getConnection();
             $schemaManager = $connection->createSchemaManager();
 
             if (!$schemaManager->tablesExist([$tableName])) {
@@ -78,7 +80,7 @@ final class SchemaService
             }
 
             return false;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }

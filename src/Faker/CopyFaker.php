@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Faker;
 
+use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 /**
@@ -23,26 +24,28 @@ final class CopyFaker implements FakerInterface
      * Generates an anonymized value by copying from another field.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'source_field' (string, required): Name of the field to copy from (e.g., 'email')
-     *   - 'record' (array, required): Full database record including anonymized values
-     *   - 'fallback_faker' (string): Faker type to use if source field is null (default: 'email')
-     *   - 'fallback_options' (array): Options for fallback faker (default: [])
+     *                                      - 'source_field' (string, required): Name of the field to copy from (e.g., 'email')
+     *                                      - 'record' (array, required): Full database record including anonymized values
+     *                                      - 'fallback_faker' (string): Faker type to use if source field is null (default: 'email')
+     *                                      - 'fallback_options' (array): Options for fallback faker (default: [])
+     *
+     * @throws InvalidArgumentException If required options are missing
+     *
      * @return mixed The copied value (same type as source field)
-     * @throws \InvalidArgumentException If required options are missing
      */
     public function generate(array $options = []): mixed
     {
-        $sourceField = $options['source_field'] ?? null;
-        $record = $options['record'] ?? [];
-        $fallbackFaker = $options['fallback_faker'] ?? 'email';
+        $sourceField     = $options['source_field'] ?? null;
+        $record          = $options['record'] ?? [];
+        $fallbackFaker   = $options['fallback_faker'] ?? 'email';
         $fallbackOptions = $options['fallback_options'] ?? [];
 
         if ($sourceField === null) {
-            throw new \InvalidArgumentException('CopyFaker requires a "source_field" option.');
+            throw new InvalidArgumentException('CopyFaker requires a "source_field" option.');
         }
 
         if (empty($record)) {
-            throw new \InvalidArgumentException('CopyFaker requires a "record" option with the full database record.');
+            throw new InvalidArgumentException('CopyFaker requires a "record" option with the full database record.');
         }
 
         // Get the source field value from the record (this will be the anonymized value if already processed)
@@ -54,8 +57,9 @@ final class CopyFaker implements FakerInterface
         }
 
         // If source field is null, use fallback faker
-        $fakerFactory = new FakerFactory();
+        $fakerFactory          = new FakerFactory();
         $fallbackFakerInstance = $fakerFactory->create($fallbackFaker);
+
         return $fallbackFakerInstance->generate($fallbackOptions);
     }
 
@@ -64,6 +68,7 @@ final class CopyFaker implements FakerInterface
      *
      * @param array<string, mixed> $record The database record
      * @param string $fieldName The field name to look for
+     *
      * @return mixed The field value or null if not found
      */
     private function getFieldValue(array $record, string $fieldName): mixed

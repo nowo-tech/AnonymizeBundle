@@ -40,19 +40,20 @@ final class NameFallbackFaker implements FakerInterface
      * Generates an anonymized name with fallback logic.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'fallback_field' (string): Name of the related field to check (e.g., 'firstname' or 'name')
-     *   - 'record' (array): Full database record to check for related field value (optional, will use if available)
-     *   - 'original_value' (mixed): The original value of the current field
-     *   - 'gender' (string): Gender-specific name ('male', 'female', or 'random', default: 'random')
-     *   - 'locale_specific' (bool): Use locale-specific names (default: true)
+     *                                      - 'fallback_field' (string): Name of the related field to check (e.g., 'firstname' or 'name')
+     *                                      - 'record' (array): Full database record to check for related field value (optional, will use if available)
+     *                                      - 'original_value' (mixed): The original value of the current field
+     *                                      - 'gender' (string): Gender-specific name ('male', 'female', or 'random', default: 'random')
+     *                                      - 'locale_specific' (bool): Use locale-specific names (default: true)
+     *
      * @return string The anonymized name
      */
     public function generate(array $options = []): string
     {
-        $fallbackField = $options['fallback_field'] ?? null;
-        $record = $options['record'] ?? [];
-        $originalValue = $options['original_value'] ?? null;
-        $gender = $options['gender'] ?? 'random';
+        $fallbackField  = $options['fallback_field'] ?? null;
+        $record         = $options['record'] ?? [];
+        $originalValue  = $options['original_value'] ?? null;
+        $gender         = $options['gender'] ?? 'random';
         $localeSpecific = $options['locale_specific'] ?? true;
 
         // Get the related field value from the record
@@ -96,6 +97,7 @@ final class NameFallbackFaker implements FakerInterface
      *
      * @param string $gender The gender ('male', 'female', or 'random')
      * @param bool $localeSpecific Whether to use locale-specific names
+     *
      * @return string The generated name
      */
     private function generateName(string $gender, bool $localeSpecific): string
@@ -106,9 +108,9 @@ final class NameFallbackFaker implements FakerInterface
         }
 
         return match (strtolower($gender)) {
-            'male' => $this->faker->firstNameMale(),
+            'male'   => $this->faker->firstNameMale(),
             'female' => $this->faker->firstNameFemale(),
-            default => $this->faker->firstName(),
+            default  => $this->faker->firstName(),
         };
     }
 }

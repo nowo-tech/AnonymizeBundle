@@ -36,8 +36,9 @@ final class LanguageFaker implements FakerInterface
      * Generates an anonymized language code or name.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'format' (string): 'code' or 'name' (default: 'code')
-     *   - 'locale' (string): Override locale for language names (optional)
+     *                                      - 'format' (string): 'code' or 'name' (default: 'code')
+     *                                      - 'locale' (string): Override locale for language names (optional)
+     *
      * @return string The anonymized language value
      */
     public function generate(array $options = []): string
@@ -51,8 +52,8 @@ final class LanguageFaker implements FakerInterface
         }
 
         return match ($format) {
-            'name' => $this->faker->languageCode() . ' (name)',
-            'code' => $this->faker->languageCode(),
+            'name'  => $this->faker->languageCode() . ' (name)',
+            'code'  => $this->faker->languageCode(),
             default => $this->faker->languageCode(),
         };
     }

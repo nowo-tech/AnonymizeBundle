@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Document;
 
+use DateTimeInterface;
+
 /**
  * AnalyticsEvent document for MongoDB.
  *
@@ -14,18 +16,18 @@ namespace App\Document;
  */
 class AnalyticsEvent
 {
-    private ?string $id = null;
-    private ?string $eventId = null;
-    private ?string $eventType = null; // enum: 'page_view', 'click', 'purchase', 'signup'
-    private ?string $country = null;
-    private ?string $language = null;
-    private ?string $eventData = null; // JSON
-    private ?string $description = null; // Text
-    private ?string $userIdHash = null; // hash_preserve
-    private ?string $category = null; // shuffle
-    private ?string $dataClassification = null; // constant
-    private ?\DateTimeInterface $timestamp = null;
-    private bool $anonymized = false;
+    private ?string $id                   = null;
+    private ?string $eventId              = null;
+    private ?string $eventType            = null; // enum: 'page_view', 'click', 'purchase', 'signup'
+    private ?string $country              = null;
+    private ?string $language             = null;
+    private ?string $eventData            = null; // JSON
+    private ?string $description          = null; // Text
+    private ?string $userIdHash           = null; // hash_preserve
+    private ?string $category             = null; // shuffle
+    private ?string $dataClassification   = null; // constant
+    private ?DateTimeInterface $timestamp = null;
+    private bool $anonymized              = false;
 
     public function getId(): ?string
     {
@@ -35,6 +37,7 @@ class AnalyticsEvent
     public function setId(?string $id): static
     {
         $this->id = $id;
+
         return $this;
     }
 
@@ -46,6 +49,7 @@ class AnalyticsEvent
     public function setEventId(?string $eventId): static
     {
         $this->eventId = $eventId;
+
         return $this;
     }
 
@@ -57,6 +61,7 @@ class AnalyticsEvent
     public function setEventType(?string $eventType): static
     {
         $this->eventType = $eventType;
+
         return $this;
     }
 
@@ -68,6 +73,7 @@ class AnalyticsEvent
     public function setCountry(?string $country): static
     {
         $this->country = $country;
+
         return $this;
     }
 
@@ -79,6 +85,7 @@ class AnalyticsEvent
     public function setLanguage(?string $language): static
     {
         $this->language = $language;
+
         return $this;
     }
 
@@ -90,6 +97,7 @@ class AnalyticsEvent
     public function setEventData(?string $eventData): static
     {
         $this->eventData = $eventData;
+
         return $this;
     }
 
@@ -101,6 +109,7 @@ class AnalyticsEvent
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -112,6 +121,7 @@ class AnalyticsEvent
     public function setUserIdHash(?string $userIdHash): static
     {
         $this->userIdHash = $userIdHash;
+
         return $this;
     }
 
@@ -123,6 +133,7 @@ class AnalyticsEvent
     public function setCategory(?string $category): static
     {
         $this->category = $category;
+
         return $this;
     }
 
@@ -134,17 +145,19 @@ class AnalyticsEvent
     public function setDataClassification(?string $dataClassification): static
     {
         $this->dataClassification = $dataClassification;
+
         return $this;
     }
 
-    public function getTimestamp(): ?\DateTimeInterface
+    public function getTimestamp(): ?DateTimeInterface
     {
         return $this->timestamp;
     }
 
-    public function setTimestamp(?\DateTimeInterface $timestamp): static
+    public function setTimestamp(?DateTimeInterface $timestamp): static
     {
         $this->timestamp = $timestamp;
+
         return $this;
     }
 
@@ -156,6 +169,7 @@ class AnalyticsEvent
     public function setAnonymized(bool $anonymized): static
     {
         $this->anonymized = $anonymized;
+
         return $this;
     }
 }

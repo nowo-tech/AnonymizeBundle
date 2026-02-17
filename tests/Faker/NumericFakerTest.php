@@ -7,6 +7,9 @@ namespace Nowo\AnonymizeBundle\Tests\Faker;
 use Nowo\AnonymizeBundle\Faker\NumericFaker;
 use PHPUnit\Framework\TestCase;
 
+use function count;
+use function strlen;
+
 /**
  * Test case for NumericFaker.
  *

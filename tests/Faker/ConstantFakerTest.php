@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Faker;
 
+use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Faker\ConstantFaker;
 use PHPUnit\Framework\TestCase;
 
@@ -31,7 +32,7 @@ class ConstantFakerTest extends TestCase
      */
     public function testGenerateThrowsExceptionWhenValueMissing(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('ConstantFaker requires a "value" option');
 
         $faker = new ConstantFaker();
@@ -46,9 +47,9 @@ class ConstantFakerTest extends TestCase
         $faker = new ConstantFaker();
 
         $stringValue = $faker->generate(['value' => 'string']);
-        $intValue = $faker->generate(['value' => 123]);
-        $boolValue = $faker->generate(['value' => true]);
-        $nullValue = $faker->generate(['value' => null]);
+        $intValue    = $faker->generate(['value' => 123]);
+        $boolValue   = $faker->generate(['value' => true]);
+        $nullValue   = $faker->generate(['value' => null]);
 
         $this->assertEquals('string', $stringValue);
         $this->assertEquals(123, $intValue);
@@ -61,7 +62,7 @@ class ConstantFakerTest extends TestCase
      */
     public function testGenerateAlwaysSame(): void
     {
-        $faker = new ConstantFaker();
+        $faker         = new ConstantFaker();
         $constantValue = 'test_constant';
 
         $value1 = $faker->generate(['value' => $constantValue]);

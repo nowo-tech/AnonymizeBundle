@@ -62,7 +62,7 @@ class AnonymizeTest extends TestCase
     public function testAnonymizeCanBeInstantiatedWithIncludePatterns(): void
     {
         $includePatterns = ['id' => '>100', 'status' => 'active'];
-        $attribute = new Anonymize(includePatterns: $includePatterns);
+        $attribute       = new Anonymize(includePatterns: $includePatterns);
 
         $this->assertNull($attribute->connection);
         $this->assertEquals($includePatterns, $attribute->includePatterns);
@@ -76,7 +76,7 @@ class AnonymizeTest extends TestCase
     public function testAnonymizeCanBeInstantiatedWithExcludePatterns(): void
     {
         $excludePatterns = ['id' => '<=100', 'deleted' => 'true'];
-        $attribute = new Anonymize(excludePatterns: $excludePatterns);
+        $attribute       = new Anonymize(excludePatterns: $excludePatterns);
 
         $this->assertNull($attribute->connection);
         $this->assertIsArray($attribute->includePatterns);
@@ -90,7 +90,7 @@ class AnonymizeTest extends TestCase
     public function testAnonymizeCanBeInstantiatedWithExcludePatternsArrayValue(): void
     {
         $excludePatterns = ['email' => ['%@nowo.tech', 'operador@example.com'], 'id' => '<=100'];
-        $attribute = new Anonymize(excludePatterns: $excludePatterns);
+        $attribute       = new Anonymize(excludePatterns: $excludePatterns);
 
         $this->assertEquals($excludePatterns, $attribute->excludePatterns);
     }
@@ -103,7 +103,7 @@ class AnonymizeTest extends TestCase
         $excludePatterns = [
             ['role' => 'admin', 'email' => '%@nowo.tech'],
             ['status' => 'deleted'],
-            ['id' => '<=100'],
+            ['id'     => '<=100'],
         ];
         $attribute = new Anonymize(excludePatterns: $excludePatterns);
 
@@ -117,12 +117,12 @@ class AnonymizeTest extends TestCase
     {
         $includePatterns = ['id' => '>100'];
         $excludePatterns = ['deleted' => 'true'];
-        $attribute = new Anonymize(
+        $attribute       = new Anonymize(
             connection: 'custom',
             includePatterns: $includePatterns,
             excludePatterns: $excludePatterns,
             truncate: true,
-            truncate_order: 5
+            truncate_order: 5,
         );
 
         $this->assertEquals('custom', $attribute->connection);

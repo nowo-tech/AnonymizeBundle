@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use DateTime;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+
+use function extension_loaded;
 
 #[Route('/mongodb/device-info')]
 class DeviceInfoController extends AbstractController
@@ -26,8 +30,9 @@ class DeviceInfoController extends AbstractController
         }
         try {
             $clientClass = class_exists('\MongoDB\Client') ? '\MongoDB\Client' : 'MongoDB\Client';
+
             return new $clientClass($mongodbUrl);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
     }
@@ -38,11 +43,12 @@ class DeviceInfoController extends AbstractController
         if (!$client) {
             return null;
         }
-        $mongodbUrl = $_ENV['MONGODB_URL'] ?? getenv('MONGODB_URL');
-        $parsedUrl = parse_url(str_replace('mongodb://', 'http://', $mongodbUrl));
+        $mongodbUrl   = $_ENV['MONGODB_URL'] ?? getenv('MONGODB_URL');
+        $parsedUrl    = parse_url(str_replace('mongodb://', 'http://', $mongodbUrl));
         $databaseName = trim($parsedUrl['path'] ?? 'anonymize_demo', '/');
         $databaseName = explode('?', $databaseName)[0];
-        $database = $client->selectDatabase($databaseName);
+        $database     = $client->selectDatabase($databaseName);
+
         return $database->selectCollection('device_infos');
     }
 
@@ -52,10 +58,11 @@ class DeviceInfoController extends AbstractController
         if (!extension_loaded('mongodb') || (!class_exists('\MongoDB\Client') && !class_exists('MongoDB\Client'))) {
             $errorMsg = 'MongoDB PHP extension or MongoDB\Client class not found.';
             $this->addFlash('error', $errorMsg);
+
             return $this->render('device_info/index.html.twig', [
-                'devices' => [],
+                'devices'    => [],
                 'connection' => 'mongodb',
-                'error' => $errorMsg,
+                'error'      => $errorMsg,
             ]);
         }
 
@@ -63,27 +70,28 @@ class DeviceInfoController extends AbstractController
         if (!$collection) {
             $errorMsg = 'MongoDB connection not available.';
             $this->addFlash('error', $errorMsg);
+
             return $this->render('device_info/index.html.twig', [
-                'devices' => [],
+                'devices'    => [],
                 'connection' => 'mongodb',
-                'error' => $errorMsg,
+                'error'      => $errorMsg,
             ]);
         }
 
         try {
-            $devices = $collection->find([], ['sort' => ['lastSeen' => -1]]);
+            $devices      = $collection->find([], ['sort' => ['lastSeen' => -1]]);
             $devicesArray = [];
             foreach ($devices as $device) {
                 $devicesArray[] = $device;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->addFlash('error', 'Error loading devices: ' . $e->getMessage());
             $devicesArray = [];
         }
 
         return $this->render('device_info/index.html.twig', [
-            'devices' => $devicesArray,
-            'connection' => 'mongodb',
+            'devices'             => $devicesArray,
+            'connection'          => 'mongodb',
             'hasAnonymizedColumn' => true,
         ]);
     }
@@ -95,28 +103,30 @@ class DeviceInfoController extends AbstractController
             $collection = $this->getCollection();
             if (!$collection) {
                 $this->addFlash('error', 'MongoDB connection not available.');
+
                 return $this->redirectToRoute('mongodb_device_info_index');
             }
 
             try {
                 $data = [
-                    'deviceId' => $request->request->get('deviceId', ''),
-                    'ipAddress' => $request->request->get('ipAddress', ''),
-                    'macAddress' => $request->request->get('macAddress', ''),
-                    'deviceHash' => $request->request->get('deviceHash', ''),
-                    'location' => $request->request->get('location', ''),
-                    'themeColor' => $request->request->get('themeColor', '#667eea'),
-                    'deviceName' => $request->request->get('deviceName', ''),
-                    'osVersion' => $request->request->get('osVersion', ''),
+                    'deviceId'       => $request->request->get('deviceId', ''),
+                    'ipAddress'      => $request->request->get('ipAddress', ''),
+                    'macAddress'     => $request->request->get('macAddress', ''),
+                    'deviceHash'     => $request->request->get('deviceHash', ''),
+                    'location'       => $request->request->get('location', ''),
+                    'themeColor'     => $request->request->get('themeColor', '#667eea'),
+                    'deviceName'     => $request->request->get('deviceName', ''),
+                    'osVersion'      => $request->request->get('osVersion', ''),
                     'browserVersion' => $request->request->get('browserVersion', ''),
-                    'isActive' => $request->request->get('isActive') === '1',
-                    'lastSeen' => new \MongoDB\BSON\UTCDateTime(new \DateTime($request->request->get('lastSeen', 'now'))),
-                    'anonymized' => false,
+                    'isActive'       => $request->request->get('isActive') === '1',
+                    'lastSeen'       => new \MongoDB\BSON\UTCDateTime(new DateTime($request->request->get('lastSeen', 'now'))),
+                    'anonymized'     => false,
                 ];
                 $collection->insertOne($data);
                 $this->addFlash('success', 'Device info created successfully!');
+
                 return $this->redirectToRoute('mongodb_device_info_index');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->addFlash('error', 'Error creating device: ' . $e->getMessage());
             }
         }
@@ -132,6 +142,7 @@ class DeviceInfoController extends AbstractController
         $collection = $this->getCollection();
         if (!$collection) {
             $this->addFlash('error', 'MongoDB connection not available.');
+
             return $this->redirectToRoute('mongodb_device_info_index');
         }
 
@@ -140,14 +151,15 @@ class DeviceInfoController extends AbstractController
             if (!$device) {
                 throw $this->createNotFoundException('Device info not found');
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->addFlash('error', 'Error loading device: ' . $e->getMessage());
+
             return $this->redirectToRoute('mongodb_device_info_index');
         }
 
         return $this->render('device_info/show.html.twig', [
-            'device' => $device,
-            'connection' => 'mongodb',
+            'device'              => $device,
+            'connection'          => 'mongodb',
             'hasAnonymizedColumn' => true,
         ]);
     }
@@ -158,6 +170,7 @@ class DeviceInfoController extends AbstractController
         $collection = $this->getCollection();
         if (!$collection) {
             $this->addFlash('error', 'MongoDB connection not available.');
+
             return $this->redirectToRoute('mongodb_device_info_index');
         }
 
@@ -166,8 +179,9 @@ class DeviceInfoController extends AbstractController
             if (!$device) {
                 throw $this->createNotFoundException('Device info not found');
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->addFlash('error', 'Error loading device: ' . $e->getMessage());
+
             return $this->redirectToRoute('mongodb_device_info_index');
         }
 
@@ -175,29 +189,30 @@ class DeviceInfoController extends AbstractController
             try {
                 $updateData = [
                     '$set' => [
-                        'deviceId' => $request->request->get('deviceId', ''),
-                        'ipAddress' => $request->request->get('ipAddress', ''),
-                        'macAddress' => $request->request->get('macAddress', ''),
-                        'deviceHash' => $request->request->get('deviceHash', ''),
-                        'location' => $request->request->get('location', ''),
-                        'themeColor' => $request->request->get('themeColor', '#667eea'),
-                        'deviceName' => $request->request->get('deviceName', ''),
-                        'osVersion' => $request->request->get('osVersion', ''),
+                        'deviceId'       => $request->request->get('deviceId', ''),
+                        'ipAddress'      => $request->request->get('ipAddress', ''),
+                        'macAddress'     => $request->request->get('macAddress', ''),
+                        'deviceHash'     => $request->request->get('deviceHash', ''),
+                        'location'       => $request->request->get('location', ''),
+                        'themeColor'     => $request->request->get('themeColor', '#667eea'),
+                        'deviceName'     => $request->request->get('deviceName', ''),
+                        'osVersion'      => $request->request->get('osVersion', ''),
                         'browserVersion' => $request->request->get('browserVersion', ''),
-                        'isActive' => $request->request->get('isActive') === '1',
-                        'lastSeen' => new \MongoDB\BSON\UTCDateTime(new \DateTime($request->request->get('lastSeen', 'now'))),
+                        'isActive'       => $request->request->get('isActive') === '1',
+                        'lastSeen'       => new \MongoDB\BSON\UTCDateTime(new DateTime($request->request->get('lastSeen', 'now'))),
                     ],
                 ];
                 $collection->updateOne(['_id' => new \MongoDB\BSON\ObjectId($id)], $updateData);
                 $this->addFlash('success', 'Device info updated successfully!');
+
                 return $this->redirectToRoute('mongodb_device_info_index');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->addFlash('error', 'Error updating device: ' . $e->getMessage());
             }
         }
 
         return $this->render('device_info/edit.html.twig', [
-            'device' => $device,
+            'device'     => $device,
             'connection' => 'mongodb',
         ]);
     }
@@ -208,6 +223,7 @@ class DeviceInfoController extends AbstractController
         $collection = $this->getCollection();
         if (!$collection) {
             $this->addFlash('error', 'MongoDB connection not available.');
+
             return $this->redirectToRoute('mongodb_device_info_index');
         }
 
@@ -215,7 +231,7 @@ class DeviceInfoController extends AbstractController
             try {
                 $collection->deleteOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
                 $this->addFlash('success', 'Device info deleted successfully!');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->addFlash('error', 'Error deleting device: ' . $e->getMessage());
             }
         }

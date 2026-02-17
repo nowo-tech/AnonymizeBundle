@@ -20,7 +20,7 @@ class SurnameFakerTest extends TestCase
      */
     public function testGenerate(): void
     {
-        $faker = new SurnameFaker('en_US');
+        $faker   = new SurnameFaker('en_US');
         $surname = $faker->generate();
 
         $this->assertIsString($surname);
@@ -32,7 +32,7 @@ class SurnameFakerTest extends TestCase
      */
     public function testGenerateUnique(): void
     {
-        $faker = new SurnameFaker('en_US');
+        $faker    = new SurnameFaker('en_US');
         $surname1 = $faker->generate();
         $surname2 = $faker->generate();
 
@@ -45,7 +45,7 @@ class SurnameFakerTest extends TestCase
      */
     public function testGenerateWithGender(): void
     {
-        $faker = new SurnameFaker('en_US');
+        $faker   = new SurnameFaker('en_US');
         $surname = $faker->generate(['gender' => 'male']);
 
         $this->assertIsString($surname);
@@ -57,7 +57,7 @@ class SurnameFakerTest extends TestCase
      */
     public function testGenerateWithGenderFemale(): void
     {
-        $faker = new SurnameFaker('en_US');
+        $faker   = new SurnameFaker('en_US');
         $surname = $faker->generate(['gender' => 'female']);
 
         $this->assertIsString($surname);
@@ -69,7 +69,7 @@ class SurnameFakerTest extends TestCase
      */
     public function testGenerateWithGenderRandom(): void
     {
-        $faker = new SurnameFaker('en_US');
+        $faker   = new SurnameFaker('en_US');
         $surname = $faker->generate(['gender' => 'random']);
 
         $this->assertIsString($surname);
@@ -81,7 +81,7 @@ class SurnameFakerTest extends TestCase
      */
     public function testGenerateWithLocaleSpecific(): void
     {
-        $faker = new SurnameFaker('en_US');
+        $faker   = new SurnameFaker('en_US');
         $surname = $faker->generate(['locale_specific' => true]);
 
         $this->assertIsString($surname);
@@ -93,7 +93,7 @@ class SurnameFakerTest extends TestCase
      */
     public function testGenerateWithLocaleSpecificFalse(): void
     {
-        $faker = new SurnameFaker('en_US');
+        $faker   = new SurnameFaker('en_US');
         $surname = $faker->generate(['locale_specific' => false]);
 
         $this->assertIsString($surname);
@@ -114,7 +114,7 @@ class SurnameFakerTest extends TestCase
      */
     public function testGenerateWithDifferentLocale(): void
     {
-        $faker = new SurnameFaker('es_ES');
+        $faker   = new SurnameFaker('es_ES');
         $surname = $faker->generate();
 
         $this->assertIsString($surname);

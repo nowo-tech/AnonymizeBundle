@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Entity\EmailNotification;
-use App\Entity\SmsNotification;
+use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
@@ -26,7 +25,7 @@ use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 #[ORM\DiscriminatorColumn(name: 'type', type: 'string', length: 20)]
 #[ORM\DiscriminatorMap([
     'email' => EmailNotification::class,
-    'sms' => SmsNotification::class,
+    'sms'   => SmsNotification::class,
 ])]
 abstract class AbstractNotification
 {
@@ -38,11 +37,11 @@ abstract class AbstractNotification
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $createdAt = null;
+    private ?DateTimeImmutable $createdAt = null;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -50,12 +49,12 @@ abstract class AbstractNotification
         return $this->id;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): ?DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    public function setCreatedAt(DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
 

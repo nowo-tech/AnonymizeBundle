@@ -49,10 +49,10 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
-            false
+            false,
         );
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -80,10 +80,10 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
-            false
+            false,
         );
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -110,14 +110,14 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
-            false
+            false,
         );
 
         // Create a test SQLite file
         $testDbPath = $this->tempDir . '/test.db';
         file_put_contents($testDbPath, 'SQLite test content');
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -141,15 +141,15 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportConnectionCreatesOutputDirectory(): void
     {
         $nonExistentDir = $this->tempDir . '/nonexistent';
-        $service = new DatabaseExportService(
+        $service        = new DatabaseExportService(
             $this->container,
             $nonExistentDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
-            false
+            false,
         );
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -178,10 +178,10 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'gzip',
-            false
+            false,
         );
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -207,10 +207,10 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
-            true
+            true,
         );
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -236,7 +236,7 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
-            false
+            false,
         );
 
         // mongodump is likely not available in test environment
@@ -254,7 +254,7 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'zip',
-            false
+            false,
         );
 
         // mongodump is likely not available in test environment
@@ -272,10 +272,10 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'bzip2',
-            false
+            false,
         );
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -301,10 +301,10 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'zip',
-            false
+            false,
         );
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -330,7 +330,7 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'bzip2',
-            false
+            false,
         );
 
         // mongodump is likely not available in test environment
@@ -348,7 +348,7 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'gzip',
-            false
+            false,
         );
 
         // mongodump is likely not available in test environment
@@ -366,10 +366,10 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir . '/',
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
-            false
+            false,
         );
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -406,15 +406,15 @@ class DatabaseExportServiceTest extends TestCase
             ->willReturn($kernel);
 
         $exportDir = $projectDir . '/exports';
-        $service = new DatabaseExportService(
+        $service   = new DatabaseExportService(
             $container,
             $exportDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
-            true
+            true,
         );
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -462,15 +462,15 @@ class DatabaseExportServiceTest extends TestCase
             ->willReturn($kernel);
 
         $exportDir = $projectDir . '/exports';
-        $service = new DatabaseExportService(
+        $service   = new DatabaseExportService(
             $container,
             $exportDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
-            true
+            true,
         );
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -488,7 +488,7 @@ class DatabaseExportServiceTest extends TestCase
 
         if (file_exists($gitignorePath)) {
             $content = file_get_contents($gitignorePath);
-            $count = substr_count($content, 'exports/');
+            $count   = substr_count($content, 'exports/');
             // Should only appear once (original + maybe one auto-generated entry)
             $this->assertLessThanOrEqual(2, $count);
         }
@@ -504,10 +504,10 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
-            false
+            false,
         );
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -535,10 +535,10 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             'backup_{database}_{date}.sql',
             'none',
-            false
+            false,
         );
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -565,10 +565,10 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             'test.{format}',
             'none',
-            false
+            false,
         );
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -599,10 +599,10 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
-            false
+            false,
         );
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -629,10 +629,10 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
-            false
+            false,
         );
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -661,10 +661,10 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'gzip',
-            false
+            false,
         );
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
         $em->method('getConnection')
@@ -692,7 +692,7 @@ class DatabaseExportServiceTest extends TestCase
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
-            false
+            false,
         );
 
         $result = $service->exportMongoDB('test_connection', 'test_db', 'localhost', 27017);

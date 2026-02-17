@@ -36,25 +36,26 @@ final class HashFaker implements FakerInterface
      * Generates an anonymized hash value.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'algorithm' (string): Hash algorithm ('md5', 'sha1', 'sha256', 'sha512', default: 'sha256')
-     *   - 'length' (int|null): Fixed length for hash (null for algorithm default)
+     *                                      - 'algorithm' (string): Hash algorithm ('md5', 'sha1', 'sha256', 'sha512', default: 'sha256')
+     *                                      - 'length' (int|null): Fixed length for hash (null for algorithm default)
+     *
      * @return string The anonymized hash value
      */
     public function generate(array $options = []): string
     {
         $algorithm = strtolower($options['algorithm'] ?? 'sha256');
-        $length = $options['length'] ?? null;
+        $length    = $options['length'] ?? null;
 
         // Generate random string to hash
         $randomString = $this->faker->unique()->text(100) . (string) $this->faker->randomNumber(9, true);
 
         // Generate hash based on algorithm
         $hash = match ($algorithm) {
-            'md5' => md5($randomString),
-            'sha1' => sha1($randomString),
+            'md5'    => md5($randomString),
+            'sha1'   => sha1($randomString),
             'sha256' => hash('sha256', $randomString),
             'sha512' => hash('sha512', $randomString),
-            default => hash('sha256', $randomString),
+            default  => hash('sha256', $randomString),
         };
 
         // Apply length if specified

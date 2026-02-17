@@ -36,14 +36,15 @@ final class IpAddressFaker implements FakerInterface
      * Generates an anonymized IP address.
      *
      * @param array<string, mixed> $options Options:
-     *   - 'version' (int): IP version (4 or 6, default: 4)
-     *   - 'type' (string): IP type ('public', 'private', 'localhost', default: 'public')
+     *                                      - 'version' (int): IP version (4 or 6, default: 4)
+     *                                      - 'type' (string): IP type ('public', 'private', 'localhost', default: 'public')
+     *
      * @return string The anonymized IP address
      */
     public function generate(array $options = []): string
     {
         $version = (int) ($options['version'] ?? 4);
-        $type = $options['type'] ?? 'public';
+        $type    = $options['type'] ?? 'public';
 
         if ($version === 6) {
             return $this->generateIpv6($type);
@@ -56,14 +57,15 @@ final class IpAddressFaker implements FakerInterface
      * Generates an IPv4 address.
      *
      * @param string $type IP type ('public', 'private', 'localhost')
+     *
      * @return string IPv4 address
      */
     private function generateIpv4(string $type): string
     {
         return match ($type) {
-            'private' => $this->faker->localIpv4(),
+            'private'   => $this->faker->localIpv4(),
             'localhost' => $this->faker->ipv4(),
-            default => $this->faker->ipv4(),
+            default     => $this->faker->ipv4(),
         };
     }
 
@@ -71,13 +73,14 @@ final class IpAddressFaker implements FakerInterface
      * Generates an IPv6 address.
      *
      * @param string $type IP type ('public', 'private', 'localhost')
+     *
      * @return string IPv6 address
      */
     private function generateIpv6(string $type): string
     {
         // Generate IPv6 address (8 groups of 4 hex digits)
         $groups = [];
-        for ($i = 0; $i < 8; $i++) {
+        for ($i = 0; $i < 8; ++$i) {
             $groups[] = dechex($this->faker->numberBetween(0, 65535));
         }
 
@@ -93,6 +96,7 @@ final class IpAddressFaker implements FakerInterface
             // Link-local addresses start with fe80::
             $groups[0] = 'fe80';
             $groups[1] = '0000';
+
             return implode(':', $groups);
         }
 

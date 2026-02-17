@@ -24,11 +24,11 @@ class UserAccountType extends AbstractType
             ])
             ->add('usernameCanonical', TextType::class, [
                 'required' => true,
-                'label' => 'Username Canonical',
+                'label'    => 'Username Canonical',
             ])
             ->add('emailCanonical', EmailType::class, [
                 'required' => true,
-                'label' => 'Email Canonical',
+                'label'    => 'Email Canonical',
             ]);
     }
 

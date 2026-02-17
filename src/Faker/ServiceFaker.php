@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Faker;
 
 use Psr\Container\ContainerInterface;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\Exclude;
+
+use function sprintf;
 
 /**
  * Faker for generating anonymized values using a custom service.
@@ -32,19 +35,22 @@ final class ServiceFaker implements FakerInterface
     public function __construct(
         private ContainerInterface $container,
         private string $serviceName
-    ) {}
+    ) {
+    }
 
     /**
      * Generates an anonymized value using the configured service.
      *
      * @param array<string, mixed> $options Additional options passed to the service
+     *
+     * @throws RuntimeException If the service is not found or doesn't implement FakerInterface
+     *
      * @return mixed The anonymized value
-     * @throws \RuntimeException If the service is not found or doesn't implement FakerInterface
      */
     public function generate(array $options = []): mixed
     {
         if (!$this->container->has($this->serviceName)) {
-            throw new \RuntimeException(sprintf('Service "%s" not found.', $this->serviceName));
+            throw new RuntimeException(sprintf('Service "%s" not found.', $this->serviceName));
         }
 
         $service = $this->container->get($this->serviceName);
@@ -61,11 +67,6 @@ final class ServiceFaker implements FakerInterface
             return $service($options);
         }
 
-        throw new \RuntimeException(
-            sprintf(
-                'Service "%s" must implement FakerInterface, have a generate() method, or be callable.',
-                $this->serviceName
-            )
-        );
+        throw new RuntimeException(sprintf('Service "%s" must implement FakerInterface, have a generate() method, or be callable.', $this->serviceName));
     }
 }

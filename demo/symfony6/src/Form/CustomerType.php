@@ -19,19 +19,19 @@ class CustomerType extends AbstractType
         $builder
             ->add('email', EmailType::class, [
                 'required' => true,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('name', TextType::class, [
                 'required' => true,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('status', ChoiceType::class, [
                 'choices' => [
-                    'Active' => 'active',
+                    'Active'   => 'active',
                     'Inactive' => 'inactive',
                 ],
                 'required' => true,
-                'attr' => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control'],
             ]);
     }
 
