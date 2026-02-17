@@ -84,8 +84,10 @@ final class DatabaseExportService
         if ($this->compression !== 'none' && file_exists($exportedFile)) {
             $compressedFile = $this->compressFile($exportedFile);
             if ($compressedFile !== null) {
-                // Remove uncompressed file if compression succeeded
-                unlink($exportedFile);
+                // Remove uncompressed file if compression succeeded (gzip/bzip2 may already remove it)
+                if (file_exists($exportedFile)) {
+                    unlink($exportedFile);
+                }
                 $exportedFile = $compressedFile;
             }
         }

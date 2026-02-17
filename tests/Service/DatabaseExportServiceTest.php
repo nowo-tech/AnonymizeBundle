@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Tests\Service;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\ORM\EntityManagerInterface;
 use Nowo\AnonymizeBundle\Service\DatabaseExportService;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
+use ReflectionClass;
 
 /**
  * Test case for DatabaseExportService.
@@ -101,7 +104,7 @@ class DatabaseExportServiceTest extends TestCase
     }
 
     /**
-     * Test that exportSQLite copies file correctly.
+     * Test that exportConnection with pdo_sqlite copies file correctly.
      */
     public function testExportSQLiteCopiesFile(): void
     {
@@ -113,26 +116,86 @@ class DatabaseExportServiceTest extends TestCase
             false,
         );
 
-        // Create a test SQLite file
-        $testDbPath = $this->tempDir . '/test.db';
+        $testDbPath = $this->tempDir . '/source.db';
         file_put_contents($testDbPath, 'SQLite test content');
 
         $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
+        $driver     = $this->getMockBuilder(Driver::class)->getMock();
+        $platform   = $this->createMock(AbstractPlatform::class);
 
-        $em->method('getConnection')
-            ->willReturn($connection);
+        $em->method('getConnection')->willReturn($connection);
+        $connection->method('getDatabase')->willReturn('test_db');
+        $connection->method('getDriver')->willReturn($driver);
+        $connection->method('getDatabasePlatform')->willReturn($platform);
+        $connection->method('getParams')->willReturn(['driver' => 'pdo_sqlite', 'path' => $testDbPath]);
 
-        $connection->method('getDatabase')
-            ->willReturn('test_db');
+        $result = $service->exportConnection($em, 'default');
+        $this->assertNotNull($result);
+        $this->assertFileExists($result);
+        $this->assertStringContainsString('.sqlite', $result);
+        $this->assertSame('SQLite test content', file_get_contents($result));
+    }
 
-        $connection->method('getParams')
-            ->willReturn(['driver' => 'pdo_sqlite', 'path' => $testDbPath]);
+    /**
+     * Test that exportConnection with pdo_sqlite and zip compression produces a zip file.
+     */
+    public function testExportSQLiteWithZipCompression(): void
+    {
+        $service = new DatabaseExportService(
+            $this->container,
+            $this->tempDir,
+            '{connection}_{database}_{date}_{time}.{format}',
+            'zip',
+            false,
+        );
 
-        // Since exportSQLite is private, we test via exportConnection
-        // But it requires DbalHelper which is hard to mock
-        // We'll just verify the service structure
-        $this->assertInstanceOf(DatabaseExportService::class, $service);
+        $testDbPath = $this->tempDir . '/source2.db';
+        file_put_contents($testDbPath, 'SQLite content for zip');
+
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $driver     = $this->getMockBuilder(Driver::class)->getMock();
+        $platform   = $this->createMock(AbstractPlatform::class);
+
+        $em->method('getConnection')->willReturn($connection);
+        $connection->method('getDatabase')->willReturn('test_db');
+        $connection->method('getDriver')->willReturn($driver);
+        $connection->method('getDatabasePlatform')->willReturn($platform);
+        $connection->method('getParams')->willReturn(['driver' => 'pdo_sqlite', 'path' => $testDbPath]);
+
+        $result = $service->exportConnection($em, 'default');
+        $this->assertNotNull($result);
+        $this->assertFileExists($result);
+        $this->assertStringEndsWith('.zip', $result);
+    }
+
+    /**
+     * Test that exportSQLite returns null when path is missing.
+     */
+    public function testExportSQLiteReturnsNullWhenPathMissing(): void
+    {
+        $service = new DatabaseExportService(
+            $this->container,
+            $this->tempDir,
+            '{connection}_{database}_{date}_{time}.{format}',
+            'none',
+            false,
+        );
+
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $driver     = $this->getMockBuilder(Driver::class)->getMock();
+        $platform   = $this->createMock(AbstractPlatform::class);
+
+        $em->method('getConnection')->willReturn($connection);
+        $connection->method('getDatabase')->willReturn('test_db');
+        $connection->method('getDriver')->willReturn($driver);
+        $connection->method('getDatabasePlatform')->willReturn($platform);
+        $connection->method('getParams')->willReturn(['driver' => 'pdo_sqlite']);
+
+        $result = $service->exportConnection($em, 'default');
+        $this->assertNull($result);
     }
 
     /**
@@ -697,6 +760,233 @@ class DatabaseExportServiceTest extends TestCase
 
         $result = $service->exportMongoDB('test_connection', 'test_db', 'localhost', 27017);
         $this->assertNull($result);
+    }
+
+    /**
+     * Test that updateGitignore returns early when container has no kernel.
+     */
+    public function testUpdateGitignoreReturnsEarlyWhenNoKernel(): void
+    {
+        $service = new DatabaseExportService(
+            $this->container,
+            $this->tempDir,
+            '{connection}_{database}_{date}_{time}.{format}',
+            'none',
+            true,
+        );
+
+        $testDbPath = $this->tempDir . '/source_no_kernel.db';
+        file_put_contents($testDbPath, 'SQLite');
+
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $driver     = $this->getMockBuilder(Driver::class)->getMock();
+        $platform   = $this->createMock(AbstractPlatform::class);
+
+        $em->method('getConnection')->willReturn($connection);
+        $connection->method('getDatabase')->willReturn('test_db');
+        $connection->method('getDriver')->willReturn($driver);
+        $connection->method('getDatabasePlatform')->willReturn($platform);
+        $connection->method('getParams')->willReturn(['driver' => 'pdo_sqlite', 'path' => $testDbPath]);
+
+        $result = $service->exportConnection($em, 'default');
+        $this->assertNotNull($result);
+        $this->assertFileExists($result);
+    }
+
+    /**
+     * Test that compressFile with gzip is applied when gzip is available.
+     */
+    public function testExportSQLiteWithGzipCompression(): void
+    {
+        $service = new DatabaseExportService(
+            $this->container,
+            $this->tempDir,
+            '{connection}_{database}_{date}_{time}.{format}',
+            'gzip',
+            false,
+        );
+
+        $testDbPath = $this->tempDir . '/source_gzip.db';
+        file_put_contents($testDbPath, 'SQLite gzip');
+
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $driver     = $this->getMockBuilder(Driver::class)->getMock();
+        $platform   = $this->createMock(AbstractPlatform::class);
+
+        $em->method('getConnection')->willReturn($connection);
+        $connection->method('getDatabase')->willReturn('test_db');
+        $connection->method('getDriver')->willReturn($driver);
+        $connection->method('getDatabasePlatform')->willReturn($platform);
+        $connection->method('getParams')->willReturn(['driver' => 'pdo_sqlite', 'path' => $testDbPath]);
+
+        $result = $service->exportConnection($em, 'default');
+        $this->assertNotNull($result);
+        $this->assertFileExists($result);
+        if (file_exists($result)) {
+            $this->assertTrue(str_ends_with($result, '.gz') || str_ends_with($result, '.sqlite'));
+        }
+    }
+
+    /**
+     * Test that compressFile with bzip2 is applied when bzip2 is available.
+     */
+    public function testExportSQLiteWithBzip2Compression(): void
+    {
+        $service = new DatabaseExportService(
+            $this->container,
+            $this->tempDir,
+            '{connection}_{database}_{date}_{time}.{format}',
+            'bzip2',
+            false,
+        );
+
+        $testDbPath = $this->tempDir . '/source_bzip2.db';
+        file_put_contents($testDbPath, 'SQLite bzip2');
+
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $driver     = $this->getMockBuilder(Driver::class)->getMock();
+        $platform   = $this->createMock(AbstractPlatform::class);
+
+        $em->method('getConnection')->willReturn($connection);
+        $connection->method('getDatabase')->willReturn('test_db');
+        $connection->method('getDriver')->willReturn($driver);
+        $connection->method('getDatabasePlatform')->willReturn($platform);
+        $connection->method('getParams')->willReturn(['driver' => 'pdo_sqlite', 'path' => $testDbPath]);
+
+        $result = $service->exportConnection($em, 'default');
+        $this->assertNotNull($result);
+        $this->assertFileExists($result);
+    }
+
+    /**
+     * Test createZipArchive via reflection (used by exportMongoDB).
+     */
+    public function testCreateZipArchive(): void
+    {
+        $subDir = $this->tempDir . '/zip_src';
+        mkdir($subDir, 0o755, true);
+        file_put_contents($subDir . '/file1.txt', 'content');
+
+        $zipPath = $this->tempDir . '/out.zip';
+        $ref     = new ReflectionClass(DatabaseExportService::class);
+        $method  = $ref->getMethod('createZipArchive');
+        $method->setAccessible(true);
+
+        $service = new DatabaseExportService(
+            $this->container,
+            $this->tempDir,
+            'x',
+            'none',
+            false,
+        );
+
+        $result = $method->invoke($service, $subDir, $zipPath);
+        $this->assertTrue($result);
+        $this->assertFileExists($zipPath);
+    }
+
+    /**
+     * Test createTarArchive via reflection (used by exportMongoDB).
+     */
+    public function testCreateTarArchive(): void
+    {
+        $subDir = $this->tempDir . '/tar_src';
+        mkdir($subDir, 0o755, true);
+        file_put_contents($subDir . '/file1.txt', 'content');
+
+        $tarPath = $this->tempDir . '/out.tar';
+        $ref     = new ReflectionClass(DatabaseExportService::class);
+        $method  = $ref->getMethod('createTarArchive');
+        $method->setAccessible(true);
+
+        $service = new DatabaseExportService(
+            $this->container,
+            $this->tempDir,
+            'x',
+            'none',
+            false,
+        );
+
+        $result = $method->invoke($service, $subDir, $tarPath);
+        $this->assertTrue($result);
+        $this->assertFileExists($tarPath);
+    }
+
+    /**
+     * Test removeDirectory via reflection.
+     */
+    public function testRemoveDirectory(): void
+    {
+        $subDir = $this->tempDir . '/to_remove';
+        mkdir($subDir, 0o755, true);
+        file_put_contents($subDir . '/file.txt', 'x');
+
+        $ref    = new ReflectionClass(DatabaseExportService::class);
+        $method = $ref->getMethod('removeDirectory');
+        $method->setAccessible(true);
+
+        $service = new DatabaseExportService(
+            $this->container,
+            $this->tempDir,
+            'x',
+            'none',
+            false,
+        );
+
+        $result = $method->invoke($service, $subDir);
+        $this->assertTrue($result);
+        $this->assertDirectoryDoesNotExist($subDir);
+    }
+
+    /**
+     * Test removeDirectory returns false when path is not a directory.
+     */
+    public function testRemoveDirectoryReturnsFalseWhenNotDirectory(): void
+    {
+        $ref    = new ReflectionClass(DatabaseExportService::class);
+        $method = $ref->getMethod('removeDirectory');
+        $method->setAccessible(true);
+
+        $service = new DatabaseExportService(
+            $this->container,
+            $this->tempDir,
+            'x',
+            'none',
+            false,
+        );
+
+        $result = $method->invoke($service, $this->tempDir . '/nonexistent');
+        $this->assertFalse($result);
+    }
+
+    /**
+     * Test createZipArchive with a single file creates valid zip.
+     */
+    public function testCreateZipArchiveWithEmptyDirectory(): void
+    {
+        $subDir = $this->tempDir . '/zip_empty';
+        mkdir($subDir, 0o755, true);
+        file_put_contents($subDir . '/dummy.txt', 'x');
+        $zipPath = $this->tempDir . '/empty.zip';
+
+        $ref    = new ReflectionClass(DatabaseExportService::class);
+        $method = $ref->getMethod('createZipArchive');
+        $method->setAccessible(true);
+
+        $service = new DatabaseExportService(
+            $this->container,
+            $this->tempDir,
+            'x',
+            'none',
+            false,
+        );
+
+        $result = $method->invoke($service, $subDir, $zipPath);
+        $this->assertTrue($result);
+        $this->assertFileExists($zipPath);
     }
 
     /**

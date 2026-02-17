@@ -22,7 +22,7 @@ return (new Config())
         // Strict types everywhere (project already uses them)
         'declare_strict_types' => true,
 
-        // Imports: ordered alphabetically, one per line, no unused
+        // Imports: order use statements (class, function, const; alphabetical), one per line, no unused
         'ordered_imports' => [
             'imports_order' => ['class', 'function', 'const'],
             'sort_algorithm' => 'alpha',
@@ -30,6 +30,7 @@ return (new Config())
         'single_import_per_statement' => true,
         'no_unused_imports' => true,
         'no_leading_import_slash' => true,
+        'single_line_after_imports' => true,
 
         // Arrays: short syntax, trailing comma in multiline
         'array_syntax' => ['syntax' => 'short'],
@@ -102,7 +103,7 @@ return (new Config())
         'no_short_bool_cast' => true,
         'explicit_string_variable' => true,
 
-        // Avoid fully qualified symbols when a use statement exists
+        // FQCN → use + short name: convert "new \Symfony\...\ContainerBuilder()" to "use ...; new ContainerBuilder()"
         'fully_qualified_strict_types' => true,
         'global_namespace_import' => [
             'import_classes' => true,

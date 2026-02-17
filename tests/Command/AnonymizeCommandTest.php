@@ -72,8 +72,8 @@ class AnonymizeCommandTest extends TestCase
      */
     public function testConfigureDefinesOptions(): void
     {
-        $container = $this->createContainerWithSafeEnvironment();
-        $command   = new AnonymizeCommand($container);
+        $container  = $this->createContainerWithSafeEnvironment();
+        $command    = new AnonymizeCommand($container);
         $definition = $command->getDefinition();
 
         $this->assertTrue($definition->hasOption('connection'));
@@ -97,9 +97,9 @@ class AnonymizeCommandTest extends TestCase
         $parameterBag->method('get')->willReturnCallback(function (string $key) {
             return match ($key) {
                 'kernel.environment' => 'prod',
-                'kernel.debug' => false,
+                'kernel.debug'       => false,
                 'kernel.project_dir' => $this->tempDir,
-                default => null,
+                default              => null,
             };
         });
 
@@ -143,9 +143,9 @@ class AnonymizeCommandTest extends TestCase
      */
     public function testExecuteSucceedsWhenManagersExistButNoAnonymizableEntities(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em       = $this->createMock(EntityManagerInterface::class);
         $doctrine = $this->createMock(ManagerRegistry::class);
-        $doctrine->method('getManagerNames')->willReturn(['default']);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
@@ -167,9 +167,9 @@ class AnonymizeCommandTest extends TestCase
      */
     public function testExecuteWithDryRunShowsWarning(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em       = $this->createMock(EntityManagerInterface::class);
         $doctrine = $this->createMock(ManagerRegistry::class);
-        $doctrine->method('getManagerNames')->willReturn(['default']);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
@@ -189,9 +189,9 @@ class AnonymizeCommandTest extends TestCase
      */
     public function testExecuteWithStatsOnly(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em       = $this->createMock(EntityManagerInterface::class);
         $doctrine = $this->createMock(ManagerRegistry::class);
-        $doctrine->method('getManagerNames')->willReturn(['default']);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();

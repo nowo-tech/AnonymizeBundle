@@ -1,21 +1,22 @@
-# Makefile for Anonymize Bundle Demo - Symfony 7
+# Makefile for Anonymize Bundle Demo - Symfony 8
 # Simplifies Docker commands for the demo
 
-.PHONY: help up down shell install clean setup
+.PHONY: help up down shell install clean setup update-bundle
 
 # Default target
 help:
-	@echo "Anonymize Bundle Demo - Symfony 7 - Development Commands"
+	@echo "Anonymize Bundle Demo - Symfony 8 - Development Commands"
 	@echo ""
 	@echo "Usage: make <target>"
 	@echo ""
 	@echo "Targets:"
-	@echo "  up            Start Docker containers (PHP, MySQL, PostgreSQL)"
-	@echo "  down          Stop Docker containers"
-	@echo "  shell         Open shell in PHP container"
-	@echo "  install       Install Composer dependencies (without bundle)"
-	@echo "  setup         Setup databases and load fixtures (without bundle)"
-	@echo "  clean         Remove vendor, var, and cache"
+	@echo "  up             Start Docker containers (PHP, MySQL, PostgreSQL)"
+	@echo "  down           Stop Docker containers"
+	@echo "  shell          Open shell in PHP container"
+	@echo "  install        Install Composer dependencies"
+	@echo "  setup          Setup databases and load fixtures"
+	@echo "  update-bundle  Update anonymize-bundle from repo (fixes 'Unknown named parameter \$truncate')"
+	@echo "  clean          Remove vendor, var, and cache"
 	@echo "  logs          Show container logs"
 	@echo ""
 	@echo "Anonymization:"
@@ -61,6 +62,7 @@ up:
 	@echo "Next steps:"
 	@echo "  make install    - Install dependencies"
 	@echo "  make setup      - Complete setup (install + DB + fixtures)"
+	@echo "  make update-bundle - If you see 'Unknown named parameter \$truncate', update the bundle from repo"
 
 # Stop containers
 down:
@@ -82,10 +84,17 @@ install:
 	@echo "  make anonymize-dry-run    - Test anonymization (dry-run)"
 	@echo "  make anonymize            - Run anonymization"
 
-# Complete setup (without bundle installation - bundle will be added after first release)
+# Update the bundle from the path repo (use if you get "Unknown named parameter $truncate")
+update-bundle:
+	@echo "📦 Updating nowo-tech/anonymize-bundle from repo..."
+	@docker-compose exec -T php git config --global --add safe.directory /bundles 2>/dev/null || true
+	docker-compose exec -T php composer update nowo-tech/anonymize-bundle --with-all-dependencies --no-interaction
+	docker-compose exec -T php php bin/console cache:clear --no-warmup
+	@echo "✅ Bundle updated! Run: make anonymize-dry-run"
+
+# Complete setup
 setup:
-	@echo "🔧 Setting up demo (databases and fixtures only)..."
-	@echo "⚠️  Note: Bundle will be installed after first release"
+	@echo "🔧 Setting up demo (databases and fixtures)..."
 	@echo "Waiting for MySQL and PostgreSQL to be ready..."
 	@sleep 3
 	@echo "Installing base dependencies (without bundle)..."

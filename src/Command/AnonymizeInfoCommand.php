@@ -116,7 +116,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
         // Initialize services
         $fakerFactory     = new FakerFactory($locale, $this->container);
         $patternMatcher   = new PatternMatcher();
-        $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
+        $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher, null, $this->container);
 
         $allAnonymizers = [];
 

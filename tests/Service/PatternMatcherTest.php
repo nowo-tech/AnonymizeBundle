@@ -687,4 +687,14 @@ class PatternMatcherTest extends TestCase
         // The code trims each option, so 'active' should match
         $this->assertTrue($this->matcher->matches($record, $includePatterns));
     }
+
+    /**
+     * Test nested value from association array (record[association][field]).
+     */
+    public function testGetNestedValueFromAssociationArray(): void
+    {
+        $record = ['type' => ['name' => 'HR', 'id' => 1]];
+        $this->assertTrue($this->matcher->matches($record, ['type.name' => 'HR']));
+        $this->assertFalse($this->matcher->matches($record, ['type.name' => 'Admin']));
+    }
 }

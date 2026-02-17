@@ -6,7 +6,7 @@ This document outlines the planned features, improvements, and enhancements for 
 
 ### ✅ Implemented Features
 
-- **Fakers**: email, name, surname, age, phone, IBAN, credit_card, service, **address**, **date**, **username**, **url**, **company**, **masking**, **password**, **ip_address**, **mac_address**, **uuid**, **hash**, **coordinate**, **color**, **boolean**, **numeric**, **file**, **json**, **text**, **enum**, **country**, **language**, **hash_preserve**, **shuffle**, **constant** (32 total)
+- **Fakers**: email, name, surname, age, phone, IBAN, credit_card, service, address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language, hash_preserve, shuffle, constant, dni_cif, name_fallback, html, pattern_based, copy, null, utm (39 total)
 - **Core Features**: Attribute-based configuration, multiple connections, batch processing, dry-run mode, pre-flight checks, progress bars, enhanced environment protection, debug/verbose modes
 - **Tracking**: AnonymizableTrait with `anonymized` column
 - **Patterns**: Inclusion/exclusion pattern matching with `|` (OR) operator support and relationship patterns (e.g., `'type.name' => '%HR'`)
@@ -14,7 +14,7 @@ This document outlines the planned features, improvements, and enhancements for 
 - **MongoDB Tools**: Command to generate scripts for adding `anonymized` field to MongoDB documents
 - **Services**: SchemaService for column detection
 - **Demos**: 9 entities (User, Customer, Product, Order, Invoice, Employee, SystemLog, EmailSubscription, Type) with comprehensive fixtures and complete CRUD interfaces
-- **Demos Coverage**: 100% faker coverage (all 32 fakers demonstrated)
+- **Demos Coverage**: 100% faker coverage (all 39 fakers demonstrated)
 - **Demos Databases**: MySQL, PostgreSQL, SQLite, MongoDB (infrastructure ready)
 
 ---

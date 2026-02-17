@@ -248,9 +248,9 @@ When you run the demos with Docker from this repository, they use the **bundle c
 - Docker and Docker Compose
 - Make (optional, but recommended for using Makefile commands)
 
-## Verificación rápida (comprobar que las demos funcionan)
+## Quick verification (check that demos work)
 
-Desde la carpeta `demo/`, puedes comprobar que cada demo arranca y que el comando de anonimización está disponible:
+From the `demo/` folder, you can verify that each demo starts and that the anonymization command is available:
 
 ```bash
 # Symfony 6
@@ -265,14 +265,14 @@ cd ..
 cd symfony8 && composer install -n 2>/dev/null; php bin/console list nowo 2>&1 | head -5
 ```
 
-O con Docker (recomendado; usa el bundle del repo montado en `/bundles`):
+Or with Docker (recommended; uses the bundle from the repo mounted at `/bundles`):
 
 ```bash
-cd symfony6   # o symfony7 / symfony8
+cd symfony6   # or symfony7 / symfony8
 make up && make setup && make anonymize-dry-run
 ```
 
-Si `php bin/console list` muestra los comandos `nowo:anonymize:*`, la aplicación y el bundle están correctamente cargados.
+If `php bin/console list` shows the `nowo:anonymize:*` commands, the application and bundle are loaded correctly.
 
 ## Next Steps
 

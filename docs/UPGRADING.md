@@ -13,6 +13,12 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Unreleased (next version)
+
+#### What's Fixed
+
+- **PostgreSQL**: When using `AnonymizableTrait`, the `anonymized` column is now updated with SQL literals `TRUE`/`FALSE` on PostgreSQL instead of integers `1`/`0`, resolving `SQLSTATE[42804]: Datatype mismatch` for boolean columns. No configuration or code changes required.
+
 ### Upgrading to 1.0.5
 
 **Release Date**: 2026-02-16
@@ -213,7 +219,7 @@ See [USAGE.md](USAGE.md#truncating-tables-emptying-before-anonymization) for det
 
 None - This is a backward-compatible feature release.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -274,7 +280,7 @@ This release adds two new features:
 
 None - This is a backward-compatible release. The bundle is now considered stable and production-ready for development environments.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -336,7 +342,7 @@ If you're using entity-level `excludePatterns`, the `ProtectedUser` demo provide
 
 None - This is a backward-compatible feature release.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -445,7 +451,7 @@ public string $emailCanonical;  // Always same as email
 
 None - This is a backward-compatible feature release.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -502,7 +508,7 @@ None - This is a backward-compatible feature release.
   - Updated help text to reflect Symfony 6.1+ requirement
   - Improved documentation for bundle installation process
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -533,7 +539,7 @@ None - This is a backward-compatible feature release.
   - `FakerFactory` is now explicitly registered in services configuration
   - No functional changes, only fixes a configuration issue
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -575,7 +581,7 @@ None - This is a backward-compatible feature release.
   - All demo dependencies now correctly use Symfony 6.1+
   - Updated demo documentation to reflect correct requirements
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -636,7 +642,7 @@ None - This is a backward-compatible feature release.
   - Maintains full backward compatibility
   - Improves developer experience
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -694,7 +700,7 @@ None - This is a backward-compatible feature release.
   - Better support for different DBAL versions
   - Automatic fallback for older DBAL versions
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -733,7 +739,7 @@ None - This is a backward-compatible feature release.
   - EmailSubscription and SystemLog links now correctly include the `connection` parameter
   - Resolved routing error: "Some mandatory parameters are missing ("connection") to generate a URL"
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -771,7 +777,7 @@ None - This is a backward-compatible feature release.
   - Improved test robustness for Faker randomness
   - Fixed overflow warnings in UsernameFaker
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -835,7 +841,7 @@ None - This is a backward-compatible feature release.
 
 None - This is a backward-compatible feature release.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -922,7 +928,7 @@ None - This is a backward-compatible feature release.
 
 None - This is a backward-compatible feature release.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -974,7 +980,7 @@ None - This is a backward-compatible feature release.
 
 None - This is a backward-compatible feature release.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -1023,7 +1029,7 @@ None - This is a backward-compatible feature release.
 
 None - This is a backward-compatible bug fix and feature release.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -1072,7 +1078,7 @@ None - This is a backward-compatible bug fix and feature release.
 
 None - This is a backward-compatible feature release.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -1127,7 +1133,7 @@ None - This is a backward-compatible feature release.
 
 None - This is a backward-compatible feature release.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -1196,7 +1202,7 @@ None - This is a backward-compatible feature release.
 
 None - This is a backward-compatible feature release.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -1240,7 +1246,7 @@ None - This is a backward-compatible feature release.
 
 None - This is a backward-compatible bug fix release.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -1283,7 +1289,7 @@ None - This is a backward-compatible bug fix release.
 
 None - This is a backward-compatible bug fix release.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -1326,7 +1332,7 @@ None - This is a backward-compatible bug fix release.
 
 None - This is a backward-compatible update.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -1369,7 +1375,7 @@ None - This is a backward-compatible update.
 
 None - This is a backward-compatible update.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -1407,7 +1413,7 @@ None - This is a backward-compatible update.
 
 None - This is a backward-compatible update.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -1445,7 +1451,7 @@ None - This is a backward-compatible update.
 
 None - This is a backward-compatible update.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -1472,7 +1478,7 @@ None - This is a backward-compatible update.
 
 None - This is a backward-compatible feature addition.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Update the bundle**:
    ```bash
@@ -1568,13 +1574,13 @@ SELECT * FROM users WHERE anonymized = true;
 3. Review and apply the generated SQL to your database(s)
 4. Run anonymization - records will be automatically marked
 
-### Upgrading to 1.0.0 (Initial Release)
+### Installing the bundle (first-time install)
 
-**Release Date**: TBD
+This section applies when installing the bundle for the first time (no prior version).
 
 #### What's New
 
-- **Initial Release**: Complete database anonymization functionality for Symfony
+- **Initial release**: Complete database anonymization functionality for Symfony
   - Attribute-based configuration system
   - Support for multiple Doctrine connections
   - Multiple faker types with customization options
@@ -1587,7 +1593,7 @@ SELECT * FROM users WHERE anonymized = true;
 
 N/A - This is the initial release.
 
-#### Upgrade Steps
+#### Migration Steps
 
 1. **Install the bundle**:
    ```bash

@@ -1657,4 +1657,81 @@ class PreFlightCheckServiceTest extends TestCase
         $this->assertNotEmpty($errors);
         $this->assertStringContainsString('does not exist in database', $errors[0]);
     }
+
+    /**
+     * Test that validatePatterns detects invalid include patterns (list of configs) with empty pattern array.
+     */
+    public function testValidatePatternsDetectsIncludeListOfConfigsWithEmptyPatternArray(): void
+    {
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+
+        $em->method('getConnection')->willReturn($connection);
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection->method('createSchemaManager')->willReturn($schemaManager);
+
+        $metadata                     = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
+        $metadata->isMappedSuperclass = false;
+        $metadata->isEmbeddedClass    = false;
+        $metadata->method('getTableName')->willReturn('test_table');
+        $metadata->method('hasField')->willReturn(true);
+        $metadata->method('getFieldMapping')->willReturn(new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column'));
+
+        $schemaManager->method('tablesExist')->willReturn(true);
+        $column = $this->createMock(Column::class);
+        $column->method('getName')->willReturn('test_column');
+        $schemaManager->method('listTableColumns')->willReturn(['test_column' => $column]);
+
+        $testEntity = new class {
+            #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: [['id' => []]])]
+            private string $testProperty;
+        };
+        $reflection = new ReflectionClass($testEntity);
+        $attribute  = new Anonymize();
+        $entities   = ['TestEntity' => ['metadata' => $metadata, 'reflection' => $reflection, 'attribute' => $attribute]];
+
+        $errors = $this->service->performChecks($em, $entities);
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('Invalid include pattern', $errors[0]);
+        $this->assertStringContainsString('must not be empty', $errors[0]);
+    }
+
+    /**
+     * Test that validatePatterns detects invalid include patterns (list of configs) with empty pattern option.
+     */
+    public function testValidatePatternsDetectsIncludeListOfConfigsWithEmptyPatternOption(): void
+    {
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+
+        $em->method('getConnection')->willReturn($connection);
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection->method('createSchemaManager')->willReturn($schemaManager);
+
+        $metadata                     = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
+        $metadata->isMappedSuperclass = false;
+        $metadata->isEmbeddedClass    = false;
+        $metadata->method('getTableName')->willReturn('test_table');
+        $metadata->method('hasField')->willReturn(true);
+        $metadata->method('getFieldMapping')->willReturn(new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column'));
+
+        $schemaManager->method('tablesExist')->willReturn(true);
+        $column = $this->createMock(Column::class);
+        $column->method('getName')->willReturn('test_column');
+        $schemaManager->method('listTableColumns')->willReturn(['test_column' => $column]);
+
+        $testEntity = new class {
+            #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: [['status' => ['active', '']]])]
+            private string $testProperty;
+        };
+        $reflection = new ReflectionClass($testEntity);
+        $attribute  = new Anonymize();
+        $entities   = ['TestEntity' => ['metadata' => $metadata, 'reflection' => $reflection, 'attribute' => $attribute]];
+
+        $errors = $this->service->performChecks($em, $entities);
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('Invalid include pattern', $errors[0]);
+    }
 }

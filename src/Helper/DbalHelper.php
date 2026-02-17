@@ -13,6 +13,11 @@ use Exception;
  * Provides static utility methods for database operations that are compatible
  * across different DBAL versions (2.x and 3.x).
  *
+ * Note on identifier quoting fallback: when neither quoteSingleIdentifier nor
+ * quoteIdentifier exist on the connection, a driver-aware fallback is used
+ * (MySQL: backticks, PostgreSQL/SQLite: double quotes). In DBAL-only or
+ * custom setups, prefer using a DBAL version that provides proper quoting.
+ *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
@@ -21,6 +26,9 @@ final class DbalHelper
     /**
      * Quotes a single identifier (table or column name) for use in SQL queries.
      * Compatible with both DBAL 2.x and 3.x.
+     *
+     * When DBAL does not provide quoting methods, a driver-aware fallback is used:
+     * MySQL (backticks), PostgreSQL/SQLite (double quotes). Other drivers default to MySQL style.
      *
      * @param Connection $connection The database connection
      * @param string $identifier The identifier to quote
@@ -39,8 +47,23 @@ final class DbalHelper
             return $connection->quoteIdentifier($identifier);
         }
 
-        // Last resort: manual quoting with backticks (MySQL style)
-        // This is a simple fallback but may not work for all databases
+        // Last resort: driver-aware manual quoting (MySQL backticks, PostgreSQL/SQLite double quotes)
+        return self::quoteIdentifierFallback($connection, $identifier);
+    }
+
+    /**
+     * Manual identifier quoting when DBAL does not expose quoting methods.
+     * Uses backticks for MySQL, double quotes for PostgreSQL and SQLite.
+     */
+    private static function quoteIdentifierFallback(Connection $connection, string $identifier): string
+    {
+        $driverName = self::getDriverName($connection);
+
+        if ($driverName === 'pdo_pgsql' || $driverName === 'pdo_sqlite') {
+            return '"' . str_replace('"', '""', $identifier) . '"';
+        }
+
+        // MySQL style (and default for unknown drivers)
         return '`' . str_replace('`', '``', $identifier) . '`';
     }
 

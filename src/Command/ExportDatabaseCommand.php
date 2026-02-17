@@ -5,19 +5,17 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Command;
 
 use Exception;
-use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Enum\SymfonyService;
+use Nowo\AnonymizeBundle\Internal\KernelParameterBagAdapter;
 use Nowo\AnonymizeBundle\Service\DatabaseExportService;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Psr\Container\ContainerInterface;
-use ReflectionClass;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use UnitEnum;
 
 use function count;
 use function in_array;
@@ -319,94 +317,7 @@ final class ExportDatabaseCommand extends AbstractCommand
             }
         }
 
-        // Fallback: create a wrapper that accesses parameters via kernel
-        $container = $this->container;
-
-        return new class($container) implements ParameterBagInterface {
-            public function __construct(private ContainerInterface $container)
-            {
-            }
-
-            public function get(string $name): array|bool|string|int|float|UnitEnum|null
-            {
-                if ($this->container->has('kernel')) {
-                    $kernel     = $this->container->get('kernel');
-                    $reflection = new ReflectionClass($kernel);
-                    if ($reflection->hasProperty('container')) {
-                        $property = $reflection->getProperty('container');
-                        $property->setAccessible(true);
-                        $kernelContainer = $property->getValue($kernel);
-                        if ($kernelContainer instanceof \Symfony\Component\DependencyInjection\Container) {
-                            if (method_exists($kernelContainer, 'getParameterBag')) {
-                                $paramBag = $kernelContainer->getParameterBag();
-                                if ($paramBag instanceof ParameterBagInterface) {
-                                    return $paramBag->get($name);
-                                }
-                            }
-                            if (method_exists($kernelContainer, 'getParameter')) {
-                                return $kernelContainer->getParameter($name);
-                            }
-                        }
-                    }
-                }
-                throw new InvalidArgumentException(sprintf('Parameter "%s" not found', $name));
-            }
-
-            public function has(string $name): bool
-            {
-                try {
-                    $this->get($name);
-
-                    return true;
-                } catch (Exception $e) {
-                    return false;
-                }
-            }
-
-            public function set(string $name, array|bool|string|int|float|UnitEnum|null $value): void
-            {
-            }
-
-            public function remove(string $name): void
-            {
-            }
-
-            public function all(): array
-            {
-                return [];
-            }
-
-            public function replace(array $parameters): void
-            {
-            }
-
-            public function add(array $parameters): void
-            {
-            }
-
-            public function clear(): void
-            {
-            }
-
-            public function resolve(): void
-            {
-            }
-
-            public function resolveValue(mixed $value): mixed
-            {
-                return $value;
-            }
-
-            public function escapeValue(mixed $value): mixed
-            {
-                return $value;
-            }
-
-            public function unescapeValue(mixed $value): mixed
-            {
-                return $value;
-            }
-        };
+        return new KernelParameterBagAdapter($this->container);
     }
 
     /**

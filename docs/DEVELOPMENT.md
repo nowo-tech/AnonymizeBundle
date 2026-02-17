@@ -42,11 +42,7 @@ The bundle includes comprehensive tests. All tests are located in the `tests/` d
 
 ### Test Statistics
 
-- **Total Tests**: ~285 tests
-- **Total Assertions**: ~720 assertions
-- **Code Coverage**: 33.55% line coverage (976/2909 lines)
-- **Class Coverage**: 41.67% (25/60 classes)
-- **Method Coverage**: 40.18% (90/224 methods)
+Run `composer test` or `make test-coverage` for current test and coverage statistics. See the [README](../README.md) "Current Status" section for the latest numbers. The test suite includes unit and integration tests for fakers, services, commands, events, and attributes.
 
 ### Running Tests
 

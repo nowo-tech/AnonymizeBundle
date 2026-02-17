@@ -451,6 +451,40 @@ class DbalHelperTest extends TestCase
     }
 
     /**
+     * Test getDriverName with real MySQL platform class (platform name detection).
+     */
+    public function testGetDriverNameWithRealMySQLPlatform(): void
+    {
+        $driver = $this->getMockBuilder(Driver::class)->getMock();
+
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getDriver')->willReturn($driver);
+        $connection->method('getDatabasePlatform')
+            ->willReturn(new \Doctrine\DBAL\Platforms\MySQLPlatform());
+        $connection->method('getParams')->willReturn([]);
+
+        $result = DbalHelper::getDriverName($connection);
+        $this->assertSame('pdo_mysql', $result);
+    }
+
+    /**
+     * Test getDriverName with real PostgreSQL platform class (platform name detection).
+     */
+    public function testGetDriverNameWithRealPostgreSQLPlatform(): void
+    {
+        $driver = $this->getMockBuilder(Driver::class)->getMock();
+
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getDriver')->willReturn($driver);
+        $connection->method('getDatabasePlatform')
+            ->willReturn(new \Doctrine\DBAL\Platforms\PostgreSQLPlatform());
+        $connection->method('getParams')->willReturn([]);
+
+        $result = DbalHelper::getDriverName($connection);
+        $this->assertSame('pdo_pgsql', $result);
+    }
+
+    /**
      * Test quoteIdentifier with different identifier names.
      */
     public function testQuoteIdentifierWithDifferentNames(): void
@@ -585,5 +619,77 @@ class DbalHelperTest extends TestCase
 
         $result = DbalHelper::quoteIdentifier($connection, 'test');
         $this->assertEquals('`test`', $result);
+    }
+
+    /**
+     * Test quoteIdentifierFallback produces double quotes for PostgreSQL (via reflection).
+     */
+    public function testQuoteIdentifierFallbackProducesDoubleQuotesForPgsql(): void
+    {
+        $connection = $this->createConnectionWithDriverName('pdo_pgsql');
+        $result     = $this->invokeQuoteIdentifierFallback($connection, 'users');
+        $this->assertSame('"users"', $result);
+    }
+
+    /**
+     * Test quoteIdentifierFallback produces double quotes for SQLite (via reflection).
+     */
+    public function testQuoteIdentifierFallbackProducesDoubleQuotesForSqlite(): void
+    {
+        $connection = $this->createConnectionWithDriverName('pdo_sqlite');
+        $result     = $this->invokeQuoteIdentifierFallback($connection, 'my_table');
+        $this->assertSame('"my_table"', $result);
+    }
+
+    /**
+     * Test quoteIdentifierFallback escapes double quotes for PostgreSQL.
+     */
+    public function testQuoteIdentifierFallbackEscapesDoubleQuotesForPgsql(): void
+    {
+        $connection = $this->createConnectionWithDriverName('pdo_pgsql');
+        $result     = $this->invokeQuoteIdentifierFallback($connection, 'col"name');
+        $this->assertSame('"col""name"', $result);
+    }
+
+    /**
+     * Test quoteIdentifierFallback produces backticks for MySQL (via reflection).
+     */
+    public function testQuoteIdentifierFallbackProducesBackticksForMysql(): void
+    {
+        $connection = $this->createConnectionWithDriverName('pdo_mysql');
+        $result     = $this->invokeQuoteIdentifierFallback($connection, 'users');
+        $this->assertSame('`users`', $result);
+    }
+
+    /**
+     * Test quoteIdentifierFallback produces backticks for unknown driver.
+     */
+    public function testQuoteIdentifierFallbackProducesBackticksForUnknownDriver(): void
+    {
+        $connection = $this->createConnectionWithDriverName('pdo_oci');
+        $result     = $this->invokeQuoteIdentifierFallback($connection, 'table_name');
+        $this->assertSame('`table_name`', $result);
+    }
+
+    private function createConnectionWithDriverName(string $driverName): Connection
+    {
+        $driver   = $this->getMockBuilder(Driver::class)->getMock();
+        $platform = $this->createMock(AbstractPlatform::class);
+
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getDriver')->willReturn($driver);
+        $connection->method('getDatabasePlatform')->willReturn($platform);
+        $connection->method('getParams')->willReturn(['driver' => $driverName]);
+
+        return $connection;
+    }
+
+    private function invokeQuoteIdentifierFallback(Connection $connection, string $identifier): string
+    {
+        $reflection = new ReflectionClass(DbalHelper::class);
+        $method     = $reflection->getMethod('quoteIdentifierFallback');
+        $method->setAccessible(true);
+
+        return $method->invoke(null, $connection, $identifier);
     }
 }

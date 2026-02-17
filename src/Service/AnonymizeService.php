@@ -697,11 +697,12 @@ final class AnonymizeService
             );
         }
 
-        $set = [];
+        $set        = [];
+        $isPostgres = str_contains(DbalHelper::getDriverName($connection), 'pgsql');
         foreach ($updates as $column => $value) {
-            // Handle boolean values specially - convert to 0/1 for database
+            // Handle boolean values: PostgreSQL requires TRUE/FALSE, others accept 1/0
             if (is_bool($value)) {
-                $quotedValue = $value ? '1' : '0';
+                $quotedValue = $value ? ($isPostgres ? 'TRUE' : '1') : ($isPostgres ? 'FALSE' : '0');
             } elseif ($value === null) {
                 $quotedValue = 'NULL';
             } else {

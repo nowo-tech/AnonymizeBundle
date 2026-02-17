@@ -181,6 +181,56 @@ class AnonymizationHistoryServiceTest extends TestCase
     }
 
     /**
+     * Test that getRun returns index entry when file is missing.
+     */
+    public function testGetRunReturnsIndexEntryWhenFileMissing(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $indexFile = $this->tempDir . '/index.json';
+        $entry     = [
+            'id'        => 'abc123def456',
+            'timestamp' => time(),
+            'datetime'  => date('Y-m-d H:i:s'),
+            'file'      => $this->tempDir . '/run_missing.json',
+            'summary'   => ['total_entities' => 1],
+        ];
+        file_put_contents($indexFile, json_encode([$entry], JSON_PRETTY_PRINT));
+
+        $run = $service->getRun('abc123def456');
+        $this->assertIsArray($run);
+        $this->assertSame('abc123def456', $run['id']);
+        $this->assertArrayHasKey('timestamp', $run);
+    }
+
+    /**
+     * Test that getRun returns index entry when run file exists but JSON content is invalid.
+     */
+    public function testGetRunReturnsIndexEntryWhenFileHasInvalidJson(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $runFilePath = $this->tempDir . '/run_invalid.json';
+        file_put_contents($runFilePath, 'invalid json {');
+
+        $indexFile = $this->tempDir . '/index.json';
+        $entry     = [
+            'id'        => 'run-invalid-json',
+            'timestamp' => time(),
+            'datetime'  => date('Y-m-d H:i:s'),
+            'file'      => $runFilePath,
+            'summary'   => ['total_entities' => 2],
+        ];
+        file_put_contents($indexFile, json_encode([$entry], JSON_PRETTY_PRINT));
+
+        $run = $service->getRun('run-invalid-json');
+        $this->assertIsArray($run);
+        $this->assertSame('run-invalid-json', $run['id']);
+        $this->assertArrayHasKey('summary', $run);
+        $this->assertSame(2, $run['summary']['total_entities']);
+    }
+
+    /**
      * Test that compareRuns returns comparison data.
      */
     public function testCompareRunsReturnsComparison(): void

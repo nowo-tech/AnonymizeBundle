@@ -63,6 +63,14 @@ make anonymize-dry-run
 make anonymize
 ```
 
+If you see **"Unknown named parameter $truncate"**, the demo’s `vendor` has an older copy of the bundle. Update it from the repo:
+
+```bash
+make update-bundle
+```
+
+Then run `make anonymize-dry-run` again.
+
 ## Connection Structure
 
 This demo includes four database systems:

@@ -11,13 +11,13 @@ use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use Nowo\AnonymizeBundle\Event\AfterAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
+use Nowo\AnonymizeBundle\Internal\KernelParameterBagAdapter;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\AnonymizeStatistics;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
 use Psr\Container\ContainerInterface;
-use ReflectionClass;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -25,7 +25,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use UnitEnum;
 
 use function count;
 use function in_array;
@@ -47,8 +46,6 @@ use function sprintf;
 )]
 final class AnonymizeCommand extends AbstractCommand
 {
-    private const PREFIX_COMMAND = 'nowo:anonymize:';
-
     /**
      * Creates a new AnonymizeCommand instance.
      *
@@ -153,108 +150,9 @@ final class AnonymizeCommand extends AbstractCommand
             }
         }
 
-        // Fallback: create a wrapper that accesses parameters via kernel
+        // Fallback: use kernel adapter when parameter_bag service is not available
         if ($parameterBag === null) {
-            $container = $this->container;
-            // Create a simple parameter bag wrapper
-            $parameterBag = new class($container) implements ParameterBagInterface {
-                public function __construct(private ContainerInterface $container)
-                {
-                }
-
-                public function get(string $name): array|bool|string|int|float|UnitEnum|null
-                {
-                    // Access kernel container's parameter bag via reflection
-                    if ($this->container->has('kernel')) {
-                        $kernel     = $this->container->get('kernel');
-                        $reflection = new ReflectionClass($kernel);
-                        if ($reflection->hasProperty('container')) {
-                            $property = $reflection->getProperty('container');
-                            $property->setAccessible(true);
-                            $kernelContainer = $property->getValue($kernel);
-                            if ($kernelContainer instanceof \Symfony\Component\DependencyInjection\Container) {
-                                // Try getParameterBag method first
-                                if (method_exists($kernelContainer, 'getParameterBag')) {
-                                    $paramBag = $kernelContainer->getParameterBag();
-                                    if ($paramBag instanceof ParameterBagInterface) {
-                                        return $paramBag->get($name);
-                                    }
-                                }
-                                // Fallback: access parameterBag property via reflection
-                                $paramReflection = new ReflectionClass($kernelContainer);
-                                if ($paramReflection->hasProperty('parameterBag')) {
-                                    $paramProperty = $paramReflection->getProperty('parameterBag');
-                                    $paramProperty->setAccessible(true);
-                                    $paramBag = $paramProperty->getValue($kernelContainer);
-                                    if ($paramBag instanceof ParameterBagInterface) {
-                                        return $paramBag->get($name);
-                                    }
-                                }
-                                // Last resort: try getParameter method directly
-                                if (method_exists($kernelContainer, 'getParameter')) {
-                                    return $kernelContainer->getParameter($name);
-                                }
-                            }
-                        }
-                    }
-                    throw new InvalidArgumentException(sprintf('Parameter "%s" not found', $name));
-                }
-
-                public function has(string $name): bool
-                {
-                    try {
-                        $this->get($name);
-
-                        return true;
-                    } catch (Exception $e) {
-                        return false;
-                    }
-                }
-
-                public function set(string $name, array|bool|string|int|float|UnitEnum|null $value): void
-                {
-                }
-
-                public function remove(string $name): void
-                {
-                }
-
-                public function all(): array
-                {
-                    return [];
-                }
-
-                public function replace(array $parameters): void
-                {
-                }
-
-                public function add(array $parameters): void
-                {
-                }
-
-                public function clear(): void
-                {
-                }
-
-                public function resolve(): void
-                {
-                }
-
-                public function resolveValue(mixed $value): mixed
-                {
-                    return $value;
-                }
-
-                public function escapeValue(mixed $value): mixed
-                {
-                    return $value;
-                }
-
-                public function unescapeValue(mixed $value): mixed
-                {
-                    return $value;
-                }
-            };
+            $parameterBag = new KernelParameterBagAdapter($this->container);
         }
 
         $environmentProtection = new EnvironmentProtectionService($parameterBag);
@@ -282,12 +180,12 @@ final class AnonymizeCommand extends AbstractCommand
             return self::FAILURE;
         }
 
-        // Get options
+        // Get options (verbose may come from Application when run via bin/console, so check hasOption)
         $connections = $input->getOption('connection') ?: $this->connections;
         $dryRun      = $input->getOption('dry-run') || $this->dryRun;
         $batchSize   = (int) ($input->getOption('batch-size') ?: $this->batchSize);
         $locale      = $input->getOption('locale') ?: $this->locale;
-        $verbose     = $input->getOption('verbose') || $output->isVerbose();
+        $verbose     = ($input->hasOption('verbose') && $input->getOption('verbose')) || $output->isVerbose();
         $debug       = $input->getOption('debug') || $output->isDebug();
         $interactive = $input->getOption('interactive');
 
@@ -327,7 +225,7 @@ final class AnonymizeCommand extends AbstractCommand
         $fakerFactory     = new FakerFactory($locale, $this->container);
         $patternMatcher   = new PatternMatcher();
         $eventDispatcher  = $this->container->has('event_dispatcher') ? $this->container->get('event_dispatcher') : null;
-        $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher, $eventDispatcher);
+        $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher, $eventDispatcher, $this->container);
         $preFlightCheck   = new PreFlightCheckService($fakerFactory);
         $statistics       = new AnonymizeStatistics();
         $statistics->start();
@@ -514,6 +412,16 @@ final class AnonymizeCommand extends AbstractCommand
         // Get all anonymizable entities
         $entities = $anonymizeService->getAnonymizableEntities($em);
 
+        // Only process entities that match this manager (entity-level connection filter)
+        $entities = array_filter($entities, function ($entityData) use ($managerName): bool {
+            $attr = $entityData['attribute'];
+            if ($attr->connection === null) {
+                return true;
+            }
+
+            return $attr->connection === $managerName;
+        });
+
         if (empty($entities)) {
             if (!$statsOnly) {
                 $io->note('No entities found with #[Anonymize] attribute');
@@ -627,12 +535,6 @@ final class AnonymizeCommand extends AbstractCommand
             $metadata   = $entityData['metadata'];
             $reflection = $entityData['reflection'];
             $attribute  = $entityData['attribute'];
-
-            // Check if connection matches
-            if ($attribute->connection !== null) {
-                $connectionName = $em->getConnection()->getDatabase();
-                // Note: This is a simplified check. You might need to adjust based on your setup
-            }
 
             // Interactive confirmation for each entity
             if ($interactive && !$statsOnly) {
@@ -912,6 +814,24 @@ final class AnonymizeCommand extends AbstractCommand
     }
 
     /**
+     * Resolves the parameter bag (from container or kernel adapter fallback).
+     */
+    private function getParameterBag(): ParameterBagInterface
+    {
+        if ($this->container->has('parameter_bag')) {
+            try {
+                $bag = $this->container->get('parameter_bag');
+                if ($bag instanceof ParameterBagInterface) {
+                    return $bag;
+                }
+            } catch (Exception $e) {
+            }
+        }
+
+        return new KernelParameterBagAdapter($this->container);
+    }
+
+    /**
      * Gets a parameter value from the container.
      *
      * @param string $name The parameter name
@@ -921,21 +841,10 @@ final class AnonymizeCommand extends AbstractCommand
      */
     private function getParameter(string $name, mixed $default = null): mixed
     {
-        if ($this->container->has('kernel')) {
-            $kernel     = $this->container->get('kernel');
-            $reflection = new ReflectionClass($kernel);
-            if ($reflection->hasProperty('container')) {
-                $property = $reflection->getProperty('container');
-                $property->setAccessible(true);
-                $kernelContainer = $property->getValue($kernel);
-                if ($kernelContainer instanceof \Symfony\Component\DependencyInjection\Container) {
-                    if (method_exists($kernelContainer, 'hasParameter') && $kernelContainer->hasParameter($name)) {
-                        return $kernelContainer->getParameter($name);
-                    }
-                }
-            }
+        try {
+            return $this->getParameterBag()->get($name);
+        } catch (InvalidArgumentException $e) {
+            return $default;
         }
-
-        return $default;
     }
 }

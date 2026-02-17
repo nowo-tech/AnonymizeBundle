@@ -375,7 +375,7 @@ php bin/console nowo:anonymize:export-db --no-gitignore
 
 ### Configuration
 
-You can configure default export settings in your `config/packages/nowo_anonymize.yaml`:
+You can configure default export settings in your `config/packages/dev/nowo_anonymize.yaml`:
 
 ```yaml
 nowo_anonymize:

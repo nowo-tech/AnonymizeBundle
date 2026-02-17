@@ -43,9 +43,6 @@ final class EnvironmentProtectionService
         // Check environment
         $errors = array_merge($errors, $this->checkEnvironment());
 
-        // Check debug mode
-        $errors = array_merge($errors, $this->checkDebugMode());
-
         // Check configuration files
         $errors = array_merge($errors, $this->checkConfigurationFiles());
 
@@ -67,27 +64,6 @@ final class EnvironmentProtectionService
                 'Unsafe environment detected: "%s". Anonymization can only run in "dev" or "test" environments.',
                 $environment,
             );
-        }
-
-        return $errors;
-    }
-
-    /**
-     * Checks if debug mode is enabled (additional safety check).
-     *
-     * @return array<string> Array of error messages
-     */
-    private function checkDebugMode(): array
-    {
-        $errors = [];
-        $debug  = $this->parameterBag->get('kernel.debug');
-
-        // In production-like environments, debug should be false
-        // But we allow it in dev/test for development purposes
-        $environment = $this->parameterBag->get('kernel.environment');
-        if (!in_array($environment, ['dev', 'test'], true) && $debug === false) {
-            // This is actually good for production, but we don't allow anonymization anyway
-            // This check is more of a warning
         }
 
         return $errors;

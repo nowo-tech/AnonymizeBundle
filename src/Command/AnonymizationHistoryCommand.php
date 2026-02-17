@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Command;
 
 use Nowo\AnonymizeBundle\Service\AnonymizationHistoryService;
+use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Throwable;
 
 use function count;
 use function sprintf;
@@ -29,6 +31,14 @@ use const JSON_UNESCAPED_SLASHES;
 )]
 final class AnonymizationHistoryCommand extends AbstractCommand
 {
+    private const DEFAULT_HISTORY_DIR = '%kernel.project_dir%/var/anonymize_history';
+
+    public function __construct(
+        private ContainerInterface $container
+    ) {
+        parent::__construct();
+    }
+
     protected function configure(): void
     {
         $this
@@ -334,27 +344,43 @@ final class AnonymizationHistoryCommand extends AbstractCommand
     }
 
     /**
-     * Gets the history directory from container parameters.
+     * Gets the history directory from container parameters (nowo_anonymize.history_dir),
+     * with fallback to ENV and then default.
      *
      * @return string The history directory path
      */
     private function getHistoryDir(): string
     {
-        // Try to get from environment or use default
-        $historyDir = $_ENV['NOWO_ANONYMIZE_HISTORY_DIR'] ?? '%kernel.project_dir%/var/anonymize_history';
+        $historyDir = null;
 
-        // If running in Symfony context, resolve kernel.project_dir
-        if (str_contains($historyDir, '%kernel.project_dir%')) {
-            if (file_exists(__DIR__ . '/../../../../var')) {
-                // We're in a Symfony project
-                $projectRoot = realpath(__DIR__ . '/../../../../');
-                $historyDir  = str_replace('%kernel.project_dir%', $projectRoot, $historyDir);
-            } else {
-                // Fallback
-                $historyDir = str_replace('%kernel.project_dir%', getcwd() ?: '.', $historyDir);
+        if ($this->container->has('parameter_bag')) {
+            try {
+                $parameterBag = $this->container->get('parameter_bag');
+                if (method_exists($parameterBag, 'has') && $parameterBag->has('nowo_anonymize.history_dir')) {
+                    $historyDir = $parameterBag->get('nowo_anonymize.history_dir');
+                }
+            } catch (Throwable $e) {
+                // Ignore and fall through to ENV/default
             }
         }
 
-        return $historyDir;
+        if ($historyDir === null) {
+            $historyDir = $_ENV['NOWO_ANONYMIZE_HISTORY_DIR'] ?? self::DEFAULT_HISTORY_DIR;
+        }
+
+        if (str_contains((string) $historyDir, '%kernel.project_dir%')) {
+            if ($this->container->has('kernel')) {
+                $kernel     = $this->container->get('kernel');
+                $projectDir = method_exists($kernel, 'getProjectDir') ? $kernel->getProjectDir() : null;
+                if ($projectDir !== null) {
+                    $historyDir = str_replace('%kernel.project_dir%', $projectDir, (string) $historyDir);
+                }
+            }
+            if (str_contains((string) $historyDir, '%kernel.project_dir%')) {
+                $historyDir = str_replace('%kernel.project_dir%', getcwd() ?: '.', (string) $historyDir);
+            }
+        }
+
+        return (string) $historyDir;
     }
 }

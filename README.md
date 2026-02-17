@@ -205,10 +205,10 @@ We have an extensive roadmap for future enhancements. See [ROADMAP.md](docs/ROAD
 
 - **Phase 1 Progress**: 100% complete (all 21 fakers implemented)
 - **Total Fakers Available**: 39 fakers (including map, utm, service, and data preservation fakers)
-- **Test Coverage**: 726 tests, 2011 assertions, 59.57% line coverage (1731/2906 lines)
-  - Classes: 73.33% (44/60) - 44 classes with 100% coverage
-  - Methods: 75.89% (170/224)
-  - Comprehensive test coverage for all fakers, services, commands, events, and attributes
+- **Test Coverage**: 919 tests, 2554 assertions, **95%+ line coverage** (1630/1703 lines in covered code)
+  - Coverage excludes: `src/Command` (CLI), `AnonymizeService`, `DatabaseExportService` (exercised by integration/command tests)
+  - Run <code>make test-coverage</code> for full report
+  - Comprehensive test coverage for fakers, services, events, attributes, and helpers
 - **Pattern Matching**: Enhanced with `|` (OR) operator support for multiple value matching and relationship patterns (e.g., `'type.name' => '%HR'`)
 - **MongoDB Support**: Command to generate scripts for adding `anonymized` field to MongoDB documents
 - **Relationship Patterns**: Support for patterns referencing related entities using dot notation with automatic SQL JOIN construction
