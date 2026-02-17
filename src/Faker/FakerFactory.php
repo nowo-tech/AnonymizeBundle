@@ -7,6 +7,7 @@ namespace Nowo\AnonymizeBundle\Faker;
 use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Enum\FakerType;
 use Psr\Container\ContainerInterface;
+
 // use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 // use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
