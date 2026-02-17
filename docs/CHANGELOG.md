@@ -25,6 +25,18 @@ _(none)_
 
 ---
 
+## [1.0.10] - 2026-02-17
+
+### Changed
+
+- **`anonymizeService` without `#[AnonymizeProperty]`**: When an entity has only `#[Anonymize(anonymizeService: '...')]` and no property with `#[AnonymizeProperty]`, the command now processes it and calls the custom service for each record instead of skipping with "No properties found". You can use a custom anonymizer service without defining any property-level attributes. [USAGE.md](USAGE.md) updated to state that no `#[AnonymizeProperty]` is required when using only `anonymizeService`.
+
+### Fixed
+
+- **Tests**: `testConfigureDefinesOptions` no longer asserts the `-e` shortcut for `--entity` (removed in 1.0.9 to avoid conflict with Symfony's `--env`).
+
+---
+
 ## [1.0.9] - 2026-02-16
 
 ### Fixed

@@ -13,6 +13,32 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.10
+
+**Release Date**: 2026-02-17
+
+#### What's Changed
+
+- **Entities with only `anonymizeService`**: If an entity has `#[Anonymize(anonymizeService: 'your_service_id')]` and **no** `#[AnonymizeProperty]` on any field, the command now processes it and calls your service for each record. Previously the entity was skipped with "No properties found". No configuration change needed; existing entities that already had at least one `AnonymizeProperty` are unchanged.
+
+#### Breaking Changes
+
+None. Fully backward compatible.
+
+#### Migration Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. No configuration or code changes required. Entities that use only a custom anonymize service (no property attributes) will now be processed automatically.
+
 ### Upgrading to 1.0.9
 
 **Release Date**: 2026-02-16
@@ -1914,7 +1940,8 @@ If you encounter issues during upgrade:
 
 | Bundle Version | Symfony Version | PHP Version | Doctrine Bundle | Features |
 |---------------|-----------------|-------------|-----------------|----------|
-| 1.0.9+        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | FakerFactory/PreFlightCheckService explicit DI, no synthetic kernel usage, --entity without -e, demo Makefiles aligned |
+| 1.0.10+       | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | anonymizeService-only entities (no AnonymizeProperty required) |
+| 1.0.9         | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | FakerFactory/PreFlightCheckService explicit DI, no synthetic kernel usage, --entity without -e, demo Makefiles aligned |
 | 1.0.8         | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | --entity option for nowo:anonymize:run, FakerFactory alias and doc for app services |
 | 1.0.7         | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | DBAL 4–compatible identifier quoting via platform, CI tests on PHP 8.1 |
 | 1.0.6         | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | PostgreSQL boolean TRUE/FALSE for `anonymized` column, ROADMAP adoption strategy |
