@@ -56,7 +56,7 @@ This project is maintained by [Héctor Franco Aceituno](https://github.com/HecFr
 
 ## Branching Strategy
 
-We follow a simplified Git Flow. See [docs/BRANCHING.md](docs/BRANCHING.md) for full details.
+We follow a simplified Git Flow. See [BRANCHING.md](BRANCHING.md) for full details.
 
 | Branch | Purpose |
 |--------|---------|
