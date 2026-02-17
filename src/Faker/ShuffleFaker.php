@@ -54,7 +54,7 @@ final class ShuffleFaker implements FakerInterface
 
         // Filter out excluded value if specified
         if ($exclude !== null) {
-            $values = array_filter($values, fn ($value) => $value !== $exclude);
+            $values = array_filter($values, static fn ($value) => $value !== $exclude);
             if (empty($values)) {
                 throw new InvalidArgumentException('ShuffleFaker: All values were excluded. At least one value must remain.');
             }

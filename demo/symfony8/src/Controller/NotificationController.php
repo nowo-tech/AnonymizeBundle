@@ -55,10 +55,10 @@ class NotificationController extends AbstractController
             $cols[]   = $dbConnection->quoteSingleIdentifier($discName);
             $sql      = sprintf('SELECT %s FROM %s ORDER BY id ASC', implode(', ', array_unique($cols)), $dbConnection->quoteSingleIdentifier($tableName));
             $rows     = $dbConnection->fetchAllAssociative($sql);
-            $list     = array_map(fn (array $row): array => ['item' => $row, 'type' => $row['type'] ?? $row[$discName] ?? ''], $rows);
+            $list     = array_map(static fn (array $row): array => ['item' => $row, 'type' => $row['type'] ?? $row[$discName] ?? ''], $rows);
         } else {
             $entities = $em->getRepository(AbstractNotification::class)->findBy([], ['id' => 'ASC']);
-            $list     = array_map(fn (AbstractNotification $n): array => [
+            $list     = array_map(static fn (AbstractNotification $n): array => [
                 'item' => $n,
                 'type' => $n instanceof EmailNotification ? 'email' : 'sms',
             ], $entities);

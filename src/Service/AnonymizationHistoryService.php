@@ -136,7 +136,7 @@ final class AnonymizationHistoryService
         }
 
         // Sort by timestamp (newest first)
-        usort($runs, function ($a, $b) {
+        usort($runs, static function ($a, $b) {
             return ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0);
         });
 
@@ -290,7 +290,7 @@ final class AnonymizationHistoryService
         $index[] = $indexEntry;
 
         // Sort by timestamp (newest first) and limit to 1000 entries
-        usort($index, function ($a, $b) {
+        usort($index, static function ($a, $b) {
             return ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0);
         });
 
@@ -334,7 +334,7 @@ final class AnonymizationHistoryService
         }
 
         // Sort by timestamp (newest first)
-        usort($index, function ($a, $b) {
+        usort($index, static function ($a, $b) {
             return ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0);
         });
 

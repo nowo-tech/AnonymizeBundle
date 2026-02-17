@@ -104,8 +104,8 @@ class AnonymizeCommandTest extends TestCase
         });
 
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(fn (string $id) => $id === 'parameter_bag');
-        $container->method('get')->willReturnCallback(fn (string $id) => $id === 'parameter_bag' ? $parameterBag : null);
+        $container->method('has')->willReturnCallback(static fn (string $id) => $id === 'parameter_bag');
+        $container->method('get')->willReturnCallback(static fn (string $id) => $id === 'parameter_bag' ? $parameterBag : null);
 
         $command = new AnonymizeCommand($container);
         $input   = new ArrayInput([]);

@@ -137,10 +137,10 @@ final class AnonymizeService
         }
 
         // Sort by weight
-        usort($properties, fn ($a, $b) => $a['weight'] <=> $b['weight']);
+        usort($properties, static fn ($a, $b) => $a['weight'] <=> $b['weight']);
 
         // Sort properties without weight alphabetically
-        usort($propertiesWithoutWeight, fn ($a, $b) => $a['property']->getName() <=> $b['property']->getName());
+        usort($propertiesWithoutWeight, static fn ($a, $b) => $a['property']->getName() <=> $b['property']->getName());
 
         // Append properties without weight at the end
         return array_merge($properties, $propertiesWithoutWeight);
@@ -193,7 +193,7 @@ final class AnonymizeService
         }
 
         // Sort by order (lower first), then alphabetically by table name
-        usort($tablesToTruncate, function ($a, $b) {
+        usort($tablesToTruncate, static function ($a, $b) {
             if ($a['order'] !== $b['order']) {
                 return $a['order'] <=> $b['order'];
             }
