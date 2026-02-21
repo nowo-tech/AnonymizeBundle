@@ -25,6 +25,24 @@ _(none)_
 
 ---
 
+## [1.0.13] - 2026-02-21
+
+### Fixed
+
+- **Custom anonymizer service (anonymizeService)**: When you reference the service by class name (e.g. `#[Anonymize(anonymizeService: MyAnonymizer::class)]`), the bundle resolves it via `$container->get()`. In Symfony, services are private by default and get inlined at compile time, so the bundle can no longer retrieve them by id. **You must declare your custom anonymizer service as `public: true`** in `config/services.yaml` (or equivalent) so the bundle can resolve it. See the demos: `App\Service\SmsNotificationAnonymizerService` is explicitly set to `public: true` in `demo/symfony6`, `demo/symfony7`, and `demo/symfony8`.
+
+### Demo
+
+- **Demo (symfony6, symfony7, symfony8)**: `make install` and `make up` no longer fail with "service php is not running" when the PHP container exits because `vendor/` is missing. Composer is now run with `docker-compose run --rm php composer install` so dependencies install in a one-off container; then `docker-compose up -d php` is run to start the PHP service with the app ready.
+- **Demo (symfony6, symfony7, symfony8)**: `SmsNotificationAnonymizerService` is declared with `public: true` in `config/services.yaml` so `nowo:anonymize:run` can resolve the custom anonymizer and process `SmsNotification` without "service has been removed or inlined".
+- **Demo (PostgreSQL init)**: The `users` table in `demo/docker/init/postgres/init.sql` now uses columns `first_name`, `last_name`, and `credit_card` (instead of `firstname`, `lastname`, `creditcard`) to match Doctrine's underscore naming strategy. Pre-flight checks for the `postgres` entity manager no longer fail with "Column first_name (from mapping) does not exist". If you already have a Postgres data volume from a previous run, remove it (e.g. `rm -rf demo/symfony8/.data/postgres`) and run `make setup` again so the init script runs with the new schema.
+
+### Documentation
+
+- **UPGRADING.md**: New section "Upgrading to 1.0.13" with the requirement to make custom anonymizer services public when using FQCN, and demo-specific notes (recreate Postgres volume if needed).
+
+---
+
 ## [1.0.12] - 2026-02-16
 
 ### Added

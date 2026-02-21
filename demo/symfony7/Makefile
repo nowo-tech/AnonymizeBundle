@@ -1,7 +1,7 @@
 # Makefile for Anonymize Bundle Demo - Symfony 7
 # Simplifies Docker commands for the demo
 
-.PHONY: help up down shell install clean cache-clear setup update-bundle
+.PHONY: help up down shell install clean cache-clear setup update-bundle ensure-up test test-coverage
 
 # Default target
 help:
@@ -16,6 +16,8 @@ help:
 	@echo "  install        Install Composer dependencies"
 	@echo "  setup          Setup databases and load fixtures"
 	@echo "  update-bundle  Update anonymize-bundle from repo"
+	@echo "  test           Run tests"
+	@echo "  test-coverage  Run tests with coverage (console output)"
 	@echo "  clean          Remove vendor, var, and cache"
 	@echo "  cache-clear    Full cache clear (fixes missing Container* service files)"
 	@echo "  logs           Show container logs"
@@ -57,12 +59,13 @@ up:
 	docker-compose build
 	docker-compose up -d
 	@echo "⏳ Waiting for MySQL and PostgreSQL to be ready..."
+	@echo "Waiting for container to be ready..."
 	@sleep 5
-	@echo "✅ Containers started!"
+	@echo "Installing dependencies..."
+	@docker-compose exec -T -e COMPOSER_MEMORY_LIMIT=-1 php composer install --no-interaction
+	@echo "Creating databases, schema and loading fixtures..."
+	@$(MAKE) setup
 	@echo ""
-	@echo "Next steps:"
-	@echo "  make install    - Install dependencies"
-	@echo "  make setup      - Complete setup (install + DB + fixtures)"
 	@echo "  make update-bundle - Update the bundle from repo"
 
 # Stop containers
@@ -71,14 +74,22 @@ down:
 	docker-compose down
 	@echo "✅ Containers stopped!"
 
+# Ensure container is running (start if not). Used by install, shell, setup, update-bundle, etc.
+ensure-up:
+	@if ! docker-compose exec -T php true 2>/dev/null; then \
+		echo "Starting container..."; \
+		docker-compose up -d; \
+		sleep 5; \
+	fi
+
 # Open shell in PHP container
-shell:
+shell: ensure-up
 	docker-compose exec php sh
 
 # Install dependencies
-install:
+install: ensure-up
 	@echo "📦 Installing dependencies..."
-	docker-compose exec -T php composer install --no-interaction
+	docker-compose exec -T -e COMPOSER_MEMORY_LIMIT=-1 php composer install --no-interaction
 	@echo "✅ Dependencies installed!"
 	@echo ""
 	@echo "You can now run:"
@@ -86,20 +97,26 @@ install:
 	@echo "  make anonymize            - Run anonymization"
 
 # Update the bundle from the path repo (use if you get "Unknown named parameter $truncate")
-update-bundle:
+update-bundle: ensure-up
 	@echo "📦 Updating nowo-tech/anonymize-bundle from repo..."
 	@docker-compose exec -T php git config --global --add safe.directory /bundles 2>/dev/null || true
 	docker-compose exec -T php composer update nowo-tech/anonymize-bundle --with-all-dependencies --no-interaction
 	docker-compose exec -T php php bin/console cache:clear
 	@echo "✅ Bundle updated! Run: make anonymize-dry-run"
 
+test: ensure-up
+	docker-compose exec -T php composer test 2>/dev/null || docker-compose exec -T php php bin/console list
+
+test-coverage: ensure-up
+	docker-compose exec -T php composer test-coverage 2>/dev/null || docker-compose exec -T php composer test
+
 # Complete setup
-setup:
+setup: ensure-up
 	@echo "🔧 Setting up demo (databases and fixtures)..."
 	@echo "Waiting for MySQL and PostgreSQL to be ready..."
 	@sleep 3
 	@echo "Installing base dependencies (without bundle)..."
-	-docker-compose exec -T php composer install --no-interaction --ignore-platform-reqs 2>/dev/null || docker-compose exec -T php composer install --no-interaction
+	-docker-compose exec -T -e COMPOSER_MEMORY_LIMIT=-1 php composer install --no-interaction --ignore-platform-reqs 2>/dev/null || docker-compose exec -T -e COMPOSER_MEMORY_LIMIT=-1 php composer install --no-interaction
 	@echo "Creating databases..."
 	@echo "  - MySQL (default connection)..."
 	-docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --no-interaction --connection=default

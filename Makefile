@@ -1,7 +1,7 @@
 # Makefile for Anonymize Bundle
 # Simplifies Docker commands for development
 
-.PHONY: help up down shell install test test-coverage cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up
+.PHONY: help up down shell install test test-coverage cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up assets
 
 # Default target
 help:
@@ -26,19 +26,20 @@ help:
 	@echo "  qa            Run all QA checks (cs-check + test)"
 	@echo "  clean         Remove vendor and cache"
 	@echo "  setup-hooks   Install git pre-commit hooks"
+	@echo "  assets        No frontend assets in this bundle (no-op)"
 	@echo ""
 
-# Build and start container (root docker-compose)
+# Build and start containers (php + mysql + postgres)
 up:
 	@echo "Building Docker image..."
 	docker-compose -f docker-compose.yml build
-	@echo "Starting container..."
+	@echo "Starting containers (PHP, MySQL, PostgreSQL)..."
 	docker-compose -f docker-compose.yml up -d
-	@echo "Waiting for container to be ready..."
-	@sleep 2
+	@echo "Waiting for databases to be ready..."
+	@sleep 10
 	@echo "Installing dependencies..."
 	docker-compose -f docker-compose.yml exec -T php composer install --no-interaction
-	@echo "✅ Container ready!"
+	@echo "✅ Containers ready!"
 
 # Stop container (root docker-compose)
 down:
@@ -47,9 +48,9 @@ down:
 # Ensure root container is running (start if not). Used by cs-fix, cs-check, qa, install, test, test-coverage.
 ensure-up:
 	@if ! docker-compose -f docker-compose.yml exec -T php true 2>/dev/null; then \
-		echo "Starting container (root docker-compose)..."; \
+		echo "Starting container (docker-compose: php + mysql + postgres)..."; \
 		docker-compose -f docker-compose.yml up -d; \
-		sleep 3; \
+		sleep 10; \
 		docker-compose -f docker-compose.yml exec -T php composer install --no-interaction; \
 	fi
 
@@ -69,33 +70,37 @@ test: ensure-up
 test-coverage: ensure-up
 	docker-compose -f docker-compose.yml exec -T php composer test-coverage
 
-# Run tests in test container (with databases)
+# Run tests with databases (integration tests; same compose: php + mysql + postgres)
 test-with-db:
-	docker-compose -f docker-compose.test.yml exec -T test composer test
+	docker-compose -f docker-compose.yml exec -T php composer test
 
-# Run tests with coverage in test container (with databases)
+# Run tests with coverage and databases
 test-coverage-with-db:
-	docker-compose -f docker-compose.test.yml exec -T test composer test-coverage
+	docker-compose -f docker-compose.yml exec -T php composer test-coverage
 
-# Start test container
+# No frontend assets in this bundle
+assets:
+	@echo "No frontend assets in this bundle."
+
+# Start containers (php + mysql + postgres)
 test-up:
-	@echo "Building test Docker image..."
-	docker-compose -f docker-compose.test.yml build
-	@echo "Starting test containers (PHP, MySQL, PostgreSQL)..."
-	docker-compose -f docker-compose.test.yml up -d
+	@echo "Building Docker image..."
+	docker-compose -f docker-compose.yml build
+	@echo "Starting containers (PHP, MySQL, PostgreSQL)..."
+	docker-compose -f docker-compose.yml up -d
 	@echo "Waiting for databases to be ready..."
 	@sleep 10
 	@echo "Installing dependencies..."
-	docker-compose -f docker-compose.test.yml exec -T test composer install --no-interaction
-	@echo "✅ Test containers ready!"
+	docker-compose -f docker-compose.yml exec -T php composer install --no-interaction
+	@echo "✅ Containers ready!"
 
-# Stop test container
+# Stop containers
 test-down:
-	docker-compose -f docker-compose.test.yml down
+	docker-compose -f docker-compose.yml down
 
-# Open shell in test container
+# Open shell in php container
 test-shell:
-	docker-compose -f docker-compose.test.yml exec test sh
+	docker-compose -f docker-compose.yml exec php sh
 
 # Check code style (runs inside root docker-compose php container)
 cs-check: ensure-up

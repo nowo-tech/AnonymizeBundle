@@ -73,7 +73,7 @@
     "repositories": [
         {
             "type": "path",
-            "url": "/bundles"
+            "url": "/var/anonymize-bundle"
         }
     ],
     "require-dev": {

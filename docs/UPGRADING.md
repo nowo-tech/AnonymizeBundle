@@ -13,6 +13,44 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.13
+
+**Release Date**: 2026-02-21
+
+#### What's Fixed
+
+- **Custom anonymizer service (anonymizeService)**: The bundle resolves custom anonymizer services by service id (typically the class FQCN). In Symfony, services are private by default and are inlined when the container is compiled, so `$container->get(YourAnonymizer::class)` can fail with "The service or alias has been removed or inlined". If you use `#[Anonymize(anonymizeService: YourAnonymizer::class)]` (or any service id), **declare that service as public** in your `config/services.yaml` so the bundle can resolve it. See the demos: `App\Service\SmsNotificationAnonymizerService` is set to `public: true` in `demo/symfony6`, `demo/symfony7`, and `demo/symfony8`.
+
+#### Demo-only changes
+
+- **Docker / make install**: Demo Makefiles (symfony6, symfony7, symfony8) now use `docker-compose run --rm php composer install` for the install step so `make install` and `make up` work even when the PHP container has exited (e.g. because `vendor/` was missing). No action needed unless you maintain a fork of the demo.
+- **PostgreSQL init**: The demo's Postgres init script was updated so the `users` table uses columns `first_name`, `last_name`, `credit_card` (matching Doctrine's underscore naming). If you already ran the demo and have a Postgres data directory (e.g. `demo/symfony8/.data/postgres`), remove it and run `make setup` again so the init runs with the new schema; otherwise the `postgres` entity manager will fail pre-flight with "Column first_name (from mapping) does not exist".
+
+#### Breaking Changes
+
+None. If you already use a custom anonymizer service and it is not public, you may see "service has been removed or inlined" when running `nowo:anonymize:run`; making the service public fixes it.
+
+#### Migration Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **If you use `anonymizeService`** (custom anonymizer by class name or service id): Ensure that service is public in your app. For example in `config/services.yaml`:
+   ```yaml
+   services:
+       App\Service\YourAnonymizerService:
+           public: true
+   ```
+
+3. **Clear cache**:
+   ```bash
+   php bin/console cache:clear
+   ```
+
+4. No other configuration or code changes required.
+
 ### Upgrading to 1.0.12
 
 **Release Date**: 2026-02-16

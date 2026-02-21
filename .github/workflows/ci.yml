@@ -1,3 +1,5 @@
+# CI: tests on PHP 8.1–8.5 × Symfony 6.4, 7.0, 8.0 (exclusions for incompatible pairs).
+# Coverage with PCOV; release updated via release.yml on tag push.
 name: CI
 
 on:
@@ -8,14 +10,23 @@ on:
 
 jobs:
   test:
-    name: PHP ${{ matrix.php }} - ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: PHP ${{ matrix.php }} - Symfony ${{ matrix.symfony }}
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
         php: ['8.1', '8.2', '8.3', '8.4', '8.5']
+        symfony: ['6.4', '7.0', '8.0']
+        exclude:
+          - php: '8.1'
+            symfony: '7.0'
+          - php: '8.1'
+            symfony: '8.0'
+          - php: '8.2'
+            symfony: '8.0'
+          - php: '8.3'
+            symfony: '8.0'
 
     steps:
       - name: Checkout code
@@ -26,7 +37,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           extensions: json, pdo, pdo_mysql, pdo_pgsql
-          coverage: xdebug
+          coverage: pcov
           tools: composer:v2
 
       - name: Validate composer.json
@@ -40,16 +51,19 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.json') }}
+          key: ${{ runner.os }}-php-${{ matrix.php }}-symfony-${{ matrix.symfony }}-composer-${{ hashFiles('**/composer.json') }}
           restore-keys: |
+            ${{ runner.os }}-php-${{ matrix.php }}-symfony-${{ matrix.symfony }}-composer-
             ${{ runner.os }}-php-${{ matrix.php }}-composer-
 
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
+      - name: Install dependencies with Symfony ${{ matrix.symfony }}
+        run: |
+          composer require symfony/config:^${{ matrix.symfony }} symfony/dependency-injection:^${{ matrix.symfony }} symfony/http-kernel:^${{ matrix.symfony }} symfony/yaml:^${{ matrix.symfony }} --no-interaction --no-update
+          composer update symfony/* --with-all-dependencies --no-interaction --prefer-dist --no-progress
 
       - name: Run tests
         run: |
-          echo "🧪 Running tests on PHP ${{ matrix.php }}..."
+          echo "🧪 Running tests on PHP ${{ matrix.php }} with Symfony ${{ matrix.symfony }}..."
           composer test
           if [ $? -ne 0 ]; then
             echo "❌ ERROR: Some tests failed"
@@ -57,52 +71,20 @@ jobs:
           fi
           echo "✅ All tests passed successfully"
 
-      - name: Validate coverage (PHP 8.2 only)
-        if: matrix.php == '8.2'
+      - name: Run tests with coverage (PHP 8.2 + Symfony 7.0 only)
+        if: matrix.php == '8.2' && matrix.symfony == '7.0'
         run: |
           echo "📊 Generating coverage report..."
           composer test-coverage
-
           if [ $? -ne 0 ]; then
-            echo "❌ ERROR: Tests failed while generating coverage report"
+            echo "❌ ERROR: Tests failed when generating coverage"
             exit 1
           fi
-
-          echo "✅ All tests passed, validating coverage..."
-
-          # Validate that coverage exists
-          php -r "
-          if (!file_exists('coverage.xml')) {
-              echo 'ERROR: coverage.xml file was not generated\n';
-              exit(1);
-          }
-
-          \$coverage = simplexml_load_file('coverage.xml');
-          if (\$coverage === false) {
-              echo 'ERROR: Could not read coverage.xml\n';
-              exit(1);
-          }
-
-          \$metrics = \$coverage->project->metrics;
-          \$elements = (float)\$metrics['elements'];
-          \$coveredElements = (float)\$metrics['coveredelements'];
-
-          if (\$elements == 0) {
-              echo 'No elements to cover\n';
-              exit(0);
-          }
-
-          \$percentage = (\$coveredElements / \$elements) * 100;
-
-          echo \"Coverage: \$coveredElements/\$elements (\$percentage%)\n\";
-
-          echo \"✅ Coverage report generated successfully\n\";
-          "
+          echo "✅ Coverage generated"
 
   code-style:
     name: Code Style
     runs-on: ubuntu-latest
-    # Only apply fixes automatically on push to main/master, not on PRs
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     permissions:
       contents: write
@@ -121,7 +103,7 @@ jobs:
           tools: composer:v2, cs2pr
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
+        run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: Fix code style
         run: composer cs-fix
@@ -147,7 +129,6 @@ jobs:
   code-style-check:
     name: Code Style Check
     runs-on: ubuntu-latest
-    # On PRs we only check, we don't apply changes
     if: github.event_name == 'pull_request'
 
     steps:
@@ -161,7 +142,7 @@ jobs:
           tools: composer:v2, cs2pr
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
+        run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: Check code style
         run: composer cs-check
@@ -179,55 +160,32 @@ jobs:
         with:
           php-version: '8.2'
           extensions: json, pdo, pdo_mysql, pdo_pgsql
-          coverage: xdebug
+          coverage: pcov
           tools: composer:v2
 
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
+      - name: Install dependencies (Symfony 7.0)
+        run: |
+          composer require symfony/config:^7.0 symfony/dependency-injection:^7.0 symfony/http-kernel:^7.0 symfony/yaml:^7.0 --no-interaction --no-update
+          composer update symfony/* --with-all-dependencies --no-interaction --prefer-dist --no-progress
 
       - name: Run tests with coverage
         run: |
           echo "🧪 Running tests with coverage..."
+          rm -rf .phpunit.cache
           composer test-coverage
-
           if [ $? -ne 0 ]; then
             echo "❌ ERROR: Tests failed"
             exit 1
           fi
           echo "✅ All tests passed successfully"
 
-      - name: Validate coverage
+      - name: Validate coverage file
         run: |
-          echo "📊 Validating coverage..."
-
-          # Validate that coverage exists
-          php -r "
-          if (!file_exists('coverage.xml')) {
-              echo 'ERROR: coverage.xml file was not generated\n';
-              exit(1);
-          }
-
-          \$coverage = simplexml_load_file('coverage.xml');
-          if (\$coverage === false) {
-              echo 'ERROR: Could not read coverage.xml\n';
-              exit(1);
-          }
-
-          \$metrics = \$coverage->project->metrics;
-          \$elements = (float)\$metrics['elements'];
-          \$coveredElements = (float)\$metrics['coveredelements'];
-
-          if (\$elements == 0) {
-              echo 'No elements to cover\n';
-              exit(0);
-          }
-
-          \$percentage = (\$coveredElements / \$elements) * 100;
-
-          echo \"Coverage: \$coveredElements/\$elements (\$percentage%)\n\";
-
-          echo \"✅ Coverage report generated successfully\n\";
-          "
+          if [ ! -f coverage.xml ]; then
+            echo "ERROR: coverage.xml was not generated"
+            exit 1
+          fi
+          echo "✅ coverage.xml generated"
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

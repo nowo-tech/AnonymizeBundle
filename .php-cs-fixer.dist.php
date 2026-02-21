@@ -3,9 +3,8 @@
 declare(strict_types=1);
 
 /**
- * PHP-CS-Fixer configuration (Symfony + senior-style rules).
- * Run: make cs-check | make cs-fix
- * For CI, run on PHP 8.1+ to match composer.json require.
+ * PHP-CS-Fixer configuration (PSR-12 + Symfony canonical).
+ * Standard for Nowo bundles. Run: make cs-check | make cs-fix
  */
 use PhpCsFixer\Config;
 use PhpCsFixer\Finder;
@@ -15,11 +14,12 @@ return (new Config())
     ->setParallelConfig(ParallelConfigFactory::detect())
     ->setRiskyAllowed(true)
     ->setRules([
-        // Base: Symfony convention (PSR-12 + Symfony style)
+        // Base: PSR-12 + Symfony convention
+        '@PSR12' => true,
         '@Symfony' => true,
         '@Symfony:risky' => true,
 
-        // Strict types everywhere (project already uses them)
+        // Strict types everywhere
         'declare_strict_types' => true,
 
         // Imports: order use statements (class, function, const; alphabetical), one per line, no unused
@@ -103,7 +103,7 @@ return (new Config())
         'no_short_bool_cast' => true,
         'explicit_string_variable' => true,
 
-        // FQCN → use + short name: convert "new \Symfony\...\ContainerBuilder()" to "use ...; new ContainerBuilder()"
+        // FQCN → use + short name
         'fully_qualified_strict_types' => true,
         'global_namespace_import' => [
             'import_classes' => true,
@@ -115,5 +115,6 @@ return (new Config())
         (new Finder())
             ->in(__DIR__)
             ->exclude(['vendor', 'var', 'coverage', '.phpunit.cache'])
+            // tests/ is included (do not exclude)
     )
 ;

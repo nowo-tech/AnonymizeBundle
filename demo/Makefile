@@ -1,7 +1,7 @@
 # Makefile for Anonymize Bundle Demos
 # Manages all Symfony demos (6, 7, 8)
 
-.PHONY: help all up down install setup clean logs status
+.PHONY: help all up down install setup clean logs status update-bundle-symfony6 update-bundle-symfony7 update-bundle-symfony8
 
 # Default target
 help:
@@ -26,6 +26,9 @@ help:
 	@echo "  setup-symfony6 Setup Symfony 6 demo (DB + fixtures)"
 	@echo "  setup-symfony7 Setup Symfony 7 demo (DB + fixtures)"
 	@echo "  setup-symfony8 Setup Symfony 8 demo (DB + fixtures)"
+	@echo "  update-bundle-symfony6  Update bundle from path repo (Symfony 6)"
+	@echo "  update-bundle-symfony7  Update bundle from path repo (Symfony 7)"
+	@echo "  update-bundle-symfony8  Update bundle from path repo (Symfony 8)"
 	@echo ""
 
 # Complete setup: up + install + setup
@@ -120,6 +123,15 @@ up-symfony8:
 	@echo "🚀 Starting Symfony 8 demo..."
 	@cd symfony8 && docker-compose up -d --build
 	@sleep 10
+
+update-bundle-symfony6:
+	@$(MAKE) -C symfony6 update-bundle
+
+update-bundle-symfony7:
+	@$(MAKE) -C symfony7 update-bundle
+
+update-bundle-symfony8:
+	@$(MAKE) -C symfony8 update-bundle
 
 # Clean all demos
 clean:

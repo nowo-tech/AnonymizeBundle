@@ -3,6 +3,10 @@ services:
         autowire: true
         autoconfigure: true
 
+    # Public so the anonymize bundle can resolve it by class name (container->get())
+    App\Service\SmsNotificationAnonymizerService:
+        public: true
+
     App\:
         resource: '../src/'
         exclude:

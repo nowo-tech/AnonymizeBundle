@@ -1,3 +1,4 @@
+name: anonymize-bundle-demo-symfony-7
 services:
   php:
     build:
@@ -7,7 +8,8 @@ services:
     working_dir: /app
     volumes:
       - .:/app
-      - ../../:/bundles
+      # Mount bundle root so the demo uses bundle files from the repo
+      - ../..:/var/anonymize-bundle
       - composer-cache:/root/.composer/cache
     environment:
       - COMPOSER_ALLOW_SUPERUSER=1
