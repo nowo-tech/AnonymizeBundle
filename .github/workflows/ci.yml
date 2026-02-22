@@ -41,9 +41,7 @@ jobs:
           tools: composer:v2
 
       - name: Validate composer.json
-        run: |
-          rm -f composer.lock
-          composer validate --strict
+        run: composer validate --strict
 
       - name: Get Composer cache directory
         id: composer-cache
@@ -61,12 +59,7 @@ jobs:
       - name: Install dependencies with Symfony ${{ matrix.symfony }}
         run: |
           composer require symfony/config:^${{ matrix.symfony }} symfony/dependency-injection:^${{ matrix.symfony }} symfony/http-kernel:^${{ matrix.symfony }} symfony/yaml:^${{ matrix.symfony }} --no-interaction --no-update
-          if [ "${{ matrix.symfony }}" = "8.0" ]; then
-            rm -f composer.lock
-            composer update --no-interaction --prefer-dist --no-progress
-          else
-            composer update symfony/* doctrine/doctrine-bundle --with-all-dependencies --no-interaction --prefer-dist --no-progress
-          fi
+          composer update --no-interaction --prefer-dist --no-progress
 
       - name: Run tests
         run: |
@@ -173,7 +166,7 @@ jobs:
       - name: Install dependencies (Symfony 7.0)
         run: |
           composer require symfony/config:^7.0 symfony/dependency-injection:^7.0 symfony/http-kernel:^7.0 symfony/yaml:^7.0 --no-interaction --no-update
-          composer update symfony/* doctrine/doctrine-bundle --with-all-dependencies --no-interaction --prefer-dist --no-progress
+          composer update --no-interaction --prefer-dist --no-progress
 
       - name: Run tests with coverage
         run: |

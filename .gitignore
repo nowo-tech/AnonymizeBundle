@@ -1,6 +1,6 @@
 # Composer
 /vendor/
-/composer.lock
+# composer.lock  # raíz: sí se commitea para fijar dependencias
 
 # PHPUnit
 .phpunit.cache/
