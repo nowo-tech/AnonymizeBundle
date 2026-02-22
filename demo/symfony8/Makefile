@@ -77,7 +77,7 @@ down:
 	@echo "✅ Containers stopped!"
 
 # Restart containers (no down/up)
-restart:
+restart: ensure-up
 	@echo "🔄 Restarting containers..."
 	docker-compose restart
 	@echo "✅ Containers restarted!"

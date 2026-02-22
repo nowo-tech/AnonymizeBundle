@@ -13,6 +13,36 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.14
+
+**Release Date**: 2026-02-22
+
+#### What's New
+
+- **Pre-release checks**: The main project Makefile has a `release-check` target that runs code style, tests with coverage, and demo healthchecks. Useful before creating a new tag. Demo Makefiles (symfony6, symfony7, symfony8) have `release-verify`, `restart`, and `build` targets for local and CI use.
+
+#### What's Changed
+
+- **Code style**: PHP CS Fixer fixes only; no API or behaviour change for the bundle.
+
+#### Breaking Changes
+
+None. Fully backward compatible.
+
+#### Migration Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clear cache** (optional):
+   ```bash
+   php bin/console cache:clear
+   ```
+
+3. No configuration or code changes required.
+
 ### Upgrading to 1.0.13
 
 **Release Date**: 2026-02-21

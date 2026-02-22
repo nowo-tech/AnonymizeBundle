@@ -185,6 +185,8 @@ The script tests **31 different command combinations** covering all main options
 ## More documentation
 
 - [Changelog](docs/CHANGELOG.md) - Complete version history and changes
+- [Release process](docs/RELEASE.md) - Versioning, tagging, and release steps
+- [Security policy](docs/SECURITY.md) - How to report vulnerabilities
 - [Roadmap](docs/ROADMAP.md) - Planned features and future enhancements
 - [Branching Strategy](docs/BRANCHING.md) - Git workflow and branching guidelines
 - [Contributing Guide](docs/CONTRIBUTING.md) - How to contribute to this project

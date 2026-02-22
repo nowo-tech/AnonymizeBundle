@@ -1,7 +1,7 @@
 # Makefile for Anonymize Bundle
 # Simplifies Docker commands for development
 
-.PHONY: help up down shell install test test-coverage cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up assets release-check release-check-demos
+.PHONY: help up down shell install test test-coverage cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up assets release-check release-check-demos composer-sync
 
 # Default target
 help:
@@ -25,6 +25,7 @@ help:
 	@echo "  cs-fix        Fix code style"
 	@echo "  qa            Run all QA checks (cs-check + test)"
 	@echo "  release-check Pre-release checks: cs-fix, cs-check, test-coverage, demo healthchecks"
+	@echo "  composer-sync Validate composer.json and align composer.lock (no install)"
 	@echo "  clean         Remove vendor and cache"
 	@echo "  setup-hooks   Install git pre-commit hooks"
 	@echo "  assets        No frontend assets in this bundle (no-op)"
@@ -111,12 +112,17 @@ cs-check: ensure-up
 cs-fix: ensure-up
 	docker-compose -f docker-compose.yml exec -T php composer cs-fix
 
+# Validate composer.json and align composer.lock (generate/update lock without install)
+composer-sync: ensure-up
+	docker-compose -f docker-compose.yml exec -T php composer validate --strict
+	docker-compose -f docker-compose.yml exec -T php composer update --no-install
+
 # Run all QA (runs inside root docker-compose php container)
 qa: ensure-up
 	docker-compose -f docker-compose.yml exec -T php composer qa
 
 # Pre-release: cs-fix, cs-check, test-coverage, then demo healthchecks
-release-check: ensure-up cs-fix cs-check test-coverage release-check-demos
+release-check: ensure-up composer-sync cs-fix cs-check test-coverage release-check-demos
 
 release-check-demos:
 	@$(MAKE) -C demo release-verify

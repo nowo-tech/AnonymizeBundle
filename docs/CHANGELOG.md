@@ -25,6 +25,27 @@ _(none)_
 
 ---
 
+## [1.0.14] - 2026-02-22
+
+### Added
+
+- **Main Makefile**: New `release-check` target runs pre-release checks: code style (`cs-fix`, `cs-check`), tests with coverage (`test-coverage`), and demo healthchecks (build and verify each demo). Use before creating a tag.
+- **Demo Makefiles (symfony6, symfony7, symfony8)**: New targets `release-verify` (healthcheck for the demo), `restart` (down + up), and `build` (build containers). Help text updated for all targets.
+
+### Changed
+
+- **Code style**: PHP CS Fixer fixes applied (no functional change). [CI]
+
+### Fixed
+
+_(none)_
+
+### Documentation
+
+- **docs/RELEASE.md**: Release process (CHANGELOG, UPGRADING, tag, push). **docs/SECURITY.md**: Security policy and reporting.
+
+---
+
 ## [1.0.13] - 2026-02-21
 
 ### Fixed
