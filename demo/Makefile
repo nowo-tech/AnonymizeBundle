@@ -1,7 +1,7 @@
 # Makefile for Anonymize Bundle Demos
 # Manages all Symfony demos (6, 7, 8)
 
-.PHONY: help all up down install setup clean logs status update-bundle-symfony6 update-bundle-symfony7 update-bundle-symfony8
+.PHONY: help all up down install setup clean logs status update-bundle-symfony6 update-bundle-symfony7 update-bundle-symfony8 release-verify
 
 # Default target
 help:
@@ -23,12 +23,19 @@ help:
 	@echo "  up-symfony6   Start Symfony 6 demo"
 	@echo "  up-symfony7   Start Symfony 7 demo"
 	@echo "  up-symfony8   Start Symfony 8 demo"
+	@echo "  restart-symfony6  Restart Symfony 6 demo containers"
+	@echo "  restart-symfony7  Restart Symfony 7 demo containers"
+	@echo "  restart-symfony8  Restart Symfony 8 demo containers"
+	@echo "  build-symfony6    Rebuild Symfony 6 demo image (no cache)"
+	@echo "  build-symfony7    Rebuild Symfony 7 demo image (no cache)"
+	@echo "  build-symfony8    Rebuild Symfony 8 demo image (no cache)"
 	@echo "  setup-symfony6 Setup Symfony 6 demo (DB + fixtures)"
 	@echo "  setup-symfony7 Setup Symfony 7 demo (DB + fixtures)"
 	@echo "  setup-symfony8 Setup Symfony 8 demo (DB + fixtures)"
 	@echo "  update-bundle-symfony6  Update bundle from path repo (Symfony 6)"
 	@echo "  update-bundle-symfony7  Update bundle from path repo (Symfony 7)"
 	@echo "  update-bundle-symfony8  Update bundle from path repo (Symfony 8)"
+	@echo "  release-verify  Start each demo, healthcheck (HTTP 200), then stop (for release-check)"
 	@echo ""
 
 # Complete setup: up + install + setup
@@ -58,6 +65,15 @@ down:
 	@cd symfony7 && docker-compose down
 	@cd symfony8 && docker-compose down
 	@echo "✅ All demos stopped."
+
+down-symfony6:
+	@cd symfony6 && docker-compose down
+
+down-symfony7:
+	@cd symfony7 && docker-compose down
+
+down-symfony8:
+	@cd symfony8 && docker-compose down
 
 # Install dependencies for all demos
 install:
@@ -124,6 +140,24 @@ up-symfony8:
 	@cd symfony8 && docker-compose up -d --build
 	@sleep 10
 
+restart-symfony6:
+	@cd symfony6 && docker-compose restart
+
+restart-symfony7:
+	@cd symfony7 && docker-compose restart
+
+restart-symfony8:
+	@cd symfony8 && docker-compose restart
+
+build-symfony6:
+	@cd symfony6 && docker-compose build --no-cache
+
+build-symfony7:
+	@cd symfony7 && docker-compose build --no-cache
+
+build-symfony8:
+	@cd symfony8 && docker-compose build --no-cache
+
 update-bundle-symfony6:
 	@$(MAKE) -C symfony6 update-bundle
 
@@ -145,6 +179,21 @@ clean:
 logs:
 	@echo "📋 Showing logs for all demos..."
 	@docker-compose -f symfony6/docker-compose.yml -f symfony7/docker-compose.yml -f symfony8/docker-compose.yml logs --tail=50
+
+# Release verify: for each demo, up → sleep → healthcheck (HTTP 200) → down
+release-verify:
+	@for demo in symfony6 symfony7 symfony8; do \
+		port=$$(case $$demo in symfony6) echo 8001;; symfony7) echo 8000;; symfony8) echo 8002;; *) echo 8000;; esac); \
+		echo "🔍 Release verify: $$demo (port $$port)..."; \
+		$(MAKE) up-$$demo; \
+		echo "⏳ Waiting for $$demo to be ready..."; \
+		sleep 15; \
+		code=$$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:$$port 2>/dev/null || echo "000"); \
+		$(MAKE) down-$$demo 2>/dev/null || true; \
+		if [ "$$code" != "200" ]; then echo "❌ $$demo healthcheck failed (HTTP $$code)"; exit 1; fi; \
+		echo "✅ $$demo OK (HTTP $$code)"; \
+	done
+	@echo "✅ All demos passed release-verify."
 
 # Show status
 status:

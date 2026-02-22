@@ -1,7 +1,7 @@
 # Makefile for Anonymize Bundle Demo - Symfony 7
 # Simplifies Docker commands for the demo
 
-.PHONY: help up down shell install clean cache-clear setup update-bundle ensure-up test test-coverage
+.PHONY: help up down restart build shell install clean cache-clear setup update-bundle ensure-up test test-coverage
 
 # Default target
 help:
@@ -12,6 +12,8 @@ help:
 	@echo "Targets:"
 	@echo "  up             Start Docker containers (PHP, MySQL, PostgreSQL)"
 	@echo "  down           Stop Docker containers"
+	@echo "  restart        Restart containers (docker compose restart)"
+	@echo "  build          Rebuild image (no cache)"
 	@echo "  shell          Open shell in PHP container"
 	@echo "  install        Install Composer dependencies"
 	@echo "  setup          Setup databases and load fixtures"
@@ -56,8 +58,7 @@ up:
 		echo "POSTGRES_DB=anonymize_demo" >> .env; \
 		echo "✅ .env file created"; \
 	fi
-	docker-compose build
-	docker-compose up -d
+	docker-compose up -d --build
 	@echo "⏳ Waiting for MySQL and PostgreSQL to be ready..."
 	@echo "Waiting for container to be ready..."
 	@sleep 5
@@ -73,6 +74,18 @@ down:
 	@echo "🛑 Stopping containers..."
 	docker-compose down
 	@echo "✅ Containers stopped!"
+
+# Restart containers (no down/up)
+restart:
+	@echo "🔄 Restarting containers..."
+	docker-compose restart
+	@echo "✅ Containers restarted!"
+
+# Rebuild image without cache
+build:
+	@echo "🔨 Rebuilding image (no cache)..."
+	docker-compose build --no-cache
+	@echo "✅ Image rebuilt!"
 
 # Ensure container is running (start if not). Used by install, shell, setup, update-bundle, etc.
 ensure-up:
