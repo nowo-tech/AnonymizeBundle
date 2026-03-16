@@ -24,6 +24,35 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.15
+
+**Release Date**: 2026-03-16
+
+#### What's New
+
+- **Command runner abstraction**: The bundle introduces `CommandRunnerInterface` and `SystemCommandRunner` so `DatabaseExportService` and related commands can be tested deterministically. All database export commands (`nowo:anonymize:export-db` and internal services) now use this abstraction to execute shell commands.
+- **Statistics display service**: The statistics rendering and export logic used by `nowo:anonymize:run` has been extracted to `AnonymizeStatisticsDisplay`, improving test coverage and making it easier to evolve reporting without touching the main command flow.
+- **Documentation and testing**: Documentation for configuration, commands, testing and demos has been significantly expanded. The internal test suite has been reorganized into `Unit/` and `Integration/` layers with much higher coverage (especially for exports, pattern matching, and environment protection).
+
+#### Breaking Changes
+
+None. There are no public API or configuration changes; all refactors are internal to the bundle.
+
+#### Migration Steps
+
+1. **Update the bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **(Optional) Run your application tests** to benefit from the improved safety net:
+   ```bash
+   php bin/phpunit
+   # or your project-specific test command
+   ```
+
+3. No configuration or code changes are required. If you instantiate `DatabaseExportService` manually (uncommon), the constructor signature remains compatible; the new `CommandRunnerInterface` parameter is optional and defaults to `SystemCommandRunner`.
+
 ### Upgrading to 1.0.14
 
 **Release Date**: 2026-02-22

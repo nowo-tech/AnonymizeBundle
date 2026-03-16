@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-_(none)_
+_(none yet)_
 
 ### Changed
 
@@ -21,7 +21,38 @@ _(none)_
 
 ### Documentation
 
-_(none)_
+_(none yet)_
+
+---
+
+## [1.0.15] - 2026-03-16
+
+### Added
+
+- **Command runner abstraction**: New `Nowo\AnonymizeBundle\Service\CommandRunnerInterface` and default implementation `SystemCommandRunner`. `DatabaseExportService` now uses this abstraction so database export logic (MySQL/PostgreSQL/SQLite/MongoDB) is testable without depending on real binaries or host environment.
+- **Statistics display service**: New `Nowo\AnonymizeBundle\Service\AnonymizeStatisticsDisplay` extracted from `AnonymizeCommand` to handle statistics rendering and export (tables, JSON/CSV, success rates) with dedicated unit tests.
+- **Documentation**: New and expanded docs for configuration, command usage, testing, and demos:
+  - `docs/CONFIGURATION.md`, `docs/COMMANDS.md`, `docs/TESTING_COMMANDS.md`, `docs/INSTALLATION.md`, `docs/RECIPE.md`, `docs/FAKERS.md`, and example guides for pattern-based filters and polymorphism (`EXAMPLES_PATTERN_BASED.md`, `EXAMPLES_POLYMORPHISM_ANONYMIZE_SERVICE.md`).
+  - `docs/DEMO-FRANKENPHP.md` describes running the demos with FrankenPHP and Caddy (dev images, Caddyfile, PHP ini).
+  - `docs/PROPUESTA-TESTS-COBERTURA.md`, `docs/ENGRAM.md`, and `docs/ROADMAP.md` expanded with testing and architecture notes.
+
+### Changed
+
+- **DatabaseExportService**: Refactored to delegate all shell command execution (mysqldump/pg_dump/mongodump/tar/gzip/bzip2/zip) to `CommandRunnerInterface`. Behaviour is unchanged for consumers (CLI commands still export databases the same way), but the implementation is now covered by deterministic tests using fake runners.
+- **History command**: `AnonymizationHistoryCommand` now delegates statistics rendering of anonymization runs to `AnonymizeStatisticsDisplay`, improving separation of concerns and allowing higher coverage of reporting logic.
+- **CI / tooling**:
+  - CI workflows now use a consistent `composer update` strategy and ignore `composer.lock` in validation steps where appropriate, while keeping `composer.lock` under version control for reproducible installs.
+  - `composer.json` platform PHP version set to `8.1.34` for consistent dependency resolution in CI and local development.
+  - `Makefile` and demo `Makefile`s updated to align testing, coverage, and demo verification targets; README updated to reflect the current tooling.
+
+### Fixed
+
+- **Resilience of export and history reporting tests**: The new abstractions and test coverage flush out edge cases around command availability (`tar`, `gzip`, `bzip2`, `zip`) and statistics display. No user-facing API changes, but future regressions are less likely.
+
+### Documentation
+
+- **README.md**: Updated feature list, installation instructions, and links to the expanded documentation set (commands, configuration, usage, testing, demos).
+- **UPGRADING.md**: New section “Upgrading to 1.0.15” describing that this is a non-breaking release focused on internal refactors, test coverage and documentation, with no required configuration changes.
 
 ---
 
