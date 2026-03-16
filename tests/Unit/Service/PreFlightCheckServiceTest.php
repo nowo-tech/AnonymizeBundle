@@ -17,6 +17,7 @@ use Nowo\AnonymizeBundle\Faker\FakerFactoryInterface;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use stdClass;
 
 /**
  * Test case for PreFlightCheckService.
@@ -1359,7 +1360,7 @@ class PreFlightCheckServiceTest extends TestCase
         $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
         $connection->method('createSchemaManager')->willReturn($schemaManager);
 
-        $metadata = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
+        $metadata                     = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
         $metadata->isMappedSuperclass = false;
         $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')->willReturn('test_table');
@@ -1384,7 +1385,6 @@ class PreFlightCheckServiceTest extends TestCase
         $this->assertStringContainsString('Invalid include pattern', $errors[0]);
         $this->assertStringContainsString('field must not be empty', $errors[0]);
     }
-
 
     /**
      * Test that validatePatterns detects invalid include patterns with empty pattern.
@@ -1651,7 +1651,7 @@ class PreFlightCheckServiceTest extends TestCase
         $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
         $connection->method('createSchemaManager')->willReturn($schemaManager);
 
-        $metadata = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
+        $metadata                     = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
         $metadata->isMappedSuperclass = false;
         $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')->willReturn('test_table');
@@ -1899,7 +1899,7 @@ class PreFlightCheckServiceTest extends TestCase
         $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
         $connection->method('createSchemaManager')->willReturn($schemaManager);
 
-        $metadata = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
+        $metadata                     = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
         $metadata->isMappedSuperclass = false;
         $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')->willReturn('test_table');
@@ -1929,7 +1929,7 @@ class PreFlightCheckServiceTest extends TestCase
      */
     public function testValidateOnePatternEntryRejectsNonStringNonIntField(): void
     {
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method     = $reflection->getMethod('validateOnePatternEntry');
         $method->setAccessible(true);
 
@@ -1937,7 +1937,7 @@ class PreFlightCheckServiceTest extends TestCase
         $this->assertNotNull($result);
         $this->assertStringContainsString('field must be string', $result);
 
-        $resultExclude = $method->invoke($this->service, new \stdClass(), 'pattern_value', 'exclude');
+        $resultExclude = $method->invoke($this->service, new stdClass(), 'pattern_value', 'exclude');
         $this->assertNotNull($resultExclude);
         $this->assertStringContainsString('field must be string', $resultExclude);
     }
@@ -1955,7 +1955,7 @@ class PreFlightCheckServiceTest extends TestCase
         $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
         $connection->method('createSchemaManager')->willReturn($schemaManager);
 
-        $metadata = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
+        $metadata                     = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
         $metadata->isMappedSuperclass = false;
         $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')->willReturn('test_table');
@@ -1994,7 +1994,7 @@ class PreFlightCheckServiceTest extends TestCase
         $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
         $connection->method('createSchemaManager')->willReturn($schemaManager);
 
-        $metadata = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
+        $metadata                     = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
         $metadata->isMappedSuperclass = false;
         $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')->willReturn('test_table');

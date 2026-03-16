@@ -7,9 +7,12 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Service;
 use Nowo\AnonymizeBundle\Service\AnonymizeStatistics;
 use Nowo\AnonymizeBundle\Service\AnonymizeStatisticsDisplay;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Style\SymfonyStyle;
+
+use function count;
 
 /**
  * Unit tests for AnonymizeStatisticsDisplay.
@@ -27,15 +30,15 @@ class AnonymizeStatisticsDisplayTest extends TestCase
     ): AnonymizeStatistics {
         $stats = new AnonymizeStatistics();
         $stats->start();
-        $ref = new \ReflectionClass($stats);
+        $ref        = new ReflectionClass($stats);
         $globalProp = $ref->getProperty('globalStats');
         $globalProp->setAccessible(true);
-        $g = $globalProp->getValue($stats);
+        $g                    = $globalProp->getValue($stats);
         $g['total_entities']  = $entities !== [] ? count($entities) : 0;
         $g['total_processed'] = $totalProcessed;
         $g['total_updated']   = $totalUpdated;
         $g['total_skipped']   = $totalProcessed - $totalUpdated;
-        $g['duration']       = $duration;
+        $g['duration']        = $duration;
         $g['start_time']      = 1.0;
         $g['end_time']        = 1.0 + $duration;
         $globalProp->setValue($stats, $g);
@@ -51,9 +54,9 @@ class AnonymizeStatisticsDisplayTest extends TestCase
      */
     public function testDisplayShowsSummaryWithSuccessRateWhenProcessedGreaterThanZero(): void
     {
-        $stats = $this->createStatistics(10, 8, 1.0, []);
-        $out   = new BufferedOutput();
-        $io    = new SymfonyStyle(new ArrayInput([]), $out);
+        $stats   = $this->createStatistics(10, 8, 1.0, []);
+        $out     = new BufferedOutput();
+        $io      = new SymfonyStyle(new ArrayInput([]), $out);
         $display = new AnonymizeStatisticsDisplay();
 
         $display->display($io, $stats, false, null, null);
@@ -71,9 +74,9 @@ class AnonymizeStatisticsDisplayTest extends TestCase
      */
     public function testDisplayShowsSummaryWithoutSuccessRateWhenProcessedZero(): void
     {
-        $stats = $this->createStatistics(0, 0, 0.0, []);
-        $out   = new BufferedOutput();
-        $io    = new SymfonyStyle(new ArrayInput([]), $out);
+        $stats   = $this->createStatistics(0, 0, 0.0, []);
+        $out     = new BufferedOutput();
+        $io      = new SymfonyStyle(new ArrayInput([]), $out);
         $display = new AnonymizeStatisticsDisplay();
 
         $display->display($io, $stats, false, null, null);
@@ -92,8 +95,8 @@ class AnonymizeStatisticsDisplayTest extends TestCase
         $tmp   = tempnam(sys_get_temp_dir(), 'anon_json');
         $this->assertNotFalse($tmp);
         try {
-            $out    = new BufferedOutput();
-            $io     = new SymfonyStyle(new ArrayInput([]), $out);
+            $out     = new BufferedOutput();
+            $io      = new SymfonyStyle(new ArrayInput([]), $out);
             $display = new AnonymizeStatisticsDisplay();
 
             $display->display($io, $stats, true, $tmp, null);
@@ -120,8 +123,8 @@ class AnonymizeStatisticsDisplayTest extends TestCase
         $tmp   = tempnam(sys_get_temp_dir(), 'anon_csv');
         $this->assertNotFalse($tmp);
         try {
-            $out    = new BufferedOutput();
-            $io     = new SymfonyStyle(new ArrayInput([]), $out);
+            $out     = new BufferedOutput();
+            $io      = new SymfonyStyle(new ArrayInput([]), $out);
             $display = new AnonymizeStatisticsDisplay();
 
             $display->display($io, $stats, true, null, $tmp);
@@ -143,9 +146,9 @@ class AnonymizeStatisticsDisplayTest extends TestCase
      */
     public function testDisplaySkipsFinalSuccessMessageWhenStatsOnlyTrue(): void
     {
-        $stats = $this->createStatistics(10, 8, 1.0, []);
-        $out   = new BufferedOutput();
-        $io    = new SymfonyStyle(new ArrayInput([]), $out);
+        $stats   = $this->createStatistics(10, 8, 1.0, []);
+        $out     = new BufferedOutput();
+        $io      = new SymfonyStyle(new ArrayInput([]), $out);
         $display = new AnonymizeStatisticsDisplay();
 
         $display->display($io, $stats, true, null, null);

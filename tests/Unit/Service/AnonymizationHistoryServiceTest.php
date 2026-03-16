@@ -157,11 +157,11 @@ class AnonymizationHistoryServiceTest extends TestCase
 
         $indexFile = $this->tempDir . '/index.json';
         $entry     = [
-            'id'        => 'run-with-connection',
-            'timestamp' => time(),
-            'datetime'  => date('Y-m-d H:i:s'),
-            'file'      => $this->tempDir . '/nonexistent_run.json',
-            'summary'   => ['total_entities' => 1],
+            'id'         => 'run-with-connection',
+            'timestamp'  => time(),
+            'datetime'   => date('Y-m-d H:i:s'),
+            'file'       => $this->tempDir . '/nonexistent_run.json',
+            'summary'    => ['total_entities' => 1],
             'statistics' => [
                 'entities' => [
                     ['connection' => 'default', 'name' => 'User'],
@@ -445,8 +445,8 @@ class AnonymizationHistoryServiceTest extends TestCase
         $historyDir = $this->tempDir . '/subdir_not_created';
         $this->assertDirectoryDoesNotExist($historyDir);
 
-        $service   = new AnonymizationHistoryService($historyDir);
-        $filePath  = $service->saveRun(['total_entities' => 1]);
+        $service  = new AnonymizationHistoryService($historyDir);
+        $filePath = $service->saveRun(['total_entities' => 1]);
 
         $this->assertDirectoryExists($historyDir);
         $this->assertFileExists($filePath);
@@ -591,8 +591,8 @@ class AnonymizationHistoryServiceTest extends TestCase
         $oldFilePath = $service->saveRun($statistics);
         $service->saveRun($statistics);
 
-        $oldRunData              = json_decode(file_get_contents($oldFilePath), true);
-        $oldRunData['timestamp'] = time() - (35 * 24 * 60 * 60);
+        $oldRunData               = json_decode(file_get_contents($oldFilePath), true);
+        $oldRunData['timestamp']  = time() - (35 * 24 * 60 * 60);
         $oldRunData['statistics'] = $statistics;
         file_put_contents($oldFilePath, json_encode($oldRunData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
@@ -691,5 +691,4 @@ class AnonymizationHistoryServiceTest extends TestCase
         $content = json_decode(file_get_contents($filePath), true);
         $this->assertSame('unknown', $content['metadata']['symfony_version'] ?? null);
     }
-
 }

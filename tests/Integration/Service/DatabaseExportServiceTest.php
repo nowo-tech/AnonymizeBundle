@@ -8,11 +8,15 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\ORM\EntityManagerInterface;
-use Nowo\AnonymizeBundle\Service\DatabaseExportService;
 use Nowo\AnonymizeBundle\Service\CommandRunnerInterface;
+use Nowo\AnonymizeBundle\Service\DatabaseExportService;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
+
+use function dirname;
+
+use const PHP_OS_FAMILY;
 
 /**
  * Test case for DatabaseExportService.
@@ -31,7 +35,7 @@ class DatabaseExportServiceTest extends TestCase
         mkdir($this->tempDir, 0o755, true);
 
         $this->container = $this->createMock(ContainerInterface::class);
-        /** @var ContainerInterface&\PHPUnit\Framework\MockObject\MockObject $this->container */
+        /* @var ContainerInterface&\PHPUnit\Framework\MockObject\MockObject $this->container */
     }
 
     protected function tearDown(): void
@@ -80,7 +84,7 @@ class DatabaseExportServiceTest extends TestCase
         $exportDir = $this->tempDir . '/mysql_export';
         mkdir($exportDir, 0o755, true);
 
-        $runner = new class() implements CommandRunnerInterface {
+        $runner = new class implements CommandRunnerInterface {
             public array $executed = [];
 
             public function commandExists(string $command): bool
@@ -95,7 +99,7 @@ class DatabaseExportServiceTest extends TestCase
                 if (preg_match("/>\s*'([^']*)'\s*2>&1\s*$/", $command, $m) === 1) {
                     $path = $m[1];
                     if ($path !== '') {
-                        @mkdir(\dirname($path), 0o755, true);
+                        @mkdir(dirname($path), 0o755, true);
                         file_put_contents($path, 'mysqldump content');
                     }
                 }
@@ -147,7 +151,7 @@ class DatabaseExportServiceTest extends TestCase
         $exportDir = $this->tempDir . '/pgsql_export';
         mkdir($exportDir, 0o755, true);
 
-        $runner = new class() implements CommandRunnerInterface {
+        $runner = new class implements CommandRunnerInterface {
             public array $executed = [];
 
             public function commandExists(string $command): bool
@@ -163,7 +167,7 @@ class DatabaseExportServiceTest extends TestCase
                 if (preg_match('/--file=([^\\s]+)/', $command, $matches) === 1) {
                     $path = trim($matches[1], " \t\n\r\0\x0B'\"");
                     if ($path !== '') {
-                        @mkdir(\dirname($path), 0o755, true);
+                        @mkdir(dirname($path), 0o755, true);
                         file_put_contents($path, 'pg_dump content');
                     }
                 }
@@ -725,7 +729,7 @@ class DatabaseExportServiceTest extends TestCase
         mkdir($databaseDir, 0o755, true);
         file_put_contents($databaseDir . '/data.bson', 'mongo dump content');
 
-        $runner = new class() implements CommandRunnerInterface {
+        $runner = new class implements CommandRunnerInterface {
             public array $commands = [];
 
             public function commandExists(string $command): bool
@@ -887,7 +891,7 @@ class DatabaseExportServiceTest extends TestCase
         mkdir($databaseDir, 0o755, true);
         file_put_contents($databaseDir . '/data.bson', 'mongo dump content');
 
-        $runner = new class() implements CommandRunnerInterface {
+        $runner = new class implements CommandRunnerInterface {
             public array $commands = [];
 
             public function commandExists(string $command): bool
@@ -1683,7 +1687,7 @@ class DatabaseExportServiceTest extends TestCase
 
         // /dev/null (or similar non-regular path) causes ZipArchive::open to fail with error code, not true
         $readOnlyPath = (PHP_OS_FAMILY === 'Windows') ? 'NUL' : '/dev/null';
-        $result = $method->invoke($service, $subDir, $readOnlyPath);
+        $result       = $method->invoke($service, $subDir, $readOnlyPath);
         $this->assertFalse($result);
     }
 

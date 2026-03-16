@@ -221,7 +221,7 @@ class UsernameFakerTest extends TestCase
      */
     public function testGenerateTruncatesWhenExceedingMaxLength(): void
     {
-        $faker = new UsernameFaker('en_US');
+        $faker    = new UsernameFaker('en_US');
         $username = $faker->generate([
             'prefix'     => 'pre_',
             'suffix'     => '_suf',
@@ -243,13 +243,13 @@ class UsernameFakerTest extends TestCase
         $faker = new UsernameFaker('en_US');
         for ($i = 0; $i < 30; ++$i) {
             $username = $faker->generate([
-                'prefix'     => 'x',
-                'suffix'     => 'y',
-                'min_length' => 3,
-                'max_length' => 5,
+                'prefix'          => 'x',
+                'suffix'          => 'y',
+                'min_length'      => 3,
+                'max_length'      => 5,
                 'include_numbers' => true,
             ]);
-            $this->assertLessThanOrEqual(5, strlen($username), "Iteration $i produced length " . strlen($username));
+            $this->assertLessThanOrEqual(5, strlen($username), "Iteration {$i} produced length " . strlen($username));
         }
     }
 
@@ -258,7 +258,7 @@ class UsernameFakerTest extends TestCase
      */
     public function testGeneratePadsWithRandomLetterWhenShort(): void
     {
-        $faker = new UsernameFaker('en_US');
+        $faker    = new UsernameFaker('en_US');
         $username = $faker->generate([
             'prefix'     => 'ab',
             'suffix'     => 'cd',
@@ -279,7 +279,7 @@ class UsernameFakerTest extends TestCase
      */
     public function testGenerateWhenPrefixSuffixLeaveNoRoom(): void
     {
-        $faker = new UsernameFaker('en_US');
+        $faker    = new UsernameFaker('en_US');
         $username = $faker->generate([
             'prefix'     => 'xxx',
             'suffix'     => 'yyy',
@@ -298,12 +298,12 @@ class UsernameFakerTest extends TestCase
      */
     public function testGenerateAlwaysTruncatesWhenPrefixSuffixExceedMaxLength(): void
     {
-        $faker = new UsernameFaker('en_US');
+        $faker    = new UsernameFaker('en_US');
         $username = $faker->generate([
-            'prefix'     => 'aaa',
-            'suffix'     => 'bb',
-            'min_length' => 4,
-            'max_length' => 4,
+            'prefix'          => 'aaa',
+            'suffix'          => 'bb',
+            'min_length'      => 4,
+            'max_length'      => 4,
             'include_numbers' => false,
         ]);
         $this->assertSame(4, strlen($username));
@@ -316,9 +316,9 @@ class UsernameFakerTest extends TestCase
      */
     public function testGenerateTruncatesWithSubstrWhenTotalExceedsMaxLength(): void
     {
-        $faker   = new UsernameFaker('en_US');
-        $maxLen  = 10;
-        $found   = false;
+        $faker      = new UsernameFaker('en_US');
+        $maxLen     = 10;
+        $found      = false;
         $iterations = 200;
         for ($i = 0; $i < $iterations; ++$i) {
             $username = $faker->generate([
@@ -347,10 +347,10 @@ class UsernameFakerTest extends TestCase
         $found = false;
         for ($i = 0; $i < 80; ++$i) {
             $username = $faker->generate([
-                'prefix'     => 'a',
-                'suffix'     => 'b',
-                'min_length' => 10,
-                'max_length' => 10,
+                'prefix'          => 'a',
+                'suffix'          => 'b',
+                'min_length'      => 10,
+                'max_length'      => 10,
                 'include_numbers' => false,
             ]);
             if (strlen($username) === 10 && str_starts_with($username, 'a') && str_ends_with($username, 'b')) {
@@ -406,7 +406,7 @@ class UsernameFakerTest extends TestCase
     {
         $seed = 12345;
         mt_srand($seed);
-        $faker = new UsernameFaker('en_US');
+        $faker      = new UsernameFaker('en_US');
         $withDigits = false;
         for ($i = 0; $i < 50; ++$i) {
             $username = $faker->generate([

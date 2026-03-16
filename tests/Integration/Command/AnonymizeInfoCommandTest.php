@@ -130,7 +130,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $output  = new BufferedOutput();
 
         // EM has no metadata driver configured -> getAnonymizableEntities returns []
-        $config = $this->createMock(\Doctrine\ORM\Configuration::class);
+        $config = $this->createMock(Configuration::class);
         $config->method('getMetadataDriverImpl')->willReturn(null);
         $em->method('getConfiguration')->willReturn($config);
 

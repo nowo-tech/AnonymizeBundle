@@ -571,11 +571,11 @@ class AnonymizeServiceTest extends TestCase
         $metadata->method('getIdentifierColumnNames')->willReturn(['id']);
 
         $connection->method('fetchOne')->willReturn('1');
-        $record   = ['id' => 1, 'email' => 'user@example.com'];
+        $record    = ['id' => 1, 'email' => 'user@example.com'];
         $callCount = 0;
         $connection->method('fetchAllAssociative')
             ->willReturnCallback(static function () use ($record, &$callCount) {
-                $callCount++;
+                ++$callCount;
 
                 return $callCount === 1 ? [$record] : [];
             });
@@ -2866,7 +2866,7 @@ class AnonymizeServiceTest extends TestCase
         $metadataA  = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $metadataB  = $this->getMockBuilder(ClassMetadata::class)
+        $metadataB = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -3070,8 +3070,11 @@ class AnonymizeServiceTest extends TestCase
         $this->assertContains('PRAGMA foreign_keys = OFF', $executedStatements);
         $this->assertContains('DELETE FROM "test_table"', $executedStatements);
         $this->assertTrue(
-            array_reduce($executedStatements, static fn ($carry, $s) => $carry || str_contains($s, 'sqlite_sequence'),
-                false),
+            array_reduce(
+                $executedStatements,
+                static fn ($carry, $s) => $carry || str_contains($s, 'sqlite_sequence'),
+                false,
+            ),
             'SQLite truncate should reset sqlite_sequence for the table',
         );
         $this->assertContains('PRAGMA foreign_keys = ON', $executedStatements);
@@ -3280,5 +3283,4 @@ class AnonymizeServiceTest extends TestCase
         $this->assertStringContainsString('type', $progressMessages[0]['msg']);
         $this->assertStringContainsString('customer', $progressMessages[0]['msg']);
     }
-
 }

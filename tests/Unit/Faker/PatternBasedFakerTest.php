@@ -185,10 +185,10 @@ class PatternBasedFakerTest extends TestCase
         $originalValue = 'old@email.com(15)';
 
         $result = $faker->generate([
-            'source_field'   => 'email',
-            'record'         => $record,
-            'original_value' => $originalValue,
-            'fallback_faker' => 'constant',
+            'source_field'     => 'email',
+            'record'           => $record,
+            'original_value'   => $originalValue,
+            'fallback_faker'   => 'constant',
             'fallback_options' => ['value' => 'fallback@test.local'],
         ]);
 
@@ -207,10 +207,10 @@ class PatternBasedFakerTest extends TestCase
         $originalValue = 'old@email.com(15)';
 
         $result = $faker->generate([
-            'source_field'   => 'email',
-            'record'         => $record,
-            'original_value' => $originalValue,
-            'fallback_faker' => 'constant',
+            'source_field'     => 'email',
+            'record'           => $record,
+            'original_value'   => $originalValue,
+            'fallback_faker'   => 'constant',
             'fallback_options' => ['value' => 'fallback@test.local'],
         ]);
 

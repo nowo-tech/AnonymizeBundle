@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
+use Exception;
 use Nowo\AnonymizeBundle\Command\AnonymizeCommand;
 use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
 use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
@@ -23,6 +24,8 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+
+use function in_array;
 
 /**
  * Test case for AnonymizeCommand.
@@ -371,15 +374,15 @@ class AnonymizeCommandTest extends TestCase
         $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
 
-        $record = ['id' => 1];
+        $record     = ['id' => 1];
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
         $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')->willReturnCallback(static fn ($v) => "'" . str_replace("'", "''", (string) $v) . "'");
         $connection->method('fetchOne')->willReturn('1');
         $fetchCallCount = 0;
-        $connection->method('fetchAllAssociative')->willReturnCallback(function () use ($record, &$fetchCallCount) {
-            $fetchCallCount++;
+        $connection->method('fetchAllAssociative')->willReturnCallback(static function () use ($record, &$fetchCallCount) {
+            ++$fetchCallCount;
 
             return $fetchCallCount === 1 ? [$record] : [];
         });
@@ -449,15 +452,15 @@ class AnonymizeCommandTest extends TestCase
         $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
 
-        $record = ['id' => 1];
+        $record     = ['id' => 1];
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
         $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')->willReturnCallback(static fn ($v) => "'" . str_replace("'", "''", (string) $v) . "'");
         $connection->method('fetchOne')->willReturn('1');
         $fetchCallCount = 0;
-        $connection->method('fetchAllAssociative')->willReturnCallback(function () use ($record, &$fetchCallCount) {
-            $fetchCallCount++;
+        $connection->method('fetchAllAssociative')->willReturnCallback(static function () use ($record, &$fetchCallCount) {
+            ++$fetchCallCount;
 
             return $fetchCallCount === 1 ? [$record] : [];
         });
@@ -531,15 +534,15 @@ class AnonymizeCommandTest extends TestCase
         $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
 
-        $record = ['id' => 1, 'email' => 'user@example.com'];
+        $record     = ['id' => 1, 'email' => 'user@example.com'];
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
         $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')->willReturnCallback(static fn ($v) => "'" . str_replace("'", "''", (string) $v) . "'");
         $connection->method('fetchOne')->willReturn('1');
         $fetchCallCount = 0;
-        $connection->method('fetchAllAssociative')->willReturnCallback(function () use ($record, &$fetchCallCount) {
-            $fetchCallCount++;
+        $connection->method('fetchAllAssociative')->willReturnCallback(static function () use ($record, &$fetchCallCount) {
+            ++$fetchCallCount;
 
             return $fetchCallCount === 1 ? [$record] : [];
         });
@@ -808,7 +811,7 @@ class AnonymizeCommandTest extends TestCase
      */
     public function testExecuteWithConnectionOptionProcessesOnlyRequestedManager(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em       = $this->createMock(EntityManagerInterface::class);
         $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default', 'other' => 'other']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
@@ -835,7 +838,7 @@ class AnonymizeCommandTest extends TestCase
     {
         $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
-        $doctrine->method('getManager')->with('default')->willThrowException(new \Exception('Connection failed'));
+        $doctrine->method('getManager')->with('default')->willThrowException(new Exception('Connection failed'));
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
         $container->set('doctrine', $doctrine);
@@ -1111,7 +1114,6 @@ class AnonymizeCommandTest extends TestCase
         $this->assertStringContainsString('Processing entity manager: default', $out);
     }
 
-
     /**
      * Test that when saving history fails and --debug is set, the command outputs a debug message (catch block lines 373-376).
      */
@@ -1151,7 +1153,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $tempDir = $this->tempDir;
+        $tempDir   = $this->tempDir;
         $container = new class($doctrine, $tempDir) implements ContainerInterface {
             public function __construct(
                 private ManagerRegistry $doctrine,
@@ -1165,8 +1167,9 @@ class AnonymizeCommandTest extends TestCase
                     return $this->doctrine;
                 }
                 if ($id === 'parameter_bag') {
-                    throw new \Exception('parameter_bag unavailable');
+                    throw new Exception('parameter_bag unavailable');
                 }
+
                 return null;
             }
 
@@ -1184,9 +1187,9 @@ class AnonymizeCommandTest extends TestCase
             {
                 return match ($name) {
                     'kernel.environment' => 'dev',
-                    'kernel.debug' => true,
+                    'kernel.debug'       => true,
                     'kernel.project_dir' => $this->tempDir,
-                    default => null,
+                    default              => null,
                 };
             }
         };

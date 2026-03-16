@@ -169,10 +169,10 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $this->container->method('has')->with(SymfonyService::DOCTRINE)->willReturn(true);
         $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
 
-        $fakerFactory    = new FakerFactory('en_US');
-        $patternMatcher  = new PatternMatcher();
+        $fakerFactory     = new FakerFactory('en_US');
+        $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command         = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
+        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
@@ -212,7 +212,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
 
         $platform      = $this->createMock(AbstractPlatform::class);
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
-        $connection   = $this->createMock(Connection::class);
+        $connection    = $this->createMock(Connection::class);
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('createSchemaManager')->willReturn($schemaManager);
 
@@ -228,10 +228,10 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $this->container->method('has')->with(SymfonyService::DOCTRINE)->willReturn(true);
         $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
 
-        $fakerFactory   = new FakerFactory('en_US');
-        $patternMatcher = new PatternMatcher();
+        $fakerFactory     = new FakerFactory('en_US');
+        $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
+        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
@@ -315,10 +315,10 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $this->container->method('has')->with(SymfonyService::DOCTRINE)->willReturn(true);
         $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
 
-        $fakerFactory   = new FakerFactory('en_US');
-        $patternMatcher = new PatternMatcher();
+        $fakerFactory     = new FakerFactory('en_US');
+        $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
+        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
@@ -484,14 +484,14 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $this->container->method('has')->with(SymfonyService::DOCTRINE)->willReturn(true);
         $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
 
-        $fakerFactory   = new FakerFactory('en_US');
-        $patternMatcher = new PatternMatcher();
+        $fakerFactory     = new FakerFactory('en_US');
+        $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
+        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
 
         $outputPath = sys_get_temp_dir() . '/anonymize_col_migration_' . uniqid() . '.sql';
-        $input     = new ArrayInput(['--connection' => ['default'], '--output' => $outputPath]);
-        $output    = new BufferedOutput();
+        $input      = new ArrayInput(['--connection' => ['default'], '--output' => $outputPath]);
+        $output     = new BufferedOutput();
 
         $result = $command->run($input, $output);
 
@@ -558,14 +558,14 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $this->container->method('has')->with(SymfonyService::DOCTRINE)->willReturn(true);
         $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
 
-        $fakerFactory   = new FakerFactory('en_US');
-        $patternMatcher = new PatternMatcher();
+        $fakerFactory     = new FakerFactory('en_US');
+        $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
+        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
 
         $outputPath = sys_get_temp_dir() . '/anonymize_col_migration_' . uniqid() . '.sql';
-        $input     = new ArrayInput(['--connection' => ['default'], '--output' => $outputPath]);
-        $output    = new BufferedOutput();
+        $input      = new ArrayInput(['--connection' => ['default'], '--output' => $outputPath]);
+        $output     = new BufferedOutput();
 
         $result = $command->run($input, $output);
 
@@ -626,10 +626,10 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $this->container->method('has')->with(SymfonyService::DOCTRINE)->willReturn(true);
         $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
 
-        $fakerFactory   = new FakerFactory('en_US');
-        $patternMatcher = new PatternMatcher();
+        $fakerFactory     = new FakerFactory('en_US');
+        $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
+        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
@@ -704,10 +704,10 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $this->container->method('has')->with(SymfonyService::DOCTRINE)->willReturn(true);
         $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
 
-        $fakerFactory   = new FakerFactory('en_US');
-        $patternMatcher = new PatternMatcher();
+        $fakerFactory     = new FakerFactory('en_US');
+        $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
+        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();

@@ -7,6 +7,7 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Faker\Example;
 use Doctrine\ORM\EntityManagerInterface;
 use Nowo\AnonymizeBundle\Faker\Example\ExampleCustomFaker;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 /**
  * Tests for ExampleCustomFaker.
@@ -149,14 +150,14 @@ final class ExampleCustomFakerTest extends TestCase
 
         $options = [
             'original_value'    => 'test_value',
-            'preserve_original'  => false,
+            'preserve_original' => false,
             'related_entity'    => 'NonExistentEntity',
             'record'            => ['related_entity_id' => 456],
         ];
 
         $entityManager->method('getRepository')
             ->with('NonExistentEntity')
-            ->willThrowException(new \RuntimeException('Repository not found'));
+            ->willThrowException(new RuntimeException('Repository not found'));
 
         $result = $faker->generate($options);
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Unit\Helper;
 
+use BadMethodCallException;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
@@ -735,18 +736,18 @@ final class DriverStubWithGetName implements Driver
         return 'pdo_mysql';
     }
 
-    public function connect(array $params): \Doctrine\DBAL\Driver\Connection
+    public function connect(array $params): Driver\Connection
     {
-        throw new \BadMethodCallException('Not used in this test');
+        throw new BadMethodCallException('Not used in this test');
     }
 
     public function getDatabasePlatform(\Doctrine\DBAL\ServerVersionProvider $versionProvider): AbstractPlatform
     {
-        throw new \BadMethodCallException('Not used in this test');
+        throw new BadMethodCallException('Not used in this test');
     }
 
-    public function getExceptionConverter(): \Doctrine\DBAL\Driver\API\ExceptionConverter
+    public function getExceptionConverter(): Driver\API\ExceptionConverter
     {
-        throw new \BadMethodCallException('Not used in this test');
+        throw new BadMethodCallException('Not used in this test');
     }
 }
