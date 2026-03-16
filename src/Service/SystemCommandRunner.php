@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Service;
 
-use const PHP_OS;
-
 use function escapeshellarg;
 use function proc_close;
 use function proc_open;
 use function stream_get_contents;
+
+use const PHP_OS;
 
 /**
  * Default implementation of CommandRunnerInterface that delegates to PHP's
@@ -73,4 +73,3 @@ final class SystemCommandRunner implements CommandRunnerInterface
         return $returnCode;
     }
 }
-

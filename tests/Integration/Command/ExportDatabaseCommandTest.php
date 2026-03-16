@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Nowo\AnonymizeBundle\Command\ExportDatabaseCommand;
 use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use PHPUnit\Framework\TestCase;
@@ -199,7 +200,7 @@ class ExportDatabaseCommandTest extends TestCase
             ->willReturn(true);
         $this->container->method('get')
             ->with('parameter_bag')
-            ->willThrowException(new \Exception('parameter_bag service broken'));
+            ->willThrowException(new Exception('parameter_bag service broken'));
 
         $reflection = new ReflectionClass($this->command);
         $method     = $reflection->getMethod('getParameterBag');
@@ -271,9 +272,9 @@ class ExportDatabaseCommandTest extends TestCase
     {
         $customExportDir = sys_get_temp_dir() . '/custom_export_dir_' . uniqid();
         $parameterBag    = new ParameterBag([
-            'kernel.environment'              => 'dev',
-            'kernel.debug'                    => true,
-            'kernel.project_dir'              => sys_get_temp_dir(),
+            'kernel.environment'               => 'dev',
+            'kernel.debug'                     => true,
+            'kernel.project_dir'               => sys_get_temp_dir(),
             'nowo_anonymize.export.output_dir' => $customExportDir,
         ]);
 
@@ -283,9 +284,9 @@ class ExportDatabaseCommandTest extends TestCase
         $connection = $this->createMock(Connection::class);
         $connection->method('getDatabase')->willReturn('test_db');
         $connection->method('getParams')->willReturn([]);
-        $connection->method('getDriver')->willReturn($this->createMock(\Doctrine\DBAL\Driver::class));
+        $connection->method('getDriver')->willReturn($this->createMock(Driver::class));
         $connection->method('getDatabasePlatform')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class));
+            ->willReturn($this->createMock(AbstractPlatform::class));
         $em->method('getConnection')->willReturn($connection);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
@@ -310,15 +311,15 @@ class ExportDatabaseCommandTest extends TestCase
      */
     public function testExecuteUsesFilenamePatternAndAutoGitignoreFromParameterBagWhenOptionsNotPassed(): void
     {
-        $customExportDir    = sys_get_temp_dir() . '/export_cfg_' . uniqid();
-        $customFilenamePat  = 'backup_{connection}_{date}.sql';
-        $parameterBag       = new ParameterBag([
-            'kernel.environment'                    => 'dev',
-            'kernel.debug'                         => true,
-            'kernel.project_dir'                   => sys_get_temp_dir(),
-            'nowo_anonymize.export.output_dir'     => $customExportDir,
+        $customExportDir   = sys_get_temp_dir() . '/export_cfg_' . uniqid();
+        $customFilenamePat = 'backup_{connection}_{date}.sql';
+        $parameterBag      = new ParameterBag([
+            'kernel.environment'                     => 'dev',
+            'kernel.debug'                           => true,
+            'kernel.project_dir'                     => sys_get_temp_dir(),
+            'nowo_anonymize.export.output_dir'       => $customExportDir,
             'nowo_anonymize.export.filename_pattern' => $customFilenamePat,
-            'nowo_anonymize.export.auto_gitignore' => false,
+            'nowo_anonymize.export.auto_gitignore'   => false,
         ]);
 
         $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
@@ -327,9 +328,9 @@ class ExportDatabaseCommandTest extends TestCase
         $connection = $this->createMock(Connection::class);
         $connection->method('getDatabase')->willReturn('test_db');
         $connection->method('getParams')->willReturn([]);
-        $connection->method('getDriver')->willReturn($this->createMock(\Doctrine\DBAL\Driver::class));
+        $connection->method('getDriver')->willReturn($this->createMock(Driver::class));
         $connection->method('getDatabasePlatform')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class));
+            ->willReturn($this->createMock(AbstractPlatform::class));
         $em->method('getConnection')->willReturn($connection);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
@@ -354,7 +355,7 @@ class ExportDatabaseCommandTest extends TestCase
      */
     public function testExecuteResolvesKernelProjectDirInOutputDir(): void
     {
-        $projectDir  = sys_get_temp_dir() . '/export_test_' . uniqid();
+        $projectDir   = sys_get_temp_dir() . '/export_test_' . uniqid();
         $parameterBag = new ParameterBag([
             'kernel.environment' => 'dev',
             'kernel.debug'       => true,
@@ -366,9 +367,9 @@ class ExportDatabaseCommandTest extends TestCase
         $connection = $this->createMock(Connection::class);
         $connection->method('getDatabase')->willReturn('test_db');
         $connection->method('getParams')->willReturn([]);
-        $connection->method('getDriver')->willReturn($this->createMock(\Doctrine\DBAL\Driver::class));
+        $connection->method('getDriver')->willReturn($this->createMock(Driver::class));
         $connection->method('getDatabasePlatform')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class));
+            ->willReturn($this->createMock(AbstractPlatform::class));
         $em->method('getConnection')->willReturn($connection);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
@@ -398,7 +399,7 @@ class ExportDatabaseCommandTest extends TestCase
      */
     public function testExecuteWithMongoConnectionAndMongoUrlParsesUrlAndAttemptsExport(): void
     {
-        $backup = $_ENV['MONGODB_URL'] ?? null;
+        $backup              = $_ENV['MONGODB_URL'] ?? null;
         $_ENV['MONGODB_URL'] = 'mongodb://myhost:27018/mydb?authSource=admin';
 
         try {
@@ -511,7 +512,7 @@ class ExportDatabaseCommandTest extends TestCase
             ]);
             $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
             $doctrine->method('getManagerNames')->willReturn([]);
-            $doctrine->method('getManager')->with('mongodb')->willThrowException(new \Exception('No manager for mongodb'));
+            $doctrine->method('getManager')->with('mongodb')->willThrowException(new Exception('No manager for mongodb'));
 
             $container = $this->createMock(ContainerInterface::class);
             $container->method('has')->willReturnCallback(static function (string $id) {
@@ -551,7 +552,7 @@ class ExportDatabaseCommandTest extends TestCase
 
         $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
-        $doctrine->method('getManager')->with('default')->willThrowException(new \Exception('Manager failed'));
+        $doctrine->method('getManager')->with('default')->willThrowException(new Exception('Manager failed'));
 
         $container = $this->createMock(ContainerInterface::class);
         $container->method('has')->willReturnCallback(static fn (string $id) => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
@@ -586,8 +587,8 @@ class ExportDatabaseCommandTest extends TestCase
         $connection = $this->createMock(Connection::class);
         $connection->method('getParams')->willReturn(['driver' => 'pdo_unknown']);
         $connection->method('getDatabase')->willReturn('test_db');
-        $connection->method('getDriver')->willReturn($this->createMock(\Doctrine\DBAL\Driver::class));
-        $connection->method('getDatabasePlatform')->willThrowException(new \Exception('no platform'));
+        $connection->method('getDriver')->willReturn($this->createMock(Driver::class));
+        $connection->method('getDatabasePlatform')->willThrowException(new Exception('no platform'));
 
         $em = $this->createMock(EntityManagerInterface::class);
         $em->method('getConnection')->willReturn($connection);
@@ -623,8 +624,8 @@ class ExportDatabaseCommandTest extends TestCase
         // ContainerInterface has only has() and get(); no hasParameter → method_exists is false → fallback to getcwd()
 
         $command    = new ExportDatabaseCommand($container);
-        $reflection  = new ReflectionClass($command);
-        $method      = $reflection->getMethod('getProjectDirFromContainer');
+        $reflection = new ReflectionClass($command);
+        $method     = $reflection->getMethod('getProjectDirFromContainer');
         $method->setAccessible(true);
 
         $result = $method->invoke($command);
@@ -639,8 +640,8 @@ class ExportDatabaseCommandTest extends TestCase
      */
     public function testExecuteShowsExportedToAndSuccessWhenExportSucceeds(): void
     {
-        $outputDir   = sys_get_temp_dir() . '/export_success_' . uniqid();
-        $testDbPath  = sys_get_temp_dir() . '/source_export_cmd_' . uniqid() . '.db';
+        $outputDir  = sys_get_temp_dir() . '/export_success_' . uniqid();
+        $testDbPath = sys_get_temp_dir() . '/source_export_cmd_' . uniqid() . '.db';
         file_put_contents($testDbPath, 'SQLite content for export command test');
 
         $parameterBag = new ParameterBag([
@@ -670,11 +671,11 @@ class ExportDatabaseCommandTest extends TestCase
 
         $command = new ExportDatabaseCommand($container);
         $input   = new ArrayInput([
-            '--output-dir'  => $outputDir,
-            '--compression' => 'none',
+            '--output-dir'   => $outputDir,
+            '--compression'  => 'none',
             '--no-gitignore' => true,
         ]);
-        $output  = new BufferedOutput();
+        $output = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
         $content  = $output->fetch();
@@ -731,10 +732,10 @@ class ExportDatabaseCommandTest extends TestCase
 
         $command = new ExportDatabaseCommand($container);
         $input   = new ArrayInput([
-            '--output-dir'   => $outputDir,
-            '--compression'  => 'none',
+            '--output-dir'  => $outputDir,
+            '--compression' => 'none',
         ]);
-        $output  = new BufferedOutput();
+        $output = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
         $content  = $output->fetch();
@@ -756,5 +757,4 @@ class ExportDatabaseCommandTest extends TestCase
             rmdir($projectDir);
         }
     }
-
 }

@@ -452,7 +452,6 @@ final class DatabaseExportService
         return rmdir($directory);
     }
 
-
     /**
      * Updates the .gitignore file to exclude the export directory.
      */

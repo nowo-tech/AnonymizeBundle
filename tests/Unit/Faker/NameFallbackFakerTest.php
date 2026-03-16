@@ -182,8 +182,8 @@ class NameFallbackFakerTest extends TestCase
     {
         $faker = new NameFallbackFaker('en_US');
         $name  = $faker->generate([
-            'original_value'   => 'John',
-            'locale_specific'  => false,
+            'original_value'  => 'John',
+            'locale_specific' => false,
         ]);
 
         $this->assertIsString($name);

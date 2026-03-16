@@ -458,7 +458,7 @@ PHP;
      */
     public function testExecuteWithScanDocumentsWhenProjectRootIsNullFindsNoCollections(): void
     {
-        $container = new class() implements ContainerInterface {
+        $container = new class implements ContainerInterface {
             public function get(string $id): mixed
             {
                 return null;
@@ -555,7 +555,7 @@ PHP;
         mkdir($tmpDir, 0o755, true);
         mkdir($docPath, 0o755, true);
 
-        $readable = $docPath . '/Readable.php';
+        $readable   = $docPath . '/Readable.php';
         $unreadable = $docPath . '/Unreadable.php';
         file_put_contents($readable, "<?php\n#[Anonymize]\n#[Doc(collection: 'readable_coll')]\nclass R {}");
         file_put_contents($unreadable, "<?php\n#[Anonymize]\n#[Doc(collection: 'unreadable_coll')]\nclass U {}");

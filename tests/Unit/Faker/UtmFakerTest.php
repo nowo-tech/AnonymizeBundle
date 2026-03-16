@@ -708,5 +708,4 @@ final class UtmFakerTest extends TestCase
         }
         $this->assertTrue($found);
     }
-
 }

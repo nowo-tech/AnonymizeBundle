@@ -176,5 +176,4 @@ class KernelParameterBagAdapterTest extends TestCase
 
         $this->assertSame('es_ES', $value);
     }
-
 }

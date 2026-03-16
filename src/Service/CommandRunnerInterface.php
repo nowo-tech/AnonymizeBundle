@@ -24,11 +24,10 @@ interface CommandRunnerInterface
     /**
      * Executes a shell command.
      *
-     * @param string      $command The full command string to execute
-     * @param array<string>|null $output  Captured stdout lines (if any)
+     * @param string $command The full command string to execute
+     * @param array<string>|null $output Captured stdout lines (if any)
      *
      * @return int The process exit code (0 on success)
      */
     public function exec(string $command, ?array &$output = null): int;
 }
-

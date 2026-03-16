@@ -350,11 +350,10 @@ class PatternMatcherTest extends TestCase
      */
     public function testMatchesWithOrOperatorNoOptionMatches(): void
     {
-        $record = ['status' => 'xyz'];
+        $record          = ['status' => 'xyz'];
         $includePatterns = ['status' => 'active|pending'];
         $this->assertFalse($this->matcher->matches($record, $includePatterns));
     }
-
 
     /**
      * Test nested value access with dot notation.
@@ -793,7 +792,7 @@ class PatternMatcherTest extends TestCase
      */
     public function testMatchesWithPipeAndPercentTreatedAsLike(): void
     {
-        $record = ['email' => 'user@example.com'];
+        $record          = ['email' => 'user@example.com'];
         $includePatterns = ['email' => 'nomatch|%@example.com'];
         $this->assertFalse($this->matcher->matches($record, $includePatterns));
     }
@@ -803,7 +802,7 @@ class PatternMatcherTest extends TestCase
      */
     public function testMatchesWithOrPatternAllOptionsNoMatch(): void
     {
-        $record = ['tag' => 'xyz'];
+        $record          = ['tag' => 'xyz'];
         $includePatterns = ['tag' => 'alpha|beta|gamma'];
         $this->assertFalse($this->matcher->matches($record, $includePatterns));
     }
@@ -825,5 +824,4 @@ class PatternMatcherTest extends TestCase
         $record = ['type' => ['code' => 'X']];
         $this->assertFalse($this->matcher->matches($record, ['type.name' => 'HR']));
     }
-
 }

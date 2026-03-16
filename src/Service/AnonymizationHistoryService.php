@@ -56,10 +56,10 @@ final class AnonymizationHistoryService
      */
     public function __construct(string $historyDir, ?callable $symfonyVersionProvider = null, ?callable $kernelClassExistsProvider = null)
     {
-        $this->filesystem                 = new Filesystem();
-        $this->historyDir                 = rtrim($historyDir, '/');
-        $this->symfonyVersionProvider     = $symfonyVersionProvider;
-        $this->kernelClassExistsProvider  = $kernelClassExistsProvider;
+        $this->filesystem                = new Filesystem();
+        $this->historyDir                = rtrim($historyDir, '/');
+        $this->symfonyVersionProvider    = $symfonyVersionProvider;
+        $this->kernelClassExistsProvider = $kernelClassExistsProvider;
     }
 
     /**
@@ -146,7 +146,7 @@ final class AnonymizationHistoryService
                 $runData = json_decode(file_get_contents($entry['file']), true);
                 if ($runData !== null) {
                     $runData['file'] = $entry['file'];
-                    $runs[]         = $runData;
+                    $runs[]          = $runData;
                 }
             } else {
                 // Fallback to index data if file doesn't exist

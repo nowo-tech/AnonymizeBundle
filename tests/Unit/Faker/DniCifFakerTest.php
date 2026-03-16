@@ -148,7 +148,7 @@ class DniCifFakerTest extends TestCase
      */
     public function testGenerateAutoDetectsDefaultsToDniWhenValueUnrecognized(): void
     {
-        $faker = new DniCifFaker('es_ES');
+        $faker  = new DniCifFaker('es_ES');
         $result = $faker->generate(['type' => 'auto', 'original_value' => 'X']);
 
         $this->assertIsString($result);
@@ -161,7 +161,7 @@ class DniCifFakerTest extends TestCase
      */
     public function testGenerateWithUnknownTypeDefaultsToDni(): void
     {
-        $faker = new DniCifFaker('es_ES');
+        $faker  = new DniCifFaker('es_ES');
         $result = $faker->generate(['type' => 'other']);
 
         $this->assertIsString($result);

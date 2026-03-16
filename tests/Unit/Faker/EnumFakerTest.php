@@ -232,8 +232,8 @@ class EnumFakerTest extends TestCase
      */
     public function testSelectWeightedValueFallbackReturnsLastKey(): void
     {
-        $faker    = new EnumFaker('en_US');
-        $weighted = ['first' => 10, 'second' => 20, 'last' => 30];
+        $faker       = new EnumFaker('en_US');
+        $weighted    = ['first' => 10, 'second' => 20, 'last' => 30];
         $totalWeight = 60;
 
         $mockFaker = $this->createMock(\Faker\Generator::class);
@@ -241,7 +241,7 @@ class EnumFakerTest extends TestCase
             ->willReturn($totalWeight + 1.0);
 
         $reflection = new ReflectionObject($faker);
-        $prop = $reflection->getProperty('faker');
+        $prop       = $reflection->getProperty('faker');
         $prop->setAccessible(true);
         $prop->setValue($faker, $mockFaker);
 
