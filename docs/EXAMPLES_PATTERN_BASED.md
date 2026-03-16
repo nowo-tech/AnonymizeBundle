@@ -2,6 +2,17 @@
 
 This document provides practical examples of using the `pattern_based` and `copy` fakers to construct values from other fields while preserving patterns or copying values.
 
+## Table of contents
+
+- [Example 1: Username from Email with Number Suffix](#example-1-username-from-email-with-number-suffix)
+- [Example 2: User ID Suffix](#example-2-user-id-suffix)
+- [Example 3: Custom Separator](#example-3-custom-separator)
+- [Example 4: Fallback When Source is Null](#example-4-fallback-when-source-is-null)
+- [Example 5: Complete User Account with Email and Username Canonical](#example-5-complete-user-account-with-email-and-username-canonical)
+- [Example 6: Copy Faker - Simple Value Copying](#example-6-copy-faker---simple-value-copying)
+- [Example 7: Copy Faker with Fallback](#example-7-copy-faker-with-fallback)
+- [Important Notes](#important-notes)
+
 ## Example 1: Username from Email with Number Suffix
 
 **Scenario**: You have a `User` entity where:

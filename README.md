@@ -1,12 +1,30 @@
 # Anonymize Bundle
 
-[![Packagist Version](https://img.shields.io/packagist/v/nowo-tech/anonymize-bundle.svg?style=flat)](https://packagist.org/packages/nowo-tech/anonymize-bundle) [![CI](https://github.com/nowo-tech/AnonymizeBundle/actions/workflows/ci.yml/badge.svg)](https://github.com/nowo-tech/AnonymizeBundle/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4?logo=php)](https://php.net) [![Symfony](https://img.shields.io/badge/Symfony-6.1%2B%20%7C%207%20%7C%208-000000?logo=symfony)](https://symfony.com) [![GitHub stars](https://img.shields.io/github/stars/nowo-tech/AnonymizeBundle.svg?style=social&label=Star)](https://github.com/nowo-tech/AnonymizeBundle)
+[![CI](https://github.com/nowo-tech/AnonymizeBundle/actions/workflows/ci.yml/badge.svg)](https://github.com/nowo-tech/AnonymizeBundle/actions/workflows/ci.yml) [![Packagist Version](https://img.shields.io/packagist/v/nowo-tech/anonymize-bundle.svg?style=flat)](https://packagist.org/packages/nowo-tech/anonymize-bundle) [![Packagist Downloads](https://img.shields.io/packagist/dt/nowo-tech/anonymize-bundle.svg)](https://packagist.org/packages/nowo-tech/anonymize-bundle) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4?logo=php)](https://php.net) [![Symfony](https://img.shields.io/badge/Symfony-6.1%2B%20%7C%207%20%7C%208-000000?logo=symfony)](https://symfony.com) [![GitHub stars](https://img.shields.io/github/stars/nowo-tech/anonymize-bundle.svg?style=social&label=Star)](https://github.com/nowo-tech/AnonymizeBundle)
 
-> ⭐ **Found this project useful?** Give it a star on GitHub! It helps us maintain and improve the project.
+> ⭐ **Found this useful?** [Install from Packagist](https://packagist.org/packages/nowo-tech/anonymize-bundle) · Give it a **star** on [GitHub](https://github.com/nowo-tech/AnonymizeBundle) so more developers can find it.
 
 **Symfony bundle for database anonymization, test data generation, and GDPR compliance.** Anonymize database records using Doctrine attributes and Faker generators. Perfect for development environments, testing, data masking, and privacy compliance.
 
 > 📋 **Compatible with Symfony 6.1+, 7.x, and 8.x** - This bundle requires Symfony 6.1 or higher (Symfony 6.0 is not supported).
+
+## Table of contents
+
+- [What is this?](#what-is-this)
+- [Quick Search Terms](#quick-search-terms)
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Requirements](#requirements)
+- [Configuration](#configuration)
+- [Commands](#commands)
+- [Faker Types](#faker-types)
+- [Documentation](#documentation)
+- [Testing](#testing)
+- [License](#license)
+- [Contributing](#contributing)
+- [Roadmap](#roadmap)
+- [Author](#author)
 
 ## What is this?
 
@@ -46,6 +64,7 @@ Looking for: **database anonymization**, **test data generator**, **GDPR complia
 - ✅ Configurable output directories: Customize where statistics and exports are saved
 - ✅ Table truncation: Empty tables before anonymization with configurable execution order (for polymorphic entities, only rows of that discriminator are deleted)
 - ✅ Custom entity anonymizer: Delegate anonymization to a service per entity via `anonymizeService` (`EntityAnonymizerServiceInterface`)
+- ✅ **FrankenPHP** — Compatible with FrankenPHP (including worker mode); demos run with FrankenPHP and Caddy (see [demo/README.md](demo/README.md))
 
 ## Installation
 
@@ -158,15 +177,26 @@ See [FAKERS.md](docs/FAKERS.md) for complete list and configuration options.
 
 ## Documentation
 
-- [Usage Guide](docs/USAGE.md) - Complete usage examples and patterns
-- [Example: Polymorphism + anonymize service (e.g. AWS path migration)](docs/EXAMPLES_POLYMORPHISM_ANONYMIZE_SERVICE.md) - Step-by-step: STI entity, custom service, migrating file paths (e.g. S3) between buckets
-- [Commands](docs/COMMANDS.md) - Detailed command documentation
-- [Faker Types](docs/FAKERS.md) - Complete list of all faker types
-- [Configuration Guide](docs/CONFIGURATION.md) - Detailed configuration options
-- [Installation Guide](docs/INSTALLATION.md) - Step-by-step installation instructions
-- [Upgrade Guide](docs/UPGRADING.md) - Instructions for upgrading between versions
-- [Testing Guide](docs/TESTING_COMMANDS.md) - How to test all commands with all options
-- [Development Guide](docs/DEVELOPMENT.md) - Development setup, testing, and code quality
+- [Installation](docs/INSTALLATION.md)
+- [Configuration](docs/CONFIGURATION.md)
+- [Usage](docs/USAGE.md)
+- [Contributing](docs/CONTRIBUTING.md)
+- [Changelog](docs/CHANGELOG.md)
+- [Upgrading](docs/UPGRADING.md)
+- [Release](docs/RELEASE.md)
+- [Security](docs/SECURITY.md)
+- [Engram](docs/ENGRAM.md)
+- [Roadmap](docs/ROADMAP.md)
+
+### Additional documentation
+
+- [Demo with FrankenPHP (development and production)](docs/DEMO-FRANKENPHP.md)
+- [Commands](docs/COMMANDS.md)
+- [Faker Types](docs/FAKERS.md)
+- [Example: Polymorphism + anonymize service](docs/EXAMPLES_POLYMORPHISM_ANONYMIZE_SERVICE.md)
+- [Testing commands](docs/TESTING_COMMANDS.md)
+- [Development](docs/DEVELOPMENT.md)
+- [Branching](docs/BRANCHING.md)
 
 ## Testing
 
@@ -181,15 +211,6 @@ The bundle includes a comprehensive testing script to verify all commands work c
 ```
 
 The script tests **31 different command combinations** covering all main options across all database connections. See [TESTING_COMMANDS.md](docs/TESTING_COMMANDS.md) for details.
-
-## More documentation
-
-- [Changelog](docs/CHANGELOG.md) - Complete version history and changes
-- [Release process](docs/RELEASE.md) - Versioning, tagging, and release steps
-- [Security policy](docs/SECURITY.md) - How to report vulnerabilities
-- [Roadmap](docs/ROADMAP.md) - Planned features and future enhancements
-- [Branching Strategy](docs/BRANCHING.md) - Git workflow and branching guidelines
-- [Contributing Guide](docs/CONTRIBUTING.md) - How to contribute to this project
 
 ## License
 

@@ -10,9 +10,14 @@ services:
       - .:/app
       # Mount bundle root so the demo uses bundle files from the repo
       - ../..:/var/anonymize-bundle
+      - ./docker/frankenphp/Caddyfile.dev:/etc/frankenphp/Caddyfile.dev
+      - ./docker/php-dev.ini:/usr/local/etc/php/conf.d/99-dev.ini:ro
       - composer-cache:/root/.composer/cache
     environment:
       - COMPOSER_ALLOW_SUPERUSER=1
+      - APP_ENV=dev
+      - APP_DEBUG=1
+      - APP_SECRET=${APP_SECRET:-demo-secret}
       - DATABASE_URL=mysql://${MYSQL_USER:-demo_user}:${MYSQL_PASSWORD:-password}@mysql:3306/${MYSQL_DATABASE:-anonymize_demo}?serverVersion=8.0&charset=utf8mb4
       - DATABASE_URL_POSTGRES=postgresql://${POSTGRES_USER:-demo_user}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-anonymize_demo}?serverVersion=16&charset=utf8
       - DATABASE_URL_SQLITE=sqlite:///%kernel.project_dir%/var/data/anonymize_demo.sqlite

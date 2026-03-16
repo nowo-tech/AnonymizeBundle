@@ -121,6 +121,7 @@ final class PatternMatcher
             // Normalize: allow value to be array of options (OR)
             $options      = is_array($pattern) ? $pattern : [$pattern];
             $fieldMatched = false;
+            $field        = (string) $field;
 
             foreach ($options as $option) {
                 $option = is_string($option) ? $option : (string) $option;
@@ -171,12 +172,17 @@ final class PatternMatcher
 
             return $value > $threshold;
         }
+        if (str_starts_with($pattern, '<>')) {
+            $expected = substr($pattern, 2);
+
+            return $value != $expected;
+        }
         if (str_starts_with($pattern, '<')) {
             $threshold = (float) substr($pattern, 1);
 
             return $value < $threshold;
         }
-        if (str_starts_with($pattern, '!=') || str_starts_with($pattern, '<>')) {
+        if (str_starts_with($pattern, '!=')) {
             $expected = substr($pattern, 2);
 
             return $value != $expected;

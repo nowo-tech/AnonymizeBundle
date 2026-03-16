@@ -4,6 +4,33 @@ This guide covers how to use the Anonymize Bundle in your Symfony application.
 
 > 📋 **Requirements**: This bundle requires **Symfony 6.1 or higher** (Symfony 6.0 is not supported). See [INSTALLATION.md](INSTALLATION.md) for complete requirements.
 
+## Table of contents
+
+- [Basic Setup](#basic-setup)
+  - [Using FakerType Enum (Recommended)](#using-fakertype-enum-recommended)
+  - [Using Strings (Still Supported)](#using-strings-still-supported)
+- [Advanced Usage](#advanced-usage)
+  - [Pattern-based Filtering](#pattern-based-filtering)
+  - [Truncating Tables (Emptying Before Anonymization)](#truncating-tables-emptying-before-anonymization)
+  - [Anonymizing via a custom service (anonymizeService)](#anonymizing-via-a-custom-service-anonymizeservice)
+  - [Weight-based Ordering](#weight-based-ordering)
+  - [Relationship Patterns](#relationship-patterns)
+  - [Custom Service Faker](#custom-service-faker)
+  - [Multiple Connections](#multiple-connections)
+  - [Limiting to specific entities](#limiting-to-specific-entities)
+  - [Anonymization Tracking](#anonymization-tracking)
+- [Pattern Matching](#pattern-matching)
+- [Specialized Fakers](#specialized-fakers)
+  - [Name Fallback Faker](#name-fallback-faker)
+  - [DNI/CIF/NIF Faker](#dnicifnif-faker)
+  - [HTML Faker](#html-faker)
+  - [Nullable Option](#nullable-option)
+  - [Preserve Null Option](#preserve-null-option)
+  - [Pattern-Based Faker](#pattern-based-faker)
+  - [UTM Faker](#utm-faker)
+  - [Copy Faker](#copy-faker)
+- [Event System](#event-system)
+
 ## Basic Setup
 
 ### Using FakerType Enum (Recommended)

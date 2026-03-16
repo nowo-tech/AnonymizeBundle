@@ -65,8 +65,13 @@
         "fakerphp/faker": "^1.23"
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "phpstan/phpstan-symfony": "^2.0",
         "phpunit/phpunit": "^10.0",
-        "friendsofphp/php-cs-fixer": "^3.0"
+        "rector/rector": "^2.0"
     },
     "autoload": {
         "psr-4": {
@@ -79,12 +84,13 @@
         }
     },
     "archive": {
-        "exclude": ["/demo"]
+        "exclude": ["/demo", "/.cursor"]
     },
     "config": {
         "sort-packages": true,
         "allow-plugins": {
-            "composer/package-versions-deprecated": true
+            "composer/package-versions-deprecated": true,
+            "phpstan/extension-installer": true
         }
     },
     "minimum-stability": "stable",
@@ -94,6 +100,11 @@
         "test-coverage": "phpunit --coverage-text --coverage-html coverage --coverage-clover coverage.xml",
         "cs-check": "php-cs-fixer fix --dry-run --diff",
         "cs-fix": "php-cs-fixer fix",
+        "phpstan": "phpstan analyse --memory-limit=512M",
+        "rector": "rector process",
+        "rector-dry": "rector process --dry-run --no-progress-bar",
+        "update": "composer update --no-interaction",
+        "validate": "composer validate --strict",
         "qa": [
             "@cs-check",
             "@test"
@@ -104,6 +115,11 @@
         "test-coverage": "Run PHPUnit tests with code coverage",
         "cs-check": "Check code style with PHP-CS-Fixer",
         "cs-fix": "Fix code style with PHP-CS-Fixer",
+        "phpstan": "Run PHPStan static analysis",
+        "rector": "Apply Rector refactoring",
+        "rector-dry": "Run Rector in dry-run mode",
+        "update": "Update composer.lock (composer update)",
+        "validate": "Validate composer.json (composer validate --strict)",
         "qa": "Run all quality assurance checks"
     }
 }

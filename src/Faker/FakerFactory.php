@@ -23,7 +23,7 @@ use function sprintf;
  * @copyright 2025 Nowo.tech
  */
 // #[AsAlias(id: self::SERVICE_NAME)]
-final class FakerFactory
+final class FakerFactory implements FakerFactoryInterface
 {
     public const SERVICE_NAME = 'nowo_anonymize.faker_factory';
 

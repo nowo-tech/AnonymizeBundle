@@ -1,39 +1,25 @@
-# Composer
-/vendor/
-# composer.lock  # raíz: sí se commitea para fijar dependencias
+# Dependencies
+/vendor
 
-# PHPUnit
-.phpunit.cache/
-coverage/
-coverage.xml
-.phpunit.result.cache
-
-# PHP CS Fixer
-.php-cs-fixer.cache
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Environment files
+# Environment and secrets
 .env
 .env.local
 .env.*.local
 
-# Demo projects
-demo/*/vendor/
-demo/*/var/
-demo/*/.env
-demo/*/.phpunit.cache/
-demo/*/coverage/
-demo/*/composer.lock
+# Test coverage
+/coverage
+/coverage.xml
+/*.xml
 
-# Old/obsolete demos
-demo/demo-symfony7-mysql/
+# PHP tool caches
+/.php-cs-fixer.cache
+/.phpunit.cache
+/.phpunit.result.cache
+
+# Archives / compressed
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z

@@ -6,6 +6,7 @@ namespace Nowo\AnonymizeBundle\Service;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Psr\Container\ContainerInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -15,7 +16,6 @@ use function sprintf;
 use function strlen;
 
 use const PATHINFO_FILENAME;
-use const PHP_OS;
 
 /**
  * Service for exporting databases.
@@ -35,14 +35,17 @@ final class DatabaseExportService
      * @param string $filenamePattern The filename pattern
      * @param string $compression The compression format (none, gzip, bzip2, zip)
      * @param bool $autoGitignore Whether to automatically update .gitignore
+     * @param CommandRunnerInterface|null $commandRunner Optional command runner abstraction
      */
     public function __construct(
         private ContainerInterface $container,
         private string $outputDir,
         private string $filenamePattern,
         private string $compression,
-        private bool $autoGitignore
+        private bool $autoGitignore,
+        private ?CommandRunnerInterface $commandRunner = null,
     ) {
+        $this->commandRunner = $this->commandRunner ?? new SystemCommandRunner();
     }
 
     /**
@@ -56,7 +59,7 @@ final class DatabaseExportService
     public function exportConnection(EntityManagerInterface $em, string $connectionName): ?string
     {
         $connection = $em->getConnection();
-        $driver     = \Nowo\AnonymizeBundle\Helper\DbalHelper::getDriverName($connection);
+        $driver     = DbalHelper::getDriverName($connection);
         $database   = $connection->getDatabase();
 
         // Generate filename
@@ -113,7 +116,7 @@ final class DatabaseExportService
     public function exportMongoDB(string $connectionName, string $database, string $host = 'localhost', int $port = 27017): ?string
     {
         // Check if mongodump is available
-        if (!$this->commandExists('mongodump')) {
+        if (!$this->commandRunner->commandExists('mongodump')) {
             return null;
         }
 
@@ -135,7 +138,7 @@ final class DatabaseExportService
             escapeshellarg($this->outputDir),
         );
 
-        exec($command, $output, $returnCode);
+        $returnCode = $this->commandRunner->exec($command, $output);
 
         if ($returnCode !== 0) {
             return null;
@@ -180,7 +183,7 @@ final class DatabaseExportService
      */
     private function exportMySQL(Connection $connection, string $outputPath): ?string
     {
-        if (!$this->commandExists('mysqldump')) {
+        if (!$this->commandRunner->commandExists('mysqldump')) {
             return null;
         }
 
@@ -201,7 +204,7 @@ final class DatabaseExportService
             escapeshellarg($outputPath),
         );
 
-        exec($command, $output, $returnCode);
+        $returnCode = $this->commandRunner->exec($command, $output);
 
         return $returnCode === 0 && file_exists($outputPath) ? $outputPath : null;
     }
@@ -216,7 +219,7 @@ final class DatabaseExportService
      */
     private function exportPostgreSQL(Connection $connection, string $outputPath): ?string
     {
-        if (!$this->commandExists('pg_dump')) {
+        if (!$this->commandRunner->commandExists('pg_dump')) {
             return null;
         }
 
@@ -240,7 +243,7 @@ final class DatabaseExportService
             escapeshellarg($outputPath),
         );
 
-        exec($command, $output, $returnCode);
+        $returnCode = $this->commandRunner->exec($command, $output);
 
         return $returnCode === 0 && file_exists($outputPath) ? $outputPath : null;
     }
@@ -326,15 +329,15 @@ final class DatabaseExportService
 
         switch ($this->compression) {
             case 'gzip':
-                if ($this->commandExists('gzip')) {
-                    exec('gzip ' . escapeshellarg($filePath) . ' 2>&1', $output, $returnCode);
+                if ($this->commandRunner->commandExists('gzip')) {
+                    $this->commandRunner->exec('gzip ' . escapeshellarg($filePath) . ' 2>&1', $output);
                     $compressedPath = $filePath . '.gz';
                 }
                 break;
 
             case 'bzip2':
-                if ($this->commandExists('bzip2')) {
-                    exec('bzip2 ' . escapeshellarg($filePath) . ' 2>&1', $output, $returnCode);
+                if ($this->commandRunner->commandExists('bzip2')) {
+                    $this->commandRunner->exec('bzip2 ' . escapeshellarg($filePath) . ' 2>&1', $output);
                     $compressedPath = $filePath . '.bz2';
                 }
                 break;
@@ -400,7 +403,7 @@ final class DatabaseExportService
      */
     private function createTarArchive(string $directory, string $tarPath): bool
     {
-        if (!$this->commandExists('tar')) {
+        if (!$this->commandRunner->commandExists('tar')) {
             return false;
         }
 
@@ -418,7 +421,7 @@ final class DatabaseExportService
             escapeshellarg($directory),
         );
 
-        exec($command, $output, $returnCode);
+        $returnCode = $this->commandRunner->exec($command, $output);
 
         return $returnCode === 0 && file_exists($tarPath);
     }
@@ -449,35 +452,6 @@ final class DatabaseExportService
         return rmdir($directory);
     }
 
-    /**
-     * Checks if a command exists.
-     *
-     * @param string $command The command name
-     *
-     * @return bool True if the command exists, false otherwise
-     */
-    private function commandExists(string $command): bool
-    {
-        $whereIsCommand = (PHP_OS === 'WINNT') ? 'where' : 'which';
-        $process        = proc_open(
-            "{$whereIsCommand} {$command}",
-            [
-                0 => ['pipe', 'r'],
-                1 => ['pipe', 'w'],
-                2 => ['pipe', 'w'],
-            ],
-            $pipes,
-        );
-
-        if ($process === false) {
-            return false;
-        }
-
-        $stdout     = stream_get_contents($pipes[1]);
-        $returnCode = proc_close($process);
-
-        return $returnCode === 0 && !empty($stdout);
-    }
 
     /**
      * Updates the .gitignore file to exclude the export directory.

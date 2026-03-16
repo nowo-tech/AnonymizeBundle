@@ -6,6 +6,16 @@ The bundle supports 39 different faker types for anonymizing various data types.
 
 > 💡 **Tip**: All fakers support the `nullable` and `null_probability` options to generate null values with a configurable probability. See [USAGE.md](USAGE.md#nullable-option) for details.
 
+## Table of contents
+
+- [Using FakerType Enum (Recommended)](#using-fakertype-enum-recommended)
+- [Basic Fakers](#basic-fakers)
+- [Advanced Fakers](#advanced-fakers)
+- [Specialized Fakers](#specialized-fakers)
+- [Data Preservation Fakers](#data-preservation-fakers)
+- [Custom Fakers](#custom-fakers)
+- [Enhanced Fakers](#enhanced-fakers)
+
 ## Using FakerType Enum (Recommended)
 
 For better type safety and IDE autocompletion, use the `FakerType` enum instead of strings:

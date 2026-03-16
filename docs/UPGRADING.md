@@ -2,6 +2,17 @@
 
 This guide provides step-by-step instructions for upgrading the Anonymize Bundle between versions.
 
+## Table of contents
+
+- [General Upgrade Process](#general-upgrade-process)
+- [Upgrade Instructions by Version](#upgrade-instructions-by-version)
+- [Troubleshooting Upgrades](#troubleshooting-upgrades)
+  - [Common Issues](#common-issues)
+  - [Getting Help](#getting-help)
+- [Version Compatibility](#version-compatibility)
+- [Additional Resources](#additional-resources)
+- [Notes](#notes)
+
 ## General Upgrade Process
 
 1. **Backup your database**: Always backup your database before running anonymization

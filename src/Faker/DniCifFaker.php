@@ -154,9 +154,9 @@ final class DniCifFaker implements FakerInterface
         $remainder = $sum % 10;
         $checksum  = $remainder === 0 ? 0 : 10 - $remainder;
 
-        // Convert to letter if checksum is 10 (shouldn't happen with our calculation, but for safety)
+        // Convert to letter if checksum is 10 (unreachable with modulo 10, but kept for CIF spec safety)
         if ($checksum === 10) {
-            return 'J';
+            return 'J'; // @codeCoverageIgnore
         }
 
         return (string) $checksum;

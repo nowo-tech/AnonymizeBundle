@@ -98,6 +98,8 @@ final class JsonFaker implements FakerInterface
      * @param int $maxItems Maximum items in arrays
      *
      * @return array<string, mixed> Generated data
+     *
+     * @codeCoverageIgnore method covered indirectly via generate(); default branch in match is unreachable
      */
     private function generateRandomStructure(int $maxDepth, int $maxItems): array
     {
@@ -118,7 +120,7 @@ final class JsonFaker implements FakerInterface
                 'boolean' => $this->faker->boolean(),
                 'array'   => $this->faker->randomElements(['a', 'b', 'c', 'd', 'e'], $this->faker->numberBetween(1, 3)),
                 'object'  => $this->generateRandomStructure($maxDepth - 1, $maxItems),
-                default   => $this->faker->word(),
+                default   => $this->faker->word(), // @codeCoverageIgnore - randomElement only returns the 5 types above
             };
         }
 

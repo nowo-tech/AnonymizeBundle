@@ -2,6 +2,30 @@
 
 This document describes how to test all commands of the AnonymizeBundle in the demo applications.
 
+## Table of contents
+
+- [Available Commands](#available-commands)
+- [Testing Script](#testing-script)
+  - [Usage](#usage)
+  - [What It Tests](#what-it-tests)
+  - [Prerequisites](#prerequisites)
+  - [Output](#output)
+  - [Example Output](#example-output)
+  - [Customizing Tests](#customizing-tests)
+- [Manual Testing](#manual-testing)
+  - [1. nowo:anonymize:info](#1-nowoanonymizeinfo)
+  - [2. nowo:anonymize:run](#2-nowoanonymizerun)
+  - [3. nowo:anonymize:history](#3-nowoanonymizehistory)
+  - [4. nowo:anonymize:export-db](#4-nowoanonymizeexport-db)
+  - [5. nowo:anonymize:generate-column-migration](#5-nowoanonymizegenerate-column-migration)
+  - [6. nowo:anonymize:generate-mongo-field](#6-nowoanonymizegenerate-mongo-field)
+- [Testing Checklist](#testing-checklist)
+- [Common Issues](#common-issues)
+  - [Containers not running](#containers-not-running)
+  - [Database not initialized](#database-not-initialized)
+  - [Permission issues](#permission-issues)
+- [Notes](#notes)
+
 ## Available Commands
 
 The bundle provides 6 console commands:

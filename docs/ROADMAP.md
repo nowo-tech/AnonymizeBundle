@@ -2,6 +2,30 @@
 
 This document outlines the vision, adoption strategy, and planned features for the Anonymize Bundle. The goal is to make it **the default Symfony solution** for database anonymization and GDPR-friendly dev/test data.
 
+## Table of contents
+
+- [Vision and why this bundle will be widely used](#vision-and-why-this-bundle-will-be-widely-used)
+  - [North Star](#north-star)
+  - [Core focus (we do not dilute)](#core-focus-we-do-not-dilute)
+  - [Four pillars for adoption](#four-pillars-for-adoption)
+- [Adoption roadmap (next 12–24 months)](#adoption-roadmap-next-1224-months)
+  - [Phase A: Visibility and first-run experience](#phase-a-visibility-and-first-run-experience-next-36-months)
+  - [Phase B: Integrations and ecosystem](#phase-b-integrations-and-ecosystem-612-months)
+  - [Phase C: Scale and optional enterprise](#phase-c-scale-and-optional-enterprise-1224-months)
+- [Current Status (1.0.12 - Released)](#current-status-1012---released)
+- [Phase 1: Enhanced Fakers (v0.1.0)](#phase-1-enhanced-fakers-v010)
+- [Phase 2: Advanced Anonymization Features (v0.2.0)](#phase-2-advanced-anonymization-features-v020)
+- [Phase 3: Database and Platform Support (v0.3.0)](#phase-3-database-and-platform-support-v030)
+- [Phase 4: Developer Experience (v0.4.0)](#phase-4-developer-experience-v040)
+- [Phase 5: Enterprise Features (v0.5.0)](#phase-5-enterprise-features-v050)
+- [Phase 6: Performance and Scalability (v0.6.0)](#phase-6-performance-and-scalability-v060)
+- [Phase 7: Security and Compliance (v0.7.0)](#phase-7-security-and-compliance-v070)
+- [Phase 8: Advanced Features (v0.8.0)](#phase-8-advanced-features-v080)
+- [Implementation Priority](#implementation-priority)
+- [Community and contributions](#community-and-contributions)
+- [Version Timeline](#version-timeline)
+- [Notes](#notes)
+
 ---
 
 ## Vision and why this bundle will be widely used

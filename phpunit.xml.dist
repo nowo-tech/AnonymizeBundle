@@ -10,8 +10,11 @@
          failOnWarning="false"
          displayDetailsOnTestsThatTriggerWarnings="true">
     <testsuites>
-        <testsuite name="default">
-            <directory>tests</directory>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
         </testsuite>
     </testsuites>
 
@@ -19,11 +22,6 @@
         <include>
             <directory>src</directory>
         </include>
-        <exclude>
-            <directory suffix=".php">src/Command</directory>
-            <file>src/Service/AnonymizeService.php</file>
-            <file>src/Service/DatabaseExportService.php</file>
-        </exclude>
     </source>
 
     <coverage>

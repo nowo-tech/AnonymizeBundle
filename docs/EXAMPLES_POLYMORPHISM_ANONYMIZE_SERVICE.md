@@ -2,6 +2,19 @@
 
 This guide shows how to combine **Doctrine polymorphism (STI)** with **anonymization via a custom service** (`anonymizeService`) in a real-world scenario: entities that store **file paths** (e.g. AWS S3 keys) in the database, where “anonymizing” means **copying the file from one storage (e.g. production S3) to another (e.g. dev/anonymized S3)** and updating the stored path.
 
+## Table of contents
+
+- [When to use this pattern](#when-to-use-this-pattern)
+- [Scenario: documents with storage paths](#scenario-documents-with-storage-paths)
+- [Flow (step by step)](#flow-step-by-step)
+- [Code example](#code-example)
+  - [1. Entity (polymorphic STI, one subtype with service)](#1-entity-polymorphic-sti-one-subtype-with-service)
+  - [2. Anonymizer service (copy from AWS source to destination, update path)](#2-anonymizer-service-copy-from-aws-source-to-destination-update-path)
+  - [3. Service registration (Symfony)](#3-service-registration-symfony)
+  - [4. Flow summary](#4-flow-summary)
+- [Optional: placeholder instead of real copy](#optional-placeholder-instead-of-real-copy)
+- [See also](#see-also)
+
 ## When to use this pattern
 
 - **Polymorphic entities**: You have a hierarchy (e.g. `AbstractDocument` → `StoredDocument`, `ExternalLinkDocument`) and only some subtypes store a path that needs special handling.

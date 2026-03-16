@@ -4,6 +4,38 @@
 
 The bundle provides six console commands for managing anonymization, database exports, and history.
 
+## Table of contents
+
+- [Anonymize Command](#anonymize-command)
+  - [Options](#options)
+  - [Examples](#examples)
+  - [Interactive Mode](#interactive-mode)
+- [Generate Column Migration Command](#generate-column-migration-command)
+  - [Options](#options-1)
+  - [Examples](#examples-1)
+- [Generate MongoDB Field Script Command](#generate-mongodb-field-script-command)
+  - [Options](#options-2)
+  - [Examples](#examples-2)
+  - [Generated Script](#generated-script)
+- [Info Command](#info-command)
+  - [Options](#options-3)
+  - [What it shows](#what-it-shows)
+  - [Examples](#examples-3)
+- [Statistics](#statistics)
+  - [Viewing Statistics](#viewing-statistics)
+  - [Export Statistics to JSON](#export-statistics-to-json)
+  - [Statistics Only Mode](#statistics-only-mode)
+- [Anonymization History Command](#anonymization-history-command)
+  - [Options](#options-4)
+  - [Examples](#examples-4)
+  - [Features](#features)
+  - [History Storage](#history-storage)
+- [Export Database Command](#export-database-command)
+  - [Options](#options-5)
+  - [Examples](#examples-5)
+  - [Configuration](#configuration)
+  - [Features](#features-1)
+
 ## Anonymize Command
 
 Main command to anonymize database records.

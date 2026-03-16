@@ -1,5 +1,16 @@
 # Symfony Flex Recipe
 
+## Table of contents
+
+- [Recipe Status](#recipe-status)
+- [Temporary Solution](#temporary-solution)
+- [How to Publish the Recipe](#how-to-publish-the-recipe)
+  - [Option 1: Symfony Recipes Contrib (Recommended)](#option-1-symfony-recipes-contrib-recommended)
+  - [Option 2: Update the Recipe for Future Versions](#option-2-update-the-recipe-for-future-versions)
+- [Recipe Structure](#recipe-structure)
+- [Important Notes](#important-notes)
+- [References](#references)
+
 ## Recipe Status
 
 The Symfony Flex recipe for this bundle is **not published** in the official Symfony recipes repository. This means that the configuration file `config/packages/dev/nowo_anonymize.yaml` **is not automatically created** when installing the bundle from Packagist.

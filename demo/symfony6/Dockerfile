@@ -30,10 +30,12 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV PATH="/app/vendor/bin:${PATH}"
 ENV SERVER_NAME=:80
 
-RUN git config --global --add safe.directory /app
+RUN git config --global --add safe.directory /app && \
+	git config --global --add safe.directory /var/anonymize-bundle
 
-# Caddyfile for Symfony (root /app/public)
+# Caddyfile for Symfony (root /app/public). Caddyfile.dev used when APP_ENV=dev.
 COPY docker/frankenphp/Caddyfile /etc/frankenphp/Caddyfile
+COPY docker/frankenphp/Caddyfile.dev /etc/frankenphp/Caddyfile.dev
 
 # Entrypoint: wait for DBs + run migrations/fixtures, then start FrankenPHP
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh

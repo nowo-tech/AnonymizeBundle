@@ -4,6 +4,33 @@
 
 > 📋 **Requirements**: This bundle requires **Symfony 6.1 or higher** (Symfony 6.0 is not supported). See [INSTALLATION.md](INSTALLATION.md) for complete requirements.
 
+## Table of contents
+
+- [Configuration File](#configuration-file)
+- [Configuration Options](#configuration-options)
+  - [locale](#locale)
+  - [connections](#connections)
+  - [dry_run](#dry_run)
+  - [batch_size](#batch_size)
+  - [history_dir](#history_dir)
+  - [export](#export)
+- [Environment-Specific Configuration](#environment-specific-configuration)
+- [Command-Line Overrides](#command-line-overrides)
+- [Using FakerFactory in your own services](#using-fakerfactory-in-your-own-services)
+- [Available Commands](#available-commands)
+- [Pattern Matching](#pattern-matching)
+  - [Entity-Level Patterns](#entity-level-patterns)
+  - [Property-Level Patterns](#property-level-patterns)
+  - [Pattern Combination Logic](#pattern-combination-logic)
+  - [Pattern Operators](#pattern-operators)
+  - [Multiple configs (OR between sets)](#multiple-configs-or-between-sets)
+  - [Relationship Patterns](#relationship-patterns)
+- [Event System](#event-system)
+  - [Available Events](#available-events)
+  - [Example: Event Listener](#example-event-listener)
+  - [Example: Event Subscriber](#example-event-subscriber)
+- [Available Faker Types](#available-faker-types)
+
 ## Configuration File
 
 > 📍 **Location**: The configuration file should be located at `config/packages/dev/nowo_anonymize.yaml` (since this bundle is development-only).

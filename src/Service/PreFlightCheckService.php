@@ -10,7 +10,7 @@ use Exception;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
 use Nowo\AnonymizeBundle\Enum\FakerType;
-use Nowo\AnonymizeBundle\Faker\FakerFactory;
+use Nowo\AnonymizeBundle\Faker\FakerFactoryInterface;
 use ReflectionClass;
 use ReflectionProperty;
 use ValueError;
@@ -36,10 +36,10 @@ final class PreFlightCheckService
     /**
      * Creates a new PreFlightCheckService instance.
      *
-     * @param FakerFactory $fakerFactory The faker factory for validating faker types
+     * @param FakerFactoryInterface $fakerFactory The faker factory for validating faker types
      */
     public function __construct(
-        private FakerFactory $fakerFactory
+        private FakerFactoryInterface $fakerFactory
     ) {
     }
 

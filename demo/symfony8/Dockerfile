@@ -29,9 +29,10 @@ ENV PATH="/app/vendor/bin:${PATH}"
 ENV SERVER_NAME=:80
 
 RUN git config --global --add safe.directory /app && \
-	git config --global --add safe.directory /bundle
+	git config --global --add safe.directory /var/anonymize-bundle
 
 COPY docker/frankenphp/Caddyfile /etc/frankenphp/Caddyfile
+COPY docker/frankenphp/Caddyfile.dev /etc/frankenphp/Caddyfile.dev
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 

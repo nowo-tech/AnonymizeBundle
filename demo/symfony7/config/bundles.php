@@ -10,4 +10,5 @@ return [
     Symfony\Bundle\DebugBundle\DebugBundle::class                => ['dev' => true, 'test' => true],
     Symfony\Bundle\WebProfilerBundle\WebProfilerBundle::class    => ['dev' => true, 'test' => true],
     Nowo\AnonymizeBundle\AnonymizeBundle::class                  => ['dev' => true, 'test' => true],
+    Nowo\TwigInspectorBundle\TwigInspectorBundle::class          => ['dev' => true, 'test' => true],
 ];

@@ -1,5 +1,26 @@
 # Installation Guide
 
+## Table of contents
+
+- [Prerequisites](#prerequisites)
+- [Step 1: Install the Bundle](#step-1-install-the-bundle)
+- [Step 2: Register the Bundle](#step-2-register-the-bundle)
+- [Step 3: Configure the Bundle (Optional)](#step-3-configure-the-bundle-optional)
+  - [Automatic Configuration (Symfony Flex from Packagist)](#automatic-configuration-symfony-flex-from-packagist)
+  - [Manual Configuration](#manual-configuration)
+- [Step 4: Mark Your Entities](#step-4-mark-your-entities)
+- [Step 5: Generate Migration for Anonymized Column (Optional)](#step-5-generate-migration-for-anonymized-column-optional)
+- [Step 6: Run the Command](#step-6-run-the-command)
+- [Verification](#verification)
+- [Troubleshooting](#troubleshooting)
+  - [Command Not Found](#command-not-found)
+  - [No Entities Found](#no-entities-found)
+  - [Connection Errors](#connection-errors)
+- [Anonymization Tracking](#anonymization-tracking)
+  - [Using AnonymizableTrait](#using-anonymizabletrait)
+  - [Benefits](#benefits)
+- [Next Steps](#next-steps)
+
 ## Prerequisites
 
 - PHP >= 8.1, < 8.6

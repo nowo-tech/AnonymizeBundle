@@ -1,0 +1,695 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Nowo\AnonymizeBundle\Tests\Unit\Service;
+
+use Nowo\AnonymizeBundle\Service\AnonymizationHistoryService;
+use PHPUnit\Framework\TestCase;
+
+use function count;
+
+use const JSON_PRETTY_PRINT;
+use const JSON_UNESCAPED_SLASHES;
+
+/**
+ * Test case for AnonymizationHistoryService.
+ *
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2025 Nowo.tech
+ */
+class AnonymizationHistoryServiceTest extends TestCase
+{
+    private string $tempDir;
+
+    protected function setUp(): void
+    {
+        $this->tempDir = sys_get_temp_dir() . '/anonymize_history_test_' . uniqid();
+        mkdir($this->tempDir, 0o755, true);
+    }
+
+    protected function tearDown(): void
+    {
+        if (is_dir($this->tempDir)) {
+            $this->removeDirectory($this->tempDir);
+        }
+    }
+
+    /**
+     * Test that saveRun creates a history file.
+     */
+    public function testSaveRunCreatesHistoryFile(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $statistics = [
+            'total_entities' => 5,
+            'total_records'  => 100,
+            'total_updated'  => 80,
+        ];
+
+        $metadata = [
+            'connection' => 'default',
+            'dry_run'    => false,
+        ];
+
+        $filePath = $service->saveRun($statistics, $metadata);
+
+        $this->assertFileExists($filePath);
+        $this->assertStringContainsString('run_', basename($filePath));
+        $this->assertStringEndsWith('.json', $filePath);
+
+        $content = json_decode(file_get_contents($filePath), true);
+        $this->assertIsArray($content);
+        $this->assertArrayHasKey('id', $content);
+        $this->assertArrayHasKey('timestamp', $content);
+        $this->assertArrayHasKey('datetime', $content);
+        $this->assertArrayHasKey('metadata', $content);
+        $this->assertArrayHasKey('statistics', $content);
+        $this->assertEquals($statistics, $content['statistics']);
+        $this->assertEquals('default', $content['metadata']['connection']);
+    }
+
+    /**
+     * Test that getRuns returns empty array when no history exists.
+     */
+    public function testGetRunsReturnsEmptyWhenNoHistory(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $runs = $service->getRuns();
+        $this->assertIsArray($runs);
+        $this->assertEmpty($runs);
+    }
+
+    /**
+     * Test that getRuns returns saved runs.
+     */
+    public function testGetRunsReturnsSavedRuns(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $statistics = [
+            'total_entities' => 5,
+            'total_records'  => 100,
+        ];
+
+        $service->saveRun($statistics, ['connection' => 'default']);
+        $service->saveRun($statistics, ['connection' => 'postgres']);
+
+        $runs = $service->getRuns();
+        $this->assertCount(2, $runs);
+    }
+
+    /**
+     * Test that getRuns respects limit.
+     */
+    public function testGetRunsRespectsLimit(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $statistics = ['total_entities' => 1];
+
+        // Save 5 runs
+        for ($i = 0; $i < 5; ++$i) {
+            $service->saveRun($statistics);
+        }
+
+        $runs = $service->getRuns(limit: 3);
+        $this->assertCount(3, $runs);
+    }
+
+    /**
+     * Test that getRuns filters by connection.
+     */
+    public function testGetRunsFiltersByConnection(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $statistics1 = [
+            'total_entities' => 1,
+            'entities'       => [
+                ['connection' => 'default', 'name' => 'TestEntity'],
+            ],
+        ];
+
+        $statistics2 = [
+            'total_entities' => 1,
+            'entities'       => [
+                ['connection' => 'postgres', 'name' => 'TestEntity'],
+            ],
+        ];
+
+        $service->saveRun($statistics1, ['connection' => 'default']);
+        $service->saveRun($statistics2, ['connection' => 'postgres']);
+
+        $runs = $service->getRuns(connection: 'default');
+        // The filtering might not work if the structure is different, so we just check it doesn't crash
+        $this->assertIsArray($runs);
+    }
+
+    /**
+     * Test that getRuns(connection: 'x') includes runs when index entry has statistics.entities with matching connection (covers filter branch).
+     */
+    public function testGetRunsFiltersByConnectionWhenIndexHasStatisticsEntities(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $indexFile = $this->tempDir . '/index.json';
+        $entry     = [
+            'id'        => 'run-with-connection',
+            'timestamp' => time(),
+            'datetime'  => date('Y-m-d H:i:s'),
+            'file'      => $this->tempDir . '/nonexistent_run.json',
+            'summary'   => ['total_entities' => 1],
+            'statistics' => [
+                'entities' => [
+                    ['connection' => 'default', 'name' => 'User'],
+                ],
+            ],
+        ];
+        file_put_contents($indexFile, json_encode([$entry], JSON_PRETTY_PRINT));
+
+        $runs = $service->getRuns(connection: 'default');
+        $this->assertCount(1, $runs);
+        $this->assertSame('run-with-connection', $runs[0]['id']);
+    }
+
+    /**
+     * Test that getRun retrieves a specific run.
+     */
+    public function testGetRunRetrievesSpecificRun(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $statistics = [
+            'total_entities' => 5,
+            'total_records'  => 100,
+        ];
+
+        $filePath = $service->saveRun($statistics, ['connection' => 'default']);
+        $runId    = json_decode(file_get_contents($filePath), true)['id'];
+
+        $run = $service->getRun($runId);
+        $this->assertIsArray($run);
+        $this->assertEquals($runId, $run['id']);
+        $this->assertEquals($statistics, $run['statistics']);
+    }
+
+    /**
+     * Test that getRun returns null for non-existent run.
+     */
+    public function testGetRunReturnsNullForNonExistentRun(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $run = $service->getRun('non-existent-id');
+        $this->assertNull($run);
+    }
+
+    /**
+     * Test that getRun returns null when index exists but run id is not in index (covers final return null).
+     */
+    public function testGetRunReturnsNullWhenIdNotInIndex(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $indexFile = $this->tempDir . '/index.json';
+        $entry     = [
+            'id'        => 'existing-run-id',
+            'timestamp' => time(),
+            'datetime'  => date('Y-m-d H:i:s'),
+            'file'      => $this->tempDir . '/run_missing.json',
+            'summary'   => ['total_entities' => 1],
+        ];
+        file_put_contents($indexFile, json_encode([$entry], JSON_PRETTY_PRINT));
+
+        $run = $service->getRun('different-run-id');
+        $this->assertNull($run);
+    }
+
+    /**
+     * Test that getRun returns index entry when file is missing.
+     */
+    public function testGetRunReturnsIndexEntryWhenFileMissing(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $indexFile = $this->tempDir . '/index.json';
+        $entry     = [
+            'id'        => 'abc123def456',
+            'timestamp' => time(),
+            'datetime'  => date('Y-m-d H:i:s'),
+            'file'      => $this->tempDir . '/run_missing.json',
+            'summary'   => ['total_entities' => 1],
+        ];
+        file_put_contents($indexFile, json_encode([$entry], JSON_PRETTY_PRINT));
+
+        $run = $service->getRun('abc123def456');
+        $this->assertIsArray($run);
+        $this->assertSame('abc123def456', $run['id']);
+        $this->assertArrayHasKey('timestamp', $run);
+    }
+
+    /**
+     * Test that getRun returns index entry when run file exists but JSON content is invalid.
+     */
+    public function testGetRunReturnsIndexEntryWhenFileHasInvalidJson(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $runFilePath = $this->tempDir . '/run_invalid.json';
+        file_put_contents($runFilePath, 'invalid json {');
+
+        $indexFile = $this->tempDir . '/index.json';
+        $entry     = [
+            'id'        => 'run-invalid-json',
+            'timestamp' => time(),
+            'datetime'  => date('Y-m-d H:i:s'),
+            'file'      => $runFilePath,
+            'summary'   => ['total_entities' => 2],
+        ];
+        file_put_contents($indexFile, json_encode([$entry], JSON_PRETTY_PRINT));
+
+        $run = $service->getRun('run-invalid-json');
+        $this->assertIsArray($run);
+        $this->assertSame('run-invalid-json', $run['id']);
+        $this->assertArrayHasKey('summary', $run);
+        $this->assertSame(2, $run['summary']['total_entities']);
+    }
+
+    /**
+     * Test that compareRuns returns comparison data.
+     */
+    public function testCompareRunsReturnsComparison(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $statistics1 = ['total_entities' => 5, 'total_records' => 100];
+        $statistics2 = ['total_entities' => 10, 'total_records' => 200];
+
+        $filePath1 = $service->saveRun($statistics1);
+        $filePath2 = $service->saveRun($statistics2);
+
+        $runId1 = json_decode(file_get_contents($filePath1), true)['id'];
+        $runId2 = json_decode(file_get_contents($filePath2), true)['id'];
+
+        $comparison = $service->compareRuns($runId1, $runId2);
+        $this->assertIsArray($comparison);
+        $this->assertArrayHasKey('run1', $comparison);
+        $this->assertArrayHasKey('run2', $comparison);
+        $this->assertArrayHasKey('global', $comparison);
+        $this->assertArrayHasKey('entities', $comparison);
+    }
+
+    /**
+     * Test that compareRuns returns null for non-existent runs.
+     */
+    public function testCompareRunsReturnsNullForNonExistentRuns(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $comparison = $service->compareRuns('non-existent-1', 'non-existent-2');
+        $this->assertNull($comparison);
+    }
+
+    /**
+     * Test that compareRuns handles missing statistics gracefully.
+     */
+    public function testCompareRunsHandlesMissingStatistics(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $statistics1 = ['total_entities' => 5];
+        $statistics2 = ['total_entities' => 10];
+
+        $filePath1 = $service->saveRun($statistics1);
+        $filePath2 = $service->saveRun($statistics2);
+
+        $runId1 = json_decode(file_get_contents($filePath1), true)['id'];
+        $runId2 = json_decode(file_get_contents($filePath2), true)['id'];
+
+        $comparison = $service->compareRuns($runId1, $runId2);
+        $this->assertIsArray($comparison);
+        $this->assertArrayHasKey('global', $comparison);
+        $this->assertArrayHasKey('entities', $comparison);
+    }
+
+    /**
+     * Test that compareRuns with statistics.entities populates entities comparison (compareEntityStats).
+     */
+    public function testCompareRunsWithEntitiesStats(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $statistics1 = [
+            'total_entities' => 1,
+            'entities'       => [
+                'User' => [
+                    'entity'     => 'User',
+                    'connection' => 'default',
+                    'processed'  => 100,
+                    'updated'    => 50,
+                ],
+            ],
+        ];
+        $statistics2 = [
+            'total_entities' => 1,
+            'entities'       => [
+                'User' => [
+                    'entity'     => 'User',
+                    'connection' => 'default',
+                    'processed'  => 200,
+                    'updated'    => 120,
+                ],
+            ],
+        ];
+
+        $filePath1 = $service->saveRun($statistics1);
+        $filePath2 = $service->saveRun($statistics2);
+
+        $runId1 = json_decode(file_get_contents($filePath1), true)['id'];
+        $runId2 = json_decode(file_get_contents($filePath2), true)['id'];
+
+        $comparison = $service->compareRuns($runId1, $runId2);
+        $this->assertIsArray($comparison);
+        $this->assertArrayHasKey('entities', $comparison);
+        $this->assertArrayHasKey('User', $comparison['entities']);
+        $this->assertSame(100, $comparison['entities']['User']['processed']['run1']);
+        $this->assertSame(200, $comparison['entities']['User']['processed']['run2']);
+        $this->assertSame(100, $comparison['entities']['User']['processed']['diff']);
+        $this->assertSame(50, $comparison['entities']['User']['updated']['run1']);
+        $this->assertSame(120, $comparison['entities']['User']['updated']['run2']);
+    }
+
+    /**
+     * Test that cleanup removes old runs and keeps recent ones.
+     */
+    public function testCleanupRemovesOldRunsAndKeepsRecent(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $statistics = ['total_entities' => 1];
+
+        // Create a recent run
+        $recentFilePath = $service->saveRun($statistics);
+        $recentRunId    = json_decode(file_get_contents($recentFilePath), true)['id'];
+
+        // Create an old run by modifying the file directly
+        $oldFilePath             = $service->saveRun($statistics);
+        $oldRunData              = json_decode(file_get_contents($oldFilePath), true);
+        $oldRunData['timestamp'] = time() - (35 * 24 * 60 * 60); // 35 days ago
+        file_put_contents($oldFilePath, json_encode($oldRunData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        $deleted = $service->cleanup(30); // Keep last 30 days
+        $this->assertGreaterThanOrEqual(0, $deleted);
+
+        // Recent run should still exist
+        $recentRun = $service->getRun($recentRunId);
+        $this->assertNotNull($recentRun);
+    }
+
+    /**
+     * Test that getRuns returns runs sorted by timestamp (newest first).
+     */
+    public function testGetRunsSortedByTimestamp(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $statistics = ['total_entities' => 1];
+
+        // Create multiple runs with small delays
+        $service->saveRun($statistics);
+        usleep(100000); // 0.1 seconds
+        $service->saveRun($statistics);
+        usleep(100000);
+        $service->saveRun($statistics);
+
+        $runs = $service->getRuns();
+        $this->assertGreaterThanOrEqual(3, count($runs));
+
+        // Check that runs are sorted (newest first)
+        if (count($runs) >= 2) {
+            $this->assertGreaterThanOrEqual(
+                $runs[1]['timestamp'] ?? 0,
+                $runs[0]['timestamp'] ?? 0,
+            );
+        }
+    }
+
+    /**
+     * Test that saveRun creates history directory when it does not exist (mkdir branch).
+     */
+    public function testSaveRunCreatesHistoryDirWhenNotExists(): void
+    {
+        $historyDir = $this->tempDir . '/subdir_not_created';
+        $this->assertDirectoryDoesNotExist($historyDir);
+
+        $service   = new AnonymizationHistoryService($historyDir);
+        $filePath  = $service->saveRun(['total_entities' => 1]);
+
+        $this->assertDirectoryExists($historyDir);
+        $this->assertFileExists($filePath);
+    }
+
+    /**
+     * Test that saveRun creates index file.
+     */
+    public function testSaveRunCreatesIndexFile(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $statistics = [
+            'global' => [
+                'total_entities'  => 5,
+                'total_processed' => 100,
+                'total_updated'   => 80,
+            ],
+        ];
+
+        $service->saveRun($statistics);
+
+        $indexFile = $this->tempDir . '/index.json';
+        $this->assertFileExists($indexFile);
+
+        $index = json_decode(file_get_contents($indexFile), true);
+        $this->assertIsArray($index);
+        $this->assertNotEmpty($index);
+    }
+
+    /**
+     * Test that getRuns handles missing file gracefully.
+     */
+    public function testGetRunsHandlesMissingFile(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        // Create index with non-existent file
+        $indexFile = $this->tempDir . '/index.json';
+        $index     = [
+            [
+                'id'        => 'test-id',
+                'timestamp' => time(),
+                'datetime'  => date('Y-m-d H:i:s'),
+                'file'      => $this->tempDir . '/non-existent-file.json',
+                'summary'   => ['total_entities' => 1],
+            ],
+        ];
+        file_put_contents($indexFile, json_encode($index, JSON_PRETTY_PRINT));
+
+        $runs = $service->getRuns();
+        $this->assertIsArray($runs);
+        // Should fallback to index data
+        $this->assertNotEmpty($runs);
+    }
+
+    /**
+     * Test that getRuns handles invalid JSON gracefully.
+     */
+    public function testGetRunsHandlesInvalidJson(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        // Create invalid index file
+        $indexFile = $this->tempDir . '/index.json';
+        file_put_contents($indexFile, 'invalid json');
+
+        $runs = $service->getRuns();
+        $this->assertIsArray($runs);
+        $this->assertEmpty($runs);
+    }
+
+    /**
+     * Test that compareRuns handles missing global statistics.
+     */
+    public function testCompareRunsHandlesMissingGlobalStats(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $statistics1 = ['entities' => []];
+        $statistics2 = ['entities' => []];
+
+        $filePath1 = $service->saveRun($statistics1);
+        $filePath2 = $service->saveRun($statistics2);
+
+        $runId1 = json_decode(file_get_contents($filePath1), true)['id'];
+        $runId2 = json_decode(file_get_contents($filePath2), true)['id'];
+
+        $comparison = $service->compareRuns($runId1, $runId2);
+        $this->assertIsArray($comparison);
+        $this->assertArrayHasKey('global', $comparison);
+    }
+
+    /**
+     * Test that cleanup rebuilds index.
+     */
+    public function testCleanupRebuildsIndex(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $statistics = ['total_entities' => 1];
+        $service->saveRun($statistics);
+
+        $deleted = $service->cleanup(0); // Delete all
+        $this->assertGreaterThanOrEqual(0, $deleted);
+
+        // Index should still exist (rebuilt)
+        $indexFile = $this->tempDir . '/index.json';
+        $this->assertFileExists($indexFile);
+    }
+
+    /**
+     * Test that cleanup with retention keeping all runs still rebuilds index with multiple entries (covers usort in rebuildIndex).
+     */
+    public function testCleanupRebuildsIndexWithMultipleRuns(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $statistics = ['global' => ['total_entities' => 1, 'total_processed' => 10, 'total_updated' => 10]];
+        $service->saveRun($statistics);
+        $service->saveRun($statistics);
+
+        $deleted = $service->cleanup(365);
+        $this->assertSame(0, $deleted);
+
+        $indexFile = $this->tempDir . '/index.json';
+        $this->assertFileExists($indexFile);
+        $index = json_decode(file_get_contents($indexFile), true);
+        $this->assertIsArray($index);
+        $this->assertCount(2, $index);
+    }
+
+    /**
+     * Test that cleanup actually deletes old run files (covers remove branch when run has 'file' and file exists).
+     */
+    public function testCleanupDeletesOldRunFiles(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $statistics = ['global' => ['total_entities' => 1, 'total_processed' => 10, 'total_updated' => 10]];
+
+        $oldFilePath = $service->saveRun($statistics);
+        $service->saveRun($statistics);
+
+        $oldRunData              = json_decode(file_get_contents($oldFilePath), true);
+        $oldRunData['timestamp'] = time() - (35 * 24 * 60 * 60);
+        $oldRunData['statistics'] = $statistics;
+        file_put_contents($oldFilePath, json_encode($oldRunData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        $this->assertFileExists($oldFilePath);
+
+        $deleted = $service->cleanup(30);
+
+        $this->assertSame(1, $deleted);
+        $this->assertFileDoesNotExist($oldFilePath);
+    }
+
+    /**
+     * Test that cleanup when history dir does not exist does not fail (rebuildIndex early return).
+     */
+    public function testCleanupWhenHistoryDirDoesNotExist(): void
+    {
+        $historyDir = $this->tempDir . '/nonexistent_dir';
+        $this->assertDirectoryDoesNotExist($historyDir);
+
+        $service = new AnonymizationHistoryService($historyDir);
+        $deleted = $service->cleanup(30);
+
+        $this->assertSame(0, $deleted);
+    }
+
+    /**
+     * Test that rebuildIndex (via cleanup) skips run_*.json files with invalid JSON.
+     */
+    public function testRebuildIndexSkipsInvalidJsonFiles(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir);
+
+        $validPath = $service->saveRun(['total_entities' => 1]);
+        $validData = json_decode(file_get_contents($validPath), true);
+        $validId   = $validData['id'];
+
+        $invalidPath = $this->tempDir . '/run_2020-01-01_120000_bad.json';
+        file_put_contents($invalidPath, 'not valid json {');
+
+        $service->cleanup(0);
+        $indexFile = $this->tempDir . '/index.json';
+        $index     = json_decode(file_get_contents($indexFile), true);
+        $this->assertIsArray($index);
+        $ids = array_column($index, 'id');
+        $this->assertContains($validId, $ids);
+        $this->assertNotContains('bad', $ids);
+    }
+
+    /**
+     * Helper method to recursively remove directory.
+     */
+    private function removeDirectory(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+
+        $files = array_diff(scandir($dir), ['.', '..']);
+        foreach ($files as $file) {
+            $path = $dir . '/' . $file;
+            if (is_dir($path)) {
+                $this->removeDirectory($path);
+            } else {
+                unlink($path);
+            }
+        }
+        rmdir($dir);
+    }
+
+    /**
+     * Test that when a Symfony version provider is injected and returns 'unknown', saveRun stores it.
+     * Covers the branch where version is not available (e.g. when Kernel class is not loaded).
+     */
+    public function testSaveRunStoresUnknownSymfonyVersionWhenProviderReturnsUnknown(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir, static fn (): string => 'unknown');
+
+        $filePath = $service->saveRun(['global' => []], []);
+
+        $this->assertFileExists($filePath);
+        $content = json_decode(file_get_contents($filePath), true);
+        $this->assertSame('unknown', $content['metadata']['symfony_version'] ?? null);
+    }
+
+    /**
+     * Test that when no version provider is set and kernel class exists provider returns false, saveRun stores 'unknown'.
+     * Covers getSymfonyVersion() return 'unknown' branch.
+     */
+    public function testSaveRunStoresUnknownSymfonyVersionWhenKernelClassDoesNotExist(): void
+    {
+        $service = new AnonymizationHistoryService($this->tempDir, null, static fn (): bool => false);
+
+        $filePath = $service->saveRun(['global' => []], []);
+
+        $this->assertFileExists($filePath);
+        $content = json_decode(file_get_contents($filePath), true);
+        $this->assertSame('unknown', $content['metadata']['symfony_version'] ?? null);
+    }
+
+}

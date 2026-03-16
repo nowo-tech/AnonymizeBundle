@@ -1,6 +1,10 @@
 #!/bin/sh
 set -e
 
+if [ "${APP_ENV:-prod}" = "dev" ] && [ -f /etc/frankenphp/Caddyfile.dev ]; then
+	cp /etc/frankenphp/Caddyfile.dev /etc/frankenphp/Caddyfile
+fi
+
 echo "🚀 Starting demo entrypoint script..."
 
 # Fix permissions (from original entrypoint)

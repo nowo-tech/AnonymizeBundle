@@ -34,14 +34,32 @@ final class AnonymizationHistoryService
     private string $historyDir;
 
     /**
+     * Optional provider for Symfony version (used in tests to cover 'unknown' branch).
+     *
+     * @var callable(): string|null
+     */
+    private $symfonyVersionProvider;
+
+    /**
+     * Optional provider to check if Kernel class exists (used in tests to cover 'unknown' branch when no version provider).
+     *
+     * @var callable(): bool|null
+     */
+    private $kernelClassExistsProvider;
+
+    /**
      * Creates a new AnonymizationHistoryService instance.
      *
      * @param string $historyDir The directory where anonymization history is stored
+     * @param callable(): string|null $symfonyVersionProvider Optional; when set, used instead of detecting Kernel (for tests)
+     * @param callable(): bool|null $kernelClassExistsProvider Optional; when set, used instead of class_exists(Kernel::class) (for tests)
      */
-    public function __construct(string $historyDir)
+    public function __construct(string $historyDir, ?callable $symfonyVersionProvider = null, ?callable $kernelClassExistsProvider = null)
     {
-        $this->filesystem = new Filesystem();
-        $this->historyDir = rtrim($historyDir, '/');
+        $this->filesystem                 = new Filesystem();
+        $this->historyDir                 = rtrim($historyDir, '/');
+        $this->symfonyVersionProvider     = $symfonyVersionProvider;
+        $this->kernelClassExistsProvider  = $kernelClassExistsProvider;
     }
 
     /**
@@ -127,7 +145,8 @@ final class AnonymizationHistoryService
             if (isset($entry['file']) && file_exists($entry['file'])) {
                 $runData = json_decode(file_get_contents($entry['file']), true);
                 if ($runData !== null) {
-                    $runs[] = $runData;
+                    $runData['file'] = $entry['file'];
+                    $runs[]         = $runData;
                 }
             } else {
                 // Fallback to index data if file doesn't exist
@@ -422,7 +441,13 @@ final class AnonymizationHistoryService
      */
     private function getSymfonyVersion(): string
     {
-        if (class_exists(\Symfony\Component\HttpKernel\Kernel::class)) {
+        if ($this->symfonyVersionProvider !== null) {
+            return ($this->symfonyVersionProvider)();
+        }
+        $kernelExists = $this->kernelClassExistsProvider !== null
+            ? ($this->kernelClassExistsProvider)()
+            : class_exists(\Symfony\Component\HttpKernel\Kernel::class);
+        if ($kernelExists) {
             return \Symfony\Component\HttpKernel\Kernel::VERSION;
         }
 

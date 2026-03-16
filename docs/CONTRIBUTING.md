@@ -2,6 +2,22 @@
 
 Thank you for considering contributing to Anonymize Bundle!
 
+## Table of contents
+
+- [Maintainer](#maintainer)
+- [Development Setup](#development-setup)
+  - [Using Docker (Recommended)](#using-docker-recommended)
+  - [Without Docker](#without-docker)
+- [Branching Strategy](#branching-strategy)
+- [Pull Request Process](#pull-request-process)
+- [Coding Standards](#coding-standards)
+- [Running Tests](#running-tests)
+  - [With Docker](#with-docker)
+  - [Without Docker](#without-docker-1)
+- [Available Make Commands](#available-make-commands)
+- [Reporting Issues](#reporting-issues)
+- [Contact](#contact)
+
 ## Maintainer
 
 This project is maintained by [Héctor Franco Aceituno](https://github.com/HecFranco) at [Nowo.tech](https://nowo.tech).
