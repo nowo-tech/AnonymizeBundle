@@ -205,7 +205,12 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
                 continue;
             }
 
-            $content = file_get_contents($file->getPathname());
+            $pathname = $file->getPathname();
+            if (!is_readable($pathname)) {
+                continue;
+            }
+
+            $content = file_get_contents($pathname);
             if ($content === false) {
                 continue;
             }

@@ -632,7 +632,9 @@ class AnonymizationHistoryServiceTest extends TestCase
         $invalidPath = $this->tempDir . '/run_2020-01-01_120000_bad.json';
         file_put_contents($invalidPath, 'not valid json {');
 
-        $service->cleanup(0);
+        // Use a long retention window so the valid run is never deleted (cleanup(0) uses cutoff = now;
+        // if the clock advances one second before cleanup, the saved run would match timestamp < cutoff and be removed).
+        $service->cleanup(365);
         $indexFile = $this->tempDir . '/index.json';
         $index     = json_decode(file_get_contents($indexFile), true);
         $this->assertIsArray($index);
