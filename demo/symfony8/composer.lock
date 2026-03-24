@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "389923c919cdf4dafbb7475e1b17d455",
+    "content-hash": "3a65d8cdcb21bec73b2b70ba898af5e5",
     "packages": [
         {
             "name": "doctrine/collections",
@@ -5023,8 +5023,8 @@
             "version": "dev-main",
             "dist": {
                 "type": "path",
-                "url": "/bundles",
-                "reference": "0f06eb9e4bb33a86e9566eabcd5d6e6680b20c1a"
+                "url": "/var/anonymize-bundle",
+                "reference": "5bcdddeded18928b134d0eef34ec763422ea6f9e"
             },
             "require": {
                 "doctrine/dbal": "^2.13 || ^3.0 || ^4.0",
@@ -5041,7 +5041,12 @@
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^3.0",
-                "phpunit/phpunit": "^10.0"
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan": "^2.0",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpstan/phpstan-symfony": "^2.0",
+                "phpunit/phpunit": "^10.0",
+                "rector/rector": "^2.0"
             },
             "type": "symfony-bundle",
             "autoload": {
@@ -5053,6 +5058,12 @@
                 "psr-4": {
                     "Nowo\\AnonymizeBundle\\Tests\\": "tests/"
                 }
+            },
+            "archive": {
+                "exclude": [
+                    "/demo",
+                    "/.cursor"
+                ]
             },
             "scripts": {
                 "test": [
@@ -5066,6 +5077,21 @@
                 ],
                 "cs-fix": [
                     "php-cs-fixer fix"
+                ],
+                "phpstan": [
+                    "phpstan analyse --memory-limit=512M"
+                ],
+                "rector": [
+                    "rector process"
+                ],
+                "rector-dry": [
+                    "rector process --dry-run --no-progress-bar"
+                ],
+                "update": [
+                    "composer update --no-interaction"
+                ],
+                "validate": [
+                    "composer validate --strict"
                 ],
                 "qa": [
                     "@cs-check",
@@ -5127,6 +5153,108 @@
             "transport-options": {
                 "relative": false
             }
+        },
+        {
+            "name": "nowo-tech/twig-inspector-bundle",
+            "version": "v1.0.25",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nowo-tech/TwigInspectorBundle.git",
+                "reference": "152d8a1727fbd57dec1b9d6abea7e3c165692c14"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nowo-tech/TwigInspectorBundle/zipball/152d8a1727fbd57dec1b9d6abea7e3c165692c14",
+                "reference": "152d8a1727fbd57dec1b9d6abea7e3c165692c14",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1 <8.6",
+                "symfony/config": "^6.0 || ^7.0 || ^8.0",
+                "symfony/console": "^6.0 || ^7.0 || ^8.0",
+                "symfony/dependency-injection": "^6.0 || ^7.0 || ^8.0",
+                "symfony/error-handler": "^6.0 || ^7.0 || ^8.0",
+                "symfony/filesystem": "^6.0 || ^7.0 || ^8.0",
+                "symfony/http-foundation": "^6.0 || ^7.0 || ^8.0",
+                "symfony/http-kernel": "^6.0 || ^7.0 || ^8.0",
+                "symfony/routing": "^6.0 || ^7.0 || ^8.0",
+                "symfony/web-profiler-bundle": "^6.0 || ^7.0 || ^8.0",
+                "twig/twig": "^3.8 || ^4.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.0",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan": "^2.0",
+                "phpstan/phpstan-symfony": "^2.0",
+                "phpunit/phpunit": "^10.0",
+                "rector/rector": "^2.0",
+                "symfony/framework-bundle": "^6.0 || ^7.0 || ^8.0",
+                "symfony/twig-bundle": "^6.0 || ^7.0 || ^8.0",
+                "symfony/yaml": "^6.0 || ^7.0 || ^8.0"
+            },
+            "suggest": {
+                "symfony/flex": "For automatic recipe installation (config and routes)"
+            },
+            "type": "symfony-bundle",
+            "autoload": {
+                "psr-4": {
+                    "Nowo\\TwigInspectorBundle\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Héctor Franco Aceituno",
+                    "email": "hectorfranco@nowo.tech",
+                    "homepage": "https://github.com/HecFranco",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Nowo.tech",
+                    "homepage": "https://nowo.tech"
+                }
+            ],
+            "description": "Debug Twig templates in the browser: visual overlay, click-to-open in IDE, Web Profiler. Symfony 6|7|8.",
+            "homepage": "https://github.com/nowo-tech/twig-inspector-bundle",
+            "keywords": [
+                "block-inspector",
+                "bundle",
+                "debug",
+                "debugging",
+                "dev-tool",
+                "development",
+                "ide-integration",
+                "inspect",
+                "inspector",
+                "symfony",
+                "symfony-flex",
+                "symfony-profiler",
+                "template",
+                "template-finder",
+                "template-inspector",
+                "templates",
+                "toolbar-extension",
+                "twig",
+                "twig-debug",
+                "twig-inspector",
+                "web-profiler"
+            ],
+            "support": {
+                "changelog": "https://github.com/nowo-tech/twig-inspector-bundle/blob/main/docs/CHANGELOG.md",
+                "docs": "https://github.com/nowo-tech/twig-inspector-bundle/tree/main/docs",
+                "issues": "https://github.com/nowo-tech/twig-inspector-bundle/issues",
+                "source": "https://github.com/nowo-tech/twig-inspector-bundle"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/HecFranco",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-03-19T07:20:27+00:00"
         },
         {
             "name": "symfony/debug-bundle",

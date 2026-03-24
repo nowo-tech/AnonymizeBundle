@@ -45,7 +45,7 @@ Looking for: **database anonymization**, **test data generator**, **GDPR complia
 
 - ✅ Attribute-based anonymization configuration
 - ✅ Support for multiple Doctrine connections
-- ✅ Multiple faker types (39 total: email, name, surname, age, phone, IBAN, credit card, address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language, hash_preserve, shuffle, constant, dni_cif, name_fallback, html, pattern_based, copy, null, utm, custom service)
+- ✅ Multiple faker types (40 total: email, name, surname, age, phone, IBAN, credit card, address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language, hash_preserve, shuffle, constant, dni_cif, name_fallback, html, pattern_based, copy, null, utm, map, custom service)
 - ✅ **FakerType enum** for type-safe faker selection (recommended) - IDE autocompletion and compile-time validation
 - ✅ String-based faker types still supported (backward compatible)
 - ✅ Weight-based anonymization order
@@ -165,7 +165,7 @@ See [COMMANDS.md](docs/COMMANDS.md) for detailed command documentation and examp
 
 ## Faker Types
 
-The bundle supports **39 faker types** for anonymizing various data types, including:
+The bundle supports **40 faker types** for anonymizing various data types, including:
 
 - **Basic**: email, name, surname, age, phone, IBAN, credit_card
 - **Advanced**: address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language
@@ -210,7 +210,7 @@ The bundle includes a comprehensive testing script to verify all commands work c
 ./scripts/test-commands.sh symfony6
 ```
 
-The script tests **31 different command combinations** covering all main options across all database connections. See [TESTING_COMMANDS.md](docs/TESTING_COMMANDS.md) for details.
+The script tests **26 command combinations** (entries in `scripts/test-commands.sh`). See [TESTING_COMMANDS.md](docs/TESTING_COMMANDS.md) for details.
 
 ## License
 
@@ -226,14 +226,14 @@ For information about our Git workflow and branching strategy, see [BRANCHING.md
 
 We have an extensive roadmap for future enhancements. See [ROADMAP.md](docs/ROADMAP.md) for details on planned features including:
 
-### Current Status (1.0.12)
+### Current Status (1.0.15)
 
-- **Phase 1 Progress**: 100% complete (all 21 fakers implemented)
-- **Total Fakers Available**: 39 fakers (including map, utm, service, and data preservation fakers)
-- **Test Coverage**: 919 tests, 2554 assertions, **95%+ line coverage** (1630/1703 lines in covered code)
-  - Coverage excludes: `src/Command` (CLI), `AnonymizeService`, `DatabaseExportService` (exercised by integration/command tests)
-  - Run <code>make test-coverage</code> for full report
-  - Comprehensive test coverage for fakers, services, events, attributes, and helpers
+- **Phase 1 Progress**: 100% complete (built-in faker types implemented via `FakerType` enum)
+- **Total Fakers Available**: **40** types in `FakerType` (including `map`, `utm`, `service`, and data-preservation fakers)
+- **Test Coverage**: Large PHPUnit suite (**1100+** test methods; exact count changes as tests are added). Run `composer test` or `make test` for the current total. **95%+ line coverage** has been reported on covered `src/` lines in recent runs; see `make test-coverage` for an up-to-date HTML report.
+  - Some paths (e.g. parts of CLI commands and large services) may be covered primarily via integration/command tests rather than unit line coverage alone.
+  - Run <code>make test-coverage</code> for the full report.
+  - Comprehensive tests for fakers, services, events, attributes, and helpers
 - **Pattern Matching**: Enhanced with `|` (OR) operator support for multiple value matching and relationship patterns (e.g., `'type.name' => '%HR'`)
 - **MongoDB Support**: Command to generate scripts for adding `anonymized` field to MongoDB documents
 - **Relationship Patterns**: Support for patterns referencing related entities using dot notation with automatic SQL JOIN construction

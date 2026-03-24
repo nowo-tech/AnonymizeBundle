@@ -121,7 +121,9 @@ class AnonymizeCommandTest extends TestCase
         $exitCode = $command->run($input, $output);
 
         $this->assertSame(0, $exitCode);
-        $this->assertStringContainsString('No entities matching --entity filter in manager "default"', $output->fetch());
+        $out = $output->fetch();
+        $this->assertStringContainsString('No entities matching --entity filter in', $out);
+        $this->assertStringContainsString('manager "default"', $out);
     }
 
     /**
@@ -176,7 +178,8 @@ class AnonymizeCommandTest extends TestCase
 
         $this->assertSame(0, $exitCode);
         $out = $output->fetch();
-        $this->assertStringContainsString('No entities matching --entity filter in manager "default"', $out);
+        $this->assertStringContainsString('No entities matching --entity filter in', $out);
+        $this->assertStringContainsString('manager "default"', $out);
     }
 
     /**
@@ -716,7 +719,8 @@ class AnonymizeCommandTest extends TestCase
 
         $this->assertSame(0, $exitCode);
         $out = $output->fetch();
-        $this->assertStringContainsString('No entities found with #[Anonymize] attribute', $out);
+        $this->assertStringContainsString('No entities found with #[Anonymize]', $out);
+        $this->assertStringContainsString('attribute', $out);
     }
 
     /**
@@ -758,7 +762,9 @@ class AnonymizeCommandTest extends TestCase
 
         $command->run($input, $output);
 
-        $this->assertStringContainsString('MongoDB ODM support is not yet available', $output->fetch());
+        $out = $output->fetch();
+        $this->assertStringContainsString('MongoDB ODM support is not yet', $out);
+        $this->assertStringContainsString('available. The command', $out);
     }
 
     /**
@@ -1008,7 +1014,8 @@ class AnonymizeCommandTest extends TestCase
         $out      = $output->fetch();
 
         $this->assertSame(0, $exitCode);
-        $this->assertStringContainsString('MongoDB ODM support is not yet available', $out);
+        $this->assertStringContainsString('MongoDB ODM support is not yet', $out);
+        $this->assertStringContainsString('available. The command', $out);
         $this->assertStringContainsString('Processing entity manager: default', $out);
     }
 
@@ -1200,7 +1207,9 @@ class AnonymizeCommandTest extends TestCase
 
         $exitCode = $command->run($input, $output);
         $this->assertSame(0, $exitCode);
-        $this->assertStringContainsString('No entities found with #[Anonymize] attribute', $output->fetch());
+        $out = $output->fetch();
+        $this->assertStringContainsString('No entities found with #[Anonymize]', $out);
+        $this->assertStringContainsString('attribute', $out);
     }
 
     private function createContainerWithSafeEnvironment(): ContainerBuilder

@@ -75,10 +75,10 @@ Then run `make anonymize-dry-run` again.
 
 This demo includes four database systems:
 
-- **`default`**: MySQL connection (port 33063)
-- **`postgres`**: PostgreSQL connection (port 54323)
+- **`default`**: MySQL (reachable as `mysql:3306` inside Compose; use [phpMyAdmin](http://localhost:8084) from the host)
+- **`postgres`**: PostgreSQL (reachable as `postgres:5432` inside Compose; use [pgAdmin](http://localhost:8085) from the host)
 - **`sqlite`**: SQLite connection (file-based: `var/data/anonymize_demo.sqlite`)
-- **`mongodb`**: MongoDB connection (port 27018) - Infrastructure ready, ODM support coming soon
+- **`mongodb`**: MongoDB (optional host port 27018 for local tools; `mongodb:27017` inside Compose) — infrastructure ready, ODM support coming soon
 
 MySQL, PostgreSQL, and SQLite connections have the same entities (`User` and `Customer`) and the same test data. MongoDB infrastructure is ready with Mongo Express for management, and a sample document (`UserActivity`) is prepared for when the bundle supports MongoDB ODM.
 

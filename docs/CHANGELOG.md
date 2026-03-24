@@ -21,7 +21,10 @@ _(none)_
 
 ### Documentation
 
-_(none yet)_
+- **README**, **FAKERS.md**, **CONFIGURATION.md**, **ROADMAP.md**: Faker count aligned with `FakerType` — **40** types (including `map`, `utm`, etc.), not 39.
+- **README** (Roadmap): Current release **1.0.15**; test/coverage stats softened to avoid stale fixed numbers (suite is 1100+ methods; use `composer test` / `make test-coverage` for current figures).
+- **TESTING_COMMANDS.md**: Aligned with `scripts/test-commands.sh` — **26** combinations; per-section counts and notes (export has no `--dry-run`; real export runs in demos).
+- **README**: Demo script description updated to **26** combinations.
 
 ---
 

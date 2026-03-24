@@ -78,7 +78,7 @@
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "*",
         "nowo-tech/anonymize-bundle": "*",
-        "nowo-tech/twig-inspector-bundle": "v1.0.3",
+        "nowo-tech/twig-inspector-bundle": "*",
         "symfony/debug-bundle": "^7.0",
         "symfony/web-profiler-bundle": "^7.0"
     }

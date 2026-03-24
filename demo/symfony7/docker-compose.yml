@@ -38,8 +38,6 @@ services:
     volumes:
       - ./.data/mysql:/var/lib/mysql
       - ../docker/init/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    ports:
-      - "33062:3306"
     networks:
       - anonymize-demo-network
     healthcheck:
@@ -58,8 +56,6 @@ services:
     volumes:
       - ./.data/postgres:/var/lib/postgresql/data
       - ../docker/init/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    ports:
-      - "54322:5432"
     networks:
       - anonymize-demo-network
     healthcheck:

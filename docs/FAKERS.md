@@ -2,7 +2,7 @@
 
 > 📋 **Requirements**: This bundle requires **Symfony 6.1 or higher** (Symfony 6.0 is not supported). See [INSTALLATION.md](INSTALLATION.md) for complete requirements.
 
-The bundle supports 39 different faker types for anonymizing various data types.
+The bundle supports 40 different faker types for anonymizing various data types (see `FakerType` enum).
 
 > 💡 **Tip**: All fakers support the `nullable` and `null_probability` options to generate null values with a configurable probability. See [USAGE.md](USAGE.md#nullable-option) for details.
 

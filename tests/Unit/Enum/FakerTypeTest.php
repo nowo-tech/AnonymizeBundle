@@ -97,14 +97,17 @@ class FakerTypeTest extends TestCase
         $this->assertIsArray($cases);
         $this->assertGreaterThan(0, count($cases));
 
-        // Verify all expected cases exist
+        // Verify all 40 enum cases exist (must stay in sync with FakerType)
         $expectedCases = [
             'EMAIL', 'NAME', 'SURNAME', 'AGE', 'PHONE', 'IBAN', 'CREDIT_CARD',
             'ADDRESS', 'DATE', 'USERNAME', 'URL', 'COMPANY', 'MASKING', 'PASSWORD',
             'IP_ADDRESS', 'MAC_ADDRESS', 'UUID', 'HASH', 'COORDINATE', 'COLOR',
             'BOOLEAN', 'NUMERIC', 'FILE', 'JSON', 'TEXT', 'ENUM', 'COUNTRY',
             'LANGUAGE', 'HASH_PRESERVE', 'SHUFFLE', 'CONSTANT', 'SERVICE',
+            'DNI_CIF', 'NAME_FALLBACK', 'HTML', 'PATTERN_BASED', 'COPY', 'NULL', 'UTM', 'MAP',
         ];
+
+        $this->assertCount(count($expectedCases), $cases, 'FakerType case count must match expected list');
 
         foreach ($expectedCases as $caseName) {
             $this->assertTrue(

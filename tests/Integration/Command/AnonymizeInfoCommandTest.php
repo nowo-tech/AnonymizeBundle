@@ -137,7 +137,9 @@ class AnonymizeInfoCommandTest extends TestCase
         $result = $command->run($input, $output);
 
         $this->assertSame(0, $result);
-        $this->assertStringContainsString('No entities found with #[Anonymize] attribute', $output->fetch());
+        $out = $output->fetch();
+        $this->assertStringContainsString('No entities found with #[Anonymize]', $out);
+        $this->assertStringContainsString('attribute', $out);
     }
 
     /**

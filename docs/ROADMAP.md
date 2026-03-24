@@ -118,11 +118,11 @@ Nothing in Phases A–C changes the rule: **dev/test only, production execution 
 
 ---
 
-## Current Status (1.0.12 - Released)
+## Current Status (1.0.15 - Released)
 
 ### ✅ Implemented Features
 
-- **Fakers**: email, name, surname, age, phone, IBAN, credit_card, service, address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language, hash_preserve, shuffle, constant, dni_cif, name_fallback, html, pattern_based, copy, null, utm (39 total)
+- **Fakers**: email, name, surname, age, phone, IBAN, credit_card, service, address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language, hash_preserve, shuffle, constant, dni_cif, name_fallback, html, pattern_based, copy, null, utm, map (40 total)
 - **Core Features**: Attribute-based configuration, multiple connections, batch processing, dry-run mode, pre-flight checks, progress bars, enhanced environment protection, debug/verbose modes
 - **Tracking**: AnonymizableTrait with `anonymized` column
 - **Patterns**: Inclusion/exclusion pattern matching with `|` (OR) operator support and relationship patterns (e.g., `'type.name' => '%HR'`)
@@ -130,7 +130,7 @@ Nothing in Phases A–C changes the rule: **dev/test only, production execution 
 - **MongoDB Tools**: Command to generate scripts for adding `anonymized` field to MongoDB documents
 - **Services**: SchemaService for column detection
 - **Demos**: 9 entities (User, Customer, Product, Order, Invoice, Employee, SystemLog, EmailSubscription, Type) with comprehensive fixtures and complete CRUD interfaces
-- **Demos Coverage**: 100% faker coverage (all 39 fakers demonstrated)
+- **Demos Coverage**: 100% faker coverage (all 40 fakers demonstrated)
 - **Demos Databases**: MySQL, PostgreSQL, SQLite, MongoDB (infrastructure ready)
 
 ---

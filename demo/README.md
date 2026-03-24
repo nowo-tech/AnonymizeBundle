@@ -92,12 +92,12 @@ Each demo runs the Symfony app with **[FrankenPHP](https://frankenphp.dev/)** (C
 
 Each demo includes four database systems:
 
-- **`default`**: MySQL connection (port 33061/33062/33063 depending on demo)
-- **`postgres`**: PostgreSQL connection (port 54321/54322/54323 depending on demo)
+- **`default`**: MySQL connection (hostname `mysql` on the Compose network; not published on the host)
+- **`postgres`**: PostgreSQL connection (hostname `postgres` on the Compose network; not published on the host)
 - **`sqlite`**: SQLite connection (file-based: `var/data/anonymize_demo.sqlite`)
-- **`mongodb`**: MongoDB connection (port 27016/27017/27018 depending on demo)
+- **`mongodb`**: MongoDB connection (hostname `mongodb` on the Compose network; optional host port 27016/27019/27018 per demo for local tools)
 
-MySQL, PostgreSQL, and SQLite connections have the same entities and the same test data, allowing you to test the bundle with different database systems. MongoDB infrastructure is ready with Mongo Express for management, and documents are prepared for when the bundle supports MongoDB ODM.
+MySQL, PostgreSQL, and SQLite connections have the same entities and the same test data, allowing you to test the bundle with different database systems. From your machine, use **phpMyAdmin** / **pgAdmin** (ports differ per demo) or `docker compose exec php …` to query MySQL/PostgreSQL. MongoDB infrastructure is ready with Mongo Express for management, and documents are prepared for when the bundle supports MongoDB ODM.
 
 ### Example Entities
 
@@ -214,9 +214,8 @@ The data should be anonymized according to the attributes defined in the entitie
 | PostgreSQL | 16 | 16 | 16 |
 | SQLite | ✅ | ✅ | ✅ |
 | MongoDB | 7.0 | 7.0 | 7.0 |
-| MySQL Port | 33061 | 33062 | 33063 |
-| PostgreSQL Port | 54321 | 54322 | 54323 |
-| MongoDB Port | 27016 | 27019 | 27018 |
+| MySQL / PostgreSQL published on host | No (Compose network + admin UIs) | No | No |
+| MongoDB host port (optional) | 27016 | 27019 | 27018 |
 | Mongo Express Port | 8088 | 8087 | 8086 |
 | Docker Compose | ✅ | ✅ | ✅ |
 | Makefile | ✅ | ✅ | ✅ |

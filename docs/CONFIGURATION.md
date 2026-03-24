@@ -530,4 +530,4 @@ class AnonymizeSubscriber implements EventSubscriberInterface
 
 ## Available Faker Types
 
-The bundle supports 39 different faker types with various configuration options. See [FAKERS.md](FAKERS.md) for the complete list with detailed descriptions and configuration options for each faker type.
+The bundle supports 40 different faker types with various configuration options. See [FAKERS.md](FAKERS.md) for the complete list with detailed descriptions and configuration options for each faker type.

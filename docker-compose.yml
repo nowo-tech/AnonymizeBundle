@@ -1,4 +1,5 @@
-# Single compose for dev and tests (PHP + integration tests with MySQL/PostgreSQL)
+# Single compose for dev and tests (PHP + integration tests with MySQL/PostgreSQL).
+# MySQL/PostgreSQL are not published on the host; PHP reaches them as mysql:3306 and postgres:5432 on the bridge network.
 name: anonymize-bundle
 services:
   php:
@@ -32,8 +33,6 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-anonymize_test}
       MYSQL_USER: ${MYSQL_USER:-test_user}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-test_password}
-    ports:
-      - "33064:3306"
     networks:
       - anonymize-bundle-network
     healthcheck:
@@ -49,8 +48,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-test_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-test_password}
       POSTGRES_DB: ${POSTGRES_DB:-anonymize_test}
-    ports:
-      - "54324:5432"
     networks:
       - anonymize-bundle-network
     healthcheck:

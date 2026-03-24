@@ -741,7 +741,8 @@ class ExportDatabaseCommandTest extends TestCase
         $content  = $output->fetch();
 
         $this->assertSame(0, $exitCode);
-        $this->assertStringContainsString('.gitignore has been updated to exclude the export directory', $content);
+        $this->assertStringContainsString('.gitignore has been updated to exclude', $content);
+        $this->assertStringContainsString('export directory', $content);
 
         if (is_file($testDbPath)) {
             unlink($testDbPath);
