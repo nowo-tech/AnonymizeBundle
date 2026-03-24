@@ -226,7 +226,7 @@ For information about our Git workflow and branching strategy, see [BRANCHING.md
 
 We have an extensive roadmap for future enhancements. See [ROADMAP.md](docs/ROADMAP.md) for details on planned features including:
 
-### Current Status (1.0.15)
+### Current Status (1.0.16)
 
 - **Phase 1 Progress**: 100% complete (built-in faker types implemented via `FakerType` enum)
 - **Total Fakers Available**: **40** types in `FakerType` (including `map`, `utm`, `service`, and data-preservation fakers)

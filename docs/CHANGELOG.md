@@ -21,10 +21,32 @@ _(none)_
 
 ### Documentation
 
+_(none)_
+
+---
+
+## [1.0.16] - 2026-03-24
+
+### Changed
+
+- **Docker Compose (bundle root and demos)**: MySQL and PostgreSQL are **no longer published on the host** (`ports` removed). PHP, phpMyAdmin, pgAdmin, and other services on the same Compose network still reach them as `mysql:3306` and `postgres:5432`. This avoids common **WSL2 / Docker Desktop** failures when binding host ports (e.g. `forwards/expose` 500) and reduces exposed surface on the workstation. MongoDB in demos may still publish an optional host port for local tools (unchanged).
+
+### Fixed
+
+- **PHPUnit (integration)**: Assertions on Symfony Console output were updated to tolerate **wrapped lines** (e.g. MongoDB warning, “no entities” notes, `.gitignore` note) so `make test-coverage` stays green across terminal widths and CI environments.
+- **DbalHelperTest**: No longer configures `Connection::quoteSingleIdentifier` on mocks when that method is **final or static** (Doctrine DBAL 4 / PHP 8.1 CI); the test still exercises the fallback path via `getDatabasePlatform()` throwing.
+
+### Demo
+
+- **composer.lock (symfony6, symfony7, symfony8)**: Synchronized with `composer.json` so **`nowo-tech/twig-inspector-bundle`** (require-dev) is present in the lock file; `composer install` during `make up` no longer fails with “package is not present in the lock file”.
+
+### Documentation
+
 - **README**, **FAKERS.md**, **CONFIGURATION.md**, **ROADMAP.md**: Faker count aligned with `FakerType` — **40** types (including `map`, `utm`, etc.), not 39.
-- **README** (Roadmap): Current release **1.0.15**; test/coverage stats softened to avoid stale fixed numbers (suite is 1100+ methods; use `composer test` / `make test-coverage` for current figures).
+- **README** (Roadmap): Current release **1.0.16**; test/coverage stats remain phrased so numbers do not go stale (1100+ methods; use `composer test` / `make test-coverage` for current figures).
 - **TESTING_COMMANDS.md**: Aligned with `scripts/test-commands.sh` — **26** combinations; per-section counts and notes (export has no `--dry-run`; real export runs in demos).
 - **README**: Demo script description updated to **26** combinations.
+- **demo/README.md** and **demo/symfony6|7|8/README.md**: Document database access via the **internal Compose network** and admin UIs (phpMyAdmin / pgAdmin); **home** Twig templates updated with correct admin ports per demo.
 
 ---
 

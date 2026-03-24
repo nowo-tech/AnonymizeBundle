@@ -24,6 +24,31 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.16
+
+**Release Date**: 2026-03-24
+
+#### What's New
+
+- **Docker networking**: In this repository, the **root** `docker-compose.yml` and **demo** stacks no longer map MySQL/PostgreSQL to host ports. Containers use service hostnames (`mysql`, `postgres`) on the Compose network. If you relied on `localhost:3306x` / `5432x` from the host, use **phpMyAdmin** / **pgAdmin** in the demos, or `docker compose exec php …`, or add optional `ports` in a local `docker-compose.override.yml` (not committed).
+- **Tests and CI**: Integration tests and `DbalHelperTest` were adjusted for Symfony Console wrapping and DBAL 4 mock constraints; no change to bundle public APIs.
+- **Demos**: `composer.lock` files include **`nowo-tech/twig-inspector-bundle`** so `make up` / `composer install` work out of the box.
+
+#### Breaking Changes
+
+**None** for the bundle as a Composer dependency (`nowo-tech/anonymize-bundle`). Changes above affect **this repo’s** Docker layouts and demo projects only.
+
+#### Migration Steps
+
+1. **Update the bundle** (consumers):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **Clone / demo users**: Pull latest `composer.lock` under `demo/symfony6|7|8` or run `composer update nowo-tech/twig-inspector-bundle` inside each demo if you maintain a fork.
+
+3. **Optional**: Recreate demo containers after pulling (`make down && make up` in each demo) so Compose picks up the new port layout.
+
 ### Upgrading to 1.0.15
 
 **Release Date**: 2026-03-16
