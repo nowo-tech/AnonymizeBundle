@@ -24,6 +24,32 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.17
+
+**Release Date**: 2026-03-25
+
+#### What's New
+
+- **JsonFaker**: Preserva precisión de floats en JSON generado desde esquemas (usando `JSON_PRESERVE_ZERO_FRACTION`) para que `json_decode()` devuelva `float` de forma consistente en PHP 8.5+.
+- **GenerateMongoAnonymizedFieldCommand**: El escaneo de documentos ahora ignora ficheros PHP no legibles (`is_readable()`), evitando warnings de “Permission denied” y mejorando la determinidad del test/ejecución.
+- **Testing**: Ajustes de robustez en tests de historial para evitar flakiness por cambios de segundo en entornos rápidos/CI.
+
+#### Breaking Changes
+
+None. No hay cambios de API pública del bundle.
+
+#### Migration Steps
+
+1. **Actualiza el bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **(Opcional)** Ejecuta tus tests/local QA:
+   ```bash
+   make test-coverage
+   ```
+
 ### Upgrading to 1.0.16
 
 **Release Date**: 2026-03-24

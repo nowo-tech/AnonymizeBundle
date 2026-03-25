@@ -24,6 +24,19 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.17] - 2026-03-25
+
+### Fixed
+
+- **JsonFaker**: Preserva precisión de floats al codificar valores generados por esquema usando `JSON_PRESERVE_ZERO_FRACTION`, para que `json_decode()` devuelva `float` de forma consistente en PHP 8.5+.
+- **GenerateMongoAnonymizedFieldCommand**: Durante el escaneo de documentos, ahora salta ficheros PHP no legibles (`is_readable()`), evitando warnings de “Permission denied” y haciendo el comportamiento determinista entre entornos.
+- **AnonymizationHistoryServiceTest**: Hace la prueba de rebuildIndex robusta frente a flakiness por el cambio de segundos (cutoff temporal).
+
+### Documentation
+
+_(none)_
+
+---
 
 ## [1.0.16] - 2026-03-24
 
