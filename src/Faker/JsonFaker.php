@@ -11,6 +11,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 use function is_array;
 
+use const JSON_PRESERVE_ZERO_FRACTION;
 use const JSON_THROW_ON_ERROR;
 
 /**
