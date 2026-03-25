@@ -58,7 +58,8 @@ final class JsonFaker implements FakerInterface
             $data = $this->generateRandomStructure($depth, $maxItems);
         }
 
-        return json_encode($data, JSON_THROW_ON_ERROR);
+        // Preserve ".0" so json_decode() doesn't collapse floats like 120.0 into int(120).
+        return json_encode($data, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION);
     }
 
     /**
