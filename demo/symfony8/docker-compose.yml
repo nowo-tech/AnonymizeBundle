@@ -23,7 +23,7 @@ services:
       - DATABASE_URL_SQLITE=sqlite:///%kernel.project_dir%/var/data/anonymize_demo.sqlite
       - MONGODB_URL=mongodb://${MONGODB_USER:-demo_user}:${MONGODB_PASSWORD:-password}@mongodb:27017/${MONGODB_DATABASE:-anonymize_demo}?authSource=admin
     ports:
-      - "8002:80"
+      - "${PORT:-8002}:80"
     networks:
       - anonymize-demo-network
 
@@ -109,8 +109,8 @@ services:
       MONGO_INITDB_DATABASE: ${MONGODB_DATABASE:-anonymize_demo}
     volumes:
       - ./.data/mongodb:/data/db
-    ports:
-      - "27018:27017"
+    expose:
+      - "27017"
     networks:
       - anonymize-demo-network
     healthcheck:

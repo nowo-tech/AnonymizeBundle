@@ -408,6 +408,56 @@ class DatabaseExportServiceTest extends TestCase
     }
 
     /**
+     * Test that exportSQLite returns null when copy() fails (destination path is an existing directory).
+     */
+    public function testExportSQLiteReturnsNullWhenCopyFails(): void
+    {
+        $service = new DatabaseExportService(
+            $this->container,
+            $this->tempDir,
+            '{connection}_{database}_{date}_{time}.{format}',
+            'none',
+            false,
+        );
+
+        $testDbPath = $this->tempDir . '/src_copy_fail.db';
+        file_put_contents($testDbPath, 'sqlite');
+
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $driver     = $this->getMockBuilder(Driver::class)->getMock();
+        $platform   = $this->createMock(AbstractPlatform::class);
+
+        $em->method('getConnection')->willReturn($connection);
+        $connection->method('getDatabase')->willReturn('test_db');
+        $connection->method('getDriver')->willReturn($driver);
+        $connection->method('getDatabasePlatform')->willReturn($platform);
+        $connection->method('getParams')->willReturn(['driver' => 'pdo_sqlite', 'path' => $testDbPath]);
+
+        $reflection = new ReflectionClass(DatabaseExportService::class);
+        $method     = $reflection->getMethod('exportSQLite');
+        $method->setAccessible(true);
+
+        $dirAsDest = $this->tempDir . '/dest_is_dir_' . uniqid('', true);
+        mkdir($dirAsDest, 0o755, true);
+
+        // copy() to a directory emits a PHP warning; we only assert the null return.
+        $prev = set_error_handler(static function (int $errno, string $errstr): bool {
+            return str_contains($errstr, 'copy()') && str_contains($errstr, 'directory');
+        });
+        try {
+            $result = $method->invoke($service, $connection, $dirAsDest);
+        } finally {
+            if ($prev !== null) {
+                set_error_handler($prev);
+            } else {
+                restore_error_handler();
+            }
+        }
+        $this->assertNull($result);
+    }
+
+    /**
      * Test that exportConnection returns null for MySQL when mysqldump is not available (covers exportMySQL early return).
      */
     public function testExportConnectionReturnsNullForMySQLWhenMysqldumpNotAvailable(): void
@@ -714,6 +764,111 @@ class DatabaseExportServiceTest extends TestCase
         // mongodump is likely not available in test environment
         $result = $service->exportMongoDB('test_connection', 'test_db', 'localhost', 27017);
         $this->assertNull($result);
+    }
+
+    /**
+     * Test exportMongoDB creates output directory when it does not exist (mkdir branch).
+     */
+    public function testExportMongoDBCreatesOutputDirectoryWhenMissing(): void
+    {
+        $outputDir = $this->tempDir . '/mongo_out_' . uniqid('', true);
+        $this->assertDirectoryDoesNotExist($outputDir);
+
+        $runner = new class implements CommandRunnerInterface {
+            public function commandExists(string $command): bool
+            {
+                return $command === 'mongodump';
+            }
+
+            public function exec(string $command, ?array &$output = null): int
+            {
+                $output = [];
+
+                return 0;
+            }
+        };
+
+        $service = new DatabaseExportService(
+            $this->container,
+            $outputDir,
+            '{connection}_{database}_{date}_{time}.{format}',
+            'zip',
+            false,
+            $runner,
+        );
+
+        $result = $service->exportMongoDB('c', 'test_db', 'localhost', 27017);
+
+        $this->assertNull($result, 'Without dump subdirectory export should stop after mkdir + exec');
+        $this->assertDirectoryExists($outputDir);
+    }
+
+    /**
+     * Test exportMongoDB returns null when mongodump command reports failure (non-zero exit).
+     */
+    public function testExportMongoDBReturnsNullWhenExecFails(): void
+    {
+        $exportDir = $this->tempDir . '/mongo_exec_fail_' . uniqid('', true);
+        mkdir($exportDir, 0o755, true);
+
+        $runner = new class implements CommandRunnerInterface {
+            public function commandExists(string $command): bool
+            {
+                return $command === 'mongodump';
+            }
+
+            public function exec(string $command, ?array &$output = null): int
+            {
+                $output = ['error'];
+
+                return 1;
+            }
+        };
+
+        $service = new DatabaseExportService(
+            $this->container,
+            $exportDir,
+            '{connection}_{database}_{date}_{time}.{format}',
+            'zip',
+            false,
+            $runner,
+        );
+
+        $this->assertNull($service->exportMongoDB('c', 'test_db', 'localhost', 27017));
+    }
+
+    /**
+     * Test exportMongoDB returns null when dump directory is missing after successful exec.
+     */
+    public function testExportMongoDBReturnsNullWhenDumpDirectoryMissingAfterExec(): void
+    {
+        $exportDir = $this->tempDir . '/mongo_no_subdir_' . uniqid('', true);
+        mkdir($exportDir, 0o755, true);
+
+        $runner = new class implements CommandRunnerInterface {
+            public function commandExists(string $command): bool
+            {
+                return $command === 'mongodump';
+            }
+
+            public function exec(string $command, ?array &$output = null): int
+            {
+                $output = [];
+
+                return 0;
+            }
+        };
+
+        $service = new DatabaseExportService(
+            $this->container,
+            $exportDir,
+            '{connection}_{database}_{date}_{time}.{format}',
+            'zip',
+            false,
+            $runner,
+        );
+
+        $this->assertNull($service->exportMongoDB('c', 'test_db', 'localhost', 27017));
     }
 
     /**

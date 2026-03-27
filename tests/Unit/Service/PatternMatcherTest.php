@@ -788,13 +788,23 @@ class PatternMatcherTest extends TestCase
     }
 
     /**
-     * Test that pattern containing both | and % is treated as single LIKE (percent wins), not OR.
+     * Test OR pattern where one option contains % so matching uses preg_match (inner LIKE branch).
      */
-    public function testMatchesWithPipeAndPercentTreatedAsLike(): void
+    public function testMatchesWithOrPatternWhereOptionUsesLikeWildcard(): void
+    {
+        $record = ['code' => 'ABC123'];
+        $this->assertTrue($this->matcher->matches($record, ['code' => 'nomatch|%123%']));
+        $this->assertFalse($this->matcher->matches($record, ['code' => 'nomatch|%ZZZ%']));
+    }
+
+    /**
+     * Test pattern with both | and %: pipe splits first; an option may use SQL LIKE wildcards.
+     */
+    public function testMatchesWithPipeAndPercentSplitsAsOrWithLikePerOption(): void
     {
         $record          = ['email' => 'user@example.com'];
         $includePatterns = ['email' => 'nomatch|%@example.com'];
-        $this->assertFalse($this->matcher->matches($record, $includePatterns));
+        $this->assertTrue($this->matcher->matches($record, $includePatterns));
     }
 
     /**

@@ -1,7 +1,7 @@
 # Makefile for Anonymize Bundle
 # Simplifies Docker commands for development
 
-.PHONY: help up down build shell install test test-coverage cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up assets release-check release-check-demos composer-sync rector rector-dry phpstan update validate
+.PHONY: help up down build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up assets release-check release-check-demos composer-sync rector rector-dry phpstan update validate
 
 # Default target
 help:
@@ -87,15 +87,16 @@ test: ensure-up
 # Run tests with coverage (runs inside root docker-compose php container)
 # Run tests with coverage (no -T so coverage is shown in console with colors)
 test-coverage: ensure-up
-	docker-compose -f docker-compose.yml exec php composer test-coverage
+	docker-compose -f docker-compose.yml exec php composer test-coverage | tee coverage-php.txt
+	/bin/sh "$(CURDIR)/.scripts/php-coverage-percent.sh" coverage-php.txt
 
 # Run tests with databases (integration tests; same compose: php + mysql + postgres)
-test-with-db:
+test-with-db: ensure-up
 	docker-compose -f docker-compose.yml exec -T php composer test
 
 # Run tests with coverage and databases
-test-coverage-with-db:
-	docker-compose -f docker-compose.yml exec -T php composer test-coverage
+test-coverage-with-db: ensure-up
+	docker-compose -f docker-compose.yml exec php composer test-coverage
 
 # No frontend assets in this bundle
 assets:

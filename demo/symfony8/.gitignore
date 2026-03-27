@@ -1,22 +1,30 @@
+# Local environment (do not version secrets)
 /.env
 /.env.dev
 /.env.local
 /.env.local.php
 /.env.*.local
-/config/secrets/prod/prod.decrypt.private.php
-/public/bundles/
-/var/
+
+# Dependencies and build artifacts
 /vendor/
+/node_modules/
+/public/build/
+
+# Caches, logs, and runtime
+/var/
+*.log
+
+# Symfony
+/public/bundles/
+/config/secrets/
+
+# Demo database and tool data (Docker volumes)
 /.data/
-/.data/mysql/
-/.data/postgres/
-/.data/pgadmin/
-###> symfony/framework-bundle ###
-/.env.local
-/.env.local.php
-/.env.*.local
-/config/secrets/prod/prod.decrypt.private.php
-/public/bundles/
-/var/
-/vendor/
-###< symfony/framework-bundle ###
+
+# Archives / compressed
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z

@@ -1,7 +1,7 @@
 # Makefile for Anonymize Bundle Demos
 # Manages all Symfony demos (6, 7, 8)
 
-.PHONY: help all up down install setup clean logs status update-bundle-symfony6 update-bundle-symfony7 update-bundle-symfony8 release-check release-verify
+.PHONY: help all up down install setup clean logs status update-bundle-symfony6 update-bundle-symfony7 update-bundle-symfony8 update-bundle-all release-check release-verify
 
 # Default target
 help:
@@ -168,6 +168,9 @@ update-bundle-symfony7:
 update-bundle-symfony8:
 	@$(MAKE) -C symfony8 update-bundle
 
+# Run update-bundle in each demo before tests (REQ-DEMO-007)
+update-bundle-all: update-bundle-symfony6 update-bundle-symfony7 update-bundle-symfony8
+
 # Clean all demos
 clean:
 	@echo "🧹 Cleaning all demos..."
@@ -181,11 +184,11 @@ logs:
 	@echo "📋 Showing logs for all demos..."
 	@docker-compose -f symfony6/docker-compose.yml -f symfony7/docker-compose.yml -f symfony8/docker-compose.yml logs --tail=50
 
-# release-check: test-coverage-all (if present), then release-verify
+# release-check: update-bundle in each demo, then test-coverage-all, then release-verify
 test-coverage-all:
 	@for demo in symfony6 symfony7 symfony8; do $(MAKE) -C $$demo test-coverage || exit 1; done
 	@echo "✅ test-coverage-all done."
-release-check: test-coverage-all release-verify
+release-check: update-bundle-all test-coverage-all release-verify
 	@echo "✅ All demos passed release-check."
 
 # Release verify: for each demo, up → sleep → healthcheck (HTTP 200) → down

@@ -1,6 +1,6 @@
 # Anonymize Bundle
 
-[![CI](https://github.com/nowo-tech/AnonymizeBundle/actions/workflows/ci.yml/badge.svg)](https://github.com/nowo-tech/AnonymizeBundle/actions/workflows/ci.yml) [![Packagist Version](https://img.shields.io/packagist/v/nowo-tech/anonymize-bundle.svg?style=flat)](https://packagist.org/packages/nowo-tech/anonymize-bundle) [![Packagist Downloads](https://img.shields.io/packagist/dt/nowo-tech/anonymize-bundle.svg)](https://packagist.org/packages/nowo-tech/anonymize-bundle) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4?logo=php)](https://php.net) [![Symfony](https://img.shields.io/badge/Symfony-6.1%2B%20%7C%207%20%7C%208-000000?logo=symfony)](https://symfony.com) [![GitHub stars](https://img.shields.io/github/stars/nowo-tech/anonymize-bundle.svg?style=social&label=Star)](https://github.com/nowo-tech/AnonymizeBundle)
+[![CI](https://github.com/nowo-tech/AnonymizeBundle/actions/workflows/ci.yml/badge.svg)](https://github.com/nowo-tech/AnonymizeBundle/actions/workflows/ci.yml) [![Packagist Version](https://img.shields.io/packagist/v/nowo-tech/anonymize-bundle.svg?style=flat)](https://packagist.org/packages/nowo-tech/anonymize-bundle) [![Packagist Downloads](https://img.shields.io/packagist/dt/nowo-tech/anonymize-bundle.svg)](https://packagist.org/packages/nowo-tech/anonymize-bundle) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4?logo=php)](https://php.net) [![Symfony](https://img.shields.io/badge/Symfony-6.1%2B%20%7C%207%20%7C%208-000000?logo=symfony)](https://symfony.com) [![GitHub stars](https://img.shields.io/github/stars/nowo-tech/anonymize-bundle.svg?style=social&label=Star)](https://github.com/nowo-tech/AnonymizeBundle) [![Coverage](https://img.shields.io/badge/Coverage-94%25-yellowgreen)](#tests-and-coverage)
 
 > ⭐ **Found this useful?** [Install from Packagist](https://packagist.org/packages/nowo-tech/anonymize-bundle) · Give it a **star** on [GitHub](https://github.com/nowo-tech/AnonymizeBundle) so more developers can find it.
 
@@ -80,8 +80,8 @@ Then, register the bundle in your `config/bundles.php` **only for dev and test e
 <?php
 
 return [
-    // ...
-    Nowo\AnonymizeBundle\AnonymizeBundle::class => ['dev' => true, 'test' => true],
+  // ...
+  Nowo\AnonymizeBundle\AnonymizeBundle::class => ['dev' => true, 'test' => true],
 ];
 ```
 
@@ -99,11 +99,11 @@ use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
 #[Anonymize]
 class User
 {
-    #[AnonymizeProperty(type: 'email', weight: 1)]
-    private ?string $email = null;
+  #[AnonymizeProperty(type: 'email', weight: 1)]
+  private ?string $email = null;
 
-    #[AnonymizeProperty(type: 'name', weight: 2)]
-    private ?string $firstName = null;
+  #[AnonymizeProperty(type: 'name', weight: 2)]
+  private ?string $firstName = null;
 }
 ```
 
@@ -140,10 +140,10 @@ If the configuration file was not created automatically, create it manually at `
 
 ```yaml
 nowo_anonymize:
-    locale: 'en_US'              # Locale for Faker generator
-    connections: []              # Specific connections to process (empty = all)
-    dry_run: false              # Dry-run mode (default: false)
-    batch_size: 100             # Batch size for processing records
+  locale: 'en_US'       # Locale for Faker generator
+  connections: []       # Specific connections to process (empty = all)
+  dry_run: false       # Dry-run mode (default: false)
+  batch_size: 100       # Batch size for processing records
 ```
 
 See [CONFIGURATION.md](docs/CONFIGURATION.md) for detailed configuration options.
@@ -204,13 +204,20 @@ The bundle includes a comprehensive testing script to verify all commands work c
 
 ```bash
 # Test all commands in all demos
-./scripts/test-commands.sh all
+./.scripts/test-commands.sh all
 
 # Test in a specific demo
-./scripts/test-commands.sh symfony6
+./.scripts/test-commands.sh symfony6
 ```
 
 The script tests **26 command combinations** (entries in `scripts/test-commands.sh`). See [TESTING_COMMANDS.md](docs/TESTING_COMMANDS.md) for details.
+
+## Tests and coverage
+
+- Tests: PHPUnit (unit and integration; run `make test` or `composer test`)
+- PHP (Lines): **94.14%** (see `make test-coverage` for the PHPUnit summary and HTML report)
+- TS/JS: N/A
+- Python: N/A
 
 ## License
 
@@ -230,10 +237,10 @@ We have an extensive roadmap for future enhancements. See [ROADMAP.md](docs/ROAD
 
 - **Phase 1 Progress**: 100% complete (built-in faker types implemented via `FakerType` enum)
 - **Total Fakers Available**: **40** types in `FakerType` (including `map`, `utm`, `service`, and data-preservation fakers)
-- **Test Coverage**: Large PHPUnit suite (**1100+** test methods; exact count changes as tests are added). Run `composer test` or `make test` for the current total. **95%+ line coverage** has been reported on covered `src/` lines in recent runs; see `make test-coverage` for an up-to-date HTML report.
-  - Some paths (e.g. parts of CLI commands and large services) may be covered primarily via integration/command tests rather than unit line coverage alone.
-  - Run <code>make test-coverage</code> for the full report.
-  - Comprehensive tests for fakers, services, events, attributes, and helpers
+- **Test Coverage**: Large PHPUnit suite (**1100+** test methods; exact count changes as tests are added). Run `composer test` or `make test` for the current total. **~94.1%** line coverage on `src/` (PHPUnit Lines); target remains **100%** — see `make test-coverage` for the report.
+ - Some paths (e.g. parts of CLI commands and large services) may be exercised primarily via integration/command tests.
+ - Run <code>make test-coverage</code> for the full report.
+ - Comprehensive tests for fakers, services, events, attributes, and helpers
 - **Pattern Matching**: Enhanced with `|` (OR) operator support for multiple value matching and relationship patterns (e.g., `'type.name' => '%HR'`)
 - **MongoDB Support**: Command to generate scripts for adding `anonymized` field to MongoDB documents
 - **Relationship Patterns**: Support for patterns referencing related entities using dot notation with automatic SQL JOIN construction

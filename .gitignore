@@ -9,6 +9,7 @@
 # Test coverage
 /coverage
 /coverage.xml
+/coverage-php.txt
 /*.xml
 
 # PHP tool caches

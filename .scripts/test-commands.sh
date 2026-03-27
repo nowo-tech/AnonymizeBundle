@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to test all bundle commands in the demos
-# Usage: ./scripts/test-commands.sh [symfony6|symfony7|symfony8|all]
+# Usage: ./.scripts/test-commands.sh [symfony6|symfony7|symfony8|all]
 #        or from scripts/ directory: ./test-commands.sh [symfony6|symfony7|symfony8|all]
 
 set +e  # Don't exit on error, we want to continue testing

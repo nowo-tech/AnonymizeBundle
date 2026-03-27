@@ -2,6 +2,18 @@
 
 This guide covers development setup, testing, and code quality for the Anonymize Bundle.
 
+## Table of contents
+
+- [Development Setup](#development-setup)
+  - [Using Docker (Recommended)](#using-docker-recommended)
+  - [Without Docker](#without-docker)
+- [Testing](#testing)
+  - [Test Statistics](#test-statistics)
+  - [Running Tests](#running-tests)
+  - [Coverage by Component](#coverage-by-component)
+- [Code Quality](#code-quality)
+- [Contributing](#contributing)
+
 ## Development Setup
 
 ### Using Docker (Recommended)
@@ -59,10 +71,7 @@ open coverage/index.html
 
 ### Coverage by Component
 
-- **Fakers**: Excellent coverage (~98% average, most fakers at 100%)
-- **Services**: Good coverage (88-96% for main services)
-- **Commands**: Integration tests required (not unit tested)
-- **Attributes**: No tests needed (definition-only classes)
+- **Fakers**, **services**, **commands**, and **attributes** are covered by the PHPUnit suite; see `make test-coverage` for current line coverage (target: 100% on `src/`).
 
 ## Code Quality
 

@@ -107,7 +107,7 @@ final class DbalHelper
             if (str_contains($platformName, 'PostgreSQL')) {
                 return 'pdo_pgsql';
             }
-            if (str_contains($platformName, 'Sqlite')) {
+            if (str_contains(strtolower($platformName), 'sqlite')) {
                 return 'pdo_sqlite';
             }
 
@@ -124,7 +124,7 @@ final class DbalHelper
                 if (str_contains($driverClass, 'PostgreSQL')) {
                     return 'pdo_pgsql';
                 }
-                if (str_contains($driverClass, 'Sqlite')) {
+                if (stripos($driverClass, 'sqlite') !== false) {
                     return 'pdo_sqlite';
                 }
             }

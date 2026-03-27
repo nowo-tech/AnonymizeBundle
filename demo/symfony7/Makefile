@@ -43,21 +43,7 @@ help:
 # Build and start containers
 up:
 	@echo "🚀 Starting demo containers..."
-	@if [ ! -f .env ]; then \
-		echo "⚠️  .env file not found. Creating from defaults..."; \
-		echo "APP_ENV=dev" > .env; \
-		echo "APP_SECRET=your-secret-key-change-this-in-production" >> .env; \
-		echo "DATABASE_URL=mysql://demo_user:password@mysql:3306/anonymize_demo?serverVersion=8.0&charset=utf8mb4" >> .env; \
-		echo "DATABASE_URL_POSTGRES=postgresql://demo_user:password@postgres:5432/anonymize_demo?serverVersion=16&charset=utf8" >> .env; \
-		echo "MYSQL_ROOT_PASSWORD=password" >> .env; \
-		echo "MYSQL_DATABASE=anonymize_demo" >> .env; \
-		echo "MYSQL_USER=demo_user" >> .env; \
-		echo "MYSQL_PASSWORD=password" >> .env; \
-		echo "POSTGRES_USER=demo_user" >> .env; \
-		echo "POSTGRES_PASSWORD=password" >> .env; \
-		echo "POSTGRES_DB=anonymize_demo" >> .env; \
-		echo "✅ .env file created"; \
-	fi
+	@[ -f .env ] || cp .env.example .env
 	docker-compose up -d --build
 	@echo "⏳ Waiting for MySQL and PostgreSQL to be ready..."
 	@echo "Waiting for container to be ready..."
@@ -66,6 +52,8 @@ up:
 	@docker-compose exec -T -e COMPOSER_MEMORY_LIMIT=-1 php composer install --no-interaction
 	@echo "Creating databases, schema and loading fixtures..."
 	@$(MAKE) setup
+	@DEFAULT_URI=$$(grep -E '^DEFAULT_URI=' .env.example | cut -d= -f2-); \
+	echo "Demo started at: $$DEFAULT_URI"
 	@echo ""
 	@echo "  make update-bundle - Update the bundle from repo"
 

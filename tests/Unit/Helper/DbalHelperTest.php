@@ -495,6 +495,23 @@ class DbalHelperTest extends TestCase
     }
 
     /**
+     * Test getDriverName with real SQLite platform class (Doctrine uses "SQLite" in the class name).
+     */
+    public function testGetDriverNameWithRealSQLitePlatform(): void
+    {
+        $driver = $this->getMockBuilder(Driver::class)->getMock();
+
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getDriver')->willReturn($driver);
+        $connection->method('getDatabasePlatform')
+            ->willReturn(new \Doctrine\DBAL\Platforms\SQLitePlatform());
+        $connection->method('getParams')->willReturn([]);
+
+        $result = DbalHelper::getDriverName($connection);
+        $this->assertSame('pdo_sqlite', $result);
+    }
+
+    /**
      * Test quoteIdentifier with different identifier names (via platform).
      */
     public function testQuoteIdentifierWithDifferentNames(): void

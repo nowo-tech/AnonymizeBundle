@@ -47,12 +47,12 @@ This script automatically tests **all bundle commands with their main options** 
 
 ```bash
 # Test all commands in all demos (recommended)
-./scripts/test-commands.sh all
+./.scripts/test-commands.sh all
 
 # Test in a specific demo
-./scripts/test-commands.sh symfony6
-./scripts/test-commands.sh symfony7
-./scripts/test-commands.sh symfony8
+./.scripts/test-commands.sh symfony6
+./.scripts/test-commands.sh symfony7
+./.scripts/test-commands.sh symfony8
 ```
 
 ### What It Tests

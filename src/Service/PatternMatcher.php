@@ -193,13 +193,8 @@ final class PatternMatcher
             return $value == $expected;
         }
 
-        // Exact match, contains, or multiple values with | (OR)
+        // Exact match, contains, or multiple values with | (OR). '|' splits first so each side may use % LIKE.
         if (is_string($value) && is_string($pattern)) {
-            if (str_contains($pattern, '%')) {
-                $regex = '/^' . str_replace(['%', '_'], ['.*', '.'], preg_quote($pattern, '/')) . '$/i';
-
-                return (bool) preg_match($regex, $value);
-            }
             if (str_contains($pattern, '|')) {
                 $orOptions = explode('|', $pattern);
                 foreach ($orOptions as $option) {
@@ -215,6 +210,11 @@ final class PatternMatcher
                 }
 
                 return false;
+            }
+            if (str_contains($pattern, '%')) {
+                $regex = '/^' . str_replace(['%', '_'], ['.*', '.'], preg_quote($pattern, '/')) . '$/i';
+
+                return (bool) preg_match($regex, $value);
             }
 
             return $value === $pattern;
@@ -243,11 +243,6 @@ final class PatternMatcher
             $parts           = explode('.', $field, 2);
             $associationName = $parts[0];
             $relatedField    = $parts[1];
-
-            // Check if we have the relationship field directly (from JOIN)
-            if (isset($record[$field])) {
-                return $record[$field];
-            }
 
             // Try to get from nested structure (if entity was loaded with relationship)
             if (isset($record[$associationName]) && is_array($record[$associationName])) {
