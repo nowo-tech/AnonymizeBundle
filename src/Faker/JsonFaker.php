@@ -140,13 +140,13 @@ final class JsonFaker implements FakerInterface
     private function generateValueByType(string $type, int $maxDepth): mixed
     {
         return match ($type) {
-            'string' => $this->faker->sentence(),
+            'string'            => $this->faker->sentence(),
             'number', 'integer' => $this->faker->numberBetween(0, 1000),
-            'float'   => $this->faker->randomFloat(2, 0, 1000),
-            'boolean' => $this->faker->boolean(),
-            'array'   => $this->faker->randomElements(['a', 'b', 'c', 'd', 'e'], $this->faker->numberBetween(1, 3)),
-            'object'  => $maxDepth > 0 ? $this->generateRandomStructure($maxDepth, 3) : [],
-            default   => $this->faker->word(),
+            'float'             => $this->faker->randomFloat(2, 0, 1000),
+            'boolean'           => $this->faker->boolean(),
+            'array'             => $this->faker->randomElements(['a', 'b', 'c', 'd', 'e'], $this->faker->numberBetween(1, 3)),
+            'object'            => $maxDepth > 0 ? $this->generateRandomStructure($maxDepth, 3) : [],
+            default             => $this->faker->word(),
         };
     }
 }

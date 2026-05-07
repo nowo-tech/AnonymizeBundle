@@ -61,10 +61,10 @@ final class CompanyFaker implements FakerInterface
 
             $suffixes = match (strtolower($type)) {
                 'corporation', 'corp' => 'Corp.',
-                'llc'   => 'LLC',
-                'inc'   => 'Inc.',
-                'ltd'   => 'Ltd.',
-                default => null,
+                'llc'                 => 'LLC',
+                'inc'                 => 'Inc.',
+                'ltd'                 => 'Ltd.',
+                default               => null,
             };
 
             if ($suffixes !== null) {

@@ -80,8 +80,8 @@ final class DniCifFaker implements FakerInterface
 
         $result = match (strtolower($type)) {
             'dni', 'nif' => $this->generateDni(),
-            'cif'   => $this->generateCif(),
-            default => $this->generateDni(),
+            'cif'        => $this->generateCif(),
+            default      => $this->generateDni(),
         };
 
         // Format with separator if requested

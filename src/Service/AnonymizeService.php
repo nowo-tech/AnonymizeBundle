@@ -708,9 +708,9 @@ final class AnonymizeService
 
                 return match ($type) {
                     'integer', 'int', 'smallint', 'bigint' => (int) $value,
-                    'float', 'decimal' => (float) $value,
-                    'boolean', 'bool' => (bool) $value,
-                    default => (string) $value,
+                    'float', 'decimal'                     => (float) $value,
+                    'boolean', 'bool'                      => (bool) $value,
+                    default                                => (string) $value,
                 };
             }
         }
