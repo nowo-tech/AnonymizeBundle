@@ -18,6 +18,7 @@ help:
 	@echo "  assets        No frontend assets in this bundle (no-op)"
 	@echo "  test          Run PHPUnit tests (unit tests only)"
 	@echo "  test-coverage Run tests with code coverage (unit tests only)"
+	@echo "  coverage-php-percent Print global PHP Lines % from coverage-php.txt (after test-coverage)"
 	@echo "  cs-check      Check code style"
 	@echo "  cs-fix        Fix code style"
 	@echo "  rector        Apply Rector refactoring"
@@ -88,6 +89,10 @@ test: ensure-up
 # Run tests with coverage (no -T so coverage is shown in console with colors)
 test-coverage: ensure-up
 	docker-compose -f docker-compose.yml exec php composer test-coverage | tee coverage-php.txt
+	/bin/sh "$(CURDIR)/.scripts/php-coverage-percent.sh" coverage-php.txt
+
+# Print global PHP line coverage % from coverage-php.txt (run test-coverage first to regenerate the file)
+coverage-php-percent:
 	/bin/sh "$(CURDIR)/.scripts/php-coverage-percent.sh" coverage-php.txt
 
 # Run tests with databases (integration tests; same compose: php + mysql + postgres)

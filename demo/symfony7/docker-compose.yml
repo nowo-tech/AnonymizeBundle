@@ -22,6 +22,10 @@ services:
       - DATABASE_URL_POSTGRES=postgresql://${POSTGRES_USER:-demo_user}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-anonymize_demo}?serverVersion=16&charset=utf8
       - DATABASE_URL_SQLITE=sqlite:///%kernel.project_dir%/var/data/anonymize_demo.sqlite
       - MONGODB_URL=mongodb://${MONGODB_USER:-demo_user}:${MONGODB_PASSWORD:-password}@mongodb:27017/${MONGODB_DATABASE:-anonymize_demo}?authSource=admin
+    # Mitigate Docker/WSL DNS failures resolving repo.packagist.org (composer curl error 6).
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     ports:
       - "${PORT:-8000}:80"
     networks:

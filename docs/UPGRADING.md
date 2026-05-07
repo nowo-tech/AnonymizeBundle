@@ -24,6 +24,39 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.18
+
+**Release Date**: 2026-05-07
+
+#### What's New
+
+- **Pattern matching**: Patrones con `|` y `%` en filtros de inclusión/exclusión: primero se parte por `|`, luego cada parte puede usar comodines LIKE. Revisa reglas que mezclaban ambos si dependían del orden anterior.
+- **SQLite**: Mejor detección del driver cuando Doctrine reporta la plataforma SQLite con distinta capitalización.
+- **Repositorio**: Plantillas de GitHub, CODEOWNERS y políticas de seguridad publicadas en `.github/`; scripts de ayuda bajo `.scripts/`.
+- **Demos**: Mensajes de URL al arranque y DNS opcional en Compose para entornos WSL/Docker con problemas de resolución hacia Packagist.
+
+#### Breaking Changes
+
+None for bundle consumers at the PHP API level. Behaviour change only for **pattern strings** that combine `|` and `%` (see [CHANGELOG](CHANGELOG.md) for 1.0.18).
+
+#### Composer constraints
+
+`composer.json` allows `symfony/*` **^6.0**. You still need **Symfony ≥ 6.1** in practice because the bundle uses `#[Autowire]` (see [README](../README.md#requirements)). Do not install on Symfony 6.0 alone.
+
+#### Migration Steps
+
+1. **Actualiza el bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **(Opcional)** Si usas patrones con `|` y `%`, valida en staging que los filtros sigan coincidiendo con los registros esperados.
+
+3. **(Opcional)** QA local:
+   ```bash
+   make test-coverage
+   ```
+
 ### Upgrading to 1.0.17
 
 **Release Date**: 2026-03-25

@@ -57,7 +57,13 @@ up:
 	@cd symfony8 && docker-compose up -d --build
 	@echo "✅ All demos started. Waiting for services to be ready..."
 	@sleep 15
-	@echo "✅ Ready!"
+	@echo "Access:"
+	@for d in symfony6 symfony7 symfony8; do \
+	  echo -n "  $$d: "; \
+	  (cd $$d && PORT=$$(grep "^PORT=" .env 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
+	    [ -z "$$PORT" ] && PORT=$$(grep "^PORT=" .env.example 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
+	    echo "Demo started at: http://localhost:$$PORT"); \
+	done
 
 # Stop all demos
 down:

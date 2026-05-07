@@ -53,8 +53,9 @@ up:
 	@docker-compose exec -T -e COMPOSER_MEMORY_LIMIT=-1 php composer install --no-interaction
 	@echo "Creating databases, schema and loading fixtures..."
 	@$(MAKE) setup
-	@DEFAULT_URI=$$(grep -E '^DEFAULT_URI=' .env.example | cut -d= -f2-); \
-	echo "Demo started at: $$DEFAULT_URI"
+	@PORT=$$(grep "^PORT=" .env 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
+	[ -z "$$PORT" ] && PORT=$$(grep "^PORT=" .env.example 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
+	echo "Demo started at: http://localhost:$$PORT" 
 	@echo ""
 	@echo "  make update-bundle - Update the bundle from repo"
 

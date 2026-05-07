@@ -24,6 +24,31 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.18] - 2026-05-07
+
+### Added
+
+- **Repositorio / GitHub**: Plantillas de incidencias (bug, feature, soporte), plantilla de pull request, [CODEOWNERS](.github/CODEOWNERS) y [SECURITY](.github/SECURITY.md) en `.github/`.
+- **Herramientas**: [`.scripts/php-coverage-percent.sh`](.scripts/php-coverage-percent.sh) y objetivo `make coverage-php-percent` (y ayuda en `make help`) para leer el % de líneas PHP del informe de cobertura.
+- **Pruebas**: Casos adicionales en `DatabaseExportServiceTest` (SQLite cuando `copy()` falla; ramas de `exportMongoDB` con directorio de salida, `exec` con fallo y subdirectorio de dump ausente) y en `DbalHelperTest` (plataforma SQLite real de Doctrine).
+
+### Changed
+
+- **Composer**: Restricciones de `symfony/*` ampliadas a `^6.0` (antes `^6.1`); `composer test` / `test-coverage` usan `phpunit --color=always`. **Nota**: el README sigue indicando Symfony **6.1+** como requisito efectivo por uso de `#[Autowire]`.
+- **PatternMatcher**: Los patrones con `|` (OR) se evalúan **antes** que los comodines `%`/`_`, de modo que cada alternativa puede usar coincidencia tipo SQL LIKE (comportamiento más intuitivo; tests actualizados).
+- **Scripts del repo**: Comandos auxiliares movidos de `scripts/` a [`.scripts/`](.scripts/) (`test-commands.sh`, `reload-mongodb-fixtures.sh`); documentación y Makefile apuntan a las nuevas rutas.
+- **Demos (Makefile / docker-compose)**: Tras `make up`, la URL del demo se muestra usando `PORT` desde `.env` / `.env.example`; en servicios `php` se añaden DNS públicos (8.8.8.8 / 8.8.4.4) para mitigar fallos de resolución en Docker/WSL durante `composer install`. El `demo/Makefile` agrupa las URLs de los tres demos al arrancar todos.
+
+### Fixed
+
+- **DbalHelper**: Detección del driver SQLite insensible a mayúsculas/minúsculas en el nombre de plataforma y en la clase del driver (`SQLite` vs `Sqlite`), evitando clasificar mal conexiones SQLite.
+- **JsonFaker**: Import explícito de la constante `JSON_PRESERVE_ZERO_FRACTION` para compatibilidad con análisis estático / entornos estrictos.
+
+### Documentation
+
+- **README**, **docs/DEVELOPMENT.md**, **docs/TESTING_COMMANDS.md**, **docs/SECURITY.md** (y `.github/SECURITY.md`): flujo de contribución, seguridad y pruebas alineados con la estructura actual del proyecto.
+
+---
 ## [1.0.17] - 2026-03-25
 
 ### Fixed
