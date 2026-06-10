@@ -135,4 +135,62 @@ final class DbalHelper
         // Last resort: default to mysql
         return 'pdo_mysql';
     }
+
+    /**
+     * Gets the unqualified name of a DBAL schema object (column, table, etc.).
+     * Compatible with DBAL 2.x–4.x.
+     *
+     * @param object $asset A DBAL schema asset (e.g. Column, Table)
+     *
+     * @return string The object name
+     */
+    public static function getSchemaObjectName(object $asset): string
+    {
+        if (method_exists($asset, 'getObjectName')) {
+            $objectName = $asset->getObjectName();
+            if (is_object($objectName) && method_exists($objectName, 'toString')) {
+                $name = $objectName->toString();
+                if (is_string($name) && $name !== '') {
+                    return $name;
+                }
+            }
+        }
+
+        if (method_exists($asset, 'getName')) {
+            $name = $asset->getName();
+            if (is_string($name) && $name !== '') {
+                return $name;
+            }
+        }
+
+        throw new Exception(sprintf('Cannot resolve schema object name from %s', $asset::class));
+    }
+
+    /**
+     * Gets the logical connection name in a compatible way across DBAL versions.
+     *
+     * @param Connection $connection The database connection
+     *
+     * @return string The connection name (e.g. 'default')
+     */
+    public static function getConnectionName(Connection $connection): string
+    {
+        if (method_exists($connection, 'getName')) {
+            $name = $connection->getName();
+            if (is_string($name) && $name !== '') {
+                return $name;
+            }
+        }
+
+        $params = $connection->getParams();
+        if (isset($params['connectionName']) && is_string($params['connectionName']) && $params['connectionName'] !== '') {
+            return $params['connectionName'];
+        }
+
+        if (isset($params['dbname']) && is_string($params['dbname']) && $params['dbname'] !== '') {
+            return $params['dbname'];
+        }
+
+        throw new Exception(sprintf('Cannot resolve connection name from %s', $connection::class));
+    }
 }

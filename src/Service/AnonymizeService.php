@@ -14,6 +14,7 @@ use Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
+use Nowo\AnonymizeBundle\Helper\OrmHelper;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionProperty;
@@ -485,8 +486,7 @@ final class AnonymizeService
                             // Get column name from metadata
                             $columnName = $propertyName;
                             if ($metadata->hasField($propertyName)) {
-                                $fieldMapping = $metadata->getFieldMapping($propertyName);
-                                $columnName   = $fieldMapping['columnName'] ?? $propertyName;
+                                $columnName = OrmHelper::getFieldColumnName($metadata, $propertyName);
                             }
 
                             // Check if column exists in record
@@ -614,7 +614,7 @@ final class AnonymizeService
                                     $columns             = $schemaManager->listTableColumns($tableName);
                                     $hasAnonymizedColumn = false;
                                     foreach ($columns as $column) {
-                                        if ($column->getName() === 'anonymized') {
+                                        if (DbalHelper::getSchemaObjectName($column) === 'anonymized') {
                                             $hasAnonymizedColumn = true;
                                             break;
                                         }
@@ -703,8 +703,8 @@ final class AnonymizeService
         // Find the field mapping
         foreach ($metadata->getFieldNames() as $fieldName) {
             $fieldMapping = $metadata->getFieldMapping($fieldName);
-            if (($fieldMapping['columnName'] ?? $fieldName) === $columnName) {
-                $type = $fieldMapping['type'] ?? 'string';
+            if (OrmHelper::getColumnNameFromFieldMapping($fieldMapping, $fieldName) === $columnName) {
+                $type = OrmHelper::getFieldTypeFromFieldMapping($fieldMapping, 'string');
 
                 return match ($type) {
                     'integer', 'int', 'smallint', 'bigint' => (int) $value,
@@ -897,7 +897,7 @@ final class AnonymizeService
                 // Get target ID column name
                 $targetIdField   = $targetMetadata->getSingleIdentifierFieldName();
                 $targetIdMapping = $targetMetadata->getFieldMapping($targetIdField);
-                $targetColumn    = $targetIdMapping['columnName'] ?? 'id';
+                $targetColumn    = OrmHelper::getColumnNameFromFieldMapping($targetIdMapping, 'id');
             } else {
                 $joinColumn   = $joinColumns[0];
                 $sourceColumn = $joinColumn['name'] ?? $associationName . '_id';
@@ -918,7 +918,7 @@ final class AnonymizeService
                 // Add related field to SELECT if it exists in target metadata
                 if ($targetMetadata->hasField($relatedField)) {
                     $relatedFieldMapping = $targetMetadata->getFieldMapping($relatedField);
-                    $relatedColumnName   = $relatedFieldMapping['columnName'] ?? $relatedField;
+                    $relatedColumnName   = OrmHelper::getColumnNameFromFieldMapping($relatedFieldMapping, $relatedField);
 
                     // Validate that we have valid identifiers before adding to SELECT
                     if (!empty($relatedColumnName) && !empty($alias)) {

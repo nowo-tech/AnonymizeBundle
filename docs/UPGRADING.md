@@ -24,6 +24,33 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.19
+
+**Release Date**: 2026-06-10
+
+#### What's New
+
+- **Compatibilidad Doctrine**: El bundle deja de usar accesos deprecados a `FieldMapping` vía ArrayAccess y a `getName()` en objetos de esquema DBAL / conexiones. La lógica está centralizada en `OrmHelper` y `DbalHelper` con fallback para DBAL 2–4 y ORM 2.13–3.x.
+- **Sin cambios de API pública**: Los comandos, servicios y atributos expuestos al consumidor no cambian.
+
+#### Breaking Changes
+
+None. Actualización transparente para proyectos que usan el bundle como dependencia Composer.
+
+#### Migration Steps
+
+1. **Actualiza el bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **(Opcional)** Si mantienes un fork o extensión que accedía a `$metadata->getFieldMapping(...)['columnName']` o `$column->getName()`, migra a `OrmHelper::getFieldColumnName()` / `OrmHelper::getColumnNameFromFieldMapping()` y `DbalHelper::getSchemaObjectName()`.
+
+3. **(Opcional)** QA local:
+   ```bash
+   make test
+   ```
+
 ### Upgrading to 1.0.18
 
 **Release Date**: 2026-05-07

@@ -740,6 +740,97 @@ class DbalHelperTest extends TestCase
 
         return $method->invoke(null, $connection, $identifier);
     }
+
+    /**
+     * Test getSchemaObjectName uses getObjectName()->toString() when available (DBAL 4+).
+     */
+    public function testGetSchemaObjectNameUsesGetObjectName(): void
+    {
+        $objectName = new class {
+            public function toString(): string
+            {
+                return 'anonymized';
+            }
+        };
+
+        $asset = new class($objectName) {
+            public function __construct(private readonly object $objectName)
+            {
+            }
+
+            public function getObjectName(): object
+            {
+                return $this->objectName;
+            }
+        };
+
+        $this->assertSame('anonymized', DbalHelper::getSchemaObjectName($asset));
+    }
+
+    /**
+     * Test getSchemaObjectName falls back to getName() (DBAL 2.x/3.x).
+     */
+    public function testGetSchemaObjectNameFallsBackToGetName(): void
+    {
+        $asset = new class {
+            public function getName(): string
+            {
+                return 'email';
+            }
+        };
+
+        $this->assertSame('email', DbalHelper::getSchemaObjectName($asset));
+    }
+
+    /**
+     * Test getConnectionName uses getName() when the connection exposes it (DBAL 2.x/3.x style).
+     */
+    public function testGetConnectionNameUsesGetName(): void
+    {
+        $connection = new ConnectionLogicalNameStub('default');
+
+        $this->assertSame('default', DbalHelper::getConnectionName($connection));
+    }
+
+    /**
+     * Test getConnectionName falls back to connection params when getName() is absent or empty.
+     */
+    public function testGetConnectionNameFallsBackToConnectionParams(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getParams')->willReturn(['connectionName' => 'reporting']);
+
+        $this->assertSame('reporting', DbalHelper::getConnectionName($connection));
+    }
+
+    /**
+     * Test getConnectionName falls back to dbname param when connectionName is missing.
+     */
+    public function testGetConnectionNameFallsBackToDbnameParam(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getParams')->willReturn(['dbname' => 'app_db']);
+
+        $this->assertSame('app_db', DbalHelper::getConnectionName($connection));
+    }
+}
+
+/**
+ * Stub Connection that exposes getName() for DBAL 2.x/3.x compatibility tests.
+ *
+ * @internal
+ */
+final class ConnectionLogicalNameStub extends Connection
+{
+    public function __construct(private readonly string $logicalName)
+    {
+        parent::__construct(['driver' => 'pdo_sqlite'], new DriverStubWithGetName());
+    }
+
+    public function getName(): string
+    {
+        return $this->logicalName;
+    }
 }
 
 /**

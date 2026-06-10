@@ -7,6 +7,7 @@ namespace Nowo\AnonymizeBundle\Command;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Nowo\AnonymizeBundle\Enum\SymfonyService;
+use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
@@ -143,7 +144,7 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
                         $columns      = $schemaManager->listTableColumns($tableName);
                         $columnExists = false;
                         foreach ($columns as $column) {
-                            if ($column->getName() === 'anonymized') {
+                            if (DbalHelper::getSchemaObjectName($column) === 'anonymized') {
                                 $columnExists = true;
                                 break;
                             }
@@ -230,7 +231,7 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
             // Try to find manager by connection name
             foreach ($allManagers as $managerName => $serviceId) {
                 $manager = $doctrine->getManager($managerName);
-                if ($manager->getConnection()->getName() === $connectionName) {
+                if (DbalHelper::getConnectionName($manager->getConnection()) === $connectionName) {
                     return $manager;
                 }
             }

@@ -6,6 +6,7 @@ namespace Nowo\AnonymizeBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Nowo\AnonymizeBundle\Helper\DbalHelper;
 
 /**
  * Service for checking database schema information.
@@ -40,7 +41,7 @@ final class SchemaService
 
             $columns = $schemaManager->listTableColumns($tableName);
             foreach ($columns as $column) {
-                if ($column->getName() === 'anonymized') {
+                if (DbalHelper::getSchemaObjectName($column) === 'anonymized') {
                     return true;
                 }
             }
@@ -74,7 +75,7 @@ final class SchemaService
 
             $columns = $schemaManager->listTableColumns($tableName);
             foreach ($columns as $column) {
-                if ($column->getName() === $columnName) {
+                if (DbalHelper::getSchemaObjectName($column) === $columnName) {
                     return true;
                 }
             }

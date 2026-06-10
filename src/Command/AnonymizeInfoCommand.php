@@ -7,6 +7,7 @@ namespace Nowo\AnonymizeBundle\Command;
 use Exception;
 use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
+use Nowo\AnonymizeBundle\Helper\OrmHelper;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Psr\Container\ContainerInterface;
@@ -211,8 +212,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
                         // Get column name
                         $columnName = $propertyName;
                         if ($metadata->hasField($propertyName)) {
-                            $fieldMapping = $metadata->getFieldMapping($propertyName);
-                            $columnName   = $fieldMapping['columnName'] ?? $propertyName;
+                            $columnName = OrmHelper::getFieldColumnName($metadata, $propertyName);
                         }
 
                         // Count records that will be anonymized for this property

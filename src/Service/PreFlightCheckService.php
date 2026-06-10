@@ -11,6 +11,8 @@ use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
 use Nowo\AnonymizeBundle\Enum\FakerType;
 use Nowo\AnonymizeBundle\Faker\FakerFactoryInterface;
+use Nowo\AnonymizeBundle\Helper\DbalHelper;
+use Nowo\AnonymizeBundle\Helper\OrmHelper;
 use ReflectionClass;
 use ReflectionProperty;
 use ValueError;
@@ -156,8 +158,7 @@ final class PreFlightCheckService
         $errors = [];
 
         if ($metadata->hasField($propertyName)) {
-            $fieldMapping       = $metadata->getFieldMapping($propertyName);
-            $expectedColumnName = $fieldMapping['columnName'] ?? $propertyName;
+            $expectedColumnName = OrmHelper::getFieldColumnName($metadata, $propertyName);
 
             try {
                 $tableName     = $metadata->getTableName();
@@ -173,7 +174,7 @@ final class PreFlightCheckService
                     $caseInsensitiveMatch = null;
 
                     foreach ($columns as $column) {
-                        $actualColumnName    = $column->getName();
+                        $actualColumnName    = DbalHelper::getSchemaObjectName($column);
                         $actualColumnNames[] = $actualColumnName;
 
                         // Exact match (case-sensitive)

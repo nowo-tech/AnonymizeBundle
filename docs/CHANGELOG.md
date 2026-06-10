@@ -24,6 +24,29 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.19] - 2026-06-10
+
+### Added
+
+- **`OrmHelper`**: Utilidades estáticas para resolver nombres de columna y tipos desde `FieldMapping` sin ArrayAccess (preparado para ORM 4): `getFieldColumnName()`, `getColumnNameFromFieldMapping()`, `getFieldTypeFromFieldMapping()`.
+- **Pruebas**: `OrmHelperTest`; casos adicionales en `DbalHelperTest` para `getSchemaObjectName()` (DBAL 4 `getObjectName` y fallback `getName`) y `getConnectionName()`.
+
+### Changed
+
+- **`DbalHelper`**: `getSchemaObjectName()` y nuevo `getConnectionName()` con fallback cuando la API nueva devuelve vacío o no está disponible (DBAL 2–4, mocks en tests).
+
+### Fixed
+
+- **Doctrine ORM — FieldMapping / ArrayAccess**: Sustituido `$fieldMapping['columnName']` y acceso similar en `AnonymizeService`, `AnonymizeInfoCommand` y `PreFlightCheckService` por `OrmHelper` (usa `ClassMetadata::getColumnName()` cuando aplica).
+- **Doctrine DBAL — `AbstractAsset::getName()`**: Sustituido `$column->getName()` en `SchemaService`, `AnonymizeService` y `GenerateAnonymizedColumnCommand` por `DbalHelper::getSchemaObjectName()`.
+- **Doctrine DBAL — `Connection::getName()`**: Resolución de nombre de conexión en `GenerateAnonymizedColumnCommand` centralizada en `DbalHelper::getConnectionName()`.
+- Sin cambios en requisitos de Composer; compatible con **DBAL ^2.13 || ^3 || ^4** y **ORM ^2.13 || ^3**.
+
+### Documentation
+
+_(none)_
+
+---
 ## [1.0.18] - 2026-05-07
 
 ### Added
