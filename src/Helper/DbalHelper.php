@@ -7,6 +7,10 @@ namespace Nowo\AnonymizeBundle\Helper;
 use Doctrine\DBAL\Connection;
 use Exception;
 
+use function is_object;
+use function is_string;
+use function sprintf;
+
 /**
  * Helper class for Doctrine DBAL operations.
  *
