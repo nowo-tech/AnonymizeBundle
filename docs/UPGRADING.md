@@ -24,6 +24,27 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.21
+
+**Release Date**: 2026-06-11
+
+#### What's New
+
+- **Demos**: limpieza de registro duplicado de Twig Inspector en `bundles.php`; rutas y reference de Symfony 7+ alineados. Sin cambios en la API pública del bundle.
+
+#### Breaking Changes
+
+None.
+
+#### Migration Steps
+
+1. **Actualiza el bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **(Opcional)** Si mantienes un fork de los demos, elimina entradas duplicadas de `TwigInspectorBundle` en `config/bundles.php` si las tienes.
+
 ### Upgrading to 1.0.20
 
 **Release Date**: 2026-06-10

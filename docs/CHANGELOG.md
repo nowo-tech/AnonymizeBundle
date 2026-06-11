@@ -24,6 +24,20 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.21] - 2026-06-11
+
+### Changed
+
+- **Demos (symfony6/7/8)**: `config/bundles.php` — eliminado registro duplicado de la clase legacy `TwigInspectorBundle` (queda `NowoTwigInspectorBundle`).
+- **Demo symfony6**: `config/routes.yaml` alineado con el formato de routing por atributos de Symfony 7+.
+- **Demos symfony7/8**: `config/reference.php` actualizado o añadido (Flex reference); `composer.lock` de demos sincronizado.
+- **`DbalHelper` / `OrmHelper`**: imports explícitos `use function` (PHP CS Fixer; sin cambio de comportamiento).
+
+### Documentation
+
+_(none)_
+
+---
 ## [1.0.20] - 2026-06-10
 
 ### Added
