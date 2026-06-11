@@ -44,8 +44,7 @@ class UserController extends AbstractController
             $columns = [];
             foreach ($metadata->getFieldNames() as $fieldName) {
                 if ($fieldName !== 'anonymized') {
-                    $fieldMapping = $metadata->getFieldMapping($fieldName);
-                    $columns[]    = $dbConnection->quoteSingleIdentifier($fieldMapping['columnName'] ?? $fieldName);
+                    $columns[] = $dbConnection->quoteSingleIdentifier($metadata->getColumnName($fieldName));
                 }
             }
 

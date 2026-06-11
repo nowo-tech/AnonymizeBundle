@@ -84,4 +84,31 @@ class OrmHelperTest extends TestCase
         $this->assertSame('string', OrmHelper::getFieldTypeFromFieldMapping(null));
         $this->assertSame('boolean', OrmHelper::getFieldTypeFromFieldMapping(null, 'boolean'));
     }
+
+    public function testResolveDiscriminatorColumnNameWithArray(): void
+    {
+        $this->assertSame('dtype', OrmHelper::resolveDiscriminatorColumnName(['name' => 'dtype']));
+        $this->assertSame('dtype', OrmHelper::resolveDiscriminatorColumnName(['columnName' => 'dtype']));
+    }
+
+    public function testResolveDiscriminatorColumnNameWithObject(): void
+    {
+        $discColumn = new class {
+            public string $name = 'disc_type';
+        };
+
+        $this->assertSame('disc_type', OrmHelper::resolveDiscriminatorColumnName($discColumn));
+    }
+
+    public function testResolveDiscriminatorColumnNameReturnsNullForInvalidValue(): void
+    {
+        $this->assertNull(OrmHelper::resolveDiscriminatorColumnName(null));
+        $this->assertNull(OrmHelper::resolveDiscriminatorColumnName([]));
+    }
+
+    public function testGetDiscriminatorColumnNameUsesFallback(): void
+    {
+        $this->assertSame('type', OrmHelper::getDiscriminatorColumnName(null));
+        $this->assertSame('custom', OrmHelper::getDiscriminatorColumnName(null, 'custom'));
+    }
 }

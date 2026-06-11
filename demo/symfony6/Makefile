@@ -234,3 +234,6 @@ clean:
 	rm -rf var/cache/*
 	rm -rf var/log/*
 	@echo "✅ Cleaned!"
+
+# REQ-MAKE-008: update-deps
+include $(abspath $(CURDIR)/../../../.scripts/Makefile.demo-update-deps.mk)

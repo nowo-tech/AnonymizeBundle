@@ -24,6 +24,34 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.20
+
+**Release Date**: 2026-06-10
+
+#### What's New
+
+- **Doctrine discriminadores**: `OrmHelper` resuelve nombres de columna discriminadora sin ArrayAccess; `AnonymizeService` y demos alineados.
+- **CI / Symfony**: pruebas en Symfony 7.4 y 8.1 además de 6.4, 7.0 y 8.0.
+- **Mantenimiento**: `make update-deps` actualiza locks del bundle y demos; documento [SPEC-DRIVEN-DEVELOPMENT.md](SPEC-DRIVEN-DEVELOPMENT.md) para contribuidores.
+
+#### Breaking Changes
+
+None.
+
+#### Migration Steps
+
+1. **Actualiza el bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **(Opcional)** Si mantienes demos o forks con `$fieldMapping['columnName']` o `$discCol['name']`, usa `OrmHelper` / `ClassMetadata::getColumnName()`.
+
+3. **(Opcional)** QA local:
+   ```bash
+   make test
+   ```
+
 ### Upgrading to 1.0.19
 
 **Release Date**: 2026-06-10

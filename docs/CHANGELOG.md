@@ -24,6 +24,31 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.20] - 2026-06-10
+
+### Added
+
+- **`OrmHelper`**: `getDiscriminatorColumnName()` y `resolveDiscriminatorColumnName()` para mapeo de discriminadores (array/objeto) sin ArrayAccess.
+- **Documentación**: [SPEC-DRIVEN-DEVELOPMENT.md](SPEC-DRIVEN-DEVELOPMENT.md) — flujo spec-driven, historias de usuario y anclas `REQ-*` para Makefiles/demos.
+- **Makefile**: objetivo `update-deps` (REQ-MAKE-008) para actualizar dependencias del bundle y demos vía script compartido.
+- **Pruebas**: casos en `OrmHelperTest` para resolución de columna discriminadora.
+
+### Changed
+
+- **CI**: matriz ampliada a Symfony **7.4** y **8.1** (PHP 8.1–8.5; exclusiones actualizadas).
+- **Demos (symfony6/7/8)**: controladores usan `ClassMetadata::getColumnName()` y `OrmHelper::getDiscriminatorColumnName()` en lugar de acceso array a `FieldMapping`; locks y Symfony 7.4 alineados.
+- **`composer.lock`**: dependencias del bundle y demos sincronizadas.
+- **README**: badge Symfony actualizado (6.0+ | 7.4+ | 8.0 | 8.1+).
+
+### Fixed
+
+- **`AnonymizeService`**: resolución del discriminador en truncate centralizada en `OrmHelper::resolveDiscriminatorColumnName()` (sin acceso ArrayAccess sobre metadatos de discriminador).
+
+### Documentation
+
+- **SECURITY.md**: aclaración sobre comprobaciones de entorno en comandos (`run` / `export-db` vs. resto) y defensa principal dev-only.
+
+---
 ## [1.0.19] - 2026-06-10
 
 ### Added

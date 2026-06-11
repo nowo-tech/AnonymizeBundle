@@ -9,6 +9,7 @@ use App\Entity\EmailNotification;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
+use Nowo\AnonymizeBundle\Helper\OrmHelper;
 use Nowo\AnonymizeBundle\Service\SchemaService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -46,12 +47,10 @@ class NotificationController extends AbstractController
             $cols         = [];
             foreach ($metadata->getFieldNames() as $fieldName) {
                 if ($fieldName !== 'anonymized') {
-                    $mapping = $metadata->getFieldMapping($fieldName);
-                    $cols[]  = $dbConnection->quoteSingleIdentifier($mapping['columnName'] ?? $fieldName);
+                    $cols[] = $dbConnection->quoteSingleIdentifier($metadata->getColumnName($fieldName));
                 }
             }
-            $discCol  = $metadata->getDiscriminatorColumn();
-            $discName = $discCol['name'] ?? 'type';
+            $discName = OrmHelper::getDiscriminatorColumnName($metadata->getDiscriminatorColumn());
             $cols[]   = $dbConnection->quoteSingleIdentifier($discName);
             $sql      = sprintf('SELECT %s FROM %s ORDER BY id ASC', implode(', ', array_unique($cols)), $dbConnection->quoteSingleIdentifier($tableName));
             $rows     = $dbConnection->fetchAllAssociative($sql);

@@ -1,7 +1,11 @@
 # Makefile for Anonymize Bundle
 # Simplifies Docker commands for development
 
-.PHONY: help up down build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up assets release-check release-check-demos composer-sync rector rector-dry phpstan update validate
+COMPOSE_FILE := docker-compose.yml
+COMPOSE     := docker-compose -f $(COMPOSE_FILE)
+SERVICE_PHP := php
+
+.PHONY: help up down build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up assets release-check release-check-demos composer-sync rector rector-dry phpstan update update-deps update-deps-demos validate
 
 # Default target
 help:
@@ -28,7 +32,8 @@ help:
 	@echo "  release-check Pre-release: cs-fix, cs-check, rector-dry, phpstan, test-coverage, demo healthchecks"
 	@echo "  composer-sync Validate composer.json and align composer.lock (no install)"
 	@echo "  clean         Remove vendor and cache"
-	@echo "  update        Update composer.lock (composer update)"
+	@echo "  update        Update composer.lock (composer update, bundle only)"
+	@echo "  update-deps   Update composer in bundle container and all demos (REQ-MAKE-008)"
 	@echo "  validate      Run composer validate --strict"
 	@echo ""
 	@echo "Bundle-specific:"
@@ -183,3 +188,7 @@ setup-hooks:
 	chmod +x .githooks/pre-commit
 	git config core.hooksPath .githooks
 	@echo "✅ Git hooks installed! CS-check and tests will run before each commit."
+
+# REQ-MAKE-008: update-deps
+BUNDLE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+include $(BUNDLE_ROOT)/../.scripts/Makefile.update-deps.mk

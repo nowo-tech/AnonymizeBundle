@@ -310,12 +310,7 @@ final class AnonymizeService
         if ($discCol === null || $discValue === null) {
             return ['column' => null, 'value' => null];
         }
-        $columnName = null;
-        if (is_array($discCol)) {
-            $columnName = $discCol['name'] ?? $discCol['columnName'] ?? null;
-        } elseif (is_object($discCol)) {
-            $columnName = $discCol->name ?? ($discCol['name'] ?? null);
-        }
+        $columnName = OrmHelper::resolveDiscriminatorColumnName($discCol);
         if ($columnName === null || $columnName === '') {
             return ['column' => null, 'value' => null];
         }

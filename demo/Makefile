@@ -1,7 +1,9 @@
 # Makefile for Anonymize Bundle Demos
 # Manages all Symfony demos (6, 7, 8)
 
-.PHONY: help all up down install setup clean logs status update-bundle-symfony6 update-bundle-symfony7 update-bundle-symfony8 update-bundle-all release-check release-verify
+DEMOS := symfony6 symfony7 symfony8
+
+.PHONY: help all up down install setup clean logs status update-bundle-symfony6 update-bundle-symfony7 update-bundle-symfony8 update-bundle-all update-deps-all release-check release-verify
 
 # Default target
 help:
@@ -35,6 +37,7 @@ help:
 	@echo "  update-bundle-symfony6  Update bundle from path repo (Symfony 6)"
 	@echo "  update-bundle-symfony7  Update bundle from path repo (Symfony 7)"
 	@echo "  update-bundle-symfony8  Update bundle from path repo (Symfony 8)"
+	@echo "  update-deps-all       Run composer update in all demo containers"
 	@echo "  release-check   Pre-release: test-coverage-all, release-verify"
 	@echo "  release-verify  Start each demo, healthcheck (HTTP 200), then stop"
 	@echo ""
@@ -231,3 +234,7 @@ status:
 	@echo "  Symfony 6: http://localhost:8083"
 	@echo "  Symfony 7: http://localhost:8081"
 	@echo "  Symfony 8: http://localhost:8085"
+
+# REQ-MAKE-008: update-deps-all
+BUNDLE_ROOT := $(abspath $(CURDIR)/..)
+include $(abspath $(CURDIR)/../../.scripts/Makefile.demo-aggregate-update-deps.mk)

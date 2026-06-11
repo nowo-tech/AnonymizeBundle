@@ -13,7 +13,8 @@ This bundle is **development-only** (see below). It anonymizes data for local/te
 
 | Threat | Mitigation |
 |--------|------------|
-| Misuse in production | Documented as dev-only; do not register bundle in `prod`. |
+| Misuse in production | Documented as dev-only; install with `--dev` and do not register bundle in `prod`. |
+| Commands in prod console | `nowo:anonymize:run` and `nowo:anonymize:export-db` check `kernel.environment` (dev/test) and config files; other commands assume dev-only installation—do not rely on them as a sole prod barrier. Avoid `bin/console --env=dev` against production databases. |
 | Data leakage in logs | Avoid verbose logging of raw PII in anonymization pipelines. |
 
 ## Dependencies

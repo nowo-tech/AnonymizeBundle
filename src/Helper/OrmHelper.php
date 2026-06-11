@@ -110,4 +110,62 @@ final class OrmHelper
 
         return $fallback;
     }
+
+    /**
+     * Resolves the discriminator column name from ORM metadata (array, object, or null).
+     *
+     * @param mixed $discriminatorColumn Value from ClassMetadata::$discriminatorColumn or getDiscriminatorColumn()
+     * @param string $fallback Fallback when the column name cannot be resolved
+     */
+    public static function getDiscriminatorColumnName(mixed $discriminatorColumn, string $fallback = 'type'): string
+    {
+        $resolved = self::resolveDiscriminatorColumnName($discriminatorColumn);
+
+        return $resolved ?? $fallback;
+    }
+
+    /**
+     * Resolves the discriminator column name, or null when it cannot be determined.
+     *
+     * @param mixed $discriminatorColumn Value from ClassMetadata::$discriminatorColumn or getDiscriminatorColumn()
+     */
+    public static function resolveDiscriminatorColumnName(mixed $discriminatorColumn): ?string
+    {
+        if ($discriminatorColumn === null) {
+            return null;
+        }
+
+        if (is_array($discriminatorColumn)) {
+            $name = $discriminatorColumn['name'] ?? $discriminatorColumn['columnName'] ?? null;
+
+            return is_string($name) && $name !== '' ? $name : null;
+        }
+
+        if (!is_object($discriminatorColumn)) {
+            return null;
+        }
+
+        if (property_exists($discriminatorColumn, 'name')) {
+            $name = $discriminatorColumn->name;
+            if (is_string($name) && $name !== '') {
+                return $name;
+            }
+        }
+
+        if (property_exists($discriminatorColumn, 'columnName')) {
+            $name = $discriminatorColumn->columnName;
+            if (is_string($name) && $name !== '') {
+                return $name;
+            }
+        }
+
+        if (method_exists($discriminatorColumn, 'getName')) {
+            $name = $discriminatorColumn->getName();
+            if (is_string($name) && $name !== '') {
+                return $name;
+            }
+        }
+
+        return null;
+    }
 }
