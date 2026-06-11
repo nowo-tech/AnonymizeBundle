@@ -6,6 +6,10 @@ namespace Nowo\AnonymizeBundle\Helper;
 
 use Doctrine\ORM\Mapping\ClassMetadata;
 
+use function is_array;
+use function is_object;
+use function is_string;
+
 /**
  * Helper class for Doctrine ORM mapping operations.
  *
