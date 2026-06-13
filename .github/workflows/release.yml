@@ -138,7 +138,7 @@ jobs:
 
       - name: Check if release exists and update if needed
         id: check-existing
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           TAG_NAME: ${{ steps.tag.outputs.TAG_NAME }}
         with:
@@ -179,7 +179,7 @@ jobs:
 
       - name: Update existing release
         if: steps.check-existing.outputs.exists == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           TAG_NAME: ${{ steps.tag.outputs.TAG_NAME }}
           TAG_MESSAGE: ${{ steps.tag_message.outputs.MESSAGE }}
@@ -248,7 +248,7 @@ jobs:
 
       - name: Create Release
         if: steps.check-existing.outputs.exists != 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           TAG_NAME: ${{ steps.tag.outputs.TAG_NAME }}
           TAG_MESSAGE: ${{ steps.tag_message.outputs.MESSAGE }}
