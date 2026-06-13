@@ -675,7 +675,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $em->method('getConfiguration')->willReturn($config);
         $em->method('getConnection')->willReturn($connection);
         $em->method('getClassMetadata')
-            ->willReturnCallback(static fn (string $class) => $class === $emptyClassName ? $metadataEmpty : $metadataWithProp);
+            ->willReturnCallback(static fn (string $class): \PHPUnit\Framework\MockObject\MockObject => $class === $emptyClassName ? $metadataEmpty : $metadataWithProp);
 
         $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);

@@ -42,7 +42,7 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
      * @param ContainerInterface $container The service container
      */
     public function __construct(
-        private ContainerInterface $container
+        private readonly ContainerInterface $container
     ) {
         parent::__construct();
     }
@@ -140,7 +140,7 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
             $io->section('Scanning document classes...');
             $foundCollections = $this->scanDocumentClasses($documentPath);
 
-            if (!empty($foundCollections)) {
+            if ($foundCollections !== []) {
                 $collections = array_merge($collections, $foundCollections);
                 $collections = array_unique($collections);
                 $io->success(sprintf('Found %d collection(s): %s', count($collections), implode(', ', $collections)));
@@ -250,7 +250,7 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
                     return $kernel->getProjectDir();
                 }
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             // Ignore
         }
 
@@ -311,8 +311,7 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
         $script = str_replace('{DATE}', date('Y-m-d H:i:s'), $script);
         $script = str_replace('{DATABASE}', $database, $script);
         $script = str_replace('{COLLECTIONS}', implode(', ', $collections), $script);
-        $script = str_replace('{COLLECTION_SCRIPTS}', implode("\n\n", $collectionScripts), $script);
 
-        return $script;
+        return str_replace('{COLLECTION_SCRIPTS}', implode("\n\n", $collectionScripts), $script);
     }
 }

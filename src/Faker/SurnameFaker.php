@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 #[AsAlias(id: 'nowo_anonymize.faker.surname')]
 final class SurnameFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new SurnameFaker instance.
@@ -43,9 +43,6 @@ final class SurnameFaker implements FakerInterface
      */
     public function generate(array $options = []): string
     {
-        $gender         = $options['gender'] ?? 'random';
-        $localeSpecific = $options['locale_specific'] ?? true;
-
         // Note: Faker library doesn't have gender-specific surnames in most locales
         // The gender option is kept for API consistency but may not have effect
         // If locale_specific is false, we could use a different locale, but for simplicity

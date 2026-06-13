@@ -220,7 +220,7 @@ final class AnonymizeStatistics
         }
 
         // Property statistics
-        if (!empty($this->entityStats)) {
+        if ($this->entityStats !== []) {
             $lines[] = '';
             $lines[] = 'Entity,Connection,Property,Anonymized Count';
             foreach ($this->entityStats as $entityData) {
@@ -284,13 +284,13 @@ final class AnonymizeStatistics
         $remainingSeconds = $seconds % 60;
 
         if ($minutes < 60) {
-            return sprintf('%d m %d s', (int) $minutes, (int) $remainingSeconds);
+            return sprintf('%d m %d s', (int) $minutes, $remainingSeconds);
         }
 
         $hours            = floor($minutes / 60);
         $remainingMinutes = $minutes % 60;
 
-        return sprintf('%d h %d m %d s', (int) $hours, (int) $remainingMinutes, (int) $remainingSeconds);
+        return sprintf('%d h %d m %d s', (int) $hours, $remainingMinutes, $remainingSeconds);
     }
 
     /**

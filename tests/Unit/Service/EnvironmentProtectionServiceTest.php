@@ -23,13 +23,11 @@ class EnvironmentProtectionServiceTest extends TestCase
     {
         $parameterBag = $this->createMock(ParameterBagInterface::class);
         $parameterBag->method('get')
-            ->willReturnCallback(static function ($key) {
-                return match ($key) {
-                    'kernel.environment' => 'dev',
-                    'kernel.debug'       => true,
-                    'kernel.project_dir' => sys_get_temp_dir(),
-                    default              => null,
-                };
+            ->willReturnCallback(static fn ($key): string|bool|null => match ($key) {
+                'kernel.environment' => 'dev',
+                'kernel.debug'       => true,
+                'kernel.project_dir' => sys_get_temp_dir(),
+                default              => null,
             });
 
         $service = new EnvironmentProtectionService($parameterBag);
@@ -46,13 +44,11 @@ class EnvironmentProtectionServiceTest extends TestCase
     {
         $parameterBag = $this->createMock(ParameterBagInterface::class);
         $parameterBag->method('get')
-            ->willReturnCallback(static function ($key) {
-                return match ($key) {
-                    'kernel.environment' => 'test',
-                    'kernel.debug'       => true,
-                    'kernel.project_dir' => sys_get_temp_dir(),
-                    default              => null,
-                };
+            ->willReturnCallback(static fn ($key): string|bool|null => match ($key) {
+                'kernel.environment' => 'test',
+                'kernel.debug'       => true,
+                'kernel.project_dir' => sys_get_temp_dir(),
+                default              => null,
             });
 
         $service = new EnvironmentProtectionService($parameterBag);
@@ -69,13 +65,11 @@ class EnvironmentProtectionServiceTest extends TestCase
     {
         $parameterBag = $this->createMock(ParameterBagInterface::class);
         $parameterBag->method('get')
-            ->willReturnCallback(static function ($key) {
-                return match ($key) {
-                    'kernel.environment' => 'prod',
-                    'kernel.debug'       => false,
-                    'kernel.project_dir' => sys_get_temp_dir(),
-                    default              => null,
-                };
+            ->willReturnCallback(static fn ($key): string|false|null => match ($key) {
+                'kernel.environment' => 'prod',
+                'kernel.debug'       => false,
+                'kernel.project_dir' => sys_get_temp_dir(),
+                default              => null,
             });
 
         $service = new EnvironmentProtectionService($parameterBag);
@@ -100,13 +94,11 @@ class EnvironmentProtectionServiceTest extends TestCase
 
         $parameterBag = $this->createMock(ParameterBagInterface::class);
         $parameterBag->method('get')
-            ->willReturnCallback(static function ($key) use ($tempDir) {
-                return match ($key) {
-                    'kernel.environment' => 'dev',
-                    'kernel.debug'       => true,
-                    'kernel.project_dir' => $tempDir,
-                    default              => null,
-                };
+            ->willReturnCallback(static fn ($key) => match ($key) {
+                'kernel.environment' => 'dev',
+                'kernel.debug'       => true,
+                'kernel.project_dir' => $tempDir,
+                default              => null,
             });
 
         $service = new EnvironmentProtectionService($parameterBag);
@@ -144,13 +136,11 @@ class EnvironmentProtectionServiceTest extends TestCase
 
         $parameterBag = $this->createMock(ParameterBagInterface::class);
         $parameterBag->method('get')
-            ->willReturnCallback(static function ($key) use ($tempDir) {
-                return match ($key) {
-                    'kernel.environment' => 'dev',
-                    'kernel.debug'       => true,
-                    'kernel.project_dir' => $tempDir,
-                    default              => null,
-                };
+            ->willReturnCallback(static fn ($key) => match ($key) {
+                'kernel.environment' => 'dev',
+                'kernel.debug'       => true,
+                'kernel.project_dir' => $tempDir,
+                default              => null,
             });
 
         $service = new EnvironmentProtectionService($parameterBag);
@@ -241,13 +231,11 @@ class EnvironmentProtectionServiceTest extends TestCase
 
         $parameterBag = $this->createMock(ParameterBagInterface::class);
         $parameterBag->method('get')
-            ->willReturnCallback(static function ($key) use ($tempDir) {
-                return match ($key) {
-                    'kernel.environment' => 'dev',
-                    'kernel.debug'       => true,
-                    'kernel.project_dir' => $tempDir,
-                    default              => null,
-                };
+            ->willReturnCallback(static fn ($key) => match ($key) {
+                'kernel.environment' => 'dev',
+                'kernel.debug'       => true,
+                'kernel.project_dir' => $tempDir,
+                default              => null,
             });
 
         $service = new EnvironmentProtectionService($parameterBag);
@@ -281,13 +269,11 @@ class EnvironmentProtectionServiceTest extends TestCase
 
         $parameterBag = $this->createMock(ParameterBagInterface::class);
         $parameterBag->method('get')
-            ->willReturnCallback(static function ($key) use ($tempDir) {
-                return match ($key) {
-                    'kernel.environment' => 'dev',
-                    'kernel.debug'       => true,
-                    'kernel.project_dir' => $tempDir,
-                    default              => null,
-                };
+            ->willReturnCallback(static fn ($key) => match ($key) {
+                'kernel.environment' => 'dev',
+                'kernel.debug'       => true,
+                'kernel.project_dir' => $tempDir,
+                default              => null,
             });
 
         $service = new EnvironmentProtectionService($parameterBag);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Service;
 
 use function escapeshellarg;
+use function in_array;
 use function proc_close;
 use function proc_open;
 use function stream_get_contents;
@@ -44,10 +45,8 @@ final class SystemCommandRunner implements CommandRunnerInterface
         ];
         $pipes = [];
 
-        $procOpen = $this->procOpen ?? static function (string $c, array $d, array &$p) {
-            return proc_open($c, $d, $p);
-        };
-        $process = $procOpen($cmd, $descriptors, $pipes);
+        $procOpen = $this->procOpen ?? (static fn (string $c, array $d, array &$p) => proc_open($c, $d, $p));
+        $process  = $procOpen($cmd, $descriptors, $pipes);
 
         if ($process === false) {
             return false;
@@ -56,7 +55,7 @@ final class SystemCommandRunner implements CommandRunnerInterface
         $stdout     = stream_get_contents($pipes[1]);
         $returnCode = proc_close($process);
 
-        return $returnCode === 0 && !empty($stdout);
+        return $returnCode === 0 && !in_array($stdout, ['', '0', false], true);
     }
 
     public function exec(string $command, ?array &$output = null): int

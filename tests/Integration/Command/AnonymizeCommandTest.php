@@ -17,7 +17,6 @@ use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Input\StreamableInputInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -375,16 +374,16 @@ class AnonymizeCommandTest extends TestCase
         $metadata->method('getFieldNames')->willReturn([]);
 
         $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
-        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
 
         $record     = ['id' => 1];
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
         $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
         $connection->method('getDatabasePlatform')->willReturn($platform);
-        $connection->method('quote')->willReturnCallback(static fn ($v) => "'" . str_replace("'", "''", (string) $v) . "'");
+        $connection->method('quote')->willReturnCallback(static fn ($v): string => "'" . str_replace("'", "''", (string) $v) . "'");
         $connection->method('fetchOne')->willReturn('1');
         $fetchCallCount = 0;
-        $connection->method('fetchAllAssociative')->willReturnCallback(static function () use ($record, &$fetchCallCount) {
+        $connection->method('fetchAllAssociative')->willReturnCallback(static function () use ($record, &$fetchCallCount): array {
             ++$fetchCallCount;
 
             return $fetchCallCount === 1 ? [$record] : [];
@@ -453,16 +452,16 @@ class AnonymizeCommandTest extends TestCase
         $metadata->method('getFieldNames')->willReturn([]);
 
         $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
-        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
 
         $record     = ['id' => 1];
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
         $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
         $connection->method('getDatabasePlatform')->willReturn($platform);
-        $connection->method('quote')->willReturnCallback(static fn ($v) => "'" . str_replace("'", "''", (string) $v) . "'");
+        $connection->method('quote')->willReturnCallback(static fn ($v): string => "'" . str_replace("'", "''", (string) $v) . "'");
         $connection->method('fetchOne')->willReturn('1');
         $fetchCallCount = 0;
-        $connection->method('fetchAllAssociative')->willReturnCallback(static function () use ($record, &$fetchCallCount) {
+        $connection->method('fetchAllAssociative')->willReturnCallback(static function () use ($record, &$fetchCallCount): array {
             ++$fetchCallCount;
 
             return $fetchCallCount === 1 ? [$record] : [];
@@ -535,16 +534,16 @@ class AnonymizeCommandTest extends TestCase
         ]);
 
         $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
-        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id) => '`' . $id . '`');
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
 
         $record     = ['id' => 1, 'email' => 'user@example.com'];
         $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
         $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
         $connection->method('getDatabasePlatform')->willReturn($platform);
-        $connection->method('quote')->willReturnCallback(static fn ($v) => "'" . str_replace("'", "''", (string) $v) . "'");
+        $connection->method('quote')->willReturnCallback(static fn ($v): string => "'" . str_replace("'", "''", (string) $v) . "'");
         $connection->method('fetchOne')->willReturn('1');
         $fetchCallCount = 0;
-        $connection->method('fetchAllAssociative')->willReturnCallback(static function () use ($record, &$fetchCallCount) {
+        $connection->method('fetchAllAssociative')->willReturnCallback(static function () use ($record, &$fetchCallCount): array {
             ++$fetchCallCount;
 
             return $fetchCallCount === 1 ? [$record] : [];
@@ -654,18 +653,16 @@ class AnonymizeCommandTest extends TestCase
     public function testExecuteFailsWhenEnvironmentChecksFail(): void
     {
         $parameterBag = $this->createMock(ParameterBagInterface::class);
-        $parameterBag->method('get')->willReturnCallback(function (string $key) {
-            return match ($key) {
-                'kernel.environment' => 'prod',
-                'kernel.debug'       => false,
-                'kernel.project_dir' => $this->tempDir,
-                default              => null,
-            };
+        $parameterBag->method('get')->willReturnCallback(fn (string $key): string|false|null => match ($key) {
+            'kernel.environment' => 'prod',
+            'kernel.debug'       => false,
+            'kernel.project_dir' => $this->tempDir,
+            default              => null,
         });
 
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static fn (string $id) => $id === 'parameter_bag');
-        $container->method('get')->willReturnCallback(static fn (string $id) => $id === 'parameter_bag' ? $parameterBag : null);
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag');
+        $container->method('get')->willReturnCallback(static fn (string $id): ?\PHPUnit\Framework\MockObject\MockObject => $id === 'parameter_bag' ? $parameterBag : null);
 
         $command = new AnonymizeCommand($container);
         $input   = new ArrayInput([]);
@@ -1078,9 +1075,7 @@ class AnonymizeCommandTest extends TestCase
 
         $command = new AnonymizeCommand($container);
         $input   = new ArrayInput(['--interactive' => true]);
-        if ($input instanceof StreamableInputInterface) {
-            $input->setStream(fopen('data://text/plain,no', 'r'));
-        }
+        $input->setStream(fopen('data://text/plain,no', 'r'));
         $output = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -1105,9 +1100,7 @@ class AnonymizeCommandTest extends TestCase
 
         $command = new AnonymizeCommand($container);
         $input   = new ArrayInput(['--interactive' => true]);
-        if ($input instanceof StreamableInputInterface) {
-            $input->setStream(fopen('data://text/plain,y', 'r'));
-        }
+        $input->setStream(fopen('data://text/plain,y', 'r'));
         $output = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -1163,8 +1156,8 @@ class AnonymizeCommandTest extends TestCase
         $tempDir   = $this->tempDir;
         $container = new class($doctrine, $tempDir) implements ContainerInterface {
             public function __construct(
-                private ManagerRegistry $doctrine,
-                private string $tempDir
+                private readonly ManagerRegistry $doctrine,
+                private readonly string $tempDir
             ) {
             }
 
@@ -1240,7 +1233,7 @@ class AnonymizeCommandTest extends TestCase
         $kernel = new class($innerContainer, $this->tempDir) {
             public function __construct(
                 public ContainerBuilder $container,
-                private string $projectDir
+                private readonly string $projectDir
             ) {
             }
 

@@ -57,11 +57,11 @@ final class AnonymizeCommand extends AbstractCommand
      * @param int $batchSize The default batch size for processing records (default: 100)
      */
     public function __construct(
-        private ContainerInterface $container,
-        private string $locale = 'en_US',
-        private array $connections = [],
-        private bool $dryRun = false,
-        private int $batchSize = 100
+        private readonly ContainerInterface $container,
+        private readonly string $locale = 'en_US',
+        private readonly array $connections = [],
+        private readonly bool $dryRun = false,
+        private readonly int $batchSize = 100
     ) {
         parent::__construct();
     }
@@ -149,7 +149,7 @@ final class AnonymizeCommand extends AbstractCommand
         if ($this->container->has('parameter_bag')) {
             try {
                 $parameterBag = $this->container->get('parameter_bag');
-            } catch (Exception $e) {
+            } catch (Exception) {
                 // parameter_bag not available
             }
         }
@@ -162,7 +162,7 @@ final class AnonymizeCommand extends AbstractCommand
         $environmentProtection = new EnvironmentProtectionService($parameterBag);
 
         $protectionErrors = $environmentProtection->performChecks();
-        if (!empty($protectionErrors)) {
+        if ($protectionErrors !== []) {
             $io->error('Environment protection checks failed:');
             foreach ($protectionErrors as $error) {
                 $io->writeln(sprintf('  - %s', $error));
@@ -220,7 +220,7 @@ final class AnonymizeCommand extends AbstractCommand
             $io->note('MongoDB ODM support is planned for future releases. For now, you can use Mongo Express to view MongoDB data.');
         }
 
-        if (empty($managersToProcess)) {
+        if ($managersToProcess === []) {
             $io->error('No entity managers found to process.');
 
             return self::FAILURE;
@@ -243,7 +243,7 @@ final class AnonymizeCommand extends AbstractCommand
         $statsOutputDir = $this->getParameter('nowo_anonymize.stats_output_dir', '%kernel.project_dir%/var/stats');
 
         // Resolve kernel.project_dir if present (use parameter to avoid synthetic kernel service)
-        if (str_contains($statsOutputDir, '%kernel.project_dir%')) {
+        if (str_contains((string) $statsOutputDir, '%kernel.project_dir%')) {
             $projectDir = $this->getProjectDirFromContainer();
             if ($projectDir !== null) {
                 $statsOutputDir = str_replace('%kernel.project_dir%', $projectDir, $statsOutputDir);
@@ -251,20 +251,20 @@ final class AnonymizeCommand extends AbstractCommand
         }
 
         // Process stats file paths - if relative, use configured output directory
-        if ($statsJson !== null && !str_starts_with($statsJson, '/') && !str_contains($statsJson, '\\')) {
+        if ($statsJson !== null && !str_starts_with((string) $statsJson, '/') && !str_contains((string) $statsJson, '\\')) {
             // Relative path - prepend output directory
             if (!is_dir($statsOutputDir)) {
                 mkdir($statsOutputDir, 0o755, true);
             }
-            $statsJson = rtrim($statsOutputDir, '/') . '/' . $statsJson;
+            $statsJson = rtrim((string) $statsOutputDir, '/') . '/' . $statsJson;
         }
 
-        if ($statsCsv !== null && !str_starts_with($statsCsv, '/') && !str_contains($statsCsv, '\\')) {
+        if ($statsCsv !== null && !str_starts_with((string) $statsCsv, '/') && !str_contains((string) $statsCsv, '\\')) {
             // Relative path - prepend output directory
             if (!is_dir($statsOutputDir)) {
                 mkdir($statsOutputDir, 0o755, true);
             }
-            $statsCsv = rtrim($statsOutputDir, '/') . '/' . $statsCsv;
+            $statsCsv = rtrim((string) $statsOutputDir, '/') . '/' . $statsCsv;
         }
 
         // Show summary if interactive mode
@@ -300,13 +300,13 @@ final class AnonymizeCommand extends AbstractCommand
 
                 // Perform pre-flight checks
                 $entities = $anonymizeService->getAnonymizableEntities($em);
-                if (!empty($entities)) {
+                if ($entities !== []) {
                     if ($debug) {
                         $io->writeln(sprintf('<comment>[DEBUG]</comment> Performing pre-flight checks for %d entity(ies)...', count($entities)));
                     }
 
                     $preFlightErrors = $preFlightCheck->performChecks($em, $entities);
-                    if (!empty($preFlightErrors)) {
+                    if ($preFlightErrors !== []) {
                         $io->error('Pre-flight checks failed:');
                         foreach ($preFlightErrors as $error) {
                             $io->writeln(sprintf('  - %s', $error));
@@ -352,7 +352,7 @@ final class AnonymizeCommand extends AbstractCommand
         // Save to history
         try {
             $historyDir = $this->getParameter('nowo_anonymize.history_dir', '%kernel.project_dir%/var/anonymize_history');
-            if (str_contains($historyDir, '%kernel.project_dir%')) {
+            if (str_contains((string) $historyDir, '%kernel.project_dir%')) {
                 $projectDir = $this->getProjectDirFromContainer();
                 if ($projectDir !== null) {
                     $historyDir = str_replace('%kernel.project_dir%', $projectDir, $historyDir);
@@ -420,7 +420,7 @@ final class AnonymizeCommand extends AbstractCommand
         $entities = $anonymizeService->getAnonymizableEntities($em);
 
         // Only process entities that match this manager (entity-level connection filter)
-        $entities = array_filter($entities, static function ($entityData) use ($managerName): bool {
+        $entities = array_filter($entities, static function (array $entityData) use ($managerName): bool {
             $attr = $entityData['attribute'];
             if ($attr->connection === null) {
                 return true;
@@ -434,7 +434,7 @@ final class AnonymizeCommand extends AbstractCommand
             $entities = array_intersect_key($entities, array_flip($entityFilter));
         }
 
-        if (empty($entities)) {
+        if ($entities === []) {
             if (!$statsOnly) {
                 if ($entityFilter !== []) {
                     $io->note(sprintf('No entities matching --entity filter in manager "%s". Try another connection or check the entity class name.', $managerName));
@@ -474,7 +474,7 @@ final class AnonymizeCommand extends AbstractCommand
             }
         }
 
-        if (!empty($tablesToTruncate)) {
+        if ($tablesToTruncate !== []) {
             if (!$statsOnly) {
                 $io->section('Truncating tables (emptying before anonymization)');
                 $io->writeln(sprintf('Found <info>%d</info> table(s) to truncate:', count($tablesToTruncate)));
@@ -496,23 +496,20 @@ final class AnonymizeCommand extends AbstractCommand
                     };
 
                     $truncateResults = $anonymizeService->truncateTables($em, $entities, $dryRun, $truncateCallback);
-
-                    if (!$statsOnly) {
-                        if ($dryRun) {
-                            $io->note('Dry-run mode: Tables would be truncated');
-                            foreach ($truncateResults as $tableName => $count) {
-                                $io->writeln(sprintf('  - <comment>%s</comment>: <info>%d</info> record(s) would be deleted', $tableName, $count));
-                            }
-                        } else {
-                            $io->success(sprintf('Truncated %d table(s)', count($truncateResults)));
-                            if ($verbose) {
-                                foreach ($truncateResults as $tableName => $count) {
-                                    $io->writeln(sprintf('  - <comment>%s</comment>: emptied', $tableName));
-                                }
+                    if ($dryRun) {
+                        $io->note('Dry-run mode: Tables would be truncated');
+                        foreach ($truncateResults as $tableName => $count) {
+                            $io->writeln(sprintf('  - <comment>%s</comment>: <info>%d</info> record(s) would be deleted', $tableName, $count));
+                        }
+                    } else {
+                        $io->success(sprintf('Truncated %d table(s)', count($truncateResults)));
+                        if ($verbose) {
+                            foreach (array_keys($truncateResults) as $tableName) {
+                                $io->writeln(sprintf('  - <comment>%s</comment>: emptied', $tableName));
                             }
                         }
-                        $io->newLine();
                     }
+                    $io->newLine();
                 }
             } else {
                 // Non-interactive: execute truncation
@@ -533,7 +530,7 @@ final class AnonymizeCommand extends AbstractCommand
                     } else {
                         $io->success(sprintf('Truncated %d table(s)', count($truncateResults)));
                         if ($verbose) {
-                            foreach ($truncateResults as $tableName => $count) {
+                            foreach (array_keys($truncateResults) as $tableName) {
                                 $io->writeln(sprintf('  - <comment>%s</comment>: emptied', $tableName));
                             }
                         }
@@ -558,12 +555,12 @@ final class AnonymizeCommand extends AbstractCommand
 
             // Interactive confirmation for each entity
             if ($interactive && !$statsOnly) {
-                if ($usesAnonymizeService && empty($properties)) {
+                if ($usesAnonymizeService && $properties === []) {
                     $io->writeln(sprintf('Entity: <info>%s</info> (table: <comment>%s</comment>, <comment>custom anonymize service</comment>)', $className, $metadata->getTableName()));
                 } else {
                     $io->writeln(sprintf('Entity: <info>%s</info> (table: <comment>%s</comment>, properties: <info>%d</info>)', $className, $metadata->getTableName(), count($properties)));
                 }
-                if ($verbose && !empty($properties)) {
+                if ($verbose && $properties !== []) {
                     $io->writeln('  Properties to anonymize:');
                     foreach ($properties as $propName => $propData) {
                         $fakerType = $propData['attribute']->type ?? 'unknown';
@@ -587,7 +584,7 @@ final class AnonymizeCommand extends AbstractCommand
                 $io->writeln(sprintf('<comment>[DEBUG]</comment> Entity metadata: table=%s', $metadata->getTableName()));
             }
 
-            if (empty($properties) && !$usesAnonymizeService) {
+            if ($properties === [] && !$usesAnonymizeService) {
                 if (!$statsOnly) {
                     $io->writeln('  No properties found with #[AnonymizeProperty] attribute');
                 }
@@ -598,7 +595,7 @@ final class AnonymizeCommand extends AbstractCommand
             }
 
             if (!$statsOnly) {
-                if ($usesAnonymizeService && empty($properties)) {
+                if ($usesAnonymizeService && $properties === []) {
                     $io->writeln('  Using custom anonymize service (no #[AnonymizeProperty] needed)');
                 } else {
                     $io->writeln(sprintf('  Found %d property(ies) to anonymize', count($properties)));
@@ -606,7 +603,7 @@ final class AnonymizeCommand extends AbstractCommand
             }
 
             if ($verbose || $debug) {
-                if ($usesAnonymizeService && empty($properties)) {
+                if ($usesAnonymizeService && $properties === []) {
                     $io->writeln('  Anonymization: custom service (no property attributes)');
                 } else {
                     $io->writeln('  Properties to anonymize:');
@@ -617,13 +614,13 @@ final class AnonymizeCommand extends AbstractCommand
                     $weight    = $propertyData['weight'] ?? 'N/A';
                     $io->writeln(sprintf('    - %s (type: %s, weight: %s)', $property->getName(), $attribute->type, $weight));
                     if ($debug) {
-                        if (!empty($attribute->includePatterns)) {
+                        if ($attribute->includePatterns !== []) {
                             $io->writeln(sprintf('      Include patterns: %s', json_encode($attribute->includePatterns)));
                         }
-                        if (!empty($attribute->excludePatterns)) {
+                        if ($attribute->excludePatterns !== []) {
                             $io->writeln(sprintf('      Exclude patterns: %s', json_encode($attribute->excludePatterns)));
                         }
-                        if (!empty($attribute->options)) {
+                        if ($attribute->options !== []) {
                             $io->writeln(sprintf('      Options: %s', json_encode($attribute->options)));
                         }
                     }
@@ -641,9 +638,9 @@ final class AnonymizeCommand extends AbstractCommand
             }
 
             // Create progress bar if not in stats-only mode and progress is enabled
-            $noProgress  = $input !== null && $input->getOption('no-progress');
+            $noProgress  = $input instanceof InputInterface && $input->getOption('no-progress');
             $progressBar = null;
-            if (!$statsOnly && !$noProgress && $totalRecords > 0 && $output !== null) {
+            if (!$statsOnly && !$noProgress && $totalRecords > 0 && $output instanceof OutputInterface) {
                 $progressBar = new ProgressBar($output, $totalRecords);
                 $progressBar->setFormat('  %current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% %message%');
                 $progressBar->setMessage(sprintf('Processing %s...', $className));
@@ -652,7 +649,7 @@ final class AnonymizeCommand extends AbstractCommand
 
             // Create progress callback
             $progressCallback = null;
-            if ($progressBar !== null) {
+            if ($progressBar instanceof ProgressBar) {
                 $progressCallback = static function (int $current, int $total, string $message) use ($progressBar): void {
                     $progressBar->setProgress($current);
                     $progressBar->setMessage($message);
@@ -673,7 +670,7 @@ final class AnonymizeCommand extends AbstractCommand
             );
 
             // Finish progress bar
-            if ($progressBar !== null) {
+            if ($progressBar instanceof ProgressBar) {
                 $progressBar->finish();
                 $output->writeln('');
             }
@@ -701,12 +698,10 @@ final class AnonymizeCommand extends AbstractCommand
                 );
             }
 
-            if ($verbose || $debug) {
-                if (!empty($stats['propertyStats'])) {
-                    $io->writeln('  Property statistics:');
-                    foreach ($stats['propertyStats'] as $propertyName => $count) {
-                        $io->writeln(sprintf('    - %s: %d anonymized', $propertyName, $count));
-                    }
+            if (($verbose || $debug) && !empty($stats['propertyStats'])) {
+                $io->writeln('  Property statistics:');
+                foreach ($stats['propertyStats'] as $propertyName => $count) {
+                    $io->writeln(sprintf('    - %s: %d anonymized', $propertyName, $count));
                 }
             }
 
@@ -739,7 +734,7 @@ final class AnonymizeCommand extends AbstractCommand
                 if ($bag instanceof ParameterBagInterface) {
                     return $bag;
                 }
-            } catch (Exception $e) {
+            } catch (Exception) {
             }
         }
 
@@ -758,7 +753,7 @@ final class AnonymizeCommand extends AbstractCommand
     {
         try {
             return $this->getParameterBag()->get($name);
-        } catch (InvalidArgumentException $e) {
+        } catch (InvalidArgumentException) {
             return $default;
         }
     }

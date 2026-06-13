@@ -30,9 +30,8 @@ class AnonymizeStatisticsDisplayTest extends TestCase
     ): AnonymizeStatistics {
         $stats = new AnonymizeStatistics();
         $stats->start();
-        $ref        = new ReflectionClass($stats);
-        $globalProp = $ref->getProperty('globalStats');
-        $globalProp->setAccessible(true);
+        $ref                  = new ReflectionClass($stats);
+        $globalProp           = $ref->getProperty('globalStats');
         $g                    = $globalProp->getValue($stats);
         $g['total_entities']  = $entities !== [] ? count($entities) : 0;
         $g['total_processed'] = $totalProcessed;
@@ -43,7 +42,6 @@ class AnonymizeStatisticsDisplayTest extends TestCase
         $g['end_time']        = 1.0 + $duration;
         $globalProp->setValue($stats, $g);
         $entityProp = $ref->getProperty('entityStats');
-        $entityProp->setAccessible(true);
         $entityProp->setValue($stats, $entities);
 
         return $stats;
@@ -59,7 +57,7 @@ class AnonymizeStatisticsDisplayTest extends TestCase
         $io      = new SymfonyStyle(new ArrayInput([]), $out);
         $display = new AnonymizeStatisticsDisplay();
 
-        $display->display($io, $stats, false, null, null);
+        $display->display($io, $stats, false, null);
 
         $text = $out->fetch();
         $this->assertStringContainsString('Anonymization Statistics', $text);
@@ -79,7 +77,7 @@ class AnonymizeStatisticsDisplayTest extends TestCase
         $io      = new SymfonyStyle(new ArrayInput([]), $out);
         $display = new AnonymizeStatisticsDisplay();
 
-        $display->display($io, $stats, false, null, null);
+        $display->display($io, $stats, false, null);
 
         $text = $out->fetch();
         $this->assertStringContainsString('Summary', $text);
@@ -99,7 +97,7 @@ class AnonymizeStatisticsDisplayTest extends TestCase
             $io      = new SymfonyStyle(new ArrayInput([]), $out);
             $display = new AnonymizeStatisticsDisplay();
 
-            $display->display($io, $stats, true, $tmp, null);
+            $display->display($io, $stats, true, $tmp);
 
             $this->assertFileExists($tmp);
             $content = file_get_contents($tmp);
@@ -151,7 +149,7 @@ class AnonymizeStatisticsDisplayTest extends TestCase
         $io      = new SymfonyStyle(new ArrayInput([]), $out);
         $display = new AnonymizeStatisticsDisplay();
 
-        $display->display($io, $stats, true, null, null);
+        $display->display($io, $stats, true, null);
 
         $text = $out->fetch();
         $this->assertStringNotContainsString('Anonymization complete!', $text);
@@ -177,7 +175,7 @@ class AnonymizeStatisticsDisplayTest extends TestCase
         $io      = new SymfonyStyle(new ArrayInput([]), $out);
         $display = new AnonymizeStatisticsDisplay();
 
-        $display->display($io, $stats, false, null, null);
+        $display->display($io, $stats, false, null);
 
         $text = $out->fetch();
         $this->assertStringContainsString('Entity Details', $text);
@@ -208,7 +206,7 @@ class AnonymizeStatisticsDisplayTest extends TestCase
         $io      = new SymfonyStyle(new ArrayInput([]), $out);
         $display = new AnonymizeStatisticsDisplay();
 
-        $display->display($io, $stats, false, null, null);
+        $display->display($io, $stats, false, null);
 
         $text = $out->fetch();
         $this->assertStringContainsString('Entity Details', $text);
@@ -237,7 +235,7 @@ class AnonymizeStatisticsDisplayTest extends TestCase
         $io      = new SymfonyStyle(new ArrayInput([]), $out);
         $display = new AnonymizeStatisticsDisplay();
 
-        $display->display($io, $stats, true, null, null);
+        $display->display($io, $stats, true, null);
 
         $text = $out->fetch();
         $this->assertStringContainsString('N/A', $text);

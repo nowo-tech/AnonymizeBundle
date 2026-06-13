@@ -22,7 +22,7 @@ use const JSON_THROW_ON_ERROR;
 #[AsAlias(id: 'nowo_anonymize.faker.coordinate')]
 final class CoordinateFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new CoordinateFaker instance.

@@ -50,7 +50,6 @@ This script automatically tests **all bundle commands with their main options** 
 ./.scripts/test-commands.sh all
 
 # Test in a specific demo
-./.scripts/test-commands.sh symfony6
 ./.scripts/test-commands.sh symfony7
 ./.scripts/test-commands.sh symfony8
 ```
@@ -96,7 +95,6 @@ The script tests **26 command combinations** (26 entries in the `COMMANDS` array
 1. Docker and Docker Compose must be installed
 2. Demo containers must be running:
    ```bash
-   cd demo/symfony6 && docker-compose up -d
    cd demo/symfony7 && docker-compose up -d
    cd demo/symfony8 && docker-compose up -d
    ```
@@ -264,7 +262,7 @@ For each demo (Symfony 6, 7, and 8):
 ### Containers not running
 
 ```bash
-cd demo/symfony6 && docker-compose up -d
+cd demo/symfony7 && docker-compose up -d
 cd demo/symfony7 && docker-compose up -d
 cd demo/symfony8 && docker-compose up -d
 ```

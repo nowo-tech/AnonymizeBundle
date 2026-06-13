@@ -20,7 +20,7 @@ use const M_PI;
 #[AsAlias(id: 'nowo_anonymize.faker.age')]
 final class AgeFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new AgeFaker instance.

@@ -62,9 +62,7 @@ final class AddressFaker implements FakerInterface
             $address .= ', ' . $this->faker->postcode();
         }
 
-        $address .= ', ' . $this->faker->city();
-
-        return $address;
+        return $address . (', ' . $this->faker->city());
     }
 
     /**

@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 #[AsAlias(id: 'nowo_anonymize.faker.boolean')]
 final class BooleanFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new BooleanFaker instance.

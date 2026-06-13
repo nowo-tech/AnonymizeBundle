@@ -41,7 +41,7 @@ final class ExportDatabaseCommand extends AbstractCommand
      * @param ContainerInterface $container The service container
      */
     public function __construct(
-        private ContainerInterface $container
+        private readonly ContainerInterface $container
     ) {
         parent::__construct();
     }
@@ -94,7 +94,7 @@ final class ExportDatabaseCommand extends AbstractCommand
         $environmentProtection = new EnvironmentProtectionService($parameterBag);
 
         $protectionErrors = $environmentProtection->performChecks();
-        if (!empty($protectionErrors)) {
+        if ($protectionErrors !== []) {
             $io->error('Environment protection checks failed:');
             foreach ($protectionErrors as $error) {
                 $io->writeln(sprintf('  - %s', $error));
@@ -148,7 +148,7 @@ final class ExportDatabaseCommand extends AbstractCommand
         );
 
         // Resolve kernel.project_dir if present (use parameter to avoid synthetic kernel service)
-        if (str_contains($outputDir, '%kernel.project_dir%')) {
+        if (str_contains((string) $outputDir, '%kernel.project_dir%')) {
             $projectDir = $this->getProjectDirFromContainer();
             if ($projectDir !== null) {
                 $outputDir = str_replace('%kernel.project_dir%', $projectDir, $outputDir);
@@ -179,7 +179,7 @@ final class ExportDatabaseCommand extends AbstractCommand
             $managersToProcess[] = 'mongodb';
         }
 
-        if (empty($managersToProcess)) {
+        if ($managersToProcess === []) {
             $io->error('No entity managers found to process.');
 
             return self::FAILURE;
@@ -241,7 +241,7 @@ final class ExportDatabaseCommand extends AbstractCommand
                             $port         = $params['port'] ?? 27017;
                             $database     = $connection->getDatabase();
                             $exportedFile = $exportService->exportMongoDB($managerName, $database, $host, $port);
-                        } catch (Exception $e) {
+                        } catch (Exception) {
                             $io->writeln('  ⚠️  MongoDB connection not found. Set MONGODB_URL environment variable or configure MongoDB in Doctrine.');
                             ++$failureCount;
                             continue;
@@ -311,7 +311,7 @@ final class ExportDatabaseCommand extends AbstractCommand
         if ($this->container->has('parameter_bag')) {
             try {
                 return $this->container->get('parameter_bag');
-            } catch (Exception $e) {
+            } catch (Exception) {
                 // parameter_bag not available
             }
         }

@@ -221,7 +221,7 @@ class PreFlightCheckServiceTest extends TestCase
         // Create a real reflection class with a property that has an invalid attribute
         $testEntity = new class {
             #[AnonymizeProperty(type: 'invalid_faker_type', weight: 1)]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -289,7 +289,7 @@ class PreFlightCheckServiceTest extends TestCase
         // Create a real reflection class with a property that has service type without service name
         $testEntity = new class {
             #[AnonymizeProperty(type: 'service', weight: 1, service: '')]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -362,7 +362,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -468,7 +468,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -535,7 +535,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: ['field' => ''])]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -602,7 +602,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, excludePatterns: ['' => 'pattern'])]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -749,7 +749,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -812,7 +812,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: ['id' => '>100'])]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -874,7 +874,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, excludePatterns: ['status' => 'deleted'])]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -939,7 +939,7 @@ class PreFlightCheckServiceTest extends TestCase
                 ['role' => 'admin'],
                 ['status' => 'deleted'],
             ])]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1001,7 +1001,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, excludePatterns: ['email' => ['%@nowo.tech', 'operador@example.com']])]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1063,7 +1063,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'enum', weight: 1, options: ['values' => ['active', 'inactive']])]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1125,7 +1125,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
-            private string $testColumn;
+            private readonly string $testColumn;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1198,7 +1198,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
-            private string $missingColumn;
+            private readonly string $missingColumn;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1265,7 +1265,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
-            private string $missingColumn;
+            private readonly string $missingColumn;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1328,7 +1328,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: ['' => '>100'])]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1374,7 +1374,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: [-1 => 'value'])]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
         $attribute  = new Anonymize();
@@ -1430,7 +1430,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: ['id' => ''])]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1493,7 +1493,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, excludePatterns: ['' => 'deleted'])]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1556,7 +1556,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, excludePatterns: ['status' => ''])]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1619,7 +1619,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'service', weight: 1)]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1664,7 +1664,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'service', weight: 1, service: 'app.custom_faker')]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
         $attribute  = new Anonymize();
@@ -1789,7 +1789,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1836,7 +1836,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: [['id' => []]])]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
         $attribute  = new Anonymize();
@@ -1875,7 +1875,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: [['status' => ['active', '']]])]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
         $attribute  = new Anonymize();
@@ -1913,7 +1913,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: [['id' => '>0'], 'not_an_array'])]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
         $attribute  = new Anonymize();
@@ -1931,7 +1931,6 @@ class PreFlightCheckServiceTest extends TestCase
     {
         $reflection = new ReflectionClass($this->service);
         $method     = $reflection->getMethod('validateOnePatternEntry');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->service, 2.5, 'pattern_value', 'include');
         $this->assertNotNull($result);
@@ -1968,7 +1967,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: [['id' => '>0'], ['status' => '']])]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
         $attribute  = new Anonymize();
@@ -2006,7 +2005,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email')]
-            private string $testProperty;
+            private readonly string $testProperty;
         };
         $reflection = new ReflectionClass($testEntity);
         $attribute  = new Anonymize();

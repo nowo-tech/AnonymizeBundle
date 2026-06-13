@@ -24,7 +24,7 @@ use function sprintf;
 final class KernelParameterBagAdapter implements ParameterBagInterface
 {
     public function __construct(
-        private ContainerInterface $container
+        private readonly ContainerInterface $container
     ) {
     }
 
@@ -48,23 +48,20 @@ final class KernelParameterBagAdapter implements ParameterBagInterface
         $kernelContainer = null;
 
         if ($reflection->hasProperty('container')) {
-            $property = $reflection->getProperty('container');
-            $property->setAccessible(true);
+            $property        = $reflection->getProperty('container');
             $kernelContainer = $property->getValue($kernel);
         }
 
         if ($kernelContainer instanceof \Symfony\Component\DependencyInjection\Container) {
             if (method_exists($kernelContainer, 'getParameterBag')) {
                 $paramBag = $kernelContainer->getParameterBag();
-                if ($paramBag instanceof ParameterBagInterface) {
-                    return $paramBag->get($name);
-                }
+
+                return $paramBag->get($name);
             }
             $paramReflection = new ReflectionClass($kernelContainer);
             if ($paramReflection->hasProperty('parameterBag')) {
                 $paramProperty = $paramReflection->getProperty('parameterBag');
-                $paramProperty->setAccessible(true);
-                $paramBag = $paramProperty->getValue($kernelContainer);
+                $paramBag      = $paramProperty->getValue($kernelContainer);
                 if ($paramBag instanceof ParameterBagInterface) {
                     return $paramBag->get($name);
                 }
@@ -86,7 +83,7 @@ final class KernelParameterBagAdapter implements ParameterBagInterface
             $this->get($name);
 
             return true;
-        } catch (InvalidArgumentException $e) {
+        } catch (InvalidArgumentException) {
             return false;
         }
     }
@@ -111,13 +108,6 @@ final class KernelParameterBagAdapter implements ParameterBagInterface
     public function all(): array
     {
         return [];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function replace(array $parameters): void
-    {
     }
 
     /**

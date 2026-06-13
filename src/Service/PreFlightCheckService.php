@@ -19,6 +19,7 @@ use ValueError;
 
 use function array_slice;
 use function count;
+use function in_array;
 use function is_array;
 use function is_int;
 use function is_string;
@@ -41,7 +42,7 @@ final class PreFlightCheckService
      * @param FakerFactoryInterface $fakerFactory The faker factory for validating faker types
      */
     public function __construct(
-        private FakerFactoryInterface $fakerFactory
+        private readonly FakerFactoryInterface $fakerFactory
     ) {
     }
 
@@ -76,7 +77,7 @@ final class PreFlightCheckService
                 $propertyAttribute = $propertyData['attribute'];
 
                 // Check column existence
-                $errors = array_merge($errors, $this->checkColumnExistence($em, $metadata, $propertyName, $property));
+                $errors = array_merge($errors, $this->checkColumnExistence($em, $metadata, $propertyName));
 
                 // Validate faker type
                 $errors = array_merge($errors, $this->validateFakerType($propertyAttribute));
@@ -149,11 +150,10 @@ final class PreFlightCheckService
      * @param EntityManagerInterface $em The entity manager
      * @param ClassMetadata $metadata The entity metadata
      * @param string $propertyName The property name
-     * @param ReflectionProperty $property The reflection property
      *
      * @return array<string> Array of error messages
      */
-    private function checkColumnExistence(EntityManagerInterface $em, ClassMetadata $metadata, string $propertyName, ReflectionProperty $property): array
+    private function checkColumnExistence(EntityManagerInterface $em, ClassMetadata $metadata, string $propertyName): array
     {
         $errors = [];
 
@@ -219,7 +219,7 @@ final class PreFlightCheckService
                         $errors[] = $errorMessage;
                     }
                 }
-            } catch (Exception $e) {
+            } catch (Exception) {
                 // Column check failed, but this might be acceptable in some cases
                 // We'll log it but not fail the check
             }
@@ -243,13 +243,13 @@ final class PreFlightCheckService
         try {
             $fakerType = FakerType::from($attribute->type);
         } catch (ValueError $e) {
-            $errors[] = sprintf('Invalid faker type "%s". Valid types: %s', $attribute->type, implode(', ', array_map(static fn ($case) => $case->value, FakerType::cases())));
+            $errors[] = sprintf('Invalid faker type "%s". Valid types: %s', $attribute->type, implode(', ', array_map(static fn (FakerType $case) => $case->value, FakerType::cases())));
 
             return $errors;
         }
 
         // If type is 'service', check if service name is provided
-        if ($attribute->type === 'service' && empty($attribute->service)) {
+        if ($attribute->type === 'service' && in_array($attribute->service, [null, '', '0'], true)) {
             $errors[] = 'Faker type "service" requires a "service" option with the service name';
         }
 
@@ -349,14 +349,14 @@ final class PreFlightCheckService
                 return sprintf('Invalid %s pattern: pattern array must not be empty for field "%s"', $label, (string) $field);
             }
             foreach ($pattern as $p) {
-                if ($p === '' && $p !== 0) {
+                if ($p === '') {
                     return sprintf('Invalid %s pattern: pattern option must not be empty for field "%s"', $label, (string) $field);
                 }
             }
 
             return null;
         }
-        if ($pattern === '' && $pattern !== 0) {
+        if ($pattern === '') {
             return sprintf('Invalid %s pattern: pattern must not be empty for field "%s"', $label, (string) $field);
         }
 

@@ -23,7 +23,7 @@ use const JSON_THROW_ON_ERROR;
 #[AsAlias(id: 'nowo_anonymize.faker.json')]
 final class JsonFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new JsonFaker instance.

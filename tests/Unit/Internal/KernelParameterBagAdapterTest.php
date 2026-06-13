@@ -148,7 +148,6 @@ class KernelParameterBagAdapterTest extends TestCase
         $adapter->set('x', 'y');
         $adapter->remove('x');
         $this->assertSame([], $adapter->all());
-        $adapter->replace([]);
         $adapter->add([]);
         $adapter->clear();
         $adapter->resolve();

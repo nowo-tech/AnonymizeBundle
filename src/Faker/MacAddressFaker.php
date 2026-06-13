@@ -20,7 +20,7 @@ use const STR_PAD_LEFT;
 #[AsAlias(id: 'nowo_anonymize.faker.mac_address')]
 final class MacAddressFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new MacAddressFaker instance.

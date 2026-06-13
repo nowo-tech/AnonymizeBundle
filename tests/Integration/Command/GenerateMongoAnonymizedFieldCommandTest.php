@@ -21,7 +21,7 @@ use function is_string;
  */
 class GenerateMongoAnonymizedFieldCommandTest extends TestCase
 {
-    private ContainerInterface $container;
+    private \PHPUnit\Framework\MockObject\MockObject $container;
     private GenerateMongoAnonymizedFieldCommand $command;
 
     protected function setUp(): void
@@ -135,7 +135,6 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         // Use reflection to test private method
         $reflection = new ReflectionClass($this->command);
         $method     = $reflection->getMethod('generateMongoScript');
-        $method->setAccessible(true);
 
         $script = $method->invoke($this->command, 'test_db', ['users', 'activities']);
 
@@ -154,7 +153,6 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         // Use reflection to test private method
         $reflection = new ReflectionClass($this->command);
         $method     = $reflection->getMethod('generateMongoScript');
-        $method->setAccessible(true);
 
         $script = $method->invoke($this->command, 'test_db', []);
 
@@ -174,7 +172,6 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         // Use reflection to test private method
         $reflection = new ReflectionClass($this->command);
         $method     = $reflection->getMethod('getProjectRoot');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->command);
 
@@ -194,14 +191,11 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         $this->container->method('has')
             ->willReturnCallback(static fn (string $id): bool => $id === 'kernel');
         $this->container->method('get')
-            ->willReturnCallback(static function (string $id) use ($kernel): mixed {
-                return $id === 'kernel' ? $kernel : null;
-            });
+            ->willReturnCallback(static fn (string $id): mixed => $id === 'kernel' ? $kernel : null);
 
         // Use reflection to test private method
         $reflection = new ReflectionClass($this->command);
         $method     = $reflection->getMethod('getProjectRoot');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->command);
 
@@ -224,7 +218,7 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
 
         // Container that only has get/has (no hasParameter) so getProjectRoot uses kernel path
         $container = new class($kernel) implements ContainerInterface {
-            public function __construct(private \Symfony\Component\HttpKernel\KernelInterface $kernel)
+            public function __construct(private readonly \Symfony\Component\HttpKernel\KernelInterface $kernel)
             {
             }
 
@@ -249,7 +243,7 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         $this->assertStringContainsString('Scanning document classes', $output->fetch());
 
         if (is_dir($docPath)) {
-            @array_map('unlink', glob($docPath . '/*') ?: []);
+            @array_map(unlink(...), glob($docPath . '/*') ?: []);
             @rmdir($docPath);
         }
         if (is_dir($tmpDir . '/src')) {
@@ -268,7 +262,6 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         // Use reflection to test private method
         $reflection = new ReflectionClass($this->command);
         $method     = $reflection->getMethod('scanDocumentClasses');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->command, '/nonexistent/path');
 
@@ -289,7 +282,6 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         // Use reflection to test private method
         $reflection = new ReflectionClass($this->command);
         $scanMethod = $reflection->getMethod('scanDocumentClasses');
-        $scanMethod->setAccessible(true);
 
         // When project root is not found, it should return empty array
         // This is tested indirectly through the path not existing test
@@ -310,11 +302,8 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         mkdir($docPath, 0o755, true);
 
         $container = new class($tmpDir) implements ContainerInterface {
-            private string $projectDir;
-
-            public function __construct(string $projectDir)
+            public function __construct(private readonly string $projectDir)
             {
-                $this->projectDir = $projectDir;
             }
 
             public function get(string $id): mixed
@@ -402,11 +391,8 @@ PHP;
         file_put_contents($docPath . '/Event.php', $phpWithCollectionEq);
 
         $container = new class($tmpDir) implements ContainerInterface {
-            private string $projectDir;
-
-            public function __construct(string $projectDir)
+            public function __construct(private readonly string $projectDir)
             {
-                $this->projectDir = $projectDir;
             }
 
             public function get(string $id): mixed
@@ -503,11 +489,8 @@ PHP;
         $notDirPath = $filePath;
 
         $container = new class($tmpDir) implements ContainerInterface {
-            private string $projectDir;
-
-            public function __construct(string $projectDir)
+            public function __construct(private readonly string $projectDir)
             {
-                $this->projectDir = $projectDir;
             }
 
             public function get(string $id): mixed
@@ -562,11 +545,8 @@ PHP;
         chmod($unreadable, 0o000);
 
         $container = new class($tmpDir) implements ContainerInterface {
-            private string $projectDir;
-
-            public function __construct(string $projectDir)
+            public function __construct(private readonly string $projectDir)
             {
-                $this->projectDir = $projectDir;
             }
 
             public function get(string $id): mixed

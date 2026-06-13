@@ -59,9 +59,7 @@ class AbstractCommandTest extends TestCase
             ->willReturn($platform);
 
         $platform->method('quoteSingleIdentifier')
-            ->willReturnCallback(static function ($identifier) {
-                return '`' . $identifier . '`';
-            });
+            ->willReturnCallback(static fn ($identifier): string => '`' . $identifier . '`');
 
         // Test that the method is called correctly
         $result1 = $command->testQuoteIdentifier($connection, 'users');

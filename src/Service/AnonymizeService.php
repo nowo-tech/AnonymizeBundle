@@ -52,10 +52,10 @@ final class AnonymizeService
      * @param ContainerInterface|null $container Optional container to resolve anonymizeService by id (required when using anonymizeService on entities)
      */
     public function __construct(
-        private FakerFactory $fakerFactory,
-        private PatternMatcher $patternMatcher,
-        private ?EventDispatcherInterface $eventDispatcher = null,
-        private ?ContainerInterface $container = null
+        private readonly FakerFactory $fakerFactory,
+        private readonly PatternMatcher $patternMatcher,
+        private readonly ?EventDispatcherInterface $eventDispatcher = null,
+        private readonly ?ContainerInterface $container = null
     ) {
     }
 
@@ -71,7 +71,7 @@ final class AnonymizeService
         $entities       = [];
         $metadataDriver = $em->getConfiguration()->getMetadataDriverImpl();
 
-        if ($metadataDriver === null) {
+        if (!$metadataDriver instanceof \Doctrine\Persistence\Mapping\Driver\MappingDriver) {
             return $entities;
         }
 
@@ -83,7 +83,7 @@ final class AnonymizeService
                 $reflection = new ReflectionClass($className);
 
                 $attributes = $reflection->getAttributes(Anonymize::class);
-                if (empty($attributes)) {
+                if ($attributes === []) {
                     continue;
                 }
 
@@ -93,7 +93,7 @@ final class AnonymizeService
                     'reflection' => $reflection,
                     'attribute'  => $attribute,
                 ];
-            } catch (Exception $e) {
+            } catch (Exception) {
                 // Skip entities that can't be loaded
                 continue;
             }
@@ -137,10 +137,10 @@ final class AnonymizeService
         }
 
         // Sort by weight
-        usort($properties, static fn ($a, $b) => $a['weight'] <=> $b['weight']);
+        usort($properties, static fn (array $a, array $b): int => $a['weight'] <=> $b['weight']);
 
         // Sort properties without weight alphabetically
-        usort($propertiesWithoutWeight, static fn ($a, $b) => $a['property']->getName() <=> $b['property']->getName());
+        usort($propertiesWithoutWeight, static fn (array $a, array $b): int => $a['property']->getName() <=> $b['property']->getName());
 
         // Append properties without weight at the end
         return array_merge($properties, $propertiesWithoutWeight);
@@ -188,17 +188,17 @@ final class AnonymizeService
             }
         }
 
-        if (empty($tablesToTruncate)) {
+        if ($tablesToTruncate === []) {
             return $results;
         }
 
         // Sort by order (lower first), then alphabetically by table name
-        usort($tablesToTruncate, static function ($a, $b) {
+        usort($tablesToTruncate, static function (array $a, array $b): int {
             if ($a['order'] !== $b['order']) {
                 return $a['order'] <=> $b['order'];
             }
 
-            return strcmp($a['tableName'], $b['tableName']);
+            return strcmp((string) $a['tableName'], (string) $b['tableName']);
         });
 
         // Handle foreign keys based on database type
@@ -247,33 +247,29 @@ final class AnonymizeService
                     }
                     $count               = (int) $connection->fetchOne($countQuery);
                     $results[$tableName] = $count;
+                } elseif ($isPolymorphicTruncate) {
+                    // Polymorphic: delete only rows for this entity's discriminator
+                    $connection->executeStatement(sprintf(
+                        'DELETE FROM %s WHERE %s = %s',
+                        $quotedTableName,
+                        DbalHelper::quoteIdentifier($connection, $discCol),
+                        $connection->quote($discValue),
+                    ));
+                    $results[$tableName] = 0;
+                } elseif ($driverName === 'pdo_mysql') {
+                    // Normal entity: full table truncate
+                    $connection->executeStatement(sprintf('TRUNCATE TABLE %s', $quotedTableName));
+                    $results[$tableName] = 0;
+                } elseif ($driverName === 'pdo_pgsql') {
+                    $connection->executeStatement(sprintf('TRUNCATE TABLE %s CASCADE', $quotedTableName));
+                    $results[$tableName] = 0;
+                } elseif ($driverName === 'pdo_sqlite') {
+                    $connection->executeStatement(sprintf('DELETE FROM %s', $quotedTableName));
+                    $connection->executeStatement(sprintf('DELETE FROM sqlite_sequence WHERE name = %s', $connection->quote($tableName)));
+                    $results[$tableName] = 0;
                 } else {
-                    if ($isPolymorphicTruncate) {
-                        // Polymorphic: delete only rows for this entity's discriminator
-                        $connection->executeStatement(sprintf(
-                            'DELETE FROM %s WHERE %s = %s',
-                            $quotedTableName,
-                            DbalHelper::quoteIdentifier($connection, $discCol),
-                            $connection->quote($discValue),
-                        ));
-                        $results[$tableName] = 0;
-                    } else {
-                        // Normal entity: full table truncate
-                        if ($driverName === 'pdo_mysql') {
-                            $connection->executeStatement(sprintf('TRUNCATE TABLE %s', $quotedTableName));
-                            $results[$tableName] = 0;
-                        } elseif ($driverName === 'pdo_pgsql') {
-                            $connection->executeStatement(sprintf('TRUNCATE TABLE %s CASCADE', $quotedTableName));
-                            $results[$tableName] = 0;
-                        } elseif ($driverName === 'pdo_sqlite') {
-                            $connection->executeStatement(sprintf('DELETE FROM %s', $quotedTableName));
-                            $connection->executeStatement(sprintf('DELETE FROM sqlite_sequence WHERE name = %s', $connection->quote($tableName)));
-                            $results[$tableName] = 0;
-                        } else {
-                            $connection->executeStatement(sprintf('DELETE FROM %s', $quotedTableName));
-                            $results[$tableName] = 0;
-                        }
-                    }
+                    $connection->executeStatement(sprintf('DELETE FROM %s', $quotedTableName));
+                    $results[$tableName] = 0;
                 }
             }
         } finally {
@@ -306,7 +302,7 @@ final class AnonymizeService
         }
         $discCol   = $metadata->discriminatorColumn ?? null;
         $discValue = $metadata->discriminatorValue ?? null;
-        if ($discCol === null || $discValue === null) {
+        if (!$discCol instanceof \Doctrine\ORM\Mapping\DiscriminatorColumnMapping || $discValue === null) {
             return ['column' => null, 'value' => null];
         }
         $columnName = OrmHelper::resolveDiscriminatorColumnName($discCol);
@@ -351,7 +347,7 @@ final class AnonymizeService
 
         // Detect relationships in patterns and build query with JOINs
         $allPatterns = [];
-        if ($entityAttribute !== null) {
+        if ($entityAttribute instanceof Anonymize) {
             $allPatterns = array_merge(
                 $this->getPatternFieldNames($entityAttribute->includePatterns),
                 $this->getPatternFieldNames($entityAttribute->excludePatterns),
@@ -378,7 +374,7 @@ final class AnonymizeService
             );
         }
 
-        $countQuery   = $this->buildCountQuery($connection, $metadata, $tableName, $disc['column'], $disc['value']);
+        $countQuery   = $this->buildCountQuery($connection, $tableName, $disc['column'], $disc['value']);
         $totalRecords = (int) $connection->fetchOne($countQuery);
 
         if ($progressCallback !== null && $totalRecords > 0) {
@@ -396,7 +392,7 @@ final class AnonymizeService
             $connection->beginTransaction();
             try {
                 $useBatch = false;
-                if ($entityAttribute !== null && $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '' && $this->container !== null) {
+                if ($entityAttribute instanceof Anonymize && $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '' && $this->container instanceof ContainerInterface) {
                     try {
                         $anonymizer = $this->container->get($entityAttribute->anonymizeService);
                     } catch (Throwable $e) {
@@ -417,7 +413,7 @@ final class AnonymizeService
                             if ($record === null) {
                                 continue;
                             }
-                            if ($entityAttribute !== null && !$this->patternMatcher->matches($record, $entityAttribute->includePatterns, $entityAttribute->excludePatterns)) {
+                            if (!$this->patternMatcher->matches($record, $entityAttribute->includePatterns, $entityAttribute->excludePatterns)) {
                                 continue;
                             }
                             if (!$dryRun) {
@@ -434,15 +430,13 @@ final class AnonymizeService
 
                         // Check entity-level inclusion/exclusion patterns first
                         $isEntityExcluded = false;
-                        if ($entityAttribute !== null) {
-                            if (!$this->patternMatcher->matches($record, $entityAttribute->includePatterns, $entityAttribute->excludePatterns)) {
-                                // Record is excluded at entity level
-                                $isEntityExcluded = true;
-                            }
+                        if ($entityAttribute instanceof Anonymize && !$this->patternMatcher->matches($record, $entityAttribute->includePatterns, $entityAttribute->excludePatterns)) {
+                            // Record is excluded at entity level
+                            $isEntityExcluded = true;
                         }
 
                         // When anonymizeService is set, delegate to the service instead of property-based anonymization
-                        if ($entityAttribute !== null && $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '' && $this->container !== null) {
+                        if ($entityAttribute instanceof Anonymize && $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '' && $this->container instanceof ContainerInterface) {
                             if ($isEntityExcluded) {
                                 continue;
                             }
@@ -455,7 +449,7 @@ final class AnonymizeService
                                 throw new RuntimeException(sprintf('Service "%s" must implement %s.', $entityAttribute->anonymizeService, EntityAnonymizerServiceInterface::class));
                             }
                             $updates = $anonymizer->anonymize($em, $metadata, $record, $dryRun);
-                            if (!empty($updates)) {
+                            if ($updates !== []) {
                                 if (!$dryRun) {
                                     $this->updateRecord($connection, $tableName, $record, $updates, $metadata);
                                 }
@@ -497,10 +491,8 @@ final class AnonymizeService
                             }
 
                             // Check inclusion/exclusion patterns (only if not bypassing entity exclusion or entity is not excluded)
-                            if (!$bypassEntityExclusion || !$isEntityExcluded) {
-                                if (!$this->patternMatcher->matches($record, $attribute->includePatterns, $attribute->excludePatterns)) {
-                                    continue;
-                                }
+                            if ((!$bypassEntityExclusion || !$isEntityExcluded) && !$this->patternMatcher->matches($record, $attribute->includePatterns, $attribute->excludePatterns)) {
+                                continue;
                             }
 
                             // Generate anonymized value
@@ -552,12 +544,8 @@ final class AnonymizeService
                                 // Generate random number 0-99 and check if it's below the probability threshold
                                 // null_probability of 30 means 30% chance of being null (0-29 out of 0-99)
                                 // null_probability of 100 means 100% chance of being null (0-99 out of 0-99)
-                                $random = mt_rand(0, 99);
-                                if ($random < $nullProbability) {
-                                    $anonymizedValue = null;
-                                } else {
-                                    $anonymizedValue = $faker->generate($fakerOptions);
-                                }
+                                $random          = mt_rand(0, 99);
+                                $anonymizedValue = $random < $nullProbability ? null : $faker->generate($fakerOptions);
                             } else {
                                 $anonymizedValue = $faker->generate($fakerOptions);
                             }
@@ -568,7 +556,7 @@ final class AnonymizeService
                             }
 
                             // Dispatch AnonymizePropertyEvent to allow listeners to modify or skip anonymization
-                            if ($this->eventDispatcher !== null) {
+                            if ($this->eventDispatcher instanceof EventDispatcherInterface) {
                                 $event = new AnonymizePropertyEvent(
                                     $em,
                                     $metadata,
@@ -644,7 +632,7 @@ final class AnonymizeService
         }
 
         // Dispatch AfterEntityAnonymizeEvent
-        if ($this->eventDispatcher !== null) {
+        if ($this->eventDispatcher instanceof EventDispatcherInterface) {
             $event = new AfterEntityAnonymizeEvent(
                 $em,
                 $metadata,
@@ -780,7 +768,7 @@ final class AnonymizeService
      */
     private function usesAnonymizableTrait(ReflectionClass $reflection): bool
     {
-        $traitName = 'Nowo\\AnonymizeBundle\\Trait\\AnonymizableTrait';
+        $traitName = \Nowo\AnonymizeBundle\Trait\AnonymizableTrait::class;
 
         foreach ($reflection->getTraitNames() as $trait) {
             if ($trait === $traitName) {
@@ -915,13 +903,13 @@ final class AnonymizeService
                     $relatedColumnName   = OrmHelper::getColumnNameFromFieldMapping($relatedFieldMapping, $relatedField);
 
                     // Validate that we have valid identifiers before adding to SELECT
-                    if (!empty($relatedColumnName) && !empty($alias)) {
+                    if ($relatedColumnName !== '' && $relatedColumnName !== '0' && ($alias !== '' && $alias !== '0')) {
                         $quotedAlias   = DbalHelper::quoteIdentifier($connection, $alias);
                         $quotedColumn  = DbalHelper::quoteIdentifier($connection, $relatedColumnName);
                         $quotedPattern = DbalHelper::quoteIdentifier($connection, $patternField);
 
                         // Only add if all quoted identifiers are non-empty
-                        if (!empty($quotedAlias) && !empty($quotedColumn) && !empty($quotedPattern)) {
+                        if ($quotedAlias !== '' && $quotedAlias !== '0' && ($quotedColumn !== '' && $quotedColumn !== '0') && ($quotedPattern !== '' && $quotedPattern !== '0')) {
                             $selectFields[] = sprintf(
                                 '%s.%s AS %s',
                                 $quotedAlias,
@@ -947,7 +935,7 @@ final class AnonymizeService
         // Add related fields that are not empty and different from main table select
         foreach ($selectFields as $field) {
             $trimmed = trim($field);
-            if (!empty($trimmed) && $trimmed !== $mainTableSelect) {
+            if (!in_array($trimmed, ['', '0', $mainTableSelect], true)) {
                 $validSelectFields[] = $trimmed;
             }
         }
@@ -977,13 +965,13 @@ final class AnonymizeService
 
         // Build final query
         // Validate SELECT clause before building query
-        if (empty(trim($selectClause)) || str_starts_with(trim($selectClause), '.')) {
+        if (in_array(trim($selectClause), ['', '0'], true) || str_starts_with(trim($selectClause), '.')) {
             // If SELECT clause is malformed, use only main table fields
             $selectClause = $mainTableSelect;
         }
 
         $query = sprintf('SELECT %s FROM %s', $selectClause, $fromClause);
-        if (!empty($joinClauses)) {
+        if ($joinClauses !== []) {
             $query .= ' ' . implode(' ', $joinClauses);
         }
 
@@ -995,7 +983,6 @@ final class AnonymizeService
      * Used to get total record count for progress without loading all rows.
      *
      * @param \Doctrine\DBAL\Connection $connection The database connection
-     * @param ClassMetadata $metadata The entity metadata
      * @param string $tableName The main table name
      * @param string|null $discColumn Discriminator column name (null if not polymorphic)
      * @param mixed $discValue Discriminator value
@@ -1004,7 +991,6 @@ final class AnonymizeService
      */
     private function buildCountQuery(
         \Doctrine\DBAL\Connection $connection,
-        ClassMetadata $metadata,
         string $tableName,
         ?string $discColumn,
         mixed $discValue
@@ -1054,7 +1040,7 @@ final class AnonymizeService
                 . DbalHelper::quoteIdentifier($connection, $col);
         }
         $suffix = sprintf(' LIMIT %d OFFSET %d', $limit, $offset);
-        if (empty($orderParts)) {
+        if ($orderParts === []) {
             return $query . $suffix;
         }
 

@@ -7,7 +7,6 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Faker;
 use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Faker\EnumFaker;
 use PHPUnit\Framework\TestCase;
-use ReflectionObject;
 
 use function count;
 
@@ -232,7 +231,6 @@ class EnumFakerTest extends TestCase
      */
     public function testSelectWeightedValueFallbackReturnsLastKey(): void
     {
-        $faker       = new EnumFaker('en_US');
         $weighted    = ['first' => 10, 'second' => 20, 'last' => 30];
         $totalWeight = 60;
 
@@ -240,10 +238,7 @@ class EnumFakerTest extends TestCase
         $mockFaker->method('randomFloat')
             ->willReturn($totalWeight + 1.0);
 
-        $reflection = new ReflectionObject($faker);
-        $prop       = $reflection->getProperty('faker');
-        $prop->setAccessible(true);
-        $prop->setValue($faker, $mockFaker);
+        $faker = new EnumFaker('en_US', $mockFaker);
 
         $value = $faker->generate(['values' => array_keys($weighted), 'weighted' => $weighted]);
 

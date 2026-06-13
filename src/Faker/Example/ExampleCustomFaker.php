@@ -105,7 +105,7 @@ final class ExampleCustomFaker implements FakerInterface
      * @param EntityManagerInterface|null $entityManager Optional entity manager for accessing related entities
      */
     public function __construct(
-        private ?EntityManagerInterface $entityManager = null
+        private readonly ?EntityManagerInterface $entityManager = null
     ) {
     }
 
@@ -144,16 +144,8 @@ final class ExampleCustomFaker implements FakerInterface
         if ($preserveOriginal) {
             return $originalValue;
         }
-
-        // EXAMPLE: Access other fields from the current record
-        // You can access any field from the current entity's record
-        $otherField = $record['other_field'] ?? null;
-        $relatedId  = $record['related_entity_id'] ?? null;
-
-        // EXAMPLE: Access related entities using EntityManager
-        // This shows how to query related entities if needed
-        $relatedEntityData = null;
-        if ($relatedId && $relatedEntityClass && $this->entityManager !== null) {
+        $relatedId = $record['related_entity_id'] ?? null;
+        if ($relatedId && $relatedEntityClass && $this->entityManager instanceof EntityManagerInterface) {
             try {
                 $relatedEntity = $this->entityManager->getRepository($relatedEntityClass)->find($relatedId);
                 if ($relatedEntity !== null) {
@@ -161,7 +153,7 @@ final class ExampleCustomFaker implements FakerInterface
                     // For example, if RelatedEntity has a 'name' field:
                     // $relatedEntityData = $relatedEntity->getName();
                 }
-            } catch (Exception $e) {
+            } catch (Exception) {
                 // Handle exception (e.g., entity not found, class doesn't exist)
                 // In production, you might want to log this
             }

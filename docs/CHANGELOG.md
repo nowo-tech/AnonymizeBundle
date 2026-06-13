@@ -15,13 +15,36 @@ _(none yet)_
 
 _(none)_
 
-### Fixed
+### Removed
 
 _(none)_
 
 ### Documentation
 
 _(none)_
+
+---
+## [1.0.22] - 2026-06-13
+
+### Added
+
+- **PHPStan**: baseline file (`phpstan-baseline.neon`) for level 8 static analysis.
+- **README**: CodeRabbit Pull Request Reviews badge.
+
+### Changed
+
+- **Demos**: removed `demo/symfony6`; Symfony 7 and 8 demos remain. Updated aggregate Makefile, scripts, and documentation accordingly.
+- **PHPStan**: configuration simplified (level 8 with baseline; Symfony/PHPUnit extensions via extension-installer).
+- **`src/` / tests**: static analysis and typing improvements (`readonly` constructor promotion, explicit closure types, `instanceof` guards) — no intentional behavior change.
+- **`composer.lock`**: bundle and demo locks synchronized.
+
+### Removed
+
+- **Demo symfony6**: dropped the Symfony 6.1 demo application (bundle compatibility with Symfony 6.1+ is unchanged).
+
+### Documentation
+
+- **demo/README.md**, **docs/DEMO-FRANKENPHP.md**, **docs/USAGE.md**, **docs/TESTING_COMMANDS.md**, **docs/EXAMPLES_POLYMORPHISM_ANONYMIZE_SERVICE.md**: references updated for Symfony 7/8 demos only.
 
 ---
 ## [1.0.21] - 2026-06-11

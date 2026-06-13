@@ -20,7 +20,7 @@ use function strlen;
 #[AsAlias(id: 'nowo_anonymize.faker.email')]
 final class EmailFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new EmailFaker instance.

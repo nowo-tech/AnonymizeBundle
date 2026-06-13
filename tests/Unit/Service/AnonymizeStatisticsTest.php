@@ -266,9 +266,8 @@ class AnonymizeStatisticsTest extends TestCase
         $stats = new AnonymizeStatistics();
         $stats->start();
         // Simulate 65 seconds by setting times directly
-        $reflection          = new ReflectionClass($stats);
-        $globalStatsProperty = $reflection->getProperty('globalStats');
-        $globalStatsProperty->setAccessible(true);
+        $reflection                = new ReflectionClass($stats);
+        $globalStatsProperty       = $reflection->getProperty('globalStats');
         $globalStats               = $globalStatsProperty->getValue($stats);
         $globalStats['start_time'] = microtime(true) - 65;
         $globalStats['end_time']   = microtime(true);
@@ -284,10 +283,9 @@ class AnonymizeStatisticsTest extends TestCase
      */
     public function testFormatDurationWithHours(): void
     {
-        $stats               = new AnonymizeStatistics();
-        $reflection          = new ReflectionClass($stats);
-        $globalStatsProperty = $reflection->getProperty('globalStats');
-        $globalStatsProperty->setAccessible(true);
+        $stats                   = new AnonymizeStatistics();
+        $reflection              = new ReflectionClass($stats);
+        $globalStatsProperty     = $reflection->getProperty('globalStats');
         $globalStats             = $globalStatsProperty->getValue($stats);
         $globalStats['duration'] = 3665; // 1 hour 1 minute 5 seconds
         $globalStatsProperty->setValue($stats, $globalStats);
@@ -431,10 +429,9 @@ class AnonymizeStatisticsTest extends TestCase
      */
     public function testFormatDurationWithExactlyOneSecond(): void
     {
-        $stats               = new AnonymizeStatistics();
-        $reflection          = new ReflectionClass($stats);
-        $globalStatsProperty = $reflection->getProperty('globalStats');
-        $globalStatsProperty->setAccessible(true);
+        $stats                   = new AnonymizeStatistics();
+        $reflection              = new ReflectionClass($stats);
+        $globalStatsProperty     = $reflection->getProperty('globalStats');
         $globalStats             = $globalStatsProperty->getValue($stats);
         $globalStats['duration'] = 1.0;
         $globalStatsProperty->setValue($stats, $globalStats);
@@ -449,10 +446,9 @@ class AnonymizeStatisticsTest extends TestCase
      */
     public function testFormatDurationWithExactlySixtySeconds(): void
     {
-        $stats               = new AnonymizeStatistics();
-        $reflection          = new ReflectionClass($stats);
-        $globalStatsProperty = $reflection->getProperty('globalStats');
-        $globalStatsProperty->setAccessible(true);
+        $stats                   = new AnonymizeStatistics();
+        $reflection              = new ReflectionClass($stats);
+        $globalStatsProperty     = $reflection->getProperty('globalStats');
         $globalStats             = $globalStatsProperty->getValue($stats);
         $globalStats['duration'] = 60.0;
         $globalStatsProperty->setValue($stats, $globalStats);
@@ -466,10 +462,9 @@ class AnonymizeStatisticsTest extends TestCase
      */
     public function testFormatDurationWithExactlyOneHour(): void
     {
-        $stats               = new AnonymizeStatistics();
-        $reflection          = new ReflectionClass($stats);
-        $globalStatsProperty = $reflection->getProperty('globalStats');
-        $globalStatsProperty->setAccessible(true);
+        $stats                   = new AnonymizeStatistics();
+        $reflection              = new ReflectionClass($stats);
+        $globalStatsProperty     = $reflection->getProperty('globalStats');
         $globalStats             = $globalStatsProperty->getValue($stats);
         $globalStats['duration'] = 3600.0;
         $globalStatsProperty->setValue($stats, $globalStats);
@@ -483,10 +478,9 @@ class AnonymizeStatisticsTest extends TestCase
      */
     public function testFormatDurationWithZeroSeconds(): void
     {
-        $stats               = new AnonymizeStatistics();
-        $reflection          = new ReflectionClass($stats);
-        $globalStatsProperty = $reflection->getProperty('globalStats');
-        $globalStatsProperty->setAccessible(true);
+        $stats                   = new AnonymizeStatistics();
+        $reflection              = new ReflectionClass($stats);
+        $globalStatsProperty     = $reflection->getProperty('globalStats');
         $globalStats             = $globalStatsProperty->getValue($stats);
         $globalStats['duration'] = 0.0;
         $globalStatsProperty->setValue($stats, $globalStats);

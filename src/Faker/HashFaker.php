@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 #[AsAlias(id: 'nowo_anonymize.faker.hash')]
 final class HashFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new HashFaker instance.
@@ -47,7 +47,7 @@ final class HashFaker implements FakerInterface
         $length    = $options['length'] ?? null;
 
         // Generate random string to hash
-        $randomString = $this->faker->unique()->text(100) . (string) $this->faker->randomNumber(9, true);
+        $randomString = $this->faker->unique()->text(100) . $this->faker->randomNumber(9, true);
 
         // Generate hash based on algorithm
         $hash = match ($algorithm) {

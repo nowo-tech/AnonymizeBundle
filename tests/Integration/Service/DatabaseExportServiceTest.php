@@ -27,7 +27,7 @@ use const PHP_OS_FAMILY;
 class DatabaseExportServiceTest extends TestCase
 {
     private string $tempDir;
-    private ContainerInterface $container;
+    private \PHPUnit\Framework\MockObject\MockObject $container;
 
     protected function setUp(): void
     {
@@ -436,15 +436,12 @@ class DatabaseExportServiceTest extends TestCase
 
         $reflection = new ReflectionClass(DatabaseExportService::class);
         $method     = $reflection->getMethod('exportSQLite');
-        $method->setAccessible(true);
 
         $dirAsDest = $this->tempDir . '/dest_is_dir_' . uniqid('', true);
         mkdir($dirAsDest, 0o755, true);
 
         // copy() to a directory emits a PHP warning; we only assert the null return.
-        $prev = set_error_handler(static function (int $errno, string $errstr): bool {
-            return str_contains($errstr, 'copy()') && str_contains($errstr, 'directory');
-        });
+        $prev = set_error_handler(static fn (int $errno, string $errstr): bool => str_contains($errstr, 'copy()') && str_contains($errstr, 'directory'));
         try {
             $result = $method->invoke($service, $connection, $dirAsDest);
         } finally {
@@ -621,7 +618,7 @@ class DatabaseExportServiceTest extends TestCase
         $projectDir = $this->tempDir;
 
         $container = new class($projectDir) implements ContainerInterface {
-            public function __construct(private string $projectDir)
+            public function __construct(private readonly string $projectDir)
             {
             }
 
@@ -693,7 +690,7 @@ class DatabaseExportServiceTest extends TestCase
         file_put_contents($gitignorePath, $existingEntry);
 
         $container = new class($projectDir) implements ContainerInterface {
-            public function __construct(private string $projectDir)
+            public function __construct(private readonly string $projectDir)
             {
             }
 
@@ -1065,7 +1062,7 @@ class DatabaseExportServiceTest extends TestCase
                     // Command structure: tar -c?f '<tarPath>' -C '<dir>' . 2>&1
                     $tokens = preg_split('/\s+/', $command);
                     if (isset($tokens[2])) {
-                        $pathToken = trim((string) $tokens[2], '\'"');
+                        $pathToken = trim($tokens[2], '\'"');
                         if ($pathToken !== '') {
                             @mkdir(dirname($pathToken), 0o755, true);
                             file_put_contents($pathToken, 'tar gz content');
@@ -1448,10 +1445,6 @@ class DatabaseExportServiceTest extends TestCase
         file_put_contents($gitignorePath, '');
 
         $container = new class($projectDir) implements ContainerInterface {
-            public function __construct(private string $projectDir)
-            {
-            }
-
             public function get(string $id): mixed
             {
                 return null;
@@ -1614,7 +1607,6 @@ class DatabaseExportServiceTest extends TestCase
         $zipPath = $this->tempDir . '/out.zip';
         $ref     = new ReflectionClass(DatabaseExportService::class);
         $method  = $ref->getMethod('createZipArchive');
-        $method->setAccessible(true);
 
         $service = new DatabaseExportService(
             $this->container,
@@ -1642,7 +1634,6 @@ class DatabaseExportServiceTest extends TestCase
 
         $ref    = new ReflectionClass(DatabaseExportService::class);
         $method = $ref->getMethod('createZipArchive');
-        $method->setAccessible(true);
 
         $service = new DatabaseExportService(
             $this->container,
@@ -1668,7 +1659,6 @@ class DatabaseExportServiceTest extends TestCase
         $tarPath = $this->tempDir . '/out.tar';
         $ref     = new ReflectionClass(DatabaseExportService::class);
         $method  = $ref->getMethod('createTarArchive');
-        $method->setAccessible(true);
 
         $service = new DatabaseExportService(
             $this->container,
@@ -1695,7 +1685,6 @@ class DatabaseExportServiceTest extends TestCase
 
         $ref    = new ReflectionClass(DatabaseExportService::class);
         $method = $ref->getMethod('createTarArchive');
-        $method->setAccessible(true);
 
         $service = new DatabaseExportService(
             $this->container,
@@ -1722,7 +1711,6 @@ class DatabaseExportServiceTest extends TestCase
 
         $ref    = new ReflectionClass(DatabaseExportService::class);
         $method = $ref->getMethod('createTarArchive');
-        $method->setAccessible(true);
 
         $service = new DatabaseExportService(
             $this->container,
@@ -1744,7 +1732,6 @@ class DatabaseExportServiceTest extends TestCase
     {
         $ref    = new ReflectionClass(DatabaseExportService::class);
         $method = $ref->getMethod('getFileExtension');
-        $method->setAccessible(true);
 
         $service = new DatabaseExportService(
             $this->container,
@@ -1771,7 +1758,6 @@ class DatabaseExportServiceTest extends TestCase
 
         $ref    = new ReflectionClass(DatabaseExportService::class);
         $method = $ref->getMethod('compressFile');
-        $method->setAccessible(true);
 
         $service = new DatabaseExportService(
             $this->container,
@@ -1800,7 +1786,6 @@ class DatabaseExportServiceTest extends TestCase
 
         $ref    = new ReflectionClass(DatabaseExportService::class);
         $method = $ref->getMethod('compressFile');
-        $method->setAccessible(true);
 
         $service = new DatabaseExportService(
             $this->container,
@@ -1830,7 +1815,6 @@ class DatabaseExportServiceTest extends TestCase
 
         $ref    = new ReflectionClass(DatabaseExportService::class);
         $method = $ref->getMethod('createZipArchive');
-        $method->setAccessible(true);
 
         $service = new DatabaseExportService(
             $this->container,
@@ -1857,7 +1841,6 @@ class DatabaseExportServiceTest extends TestCase
 
         $ref    = new ReflectionClass(DatabaseExportService::class);
         $method = $ref->getMethod('removeDirectory');
-        $method->setAccessible(true);
 
         $service = new DatabaseExportService(
             $this->container,
@@ -1883,7 +1866,6 @@ class DatabaseExportServiceTest extends TestCase
 
         $ref    = new ReflectionClass(DatabaseExportService::class);
         $method = $ref->getMethod('removeDirectory');
-        $method->setAccessible(true);
 
         $service = new DatabaseExportService(
             $this->container,
@@ -1905,7 +1887,6 @@ class DatabaseExportServiceTest extends TestCase
     {
         $ref    = new ReflectionClass(DatabaseExportService::class);
         $method = $ref->getMethod('removeDirectory');
-        $method->setAccessible(true);
 
         $service = new DatabaseExportService(
             $this->container,
@@ -1954,7 +1935,6 @@ class DatabaseExportServiceTest extends TestCase
 
         $ref    = new ReflectionClass(DatabaseExportService::class);
         $method = $ref->getMethod('createZipArchive');
-        $method->setAccessible(true);
 
         $service = new DatabaseExportService(
             $this->container,

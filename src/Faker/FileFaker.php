@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 #[AsAlias(id: 'nowo_anonymize.faker.file')]
 final class FileFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new FileFaker instance.
@@ -49,11 +49,11 @@ final class FileFaker implements FakerInterface
         $absolute  = $options['absolute'] ?? false;
 
         // Generate filename
-        $filename = $this->faker->word() . '.' . ltrim($extension, '.');
+        $filename = $this->faker->word() . '.' . ltrim((string) $extension, '.');
 
         // If directory is provided, build path
         if ($directory !== null) {
-            $path = rtrim($directory, '/') . '/' . $filename;
+            $path = rtrim((string) $directory, '/') . '/' . $filename;
 
             // Make absolute if requested
             if ($absolute && !str_starts_with($path, '/')) {

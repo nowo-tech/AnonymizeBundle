@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 #[AsAlias(id: 'nowo_anonymize.faker.iban')]
 final class IbanFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new IbanFaker instance.
@@ -45,7 +45,6 @@ final class IbanFaker implements FakerInterface
     public function generate(array $options = []): string
     {
         $country   = $options['country'] ?? 'ES';
-        $valid     = $options['valid'] ?? true;
         $formatted = $options['formatted'] ?? false;
 
         // Generate IBAN (Faker library generates valid IBANs by default)

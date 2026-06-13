@@ -1,13 +1,14 @@
 #!/bin/bash
 
 # Script to reload MongoDB fixtures in all demos
-# Usage: ./.scripts/reload-mongodb-fixtures.sh [demo-symfony6|demo-symfony7|demo-symfony8|all]
-#        or from scripts/ directory: ./reload-mongodb-fixtures.sh [demo-symfony6|demo-symfony7|demo-symfony8|all]
+# Usage: ./.scripts/reload-mongodb-fixtures.sh [symfony7|symfony8|all]
+#        or from scripts/ directory: ./reload-mongodb-fixtures.sh [symfony7|symfony8|all]
 
 set -e
 
 DEMO=${1:-all}
-BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Colors
 GREEN='\033[0;32m'
@@ -74,7 +75,7 @@ main() {
     echo ""
     
     if [ "$DEMO" = "all" ]; then
-        for demo in demo-symfony6 demo-symfony7 demo-symfony8; do
+        for demo in symfony7 symfony8; do
             reload_fixtures "$demo"
         done
     else

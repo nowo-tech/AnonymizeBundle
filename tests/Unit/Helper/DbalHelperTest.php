@@ -132,7 +132,6 @@ class DbalHelperTest extends TestCase
         // Create a mock platform with MySQL in class name
         $mysqlPlatform = $this->getMockBuilder(AbstractPlatform::class)
             ->getMock();
-        $mysqlPlatformClass = $mysqlPlatform::class;
         // Use reflection to check if class name contains MySQL
         // Since we can't easily mock the class name, we'll test via params
         $connection = $this->createMock(Connection::class);
@@ -233,7 +232,7 @@ class DbalHelperTest extends TestCase
         $connection->method('getDatabasePlatform')
             ->willReturn($unknownPlatform);
         $connection->method('getParams')
-            ->willReturn(['driverClass' => 'Doctrine\\DBAL\\Driver\\PDO\\MySQL\\Driver']);
+            ->willReturn(['driverClass' => Driver\PDO\MySQL\Driver::class]);
 
         $result = DbalHelper::getDriverName($connection);
         $this->assertEquals('pdo_mysql', $result);
@@ -518,9 +517,7 @@ class DbalHelperTest extends TestCase
     {
         $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')
-            ->willReturnCallback(static function ($identifier) {
-                return '`' . $identifier . '`';
-            });
+            ->willReturnCallback(static fn ($identifier): string => '`' . $identifier . '`');
 
         $connection = $this->createMock(Connection::class);
         $connection->method('getDatabasePlatform')->willReturn($platform);
@@ -557,9 +554,7 @@ class DbalHelperTest extends TestCase
     {
         $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')
-            ->willReturnCallback(static function ($identifier) {
-                return '`' . $identifier . '`';
-            });
+            ->willReturnCallback(static fn ($identifier): string => '`' . $identifier . '`');
 
         $connection = $this->createMock(Connection::class);
         $connection->method('getDatabasePlatform')->willReturn($platform);
@@ -581,7 +576,7 @@ class DbalHelperTest extends TestCase
 
         // Use reflection to create a mock with a specific class name
         $reflection = new ReflectionClass($platform);
-        $className  = $reflection->getName();
+        $reflection->getName();
 
         $connection = $this->createMock(Connection::class);
         $connection->method('getDriver')
@@ -736,7 +731,6 @@ class DbalHelperTest extends TestCase
     {
         $reflection = new ReflectionClass(DbalHelper::class);
         $method     = $reflection->getMethod('quoteIdentifierFallback');
-        $method->setAccessible(true);
 
         return $method->invoke(null, $connection, $identifier);
     }

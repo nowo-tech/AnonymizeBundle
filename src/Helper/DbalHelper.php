@@ -45,10 +45,10 @@ final class DbalHelper
         if (method_exists($connection, 'getDatabasePlatform')) {
             try {
                 $platform = $connection->getDatabasePlatform();
-                if ($platform !== null && method_exists($platform, 'quoteSingleIdentifier')) {
+                if (method_exists($platform, 'quoteSingleIdentifier')) {
                     return $platform->quoteSingleIdentifier($identifier);
                 }
-            } catch (Exception $e) {
+            } catch (Exception) {
                 // Fall through to connection or fallback
             }
         }
@@ -132,7 +132,7 @@ final class DbalHelper
                     return 'pdo_sqlite';
                 }
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             // Fall through to default
         }
 

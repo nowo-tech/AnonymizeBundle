@@ -22,8 +22,8 @@ use ReflectionProperty;
  */
 class AnonymizePropertyListenerTest extends TestCase
 {
-    private EntityManagerInterface $em;
-    private ClassMetadata $metadata;
+    private \PHPUnit\Framework\MockObject\MockObject $em;
+    private \PHPUnit\Framework\MockObject\MockObject $metadata;
 
     protected function setUp(): void
     {

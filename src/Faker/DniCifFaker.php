@@ -20,7 +20,7 @@ use function is_string;
 #[AsAlias(id: 'nowo_anonymize.faker.dni_cif')]
 final class DniCifFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     public const DNI_TYPE  = 'dni';
     public const CIF_TYPE  = 'cif';
@@ -78,7 +78,7 @@ final class DniCifFaker implements FakerInterface
             $type = 'dni';
         }
 
-        $result = match (strtolower($type)) {
+        $result = match (strtolower((string) $type)) {
             'dni', 'nif' => $this->generateDni(),
             'cif'        => $this->generateCif(),
             default      => $this->generateDni(),
@@ -106,7 +106,7 @@ final class DniCifFaker implements FakerInterface
         $letterIndex = $number % 23;
         $letter      = self::DNI_LETTERS[$letterIndex];
 
-        return (string) $number . $letter;
+        return $number . $letter;
     }
 
     /**
@@ -125,7 +125,7 @@ final class DniCifFaker implements FakerInterface
         // Calculate checksum (last character)
         $checksum = $this->calculateCifChecksum($number);
 
-        return $firstLetter . (string) $number . $checksum;
+        return $firstLetter . $number . $checksum;
     }
 
     /**

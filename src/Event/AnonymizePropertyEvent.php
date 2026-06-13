@@ -21,11 +21,6 @@ use Symfony\Contracts\EventDispatcher\Event;
 final class AnonymizePropertyEvent extends Event
 {
     /**
-     * @var mixed The anonymized value (can be modified by listeners)
-     */
-    private mixed $anonymizedValue;
-
-    /**
      * @var bool Whether to skip anonymization of this property
      */
     private bool $skipAnonymization = false;
@@ -42,17 +37,8 @@ final class AnonymizePropertyEvent extends Event
      * @param array<string, mixed> $record The full database record
      * @param bool $dryRun Whether this is a dry run
      */
-    public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly ClassMetadata $metadata,
-        private readonly ReflectionProperty $property,
-        private readonly string $columnName,
-        private readonly mixed $originalValue,
-        mixed $anonymizedValue,
-        private readonly array $record,
-        private readonly bool $dryRun = false
-    ) {
-        $this->anonymizedValue = $anonymizedValue;
+    public function __construct(private readonly EntityManagerInterface $entityManager, private readonly ClassMetadata $metadata, private readonly ReflectionProperty $property, private readonly string $columnName, private readonly mixed $originalValue, private mixed $anonymizedValue, private readonly array $record, private readonly bool $dryRun = false)
+    {
     }
 
     /**

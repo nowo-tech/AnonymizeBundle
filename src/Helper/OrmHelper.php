@@ -31,7 +31,7 @@ final class OrmHelper
     {
         if (method_exists($metadata, 'getColumnName')) {
             $columnName = $metadata->getColumnName($fieldName);
-            if (is_string($columnName) && $columnName !== '') {
+            if ($columnName !== '') {
                 return $columnName;
             }
         }

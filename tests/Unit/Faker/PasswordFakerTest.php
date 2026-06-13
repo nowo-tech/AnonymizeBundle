@@ -62,7 +62,7 @@ class PasswordFakerTest extends TestCase
         $password = $faker->generate(['include_numbers' => true, 'length' => 20]);
 
         $this->assertIsString($password);
-        $this->assertMatchesRegularExpression('/[0-9]/', $password);
+        $this->assertMatchesRegularExpression('/\d/', $password);
     }
 
     /**

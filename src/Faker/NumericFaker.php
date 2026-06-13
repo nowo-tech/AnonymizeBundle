@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 #[AsAlias(id: 'nowo_anonymize.faker.numeric')]
 final class NumericFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new NumericFaker instance.
@@ -41,9 +41,9 @@ final class NumericFaker implements FakerInterface
      *                                      - 'max' (int|float): Maximum value (default: 1000)
      *                                      - 'precision' (int): Decimal precision for floats (default: 2)
      *
-     * @return float|int|string The anonymized numeric value
+     * @return float|int The anonymized numeric value
      */
-    public function generate(array $options = []): int|float|string
+    public function generate(array $options = []): int|float
     {
         $type      = $options['type'] ?? 'int';
         $min       = $options['min'] ?? 0;
@@ -51,9 +51,7 @@ final class NumericFaker implements FakerInterface
         $precision = (int) ($options['precision'] ?? 2);
 
         if ($type === 'float') {
-            $value = $this->faker->randomFloat($precision, (float) $min, (float) $max);
-
-            return $value;
+            return $this->faker->randomFloat($precision, (float) $min, (float) $max);
         }
 
         return $this->faker->numberBetween((int) $min, (int) $max);

@@ -56,19 +56,15 @@ final class MaskingFaker implements FakerInterface
 
         // If value is too short, return fully masked
         if ($valueLength <= $preserveStart + $preserveEnd) {
-            return str_repeat($maskChar, $valueLength);
+            return str_repeat((string) $maskChar, $valueLength);
         }
 
         // Calculate mask length
-        if ($maskLength !== null) {
-            $actualMaskLength = (int) $maskLength;
-        } else {
-            $actualMaskLength = $valueLength - $preserveStart - $preserveEnd;
-        }
+        $actualMaskLength = $maskLength !== null ? (int) $maskLength : $valueLength - $preserveStart - $preserveEnd;
 
         // Build masked value
         $start = substr($value, 0, $preserveStart);
-        $mask  = str_repeat($maskChar, $actualMaskLength);
+        $mask  = str_repeat((string) $maskChar, $actualMaskLength);
         $end   = $preserveEnd > 0 ? substr($value, -$preserveEnd) : '';
 
         return $start . $mask . $end;

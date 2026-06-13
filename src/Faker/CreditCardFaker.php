@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 #[AsAlias(id: 'nowo_anonymize.faker.credit_card')]
 final class CreditCardFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new CreditCardFaker instance.
@@ -68,7 +68,7 @@ final class CreditCardFaker implements FakerInterface
             // Remove existing formatting
             $cardNumber = preg_replace('/[\s-]/', '', $cardNumber);
             // Add spaces every 4 digits
-            $cardNumber = chunk_split($cardNumber, 4, ' ');
+            $cardNumber = chunk_split((string) $cardNumber, 4, ' ');
             $cardNumber = trim($cardNumber);
         }
 

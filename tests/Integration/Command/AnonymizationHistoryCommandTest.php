@@ -449,7 +449,6 @@ class AnonymizationHistoryCommandTest extends TestCase
         $command = new AnonymizationHistoryCommand($this->createContainer());
         $ref     = new ReflectionClass($command);
         $method  = $ref->getMethod('formatDuration');
-        $method->setAccessible(true);
 
         $this->assertStringEndsWith('ms', $method->invoke($command, 0.0));
         $this->assertStringEndsWith('ms', $method->invoke($command, 0.5));

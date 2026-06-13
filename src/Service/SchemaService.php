@@ -47,7 +47,7 @@ final class SchemaService
             }
 
             return false;
-        } catch (Exception $e) {
+        } catch (Exception) {
             return false;
         }
     }
@@ -81,7 +81,7 @@ final class SchemaService
             }
 
             return false;
-        } catch (Exception $e) {
+        } catch (Exception) {
             return false;
         }
     }

@@ -31,12 +31,12 @@ final class PatternMatcher
     public function matches(array $record, array $includePatterns = [], array $excludePatterns = []): bool
     {
         // If exclusion patterns exist and match, exclude
-        if (!empty($excludePatterns) && $this->matchesExcludePatterns($record, $excludePatterns)) {
+        if ($excludePatterns !== [] && $this->matchesExcludePatterns($record, $excludePatterns)) {
             return false;
         }
 
         // If inclusion patterns exist, check if they match
-        if (!empty($includePatterns)) {
+        if ($includePatterns !== []) {
             return $this->matchesIncludePatterns($record, $includePatterns);
         }
 

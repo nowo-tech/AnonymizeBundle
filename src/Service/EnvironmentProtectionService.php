@@ -27,7 +27,7 @@ final class EnvironmentProtectionService
      * @param ParameterBagInterface $parameterBag The parameter bag for accessing kernel parameters
      */
     public function __construct(
-        private ParameterBagInterface $parameterBag
+        private readonly ParameterBagInterface $parameterBag
     ) {
     }
 
@@ -92,7 +92,7 @@ final class EnvironmentProtectionService
         $bundlesPath = $projectDir . '/config/bundles.php';
         if (file_exists($bundlesPath)) {
             $bundles     = require $bundlesPath;
-            $bundleClass = 'Nowo\\AnonymizeBundle\\AnonymizeBundle';
+            $bundleClass = \Nowo\AnonymizeBundle\AnonymizeBundle::class;
             if (isset($bundles[$bundleClass])) {
                 $allowedEnvs = $bundles[$bundleClass];
                 if (is_array($allowedEnvs) && isset($allowedEnvs['prod']) && $allowedEnvs['prod'] === true) {

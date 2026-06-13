@@ -21,7 +21,7 @@ use function strlen;
 #[AsAlias(id: 'nowo_anonymize.faker.password')]
 final class PasswordFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new PasswordFaker instance.

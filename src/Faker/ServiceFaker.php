@@ -33,8 +33,8 @@ final class ServiceFaker implements FakerInterface
      * @param string $serviceName The name of the service to use for anonymization
      */
     public function __construct(
-        private ContainerInterface $container,
-        private string $serviceName
+        private readonly ContainerInterface $container,
+        private readonly string $serviceName
     ) {
     }
 

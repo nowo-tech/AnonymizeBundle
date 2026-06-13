@@ -8,31 +8,7 @@ Demos are organized by Symfony version. Each demo includes **multiple database c
 
 ## Available Demos
 
-### 1. Symfony 6 Demo (`symfony6`)
-
-Complete demo with Symfony 6.1+, MySQL 8.0, and PostgreSQL 16.
-
-**Features:**
-- Symfony 6.1+ with all necessary dependencies
-- MySQL 8.0 as default connection
-- PostgreSQL 16 as secondary connection
-- MongoDB 7.0 (infrastructure ready, ODM support coming soon)
-- Docker Compose with all services configured
-- Makefile with useful commands
-- Example fixtures with test data
-- Ready-to-use configuration with multiple connections
-
-**Quick start:**
-```bash
-cd symfony6
-make up      # Start containers
-make setup   # Setup databases and load fixtures
-make anonymize-dry-run  # Test anonymization
-```
-
-See [complete README](symfony6/README.md) for more details.
-
-### 2. Symfony 7 Demo (`symfony7`)
+### 1. Symfony 7 Demo (`symfony7`)
 
 Complete demo with Symfony 7.0, MySQL 8.0, and PostgreSQL 16.
 
@@ -56,7 +32,7 @@ make anonymize-dry-run  # Test anonymization
 
 See [complete README](symfony7/README.md) for more details.
 
-### 3. Symfony 8 Demo (`symfony8`)
+### 2. Symfony 8 Demo (`symfony8`)
 
 Complete demo with Symfony 8.0, MySQL 8.0, and PostgreSQL 16.
 
@@ -86,7 +62,7 @@ All demos share the following features:
 
 ### Runtime: FrankenPHP
 
-Each demo runs the Symfony app with **[FrankenPHP](https://frankenphp.dev/)** (Caddy + PHP in worker mode) instead of nginx + PHP-FPM. A single container serves HTTP on port 80 (mapped to 8001/8000/8002 per demo) with `public/index.php` as the worker. No separate web server container is required.
+Each demo runs the Symfony app with **[FrankenPHP](https://frankenphp.dev/)** (Caddy + PHP in worker mode) instead of nginx + PHP-FPM. A single container serves HTTP on port 80 (mapped to 8000/8002 per demo) with `public/index.php` as the worker. No separate web server container is required.
 
 ### Multiple Database Connections
 
@@ -207,23 +183,23 @@ The data should be anonymized according to the attributes defined in the entitie
 
 ## Demo Comparison
 
-| Feature | Symfony 6 | Symfony 7 | Symfony 8 |
-|---------|-----------|-----------|-----------|
-| Symfony Version | 6.1+ | 7.0 | 8.0 |
-| MySQL | 8.0 | 8.0 | 8.0 |
-| PostgreSQL | 16 | 16 | 16 |
-| SQLite | ✅ | ✅ | ✅ |
-| MongoDB | 7.0 | 7.0 | 7.0 |
-| MySQL / PostgreSQL published on host | No (Compose network + admin UIs) | No | No |
-| MongoDB host port (optional) | 27016 | 27019 | 27018 |
-| Mongo Express Port | 8088 | 8087 | 8086 |
-| Docker Compose | ✅ | ✅ | ✅ |
-| Makefile | ✅ | ✅ | ✅ |
-| Fixtures | ✅ | ✅ | ✅ |
-| Multiple connections | ✅ | ✅ | ✅ |
-| SQLite Support | ✅ | ✅ | ✅ |
-| MongoDB Infrastructure | ✅ | ✅ | ✅ |
-| MongoDB CRUD | ✅ | ✅ | ✅ |
+| Feature | Symfony 7 | Symfony 8 |
+|---------|-----------|-----------|
+| Symfony Version | 7.0 | 8.0 |
+| MySQL | 8.0 | 8.0 |
+| PostgreSQL | 16 | 16 |
+| SQLite | ✅ | ✅ |
+| MongoDB | 7.0 | 7.0 |
+| MySQL / PostgreSQL published on host | No (Compose network + admin UIs) | No |
+| MongoDB host port (optional) | 27019 | 27018 |
+| Mongo Express Port | 8087 | 8086 |
+| Docker Compose | ✅ | ✅ |
+| Makefile | ✅ | ✅ |
+| Fixtures | ✅ | ✅ |
+| Multiple connections | ✅ | ✅ |
+| SQLite Support | ✅ | ✅ |
+| MongoDB Infrastructure | ✅ | ✅ |
+| MongoDB CRUD | ✅ | ✅ |
 
 All demos are functionally identical in terms of features, only the Symfony version used changes.
 
@@ -252,10 +228,6 @@ When you run the demos with Docker from this repository, they use the **bundle c
 From the `demo/` folder, you can verify that each demo starts and that the anonymization command is available:
 
 ```bash
-# Symfony 6
-cd symfony6 && composer install -n 2>/dev/null; php bin/console list nowo 2>&1 | head -5
-cd ..
-
 # Symfony 7
 cd symfony7 && composer install -n 2>/dev/null; php bin/console list nowo 2>&1 | head -5
 cd ..
@@ -267,7 +239,7 @@ cd symfony8 && composer install -n 2>/dev/null; php bin/console list nowo 2>&1 |
 Or with Docker (recommended; uses the bundle from the repo mounted at `/bundles`):
 
 ```bash
-cd symfony6   # or symfony7 / symfony8
+cd symfony7   # or symfony8
 make up && make setup && make anonymize-dry-run
 ```
 

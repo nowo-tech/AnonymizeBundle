@@ -35,8 +35,8 @@ final class FakerFactory implements FakerFactoryInterface
      */
     public function __construct(
         // #[Autowire('%nowo_anonymize.locale%')]
-        private string $locale = 'en_US',
-        private ?ContainerInterface $container = null
+        private readonly string $locale = 'en_US',
+        private readonly ?ContainerInterface $container = null
     ) {
     }
 
@@ -60,7 +60,7 @@ final class FakerFactory implements FakerFactoryInterface
         }
 
         // Try to get from container first (if available)
-        if ($this->container !== null) {
+        if ($this->container instanceof ContainerInterface) {
             $serviceId = match ($type) {
                 FakerType::EMAIL->value         => 'nowo_anonymize.faker.email',
                 FakerType::NAME->value          => 'nowo_anonymize.faker.name',

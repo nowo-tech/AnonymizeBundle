@@ -24,13 +24,6 @@ use function strlen;
 final class HashPreserveFaker implements FakerInterface
 {
     /**
-     * Creates a new HashPreserveFaker instance.
-     */
-    public function __construct()
-    {
-    }
-
-    /**
      * Generates a deterministic hash from the original value.
      *
      * @param array<string, mixed> $options Options:

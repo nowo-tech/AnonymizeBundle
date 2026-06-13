@@ -43,9 +43,9 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
      * @param array<string> $connections The Doctrine connection names to process
      */
     public function __construct(
-        private ContainerInterface $container,
-        private AnonymizeService $anonymizeService,
-        private array $connections = []
+        private readonly ContainerInterface $container,
+        private readonly AnonymizeService $anonymizeService,
+        private readonly array $connections = []
     ) {
         parent::__construct();
     }
@@ -106,7 +106,7 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
         $connections = $input->getOption('connection');
         if (empty($connections)) {
             $connections = $this->connections;
-            if (empty($connections)) {
+            if ($connections === []) {
                 $connections = ['default'];
             }
         }
@@ -119,7 +119,7 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
 
             try {
                 $em = $this->getEntityManager($connectionName);
-                if ($em === null) {
+                if (!$em instanceof EntityManagerInterface) {
                     $io->warning(sprintf('Connection "%s" not found, skipping.', $connectionName));
                     continue;
                 }
@@ -178,7 +178,7 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
             }
         }
 
-        if (empty($sqlStatements)) {
+        if ($sqlStatements === []) {
             $io->success('No migrations needed. All tables already have the anonymized column or no entities use AnonymizableTrait.');
 
             return self::SUCCESS;
@@ -224,7 +224,7 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
             }
 
             // If connection name is 'default' or empty, try default manager
-            if ($connectionName === 'default' || empty($connectionName)) {
+            if ($connectionName === 'default' || ($connectionName === '' || $connectionName === '0')) {
                 return $doctrine->getManager();
             }
 
@@ -237,7 +237,7 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
             }
 
             return null;
-        } catch (Exception $e) {
+        } catch (Exception) {
             return null;
         }
     }
@@ -251,7 +251,7 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
      */
     private function usesAnonymizableTrait(ReflectionClass $reflection): bool
     {
-        $traitName = 'Nowo\\AnonymizeBundle\\Trait\\AnonymizableTrait';
+        $traitName = \Nowo\AnonymizeBundle\Trait\AnonymizableTrait::class;
 
         foreach ($reflection->getTraitNames() as $trait) {
             if ($trait === $traitName) {

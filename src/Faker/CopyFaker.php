@@ -73,26 +73,6 @@ final class CopyFaker implements FakerInterface
      */
     private function getFieldValue(array $record, string $fieldName): mixed
     {
-        // Try exact match first
-        if (isset($record[$fieldName])) {
-            return $record[$fieldName];
-        }
-
-        // Try lowercase
-        if (isset($record[strtolower($fieldName)])) {
-            return $record[strtolower($fieldName)];
-        }
-
-        // Try uppercase
-        if (isset($record[strtoupper($fieldName)])) {
-            return $record[strtoupper($fieldName)];
-        }
-
-        // Try ucfirst
-        if (isset($record[ucfirst($fieldName)])) {
-            return $record[ucfirst($fieldName)];
-        }
-
-        return null;
+        return $record[$fieldName] ?? $record[strtolower($fieldName)] ?? $record[strtoupper($fieldName)] ?? $record[ucfirst($fieldName)] ?? null;
     }
 }

@@ -33,9 +33,7 @@ class SystemCommandRunnerTest extends TestCase
      */
     public function testCommandExistsReturnsFalseWhenProcOpenFails(): void
     {
-        $runner = new SystemCommandRunner(static function (): bool {
-            return false;
-        });
+        $runner = new SystemCommandRunner(static fn (): bool => false);
         $result = $runner->commandExists('php');
         $this->assertFalse($result);
     }

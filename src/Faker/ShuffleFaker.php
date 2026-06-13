@@ -24,13 +24,6 @@ use function is_array;
 final class ShuffleFaker implements FakerInterface
 {
     /**
-     * Creates a new ShuffleFaker instance.
-     */
-    public function __construct()
-    {
-    }
-
-    /**
      * Generates a shuffled value from a pool of existing values.
      *
      * @param array<string, mixed> $options Options:
@@ -54,8 +47,8 @@ final class ShuffleFaker implements FakerInterface
 
         // Filter out excluded value if specified
         if ($exclude !== null) {
-            $values = array_filter($values, static fn ($value) => $value !== $exclude);
-            if (empty($values)) {
+            $values = array_filter($values, static fn ($value): bool => $value !== $exclude);
+            if ($values === []) {
                 throw new InvalidArgumentException('ShuffleFaker: All values were excluded. At least one value must remain.');
             }
         }

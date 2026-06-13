@@ -79,7 +79,7 @@ class ServiceFakerTest extends TestCase
      */
     public function testGenerateWithCallableService(): void
     {
-        $callableService = static fn (array $options = []) => 'callable_value';
+        $callableService = static fn (array $options = []): string => 'callable_value';
 
         $container = $this->createMock(ContainerInterface::class);
         $container->expects($this->once())

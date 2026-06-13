@@ -25,7 +25,7 @@ use const PHP_URL_HOST;
 #[AsAlias(id: 'nowo_anonymize.faker.html')]
 final class HtmlFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new HtmlFaker instance.
@@ -115,9 +115,7 @@ final class HtmlFaker implements FakerInterface
             $html .= '<p>' . htmlspecialchars($this->faker->paragraph(2)) . '</p>';
         }
 
-        $html .= '</div>';
-
-        return $html;
+        return $html . '</div>';
     }
 
     /**
@@ -178,9 +176,7 @@ final class HtmlFaker implements FakerInterface
             $html .= '<li>' . $text . '</li>';
         }
 
-        $html .= '</' . $listType . '>';
-
-        return $html;
+        return $html . ('</' . $listType . '>');
     }
 
     /**
@@ -200,7 +196,7 @@ final class HtmlFaker implements FakerInterface
         $html  = '';
         $style = $includeStyles ? ' style="font-family: Arial, sans-serif;"' : '';
 
-        if ($style) {
+        if ($style !== '' && $style !== '0') {
             $html .= '<div' . $style . '>';
         }
 
@@ -222,7 +218,7 @@ final class HtmlFaker implements FakerInterface
             $html .= '<' . $headingLevel . '>' . htmlspecialchars($this->faker->sentence(3)) . '</' . $headingLevel . '>';
         }
 
-        if ($style) {
+        if ($style !== '' && $style !== '0') {
             $html .= '</div>';
         }
 

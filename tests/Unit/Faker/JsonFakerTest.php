@@ -437,10 +437,8 @@ class JsonFakerTest extends TestCase
             if (is_bool($v)) {
                 return true;
             }
-            if (is_array($v)) {
-                if ($this->arrayContainsBoolean($v)) {
-                    return true;
-                }
+            if (is_array($v) && $this->arrayContainsBoolean($v)) {
+                return true;
             }
         }
 

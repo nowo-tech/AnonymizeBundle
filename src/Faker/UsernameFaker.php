@@ -20,7 +20,7 @@ use function strlen;
 #[AsAlias(id: 'nowo_anonymize.faker.username')]
 final class UsernameFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new UsernameFaker instance.
@@ -55,8 +55,8 @@ final class UsernameFaker implements FakerInterface
         $includeNumbers = $options['include_numbers'] ?? true;
 
         // Calculate available length for base username (accounting for prefix and suffix)
-        $prefixLength    = strlen($prefix);
-        $suffixLength    = strlen($suffix);
+        $prefixLength    = strlen((string) $prefix);
+        $suffixLength    = strlen((string) $suffix);
         $availableLength = $maxLength - $prefixLength - $suffixLength;
 
         // Ensure available length is at least min_length

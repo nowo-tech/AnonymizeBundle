@@ -27,7 +27,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
  */
 class ExportDatabaseCommandTest extends TestCase
 {
-    private ContainerInterface $container;
+    private \PHPUnit\Framework\MockObject\MockObject $container;
     private ExportDatabaseCommand $command;
 
     protected function setUp(): void
@@ -73,8 +73,8 @@ class ExportDatabaseCommandTest extends TestCase
             'kernel.project_dir' => sys_get_temp_dir(),
         ]);
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static fn (string $id) => $id === 'parameter_bag');
-        $container->method('get')->willReturnCallback(static fn (string $id) => $id === 'parameter_bag' ? $parameterBag : null);
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag');
+        $container->method('get')->willReturnCallback(static fn (string $id): ?\Symfony\Component\DependencyInjection\ParameterBag\ParameterBag => $id === 'parameter_bag' ? $parameterBag : null);
 
         $command = new ExportDatabaseCommand($container);
         $input   = new ArrayInput([]);
@@ -100,12 +100,8 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn([]);
 
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static function (string $id) {
-            return $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE;
-        });
-        $container->method('get')->willReturnCallback(static function (string $id) use ($parameterBag, $doctrine) {
-            return $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null);
-        });
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
+        $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
 
         $command = new ExportDatabaseCommand($container);
         $input   = new ArrayInput([]);
@@ -131,12 +127,8 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
 
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static function (string $id) {
-            return $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE;
-        });
-        $container->method('get')->willReturnCallback(static function (string $id) use ($parameterBag, $doctrine) {
-            return $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null);
-        });
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
+        $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
 
         $command = new ExportDatabaseCommand($container);
         $input   = new ArrayInput(['--compression' => 'invalid']);
@@ -165,7 +157,6 @@ class ExportDatabaseCommandTest extends TestCase
         // Use reflection to test private method
         $reflection = new ReflectionClass($this->command);
         $method     = $reflection->getMethod('getParameterBag');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->command);
 
@@ -183,7 +174,6 @@ class ExportDatabaseCommandTest extends TestCase
         // Use reflection to test private method
         $reflection = new ReflectionClass($this->command);
         $method     = $reflection->getMethod('getParameterBag');
-        $method->setAccessible(true);
 
         // Should return a ParameterBagInterface wrapper when parameter_bag is not available
         $result = $method->invoke($this->command);
@@ -204,7 +194,6 @@ class ExportDatabaseCommandTest extends TestCase
 
         $reflection = new ReflectionClass($this->command);
         $method     = $reflection->getMethod('getParameterBag');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->command);
 
@@ -220,7 +209,6 @@ class ExportDatabaseCommandTest extends TestCase
         // Use reflection to test private method
         $reflection = new ReflectionClass($this->command);
         $method     = $reflection->getMethod('formatBytes');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->command, 1024);
         $this->assertIsString($result);
@@ -243,7 +231,6 @@ class ExportDatabaseCommandTest extends TestCase
         // Use reflection to test private method
         $reflection = new ReflectionClass($this->command);
         $method     = $reflection->getMethod('formatBytes');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->command, 0);
         $this->assertIsString($result);
@@ -258,7 +245,6 @@ class ExportDatabaseCommandTest extends TestCase
         // Use reflection to test private method
         $reflection = new ReflectionClass($this->command);
         $method     = $reflection->getMethod('formatBytes');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->command, 1024 * 1024 * 1024 * 1024);
         $this->assertIsString($result);
@@ -412,10 +398,8 @@ class ExportDatabaseCommandTest extends TestCase
             $doctrine->method('getManagerNames')->willReturn([]);
 
             $container = $this->createMock(ContainerInterface::class);
-            $container->method('has')->willReturnCallback(static fn (string $id) => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
-            $container->method('get')->willReturnCallback(static function (string $id) use ($parameterBag, $doctrine) {
-                return $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null);
-            });
+            $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
+            $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
 
             $command = new ExportDatabaseCommand($container);
             $input   = new ArrayInput(['--connection' => ['mongodb'], '--no-gitignore' => true]);
@@ -468,10 +452,8 @@ class ExportDatabaseCommandTest extends TestCase
             $doctrine->method('getManager')->with('mongodb')->willReturn($em);
 
             $container = $this->createMock(ContainerInterface::class);
-            $container->method('has')->willReturnCallback(static fn (string $id) => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
-            $container->method('get')->willReturnCallback(static function (string $id) use ($parameterBag, $doctrine) {
-                return $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null);
-            });
+            $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
+            $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
 
             $command = new ExportDatabaseCommand($container);
             $input   = new ArrayInput(['--connection' => ['mongodb'], '--no-gitignore' => true]);
@@ -515,12 +497,8 @@ class ExportDatabaseCommandTest extends TestCase
             $doctrine->method('getManager')->with('mongodb')->willThrowException(new Exception('No manager for mongodb'));
 
             $container = $this->createMock(ContainerInterface::class);
-            $container->method('has')->willReturnCallback(static function (string $id) {
-                return $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE;
-            });
-            $container->method('get')->willReturnCallback(static function (string $id) use ($parameterBag, $doctrine) {
-                return $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null);
-            });
+            $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
+            $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
 
             $command = new ExportDatabaseCommand($container);
             $input   = new ArrayInput(['--connection' => ['mongodb']]);
@@ -555,10 +533,8 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willThrowException(new Exception('Manager failed'));
 
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static fn (string $id) => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
-        $container->method('get')->willReturnCallback(static function (string $id) use ($parameterBag, $doctrine) {
-            return $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null);
-        });
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
+        $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
 
         $command = new ExportDatabaseCommand($container);
         $input   = new ArrayInput(['--no-gitignore' => true]);
@@ -598,10 +574,8 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static fn (string $id) => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
-        $container->method('get')->willReturnCallback(static function (string $id) use ($parameterBag, $doctrine) {
-            return $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null);
-        });
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
+        $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
 
         $command = new ExportDatabaseCommand($container);
         $input   = new ArrayInput(['--no-gitignore' => true]);
@@ -626,7 +600,6 @@ class ExportDatabaseCommandTest extends TestCase
         $command    = new ExportDatabaseCommand($container);
         $reflection = new ReflectionClass($command);
         $method     = $reflection->getMethod('getProjectDirFromContainer');
-        $method->setAccessible(true);
 
         $result = $method->invoke($command);
 
@@ -664,10 +637,8 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static fn (string $id) => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
-        $container->method('get')->willReturnCallback(static function (string $id) use ($parameterBag, $doctrine) {
-            return $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null);
-        });
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
+        $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
 
         $command = new ExportDatabaseCommand($container);
         $input   = new ArrayInput([
@@ -689,7 +660,7 @@ class ExportDatabaseCommandTest extends TestCase
             unlink($testDbPath);
         }
         if (is_dir($outputDir)) {
-            array_map('unlink', glob($outputDir . '/*') ?: []);
+            array_map(unlink(...), glob($outputDir . '/*') ?: []);
             rmdir($outputDir);
         }
     }
@@ -725,10 +696,8 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static fn (string $id) => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
-        $container->method('get')->willReturnCallback(static function (string $id) use ($parameterBag, $doctrine) {
-            return $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null);
-        });
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
+        $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
 
         $command = new ExportDatabaseCommand($container);
         $input   = new ArrayInput([
@@ -748,7 +717,7 @@ class ExportDatabaseCommandTest extends TestCase
             unlink($testDbPath);
         }
         if (is_dir($outputDir)) {
-            array_map('unlink', glob($outputDir . '/*') ?: []);
+            array_map(unlink(...), glob($outputDir . '/*') ?: []);
             rmdir($outputDir);
         }
         if (is_file($projectDir . '/.gitignore')) {

@@ -32,7 +32,7 @@ use function is_string;
 #[AsAlias(id: 'nowo_anonymize.faker.pattern_based')]
 final class PatternBasedFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new PatternBasedFaker instance.
@@ -111,27 +111,7 @@ final class PatternBasedFaker implements FakerInterface
      */
     private function getFieldValue(array $record, string $fieldName): mixed
     {
-        // Try exact match first
-        if (isset($record[$fieldName])) {
-            return $record[$fieldName];
-        }
-
-        // Try lowercase
-        if (isset($record[strtolower($fieldName)])) {
-            return $record[strtolower($fieldName)];
-        }
-
-        // Try uppercase
-        if (isset($record[strtoupper($fieldName)])) {
-            return $record[strtoupper($fieldName)];
-        }
-
-        // Try ucfirst
-        if (isset($record[ucfirst($fieldName)])) {
-            return $record[ucfirst($fieldName)];
-        }
-
-        return null;
+        return $record[$fieldName] ?? $record[strtolower($fieldName)] ?? $record[strtoupper($fieldName)] ?? $record[ucfirst($fieldName)] ?? null;
     }
 
     /**
@@ -152,8 +132,9 @@ final class PatternBasedFaker implements FakerInterface
         // Try to match the pattern
         if (preg_match($pattern, $originalValue, $matches)) {
             // Apply replacement (supports $1, $2, etc. for captured groups)
-            $result = $replacement;
-            for ($i = 1; $i < count($matches); ++$i) {
+            $result  = $replacement;
+            $counter = count($matches);
+            for ($i = 1; $i < $counter; ++$i) {
                 $result = str_replace('$' . $i, $matches[$i], $result);
             }
             // Replace $0 with full match if needed

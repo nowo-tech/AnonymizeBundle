@@ -20,7 +20,7 @@ use function sprintf;
 #[AsAlias(id: 'nowo_anonymize.faker.color')]
 final class ColorFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new ColorFaker instance.

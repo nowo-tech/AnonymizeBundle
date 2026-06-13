@@ -101,7 +101,7 @@ class HashPreserveFakerTest extends TestCase
         $hash = $faker->generate(['value' => $originalValue, 'preserve_format' => true]);
 
         $this->assertIsString($hash);
-        $this->assertMatchesRegularExpression('/^[0-9]+$/', $hash);
+        $this->assertMatchesRegularExpression('/^\d+$/', $hash);
         $this->assertLessThanOrEqual(20, strlen($hash));
     }
 
@@ -257,7 +257,7 @@ class HashPreserveFakerTest extends TestCase
         $hash = $faker->generate(['value' => '12345678901234567890', 'preserve_format' => true]);
 
         $this->assertIsString($hash);
-        $this->assertMatchesRegularExpression('/^[0-9]+$/', $hash);
+        $this->assertMatchesRegularExpression('/^\d+$/', $hash);
         // Should be limited to 20 characters
         $this->assertLessThanOrEqual(20, strlen($hash));
     }
@@ -271,7 +271,7 @@ class HashPreserveFakerTest extends TestCase
         $hash  = $faker->generate(['value' => '123.45', 'preserve_format' => true]);
 
         $this->assertIsString($hash);
-        $this->assertMatchesRegularExpression('/^[0-9]+$/', $hash);
+        $this->assertMatchesRegularExpression('/^\d+$/', $hash);
         $this->assertLessThanOrEqual(20, strlen($hash));
     }
 
@@ -284,7 +284,7 @@ class HashPreserveFakerTest extends TestCase
         $hash  = $faker->generate(['value' => 12345, 'preserve_format' => true]);
 
         $this->assertIsString($hash);
-        $this->assertMatchesRegularExpression('/^[0-9]+$/', $hash);
+        $this->assertMatchesRegularExpression('/^\d+$/', $hash);
         $this->assertLessThanOrEqual(20, strlen($hash));
     }
 
@@ -297,7 +297,7 @@ class HashPreserveFakerTest extends TestCase
         $hash  = $faker->generate(['value' => 123.45, 'preserve_format' => true]);
 
         $this->assertIsString($hash);
-        $this->assertMatchesRegularExpression('/^[0-9]+$/', $hash);
+        $this->assertMatchesRegularExpression('/^\d+$/', $hash);
         $this->assertLessThanOrEqual(20, strlen($hash));
     }
 }

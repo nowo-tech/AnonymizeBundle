@@ -21,7 +21,7 @@ use function is_array;
 #[AsAlias(id: 'nowo_anonymize.faker.enum')]
 final class EnumFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new EnumFaker instance.
@@ -30,9 +30,10 @@ final class EnumFaker implements FakerInterface
      */
     public function __construct(
         #[Autowire('%nowo_anonymize.locale%')]
-        string $locale = 'en_US'
+        string $locale = 'en_US',
+        ?FakerGenerator $faker = null,
     ) {
-        $this->faker = Factory::create($locale);
+        $this->faker = $faker ?? Factory::create($locale);
     }
 
     /**
@@ -56,7 +57,7 @@ final class EnumFaker implements FakerInterface
         $weighted = $options['weighted'] ?? null;
 
         // If weighted probabilities are provided, use them
-        if ($weighted !== null && is_array($weighted) && !empty($weighted)) {
+        if ($weighted !== null && is_array($weighted) && $weighted !== []) {
             return $this->selectWeightedValue($weighted);
         }
 

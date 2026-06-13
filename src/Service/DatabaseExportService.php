@@ -38,14 +38,14 @@ final class DatabaseExportService
      * @param CommandRunnerInterface|null $commandRunner Optional command runner abstraction
      */
     public function __construct(
-        private ContainerInterface $container,
-        private string $outputDir,
-        private string $filenamePattern,
-        private string $compression,
-        private bool $autoGitignore,
+        private readonly ContainerInterface $container,
+        private readonly string $outputDir,
+        private readonly string $filenamePattern,
+        private readonly string $compression,
+        private readonly bool $autoGitignore,
         private ?CommandRunnerInterface $commandRunner = null,
     ) {
-        $this->commandRunner = $this->commandRunner ?? new SystemCommandRunner();
+        $this->commandRunner ??= new SystemCommandRunner();
     }
 
     /**
@@ -88,9 +88,7 @@ final class DatabaseExportService
             $compressedFile = $this->compressFile($exportedFile);
             if ($compressedFile !== null) {
                 // Remove uncompressed file if compression succeeded (gzip/bzip2 may already remove it)
-                if (file_exists($exportedFile)) {
-                    unlink($exportedFile);
-                }
+                unlink($exportedFile);
                 $exportedFile = $compressedFile;
             }
         }
@@ -121,8 +119,7 @@ final class DatabaseExportService
         }
 
         // Generate filename
-        $filename   = $this->generateFilename($connectionName, $database, 'mongodb');
-        $outputPath = rtrim($this->outputDir, '/') . '/' . $filename;
+        $filename = $this->generateFilename($connectionName, $database, 'mongodb');
 
         // Ensure output directory exists
         if (!is_dir($this->outputDir)) {
@@ -200,7 +197,7 @@ final class DatabaseExportService
             $port,
             escapeshellarg($user),
             $password ? '--password=' . escapeshellarg($password) : '',
-            escapeshellarg($database),
+            escapeshellarg((string) $database),
             escapeshellarg($outputPath),
         );
 
@@ -239,7 +236,7 @@ final class DatabaseExportService
             escapeshellarg($host),
             $port,
             escapeshellarg($user),
-            escapeshellarg($database),
+            escapeshellarg((string) $database),
             escapeshellarg($outputPath),
         );
 
@@ -293,9 +290,8 @@ final class DatabaseExportService
         $filename = str_replace('{database}', $database, $filename);
         $filename = str_replace('{date}', $date, $filename);
         $filename = str_replace('{time}', $time, $filename);
-        $filename = str_replace('{format}', $format, $filename);
 
-        return $filename;
+        return str_replace('{format}', $format, $filename);
     }
 
     /**
@@ -385,7 +381,7 @@ final class DatabaseExportService
         foreach ($iterator as $file) {
             if (!$file->isDir()) {
                 $filePath     = $file->getRealPath();
-                $relativePath = substr($filePath, strlen($directory) + 1);
+                $relativePath = substr((string) $filePath, strlen($directory) + 1);
                 $zip->addFile($filePath, $relativePath);
             }
         }

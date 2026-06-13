@@ -34,7 +34,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
     private const DEFAULT_HISTORY_DIR = '%kernel.project_dir%/var/anonymize_history';
 
     public function __construct(
-        private ContainerInterface $container
+        private readonly ContainerInterface $container
     ) {
         parent::__construct();
     }
@@ -69,10 +69,10 @@ final class AnonymizationHistoryCommand extends AbstractCommand
                       Delete runs older than 30 days
                     HELP
             )
-            ->addOption('limit', 'l', InputOption::VALUE_OPTIONAL, 'Limit number of runs to display', null)
-            ->addOption('connection', 'c', InputOption::VALUE_OPTIONAL, 'Filter by connection name', null)
-            ->addOption('run-id', null, InputOption::VALUE_OPTIONAL, 'View details of a specific run', null)
-            ->addOption('compare', null, InputOption::VALUE_OPTIONAL, 'Compare two runs (comma-separated run IDs)', null)
+            ->addOption('limit', 'l', InputOption::VALUE_OPTIONAL, 'Limit number of runs to display')
+            ->addOption('connection', 'c', InputOption::VALUE_OPTIONAL, 'Filter by connection name')
+            ->addOption('run-id', null, InputOption::VALUE_OPTIONAL, 'View details of a specific run')
+            ->addOption('compare', null, InputOption::VALUE_OPTIONAL, 'Compare two runs (comma-separated run IDs)')
             ->addOption('cleanup', null, InputOption::VALUE_NONE, 'Cleanup old runs')
             ->addOption('days', 'd', InputOption::VALUE_OPTIONAL, 'Number of days to keep (for cleanup)', 30)
             ->addOption('json', null, InputOption::VALUE_NONE, 'Output as JSON');
@@ -97,7 +97,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
 
         // Handle comparison
         if ($input->getOption('compare') !== null) {
-            $runIds = explode(',', $input->getOption('compare'));
+            $runIds = explode(',', (string) $input->getOption('compare'));
             if (count($runIds) !== 2) {
                 $io->error('Comparison requires exactly 2 run IDs (comma-separated)');
 
@@ -147,7 +147,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
         $connection = $input->getOption('connection');
         $runs       = $historyService->getRuns($limit, $connection);
 
-        if (empty($runs)) {
+        if ($runs === []) {
             $io->info('No anonymization runs found in history.');
 
             return self::SUCCESS;
@@ -300,7 +300,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
         if (!empty($entities)) {
             $io->section('Entity Statistics Comparison');
             $entityRows = [];
-            foreach ($entities as $entityKey => $entityData) {
+            foreach ($entities as $entityData) {
                 $entityRows[] = [
                     $entityData['entity'] ?? 'N/A',
                     $entityData['connection'] ?? 'N/A',
@@ -359,7 +359,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
                 if (method_exists($parameterBag, 'has') && $parameterBag->has('nowo_anonymize.history_dir')) {
                     $historyDir = $parameterBag->get('nowo_anonymize.history_dir');
                 }
-            } catch (Throwable $e) {
+            } catch (Throwable) {
                 // Ignore and fall through to ENV/default
             }
         }

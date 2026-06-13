@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 #[AsAlias(id: 'nowo_anonymize.faker.name')]
 final class NameFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new NameFaker instance.
@@ -43,8 +43,7 @@ final class NameFaker implements FakerInterface
      */
     public function generate(array $options = []): string
     {
-        $gender         = $options['gender'] ?? 'random';
-        $localeSpecific = $options['locale_specific'] ?? true;
+        $gender = $options['gender'] ?? 'random';
 
         // If locale_specific is false, we could use a different locale, but for simplicity
         // we'll use the current locale. The option is kept for API consistency.

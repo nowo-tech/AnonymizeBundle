@@ -22,7 +22,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 #[AsAlias(id: 'nowo_anonymize.faker.name_fallback')]
 final class NameFallbackFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     /**
      * Creates a new NameFallbackFaker instance.
@@ -52,7 +52,6 @@ final class NameFallbackFaker implements FakerInterface
     {
         $fallbackField  = $options['fallback_field'] ?? null;
         $record         = $options['record'] ?? [];
-        $originalValue  = $options['original_value'] ?? null;
         $gender         = $options['gender'] ?? 'random';
         $localeSpecific = $options['locale_specific'] ?? true;
 
@@ -64,27 +63,11 @@ final class NameFallbackFaker implements FakerInterface
 
             // If not found, try common column name variations
             if ($relatedValue === null) {
-                $relatedValue = $record[strtolower($fallbackField)] ?? null;
+                $relatedValue = $record[strtolower((string) $fallbackField)] ?? null;
             }
             if ($relatedValue === null) {
-                $relatedValue = $record[ucfirst($fallbackField)] ?? null;
+                $relatedValue = $record[ucfirst((string) $fallbackField)] ?? null;
             }
-        }
-
-        // Determine if we need to generate a value
-        $currentValueIsNull = ($originalValue === null || $originalValue === '');
-        $relatedValueIsNull = ($relatedValue === null || $relatedValue === '');
-
-        // If current field is null but related field has value, generate a random name
-        // This ensures data consistency: if one name field exists, the other should too
-        if ($currentValueIsNull && !$relatedValueIsNull) {
-            return $this->generateName($gender, $localeSpecific);
-        }
-
-        // If current field has value, generate a new anonymized name
-        // (normal anonymization behavior)
-        if (!$currentValueIsNull) {
-            return $this->generateName($gender, $localeSpecific);
         }
 
         // If both are null, generate a random name

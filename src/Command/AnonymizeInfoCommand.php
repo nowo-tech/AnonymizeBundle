@@ -50,9 +50,9 @@ final class AnonymizeInfoCommand extends AbstractCommand
      * @param array<string> $connections The default connections to process (empty = all)
      */
     public function __construct(
-        private ContainerInterface $container,
-        private string $locale = 'en_US',
-        private array $connections = []
+        private readonly ContainerInterface $container,
+        private readonly string $locale = 'en_US',
+        private readonly array $connections = []
     ) {
         parent::__construct();
     }
@@ -108,7 +108,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
         $allManagers       = $doctrine->getManagerNames();
         $managersToProcess = empty($connections) ? array_keys($allManagers) : array_intersect(array_keys($allManagers), $connections);
 
-        if (empty($managersToProcess)) {
+        if ($managersToProcess === []) {
             $io->error('No entity managers found to process.');
 
             return self::FAILURE;
@@ -133,7 +133,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
                 // Get all anonymizable entities
                 $entities = $anonymizeService->getAnonymizableEntities($em);
 
-                if (empty($entities)) {
+                if ($entities === []) {
                     $io->note('No entities found with #[Anonymize] attribute');
                     continue;
                 }
@@ -151,7 +151,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
                     $properties           = $anonymizeService->getAnonymizableProperties($reflection);
                     $usesAnonymizeService = $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '';
 
-                    if (empty($properties) && !$usesAnonymizeService) {
+                    if ($properties === [] && !$usesAnonymizeService) {
                         continue;
                     }
 
@@ -173,23 +173,23 @@ final class AnonymizeInfoCommand extends AbstractCommand
                     }
 
                     // Show entity-level patterns if any
-                    if (!empty($entityAttribute->includePatterns) || !empty($entityAttribute->excludePatterns)) {
+                    if ($entityAttribute->includePatterns !== [] || $entityAttribute->excludePatterns !== []) {
                         $io->writeln('  <comment>Entity Patterns:</comment>');
-                        if (!empty($entityAttribute->includePatterns)) {
+                        if ($entityAttribute->includePatterns !== []) {
                             $io->writeln(sprintf('    Include: %s', json_encode($entityAttribute->includePatterns, JSON_PRETTY_PRINT)));
                         }
-                        if (!empty($entityAttribute->excludePatterns)) {
+                        if ($entityAttribute->excludePatterns !== []) {
                             $io->writeln(sprintf('    Exclude: %s', json_encode($entityAttribute->excludePatterns, JSON_PRETTY_PRINT)));
                         }
                     }
 
-                    if (empty($properties)) {
+                    if ($properties === []) {
                         $io->writeln('');
                         continue;
                     }
 
                     // Sort properties by weight
-                    usort($properties, static function ($a, $b) {
+                    usort($properties, static function (array $a, array $b): int {
                         $weightA = $a['weight'] ?? PHP_INT_MAX;
                         $weightB = $b['weight'] ?? PHP_INT_MAX;
                         if ($weightA === $weightB) {
@@ -250,15 +250,15 @@ final class AnonymizeInfoCommand extends AbstractCommand
                             $io->writeln(sprintf('         Service: <info>%s</info>', $attribute->service));
                         }
 
-                        if (!empty($attribute->options)) {
+                        if ($attribute->options !== []) {
                             $io->writeln(sprintf('         Options: <comment>%s</comment>', json_encode($attribute->options, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)));
                         }
 
-                        if (!empty($attribute->includePatterns)) {
+                        if ($attribute->includePatterns !== []) {
                             $io->writeln(sprintf('         Include Patterns: <comment>%s</comment>', json_encode($attribute->includePatterns, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)));
                         }
 
-                        if (!empty($attribute->excludePatterns)) {
+                        if ($attribute->excludePatterns !== []) {
                             $io->writeln(sprintf('         Exclude Patterns: <comment>%s</comment>', json_encode($attribute->excludePatterns, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)));
                         }
 
@@ -291,7 +291,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
         }
 
         // Display summary
-        if (!empty($allAnonymizers)) {
+        if ($allAnonymizers !== []) {
             $io->section('Summary');
             $io->writeln(sprintf('Total Anonymizers: <info>%d</info>', count($allAnonymizers)));
 

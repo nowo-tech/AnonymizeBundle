@@ -26,13 +26,6 @@ use function is_array;
 final class MapFaker implements FakerInterface
 {
     /**
-     * Creates a new MapFaker instance.
-     */
-    public function __construct()
-    {
-    }
-
-    /**
      * Returns the replacement value for the original value according to the map.
      *
      * @param array<string, mixed> $options Options:

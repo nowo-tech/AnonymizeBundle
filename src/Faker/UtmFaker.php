@@ -31,7 +31,7 @@ use const PHP_INT_MAX;
 #[AsAlias(id: 'nowo_anonymize.faker.utm')]
 final class UtmFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
+    private readonly FakerGenerator $faker;
 
     public const SOURCE_TYPE   = 'source';
     public const MEDIUM_TYPE   = 'medium';
@@ -206,13 +206,13 @@ final class UtmFaker implements FakerInterface
                 $pattern .= '_' . $this->faker->numberBetween(2020, 2025);
             }
             // Enforce min/max length
-            if (strlen($pattern) < $minLength) {
-                while (strlen($pattern) < $minLength) {
+            if (strlen((string) $pattern) < $minLength) {
+                while (strlen((string) $pattern) < $minLength) {
                     $pattern .= '_' . $this->faker->word();
                 }
             }
 
-            return strlen($pattern) <= $maxLength ? $pattern : substr($pattern, 0, $maxLength);
+            return strlen((string) $pattern) <= $maxLength ? $pattern : substr((string) $pattern, 0, $maxLength);
         }
 
         // Generate random campaign name; ensure at least min_length
@@ -294,11 +294,11 @@ final class UtmFaker implements FakerInterface
         $value = $this->faker->randomElement($patterns);
 
         // Ensure it meets length requirements
-        if (strlen($value) < $minLength) {
+        if (strlen((string) $value) < $minLength) {
             $value .= '_' . $this->faker->word();
         }
-        if (strlen($value) > $maxLength) {
-            $value = substr($value, 0, $maxLength);
+        if (strlen((string) $value) > $maxLength) {
+            $value = substr((string) $value, 0, $maxLength);
         }
 
         return $value;
@@ -335,7 +335,7 @@ final class UtmFaker implements FakerInterface
     {
         $parts = explode('_', $value);
         $first = array_shift($parts);
-        $rest  = array_map('ucfirst', $parts);
+        $rest  = array_map(ucfirst(...), $parts);
 
         return $first . implode('', $rest);
     }
@@ -351,6 +351,6 @@ final class UtmFaker implements FakerInterface
     {
         $parts = explode('_', $value);
 
-        return implode('', array_map('ucfirst', $parts));
+        return implode('', array_map(ucfirst(...), $parts));
     }
 }

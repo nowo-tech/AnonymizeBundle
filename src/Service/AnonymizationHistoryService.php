@@ -26,12 +26,12 @@ final class AnonymizationHistoryService
     /**
      * @var Filesystem The filesystem service for file operations
      */
-    private Filesystem $filesystem;
+    private readonly Filesystem $filesystem;
 
     /**
      * @var string The directory where anonymization history is stored
      */
-    private string $historyDir;
+    private readonly string $historyDir;
 
     /**
      * Optional provider for Symfony version (used in tests to cover 'unknown' branch).
@@ -155,9 +155,7 @@ final class AnonymizationHistoryService
         }
 
         // Sort by timestamp (newest first)
-        usort($runs, static function ($a, $b) {
-            return ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0);
-        });
+        usort($runs, static fn (array $a, array $b): int => ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0));
 
         // Apply limit
         if ($limit !== null && $limit > 0) {
@@ -217,7 +215,7 @@ final class AnonymizationHistoryService
             return null;
         }
 
-        $comparison = [
+        return [
             'run1' => [
                 'id'        => $run1['id'],
                 'timestamp' => $run1['timestamp'],
@@ -237,8 +235,6 @@ final class AnonymizationHistoryService
                 $run2['statistics']['entities'] ?? [],
             ),
         ];
-
-        return $comparison;
     }
 
     /**
@@ -255,11 +251,9 @@ final class AnonymizationHistoryService
         $deleted    = 0;
 
         foreach ($runs as $run) {
-            if (isset($run['timestamp']) && $run['timestamp'] < $cutoffTime) {
-                if (isset($run['file']) && file_exists($run['file'])) {
-                    $this->filesystem->remove($run['file']);
-                    ++$deleted;
-                }
+            if (isset($run['timestamp']) && $run['timestamp'] < $cutoffTime && (isset($run['file']) && file_exists($run['file']))) {
+                $this->filesystem->remove($run['file']);
+                ++$deleted;
             }
         }
 
@@ -309,9 +303,7 @@ final class AnonymizationHistoryService
         $index[] = $indexEntry;
 
         // Sort by timestamp (newest first) and limit to 1000 entries
-        usort($index, static function ($a, $b) {
-            return ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0);
-        });
+        usort($index, static fn (array $a, array $b): int => ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0));
 
         $index = array_slice($index, 0, 1000);
 
@@ -353,9 +345,7 @@ final class AnonymizationHistoryService
         }
 
         // Sort by timestamp (newest first)
-        usort($index, static function ($a, $b) {
-            return ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0);
-        });
+        usort($index, static fn (array $a, array $b): int => ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0));
 
         $indexFile = $this->historyDir . '/index.json';
         $this->filesystem->dumpFile(

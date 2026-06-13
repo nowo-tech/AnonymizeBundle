@@ -31,7 +31,7 @@ use Symfony\Component\Console\Output\BufferedOutput;
  */
 class GenerateAnonymizedColumnCommandTest extends TestCase
 {
-    private ContainerInterface $container;
+    private \PHPUnit\Framework\MockObject\MockObject $container;
     private AnonymizeService $anonymizeService;
     private GenerateAnonymizedColumnCommand $command;
 
@@ -390,9 +390,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
 
         $doctrine->method('getManagerNames')->willReturn(['orm' => 'doctrine.orm.orm']);
-        $doctrine->method('getManager')->willReturnCallback(static function (?string $name = null) use ($em) {
-            return $em;
-        });
+        $doctrine->method('getManager')->willReturnCallback(static fn (?string $name = null): \PHPUnit\Framework\MockObject\MockObject => $em);
 
         $em->method('getConfiguration')->willReturn($config);
         $config->method('getMetadataDriverImpl')->willReturn(null);

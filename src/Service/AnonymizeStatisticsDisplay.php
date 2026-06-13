@@ -73,7 +73,7 @@ final class AnonymizeStatisticsDisplay
         $io->table(['Metric', 'Value'], $summaryRows);
 
         // Display entity details
-        if (!empty($entities)) {
+        if ($entities !== []) {
             $io->section('Entity Details');
 
             $rows = [];
