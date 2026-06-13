@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 #
-# CodeRabbit configuration for nowo-tech/anonymize-bundle.
+# CodeRabbit configuration for nowo-tech/AnonymizeBundle.
 # Requires the CodeRabbit GitHub App installed on nowo-tech/AnonymizeBundle.
 # Manual review: comment `@coderabbitai review` on a pull request.
 
@@ -48,17 +48,17 @@ reviews:
   path_instructions:
     - path: "src/**/*.php"
       instructions: |
-        Symfony bundle (`nowo-tech/anonymize-bundle`). Dev/test only — never enable in production.
+        nowo-tech/anonymize-bundle — Symfony bundle for anonymizing database records using Doctrine attributes and Faker generators. Perfect for test data generation, GDPR compliance, and data masking in development environments.
         Follow PSR-12 and `.php-cs-fixer.dist.php`. Prefer PHP 8 attributes over annotations.
-        Respect PHP and Symfony ranges in `composer.json`. Preserve backward compatibility unless the PR explicitly breaks it.
+        Respect PHP and Symfony ranges in `composer.json` when present. Preserve backward compatibility unless the PR explicitly breaks it.
         Use strict comparison (`===`) where appropriate. Keep changes minimal and consistent with existing patterns.
-        Align with `composer cs-check`, `composer phpstan`, and `composer test`.
+        Align with `composer cs-check`, `composer phpstan`, and `composer test` when those scripts exist.
 
     - path: "tests/**/*.php"
       instructions: |
-        PHPUnit tests for the bundle. Add or update tests for new behaviour.
+        PHPUnit tests for this package. Add or update tests for new behaviour.
         Match existing test structure (Unit vs Integration). Avoid trivial assertions.
-        Ensure changes remain compatible with CI matrix (PHP 8.1–8.5, Symfony 6.4/7.x/8.x).
+        Ensure changes remain compatible with the CI matrix when one is defined.
 
     - path: "docs/**/*.md"
       instructions: |
@@ -67,12 +67,12 @@ reviews:
 
     - path: "demo/**/*.php"
       instructions: |
-        Demo applications (Symfony 7 and 8). Illustrate bundle usage — not production code.
-        Custom anonymizer services used via `anonymizeService` must be `public: true` in `config/services.yaml`.
+        Demo applications illustrate bundle usage — not production code.
+        Keep demos aligned with supported PHP/Symfony versions in composer.json.
 
     - path: ".github/workflows/**"
       instructions: |
-        GitHub Actions workflows for this Symfony bundle. Match existing workflow style (checkout@v6, matrix exclusions).
+        GitHub Actions workflows for this repository. Match existing workflow style (checkout@v6, matrix exclusions).
         Do not echo secrets. Pin third-party actions to major versions already used in this repo.
 
   tools:
