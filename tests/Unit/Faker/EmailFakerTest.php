@@ -183,6 +183,48 @@ class EmailFakerTest extends TestCase
     }
 
     /**
+     * Test that EmailFaker appends record id by default to guarantee uniqueness.
+     */
+    public function testGenerateEnsuresUniquenessWithRecordId(): void
+    {
+        $faker = new EmailFaker('en_US');
+        $email = $faker->generate(['record' => ['id' => 12345]]);
+
+        $this->assertIsString($email);
+        $this->assertMatchesRegularExpression('/^[^\s@]+\.12345@[^\s@]+\.[^\s@]+$/', $email);
+    }
+
+    /**
+     * Test that EmailFaker can disable uniqueness suffix.
+     */
+    public function testGenerateWithoutEnsureUnique(): void
+    {
+        $faker = new EmailFaker('en_US');
+        $email = $faker->generate([
+            'record'        => ['id' => 12345],
+            'ensure_unique' => false,
+        ]);
+
+        $this->assertIsString($email);
+        $this->assertDoesNotMatchRegularExpression('/\.12345@/', $email);
+    }
+
+    /**
+     * Test that EmailFaker respects custom unique_field option.
+     */
+    public function testGenerateWithCustomUniqueField(): void
+    {
+        $faker = new EmailFaker('en_US');
+        $email = $faker->generate([
+            'record'       => ['uuid' => 'abc-def'],
+            'unique_field' => 'uuid',
+        ]);
+
+        $this->assertIsString($email);
+        $this->assertMatchesRegularExpression('/^[^\s@]+\.abc-def@[^\s@]+\.[^\s@]+$/', $email);
+    }
+
+    /**
      * Test that EmailFaker pads local part with randomNumber when shorter than local_part_length.
      */
     public function testGeneratePadsShortLocalPartWithNumbers(): void

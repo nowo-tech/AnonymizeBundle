@@ -19,7 +19,7 @@ help:
 	@echo "  setup          Setup databases and load fixtures"
 	@echo "  update-bundle  Update anonymize-bundle from repo"
 	@echo "  test           Run tests"
-	@echo "  test-coverage  Run bundle command smoke tests (anonymize:info)"
+	@echo "  test-coverage  Run tests with coverage (console output)"
 	@echo "  clean          Remove vendor, var, and cache"
 	@echo "  cache-clear    Full cache clear (fixes missing Container* service files)"
 	@echo "  logs           Show container logs"
@@ -112,10 +112,7 @@ test: ensure-up
 	docker-compose exec -T php composer test 2>/dev/null || docker-compose exec -T php php bin/console list
 
 test-coverage: ensure-up
-	@echo "🧪 Running demo command smoke tests..."
-	docker-compose exec -T php php bin/console nowo:anonymize:info --connection default
-	docker-compose exec -T php php bin/console nowo:anonymize:info --connection postgres
-	docker-compose exec -T php php bin/console nowo:anonymize:info --connection sqlite
+	docker-compose exec -T php composer test-coverage 2>/dev/null || docker-compose exec -T php composer test
 
 # Complete setup
 setup: ensure-up
@@ -234,7 +231,5 @@ clean:
 	rm -rf var/log/*
 	@echo "✅ Cleaned!"
 
-
-# REQ-MAKE-008: update-deps (REQ-MAKE-008)
-BUNDLE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../..)
-include $(BUNDLE_ROOT)/../.scripts/Makefile.demo-update-deps.mk
+# REQ-MAKE-008: update-deps
+include $(abspath $(CURDIR)/../../../.scripts/Makefile.demo-update-deps.mk)
