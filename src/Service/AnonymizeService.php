@@ -521,18 +521,15 @@ final class AnonymizeService
                                 $fakerOptions['value'] = $originalValue;
                             }
 
-                            // For name_fallback faker, pass the full record to check related fields
+                            // Pass the record to fakers that need the original row (e.g. name_fallback)
                             if ($attribute->type === 'name_fallback' && !isset($fakerOptions['record'])) {
                                 $fakerOptions['record'] = $record;
                             }
 
-                            // For pattern_based and copy fakers, pass the record with already anonymized values merged
-                            // This allows them to use anonymized values from other fields (e.g., email)
-                            if (in_array($attribute->type, ['pattern_based', 'copy']) && !isset($fakerOptions['record'])) {
-                                // Merge original record with already anonymized values from $updates
-                                // This ensures these fakers can access the anonymized value of source_field
-                                $mergedRecord           = array_merge($record, $updates);
-                                $fakerOptions['record'] = $mergedRecord;
+                            // Pass merged record (original + in-flight anonymized values) to all other fakers
+                            // so they can use source fields (pattern_based, copy) or ensure uniqueness (email)
+                            if ($attribute->type !== 'name_fallback' && !isset($fakerOptions['record'])) {
+                                $fakerOptions['record'] = array_merge($record, $updates);
                             }
 
                             // Check if value should be null based on nullable option

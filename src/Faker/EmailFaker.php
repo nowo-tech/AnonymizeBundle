@@ -39,9 +39,13 @@ final class EmailFaker implements FakerInterface
      *
      * @param array<string, mixed> $options Options:
      *                                      - 'original_value' (mixed): The original value from database (available but not used by default)
+     *                                      - 'record' (array): Full database record (used for uniqueness when ensure_unique is enabled)
      *                                      - 'domain' (string): Custom domain to use (default: random)
      *                                      - 'format' (string): 'name.surname' or 'random' (default: 'random')
      *                                      - 'local_part_length' (int): Length of local part (default: random)
+     *                                      - 'ensure_unique' (bool): Append record identifier to local part (default: true)
+     *                                      - 'unique_field' (string): Record field used as suffix (default: 'id')
+     *                                      - 'unique_separator' (string): Separator before unique suffix (default: '.')
      *
      * @return string The anonymized email address
      */
@@ -69,6 +73,41 @@ final class EmailFaker implements FakerInterface
         // Use custom domain or generate random
         $emailDomain = $domain ?? $this->faker->domainName();
 
-        return $localPart . '@' . $emailDomain;
+        $email = $localPart . '@' . $emailDomain;
+
+        if ($options['ensure_unique'] ?? true) {
+            $email = $this->appendUniqueSuffix($email, $options);
+        }
+
+        return $email;
+    }
+
+    /**
+     * Appends a record identifier to the email local part to avoid unique constraint violations.
+     *
+     * @param array<string, mixed> $options
+     */
+    private function appendUniqueSuffix(string $email, array $options): string
+    {
+        $record = $options['record'] ?? [];
+        if ($record === []) {
+            return $email;
+        }
+
+        $uniqueField = $options['unique_field'] ?? 'id';
+        $uniqueValue = $record[$uniqueField] ?? $record[strtolower((string) $uniqueField)] ?? null;
+
+        if ($uniqueValue === null || $uniqueValue === '') {
+            return $email;
+        }
+
+        $parts = explode('@', $email, 2);
+        if (count($parts) !== 2) {
+            return $email;
+        }
+
+        $separator = $options['unique_separator'] ?? '.';
+
+        return $parts[0] . $separator . $uniqueValue . '@' . $parts[1];
     }
 }

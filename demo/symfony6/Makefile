@@ -1,11 +1,11 @@
-# Makefile for Anonymize Bundle Demo - Symfony 7
+# Makefile for Anonymize Bundle Demo - Symfony 6.1+
 # Simplifies Docker commands for the demo
 
-.PHONY: help up down restart build shell install clean cache-clear setup update-bundle ensure-up test test-coverage
+.PHONY: help up down restart build shell install clean cache-clear setup update-bundle update-symfony ensure-up test test-coverage
 
 # Default target
 help:
-	@echo "Anonymize Bundle Demo - Symfony 7 - Development Commands"
+	@echo "Anonymize Bundle Demo - Symfony 6.1+ - Development Commands"
 	@echo ""
 	@echo "Usage: make <target>"
 	@echo ""
@@ -18,6 +18,7 @@ help:
 	@echo "  install        Install Composer dependencies"
 	@echo "  setup          Setup databases and load fixtures"
 	@echo "  update-bundle  Update anonymize-bundle from repo"
+	@echo "  update-symfony Update Symfony from 6.0 to 6.1+ (required for bundle v0.0.25+)"
 	@echo "  test           Run tests"
 	@echo "  test-coverage  Run tests with coverage (console output)"
 	@echo "  clean          Remove vendor, var, and cache"
@@ -98,7 +99,12 @@ install: ensure-up
 	@echo "  make anonymize-dry-run    - Test anonymization (dry-run)"
 	@echo "  make anonymize            - Run anonymization"
 
-# Update the bundle from the path repo (use if you get "Unknown named parameter $truncate")
+# Update Symfony from 6.0 to 6.1+ (run from repo root or adjust path; required for bundle v0.0.25+)
+update-symfony:
+	@echo "⚠️  Run: composer require symfony/framework-bundle:^6.1 symfony/console:^6.1 (and other symfony/* as needed)"
+	@echo "    Then run: make update-bundle"
+
+# Update the bundle from the path repo
 update-bundle: ensure-up
 	@echo "📦 Updating nowo-tech/anonymize-bundle from repo..."
 	@docker-compose exec -T php git config --global --add safe.directory /bundles 2>/dev/null || true
