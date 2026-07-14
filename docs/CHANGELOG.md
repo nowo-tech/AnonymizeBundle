@@ -36,9 +36,14 @@ _(none)_
 ### Changed
 
 - **`AnonymizeService`**: pasa el registro fusionado (fila original + valores anonimizados en curso) a todos los fakers, no solo `pattern_based`, `copy` y `name_fallback` — necesario para que `email` pueda garantizar unicidad por fila.
+- **`composer.json`**: PHP mínimo **8.2** (antes 8.1); CI deja de probar PHP 8.1.
 - **CI**: `actions/github-script` actualizado de v7 a v9 en workflows de release y sync-releases.
 - **Demos**: `demo/Makefile` vuelve a orquestar Symfony 6 junto con 7 y 8; añadido `demo/symfony6/Makefile` (la aplicación demo Symfony 6 completa sigue sin incluirse desde 1.0.22).
 - **`composer.json`**: URLs de `homepage` y `support` apuntan a `nowo-tech/AnonymizeBundle` (el nombre del paquete en Packagist no cambia).
+
+### Removed
+
+- **PHP 8.1**: ya no es compatible; actualiza el runtime a PHP 8.2 o superior antes de instalar esta versión.
 
 ### Fixed
 
@@ -47,7 +52,7 @@ _(none)_
 ### Documentation
 
 - **FAKERS.md**: opciones del faker `email` documentadas (`ensure_unique`, `unique_field`, `unique_separator`).
-- **README.md**, **SPEC-DRIVEN-DEVELOPMENT.md**, **UPGRADING.md**: enlaces y guía Spec Kit actualizados.
+- **README.md**, **INSTALLATION.md**, **SPEC-DRIVEN-DEVELOPMENT.md**, **UPGRADING.md**: enlaces y guía Spec Kit actualizados; requisito PHP 8.2+.
 
 ---
 ## [1.0.22] - 2026-06-13

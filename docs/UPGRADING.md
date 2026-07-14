@@ -33,11 +33,18 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 - **`EmailFaker`**: por defecto añade un sufijo único al local-part del email (p. ej. `user.123@domain.test`) usando el campo `id` del registro, evitando errores de restricción `UNIQUE` en tablas con email único.
 - **`AnonymizeService`**: todos los fakers reciben el registro de la fila (fusionado con valores ya anonimizados en la misma pasada).
 - **`DatabaseExportService`**: corrección del warning `unlink()` tras exportación comprimida con gzip/bzip2.
+- **PHP 8.2+**: requisito mínimo de PHP subido de 8.1 a 8.2.
 - **Mantenimiento**: workflow CodeRabbit, Spec Kit baseline y documentación asociada (sin impacto en integradores que solo usan el paquete vía Composer).
 
 #### Breaking Changes
 
-None for the public API. **Behavior change**: los emails generados con el faker `email` incluyen un sufijo único cuando hay registro disponible (`ensure_unique` es `true` por defecto). Si necesitas el formato anterior sin sufijo:
+- **PHP 8.2+ required**: PHP 8.1 is no longer supported. Upgrade your runtime before updating the bundle:
+  ```bash
+  php -v   # must be >= 8.2
+  composer update nowo-tech/anonymize-bundle
+  ```
+
+**Behavior change (no API break):** los emails generados con el faker `email` incluyen un sufijo único cuando hay registro disponible (`ensure_unique` es `true` por defecto). Si necesitas el formato anterior sin sufijo:
 
 ```php
 #[AnonymizeProperty(type: 'email', options: ['ensure_unique' => false])]
@@ -46,14 +53,16 @@ private ?string $email = null;
 
 #### Migration Steps
 
-1. **Actualiza el bundle**:
+1. **Actualiza PHP** a 8.2 o superior si aún usas 8.1.
+
+2. **Actualiza el bundle**:
    ```bash
    composer update nowo-tech/anonymize-bundle
    ```
 
-2. **(Opcional)** Si tus tests o fixtures asumen emails sin sufijo de id, ajusta expectativas o desactiva `ensure_unique` en la entidad.
+3. **(Opcional)** Si tus tests o fixtures asumen emails sin sufijo de id, ajusta expectativas o desactiva `ensure_unique` en la entidad.
 
-3. **(Opcional)** QA local:
+4. **(Opcional)** QA local:
    ```bash
    make test
    ```
@@ -2331,7 +2340,8 @@ If you encounter issues during upgrade:
 
 | Bundle Version | Symfony Version | PHP Version | Doctrine Bundle | Features |
 |---------------|-----------------|-------------|-----------------|----------|
-| 1.0.12+       | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Chunked processing (batch_size), transaction per chunk, EntityAnonymizerServiceInterface supportsBatch/anonymizeBatch (breaking: implement 3 methods) |
+| 1.0.23+       | 6.1+, 7.0, 8.0  | 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | PHP 8.2 minimum; EmailFaker ensure_unique, export unlink fix, Spec Kit baseline |
+| 1.0.12–1.0.22 | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | Chunked processing (batch_size), transaction per chunk, EntityAnonymizerServiceInterface supportsBatch/anonymizeBatch (breaking: implement 3 methods) |
 | 1.0.11        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | UtmFaker min/max length after format, test/CI compatibility |
 | 1.0.10        | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | anonymizeService-only entities (no AnonymizeProperty required) |
 | 1.0.9         | 6.1+, 7.0, 8.0  | 8.1, 8.2, 8.3, 8.4, 8.5 | ^2.8 \|\| ^3.0 | FakerFactory/PreFlightCheckService explicit DI, no synthetic kernel usage, --entity without -e, demo Makefiles aligned |

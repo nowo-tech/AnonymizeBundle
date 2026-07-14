@@ -9,8 +9,8 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
 /**
- * Helper to create Doctrine DBAL Connection mocks compatible with PHP 8.1 and 8.2.
- * On PHP 8.1 with DBAL 2.x, quoteSingleIdentifier may not exist; on DBAL 3.x it may be final
+ * Helper to create Doctrine DBAL Connection mocks compatible with PHP 8.2+.
+ * On DBAL 2.x, quoteSingleIdentifier may not exist; on DBAL 3.x it may be final
  * and thus not mockable. We add the method via addMethods() only when it does not exist.
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
