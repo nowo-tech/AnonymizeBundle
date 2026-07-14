@@ -1,5 +1,5 @@
 # PHPStan configuration for Anonymize Bundle
-# Compatible with PHP 8.1+ and Symfony 6.x / 7.x / 8.x
+# Compatible with PHP 8.2+ and Symfony 6.x / 7.x / 8.x
 
 includes:
     - phpstan-baseline.neon
