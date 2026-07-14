@@ -34,10 +34,10 @@
         "personal-data",
         "compliance"
     ],
-    "homepage": "https://github.com/nowo-tech/anonymize-bundle",
+    "homepage": "https://github.com/nowo-tech/AnonymizeBundle",
     "support": {
-        "issues": "https://github.com/nowo-tech/anonymize-bundle/issues",
-        "source": "https://github.com/nowo-tech/anonymize-bundle"
+        "issues": "https://github.com/nowo-tech/AnonymizeBundle/issues",
+        "source": "https://github.com/nowo-tech/AnonymizeBundle"
     },
     "authors": [
         {

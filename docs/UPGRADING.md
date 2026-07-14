@@ -24,6 +24,40 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.23
+
+**Release Date**: 2026-07-14
+
+#### What's New
+
+- **`EmailFaker`**: por defecto añade un sufijo único al local-part del email (p. ej. `user.123@domain.test`) usando el campo `id` del registro, evitando errores de restricción `UNIQUE` en tablas con email único.
+- **`AnonymizeService`**: todos los fakers reciben el registro de la fila (fusionado con valores ya anonimizados en la misma pasada).
+- **`DatabaseExportService`**: corrección del warning `unlink()` tras exportación comprimida con gzip/bzip2.
+- **Mantenimiento**: workflow CodeRabbit, Spec Kit baseline y documentación asociada (sin impacto en integradores que solo usan el paquete vía Composer).
+
+#### Breaking Changes
+
+None for the public API. **Behavior change**: los emails generados con el faker `email` incluyen un sufijo único cuando hay registro disponible (`ensure_unique` es `true` por defecto). Si necesitas el formato anterior sin sufijo:
+
+```php
+#[AnonymizeProperty(type: 'email', options: ['ensure_unique' => false])]
+private ?string $email = null;
+```
+
+#### Migration Steps
+
+1. **Actualiza el bundle**:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **(Opcional)** Si tus tests o fixtures asumen emails sin sufijo de id, ajusta expectativas o desactiva `ensure_unique` en la entidad.
+
+3. **(Opcional)** QA local:
+   ```bash
+   make test
+   ```
+
 ### Upgrading to 1.0.22
 
 **Release Date**: 2026-06-13
@@ -2291,7 +2325,7 @@ If you encounter issues during upgrade:
 1. Check the [CHANGELOG.md](CHANGELOG.md) for known issues
 2. Review the [CONFIGURATION.md](CONFIGURATION.md) for configuration examples
 3. Review the [INSTALLATION.md](INSTALLATION.md) for installation instructions
-4. Open an issue on [GitHub](https://github.com/nowo-tech/anonymize-bundle/issues)
+4. Open an issue on [GitHub](https://github.com/nowo-tech/AnonymizeBundle/issues)
 
 ## Version Compatibility
 

@@ -75,7 +75,7 @@ use function is_string;
  * - AfterEntityAnonymizeEvent: Dispatched after anonymizing an entity class
  *
  * For more information, see the documentation at:
- * https://github.com/nowo-tech/anonymize-bundle
+ * https://github.com/nowo-tech/AnonymizeBundle
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
