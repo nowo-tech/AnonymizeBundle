@@ -34,6 +34,7 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 - **`AnonymizeService`**: todos los fakers reciben el registro de la fila (fusionado con valores ya anonimizados en la misma pasada).
 - **`DatabaseExportService`**: corrección del warning `unlink()` tras exportación comprimida con gzip/bzip2.
 - **PHP 8.2+**: requisito mínimo de PHP subido de 8.1 a 8.2.
+- **Demos**: eliminado `demo/symfony6`; quedan `demo/symfony7` y `demo/symfony8`. La compatibilidad del bundle con Symfony 6.1+ no cambia.
 - **Mantenimiento**: workflow CodeRabbit, Spec Kit baseline y documentación asociada (sin impacto en integradores que solo usan el paquete vía Composer).
 
 #### Breaking Changes
@@ -60,9 +61,11 @@ private ?string $email = null;
    composer update nowo-tech/anonymize-bundle
    ```
 
-3. **(Opcional)** Si tus tests o fixtures asumen emails sin sufijo de id, ajusta expectativas o desactiva `ensure_unique` en la entidad.
+3. **(Opcional)** Si clonaste los demos del repositorio, usa `demo/symfony7` o `demo/symfony8`; no existe `demo/symfony6`.
 
-4. **(Opcional)** QA local:
+4. **(Opcional)** Si tus tests o fixtures asumen emails sin sufijo de id, ajusta expectativas o desactiva `ensure_unique` en la entidad.
+
+5. **(Opcional)** QA local:
    ```bash
    make test
    ```
