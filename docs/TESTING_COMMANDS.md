@@ -245,7 +245,7 @@ php bin/console nowo:anonymize:generate-mongo-field --collection user_activities
 
 ## Testing Checklist
 
-For each demo (Symfony 6, 7, and 8):
+For each demo (Symfony 7 and 8):
 
 - [ ] `nowo:anonymize:info` works for all connections (default, postgres, sqlite)
 - [ ] `nowo:anonymize:run --dry-run` works for all connections

@@ -476,7 +476,7 @@ The bundle includes demo fixtures for testing truncation functionality:
 - **CacheDataFixtures**: 6 records of cache data with complex JSON structures
 - **LogEntryFixtures**: 10 records of log entries with messages, IP addresses, and timestamps
 
-These fixtures are available in all demo projects (Symfony 6, 7, and 8) and can be loaded using:
+These fixtures are available in all demo projects (Symfony 7 and 8) and can be loaded using:
 ```bash
 php bin/console doctrine:fixtures:load
 ```
