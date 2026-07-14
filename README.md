@@ -187,6 +187,7 @@ See [FAKERS.md](docs/FAKERS.md) for complete list and configuration options.
 - [Security](docs/SECURITY.md)
 - [Engram](docs/ENGRAM.md)
 - [Spec-driven development](docs/SPEC-DRIVEN-DEVELOPMENT.md)
+- [GitHub Spec Kit](docs/SPEC-KIT.md)
 - [Roadmap](docs/ROADMAP.md)
 
 ### Additional documentation

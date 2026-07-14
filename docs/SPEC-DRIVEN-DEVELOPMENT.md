@@ -1,11 +1,12 @@
 # Spec-driven development
 
-In this repository, **spec-driven development** has two layers that stay in sync:
+In this repository, **spec-driven development** has three layers that stay in sync:
 
-1. **Product behavior** — what **AnonymizeBundle** guarantees to applications that integrate it (see [`USAGE.md`](USAGE.md), [`CONFIGURATION.md`](CONFIGURATION.md), [`INSTALLATION.md`](INSTALLATION.md)). **PHPUnit** and **PHPStan** enforce contracts in CI where applicable.
-2. **Traceability anchors** — stable **`REQ-*`** identifiers in Makefiles and demos (when present) so changes to scripts, ports, and demo workflows stay discoverable from issues and PRs.
+1. **GitHub Spec Kit baseline** — [`specs/001-baseline/`](../specs/001-baseline/) ([`spec.md`](../specs/001-baseline/spec.md), [`code-inventory.md`](../specs/001-baseline/code-inventory.md)), initialized with [GitHub Spec Kit](https://github.com/github/spec-kit) (`.specify/`, **Cursor Agent** skills in `.cursor/skills/speckit-*`). The inventory maps **100%** of production code in `src/`. **How to install, initialize, and use Spec Kit:** [`SPEC-KIT.md`](SPEC-KIT.md).
+2. **Product behavior** — what **AnonymizeBundle** guarantees to applications that integrate it (see [`USAGE.md`](USAGE.md), [`CONFIGURATION.md`](CONFIGURATION.md), [`INSTALLATION.md`](INSTALLATION.md)). **PHPUnit** and **PHPStan** (and **Vitest** when applicable) enforce contracts in CI where applicable.
+3. **Traceability anchors** — stable **`REQ-*`** identifiers in Makefiles and demos (when present) so changes to scripts, ports, and demo workflows stay discoverable from issues and PRs.
 
-There is no separate executable spec language (for example Gherkin); tests and static analysis are the mechanical proof alongside this document.
+There is no separate executable spec language (for example Gherkin); Spec Kit specs, tests, and static analysis are the mechanical proof alongside this document.
 
 ---
 
@@ -15,11 +16,11 @@ The sections below state **behavior**; this subsection states **intent** in back
 
 | ID | Story |
 | --- | --- |
-| US-01 | **As a** Symfony integrator, **I want** to install and enable this package **so that** I can rely on documented services, configuration, and extension points. |
-| US-02 | **As an** integrator, **I want** stable configuration keys and defaults **so that** upgrades remain predictable (see [`CONFIGURATION.md`](CONFIGURATION.md)). |
-| US-03 | **As an** integrator, **I want** clear usage guidance **so that** I can integrate features without reverse-engineering internals (see [`USAGE.md`](USAGE.md)). |
-| US-04 | **As a** maintainer, **I want** behavior changes covered by automated tests **so that** regressions are caught in CI. |
-| US-05 | **As a** contributor, **I want** `REQ-*` anchors on scripted flows **so that** PRs and issues cite the same identifiers as this document. |
+| US-01 | **As a** developer, **I want** Doctrine attributes on entities **so that** anonymization rules live beside the schema. |
+| US-02 | **As a** developer, **I want** pluggable Faker types **so that** emails, IBANs, and masks replace PII realistically in dev/test. |
+| US-03 | **As an** operator, **I want** CLI batch runs with dry-run and history **so that** I audit what changed before sharing databases. |
+| US-04 | **As a** security officer, **I want** production execution blocked **so that** anonymize never runs against prod by mistake. |
+| US-05 | **As a** maintainer, **I want** PHPUnit and PHPStan in CI **so that** Faker and batch logic regressions are caught early. |
 
 **Out of scope for these stories:** guarantees outside the stated public API and outside dependency limits (PHP, Symfony, third-party libraries).
 
@@ -68,6 +69,11 @@ When you change scripted behavior, **update the existing `REQ-*` comment** if th
 2. **Implement** with tests and static analysis.
 3. **Anchor scripts and demos** when dev UX changes: add or adjust `REQ-*` comments and this table.
 4. **Ship integrator docs** when behavior or configuration changes: [`USAGE.md`](USAGE.md), [`CONFIGURATION.md`](CONFIGURATION.md), [`CHANGELOG.md`](CHANGELOG.md), and [`UPGRADING.md`](UPGRADING.md) when consumers must change code or config.
+5. **Keep Spec Kit artifacts in sync** when production code under `src/` changes:
+   - Update [`specs/001-baseline/spec.md`](../specs/001-baseline/spec.md) and [`code-inventory.md`](../specs/001-baseline/code-inventory.md).
+   - Follow the maintainer checklist in [`SPEC-KIT.md`](SPEC-KIT.md).
+   - For **new features**, use Cursor Agent skills (`/speckit-specify`, `/speckit-plan`, `/speckit-tasks`) as documented in SPEC-KIT.
+
 
 ---
 
@@ -77,8 +83,39 @@ When you change scripted behavior, **update the existing `REQ-*` comment** if th
 
 ---
 
+
+
+
+---
+
+## GitHub Spec Kit (summary)
+
+This repository uses [GitHub Spec Kit](https://github.com/github/spec-kit) with **Cursor Agent** (`cursor-agent` integration).
+
+| Artifact | Path |
+| --- | --- |
+| **Operator manual** (install, init, usage) | [`SPEC-KIT.md`](SPEC-KIT.md) |
+| Baseline spec | [`specs/001-baseline/spec.md`](../specs/001-baseline/spec.md) |
+| Code inventory (100%) | [`specs/001-baseline/code-inventory.md`](../specs/001-baseline/code-inventory.md) |
+| Constitution | [`.specify/memory/constitution.md`](../.specify/memory/constitution.md) |
+| Cursor Agent skills | [`.cursor/skills/`](../.cursor/skills/) (`speckit-*`) |
+
+**Quick start (maintainers):**
+
+```bash
+# Install Specify CLI (once per machine) — see SPEC-KIT.md
+specify init --here --force --integration cursor-agent --script sh
+specify integration list   # Cursor → installed (default)
+```
+
+In Cursor Agent, start a new feature with `/speckit-specify <description>`. For day-to-day tooling details, skills reference, folder layout, and troubleshooting, read **[`SPEC-KIT.md`](SPEC-KIT.md)**.
+
+---
+
 ## See also
 
+- [`SPEC-KIT.md`](SPEC-KIT.md) — GitHub Spec Kit manual (install, structure, usage)
+- [`specs/001-baseline/spec.md`](../specs/001-baseline/spec.md)
 - [`USAGE.md`](USAGE.md)
 - [`CONFIGURATION.md`](CONFIGURATION.md)
 - [`CONTRIBUTING.md`](CONTRIBUTING.md)

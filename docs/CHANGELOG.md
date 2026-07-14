@@ -24,6 +24,32 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.23] - 2026-07-14
+
+### Added
+
+- **`EmailFaker`**: opciones `ensure_unique` (por defecto `true`), `unique_field` (por defecto `id`) y `unique_separator` (por defecto `.`) para evitar violaciones de restricción única en columnas de email.
+- **Pruebas**: casos en `EmailFakerTest` para sufijo de unicidad y campo personalizado.
+- **CI / repositorio**: workflow [CodeRabbit](.github/workflows/coderabbit.yml) y configuración [`.coderabbit.yaml`](.coderabbit.yaml).
+- **Spec Kit**: baseline en [`specs/001-baseline/`](../specs/001-baseline/), constitution en [`.specify/`](../.specify/), skills `speckit-*` en [`.cursor/skills/`](../.cursor/skills/); manual en [SPEC-KIT.md](SPEC-KIT.md).
+
+### Changed
+
+- **`AnonymizeService`**: pasa el registro fusionado (fila original + valores anonimizados en curso) a todos los fakers, no solo `pattern_based`, `copy` y `name_fallback` — necesario para que `email` pueda garantizar unicidad por fila.
+- **CI**: `actions/github-script` actualizado de v7 a v9 en workflows de release y sync-releases.
+- **Demos**: `demo/Makefile` vuelve a orquestar Symfony 6 junto con 7 y 8; añadido `demo/symfony6/Makefile` (la aplicación demo Symfony 6 completa sigue sin incluirse desde 1.0.22).
+- **`composer.json`**: URLs de `homepage` y `support` apuntan a `nowo-tech/AnonymizeBundle` (el nombre del paquete en Packagist no cambia).
+
+### Fixed
+
+- **`DatabaseExportService`**: evita el warning de `unlink()` tras compresión gzip/bzip2 cuando el compresor ya eliminó el archivo fuente.
+
+### Documentation
+
+- **FAKERS.md**: opciones del faker `email` documentadas (`ensure_unique`, `unique_field`, `unique_separator`).
+- **README.md**, **SPEC-DRIVEN-DEVELOPMENT.md**, **UPGRADING.md**: enlaces y guía Spec Kit actualizados.
+
+---
 ## [1.0.22] - 2026-06-13
 
 ### Added

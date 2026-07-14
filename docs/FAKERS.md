@@ -43,7 +43,7 @@ private ?string $legalId = null;
 
 ## Basic Fakers
 
-- **email**: Generates anonymized email addresses
+- **email**: Generates anonymized email addresses (supports `domain`, `format`, `local_part_length`, `ensure_unique` (default: `true`), `unique_field` (default: `id`), `unique_separator` (default: `.`) options; when `ensure_unique` is enabled and a row `record` is available, appends the identifier to the local part to avoid unique constraint violations)
 - **name**: Generates anonymized first names
 - **surname**: Generates anonymized surnames
 - **age**: Generates anonymized ages (supports `min` and `max` options)

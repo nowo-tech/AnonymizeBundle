@@ -5248,7 +5248,7 @@
                 }
             ],
             "description": "Symfony bundle for anonymizing database records using Doctrine attributes and Faker generators. Perfect for test data generation, GDPR compliance, and data masking in development environments.",
-            "homepage": "https://github.com/nowo-tech/anonymize-bundle",
+            "homepage": "https://github.com/nowo-tech/AnonymizeBundle",
             "keywords": [
                 "anonymization",
                 "anonymize",
@@ -5281,8 +5281,8 @@
                 "test-fixtures"
             ],
             "support": {
-                "issues": "https://github.com/nowo-tech/anonymize-bundle/issues",
-                "source": "https://github.com/nowo-tech/anonymize-bundle"
+                "issues": "https://github.com/nowo-tech/AnonymizeBundle/issues",
+                "source": "https://github.com/nowo-tech/AnonymizeBundle"
             },
             "transport-options": {
                 "relative": false
