@@ -17,6 +17,12 @@ MATCHES="$(
 
 if [ -n "${MATCHES}" ]; then
   echo "ERROR: Cursor co-author trailers found in git history (ref: ${REF})" >&2
+  echo "Offending commits:" >&2
+  git log "${REF}" --format='%H %s' | while read -r hash subject; do
+    if git log -1 --format=%B "${hash}" | grep -qE 'cursoragent@cursor\.com'; then
+      echo "  ${hash} ${subject}" >&2
+    fi
+  done
   echo "Run: git log ${REF} --format=%B | grep -i co-authored-by" >&2
   echo "${MATCHES}" | head -5 >&2
   exit 1
