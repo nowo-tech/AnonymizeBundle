@@ -5,7 +5,7 @@ COMPOSE_FILE := docker-compose.yml
 COMPOSE     := docker-compose -f $(COMPOSE_FILE)
 SERVICE_PHP := php
 
-.PHONY: help up down build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up assets release-check release-check-demos composer-sync rector rector-dry phpstan update update-deps update-deps-demos validate check-no-cursor-coauthor
+.PHONY: help up down build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up assets release-check release-check-demos composer-sync rector rector-dry phpstan update update-deps update-deps-demos validate check-no-cursor-coauthor strip-cursor-coauthor-from-history
 
 # Default target
 help:
@@ -187,6 +187,10 @@ clean:
 check-no-cursor-coauthor:
 	@chmod +x .scripts/check-no-cursor-coauthor.sh
 	@./.scripts/check-no-cursor-coauthor.sh HEAD
+
+strip-cursor-coauthor-from-history:
+	@chmod +x .scripts/strip-cursor-coauthor-from-history.sh
+	@./.scripts/strip-cursor-coauthor-from-history.sh main
 
 setup-hooks:
 	@chmod +x .githooks/pre-commit 2>/dev/null || true

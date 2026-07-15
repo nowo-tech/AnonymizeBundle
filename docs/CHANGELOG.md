@@ -24,6 +24,22 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.25] - 2026-07-15
+
+### Added
+
+- **REQ-GIT-001**: script `.scripts/strip-cursor-coauthor-from-history.sh` y target `make strip-cursor-coauthor-from-history` para reescribir el historial y eliminar trailers `Co-authored-by: Cursor` ya publicados.
+
+### Changed
+
+- **`check-no-cursor-coauthor.sh`**: al fallar, lista los commits afectados (hash + asunto).
+
+### Documentation
+
+- **`docs/GITLAB_CI.md`**: requisitos CI (REQ-GIT-001), job de ejemplo para GitLab, verificación y limpieza de historial.
+- **README.md**, **CONTRIBUTING.md**: enlace a GITLAB_CI y pasos de limpieza con `strip-cursor-coauthor-from-history`.
+
+---
 ## [1.0.24] - 2026-07-15
 
 ### Added

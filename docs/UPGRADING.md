@@ -24,6 +24,35 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.25
+
+**Release Date**: 2026-07-15
+
+#### What's New
+
+- **REQ-GIT-001**: script `strip-cursor-coauthor-from-history` para limpiar trailers de Cursor en commits ya pusheados (`make strip-cursor-coauthor-from-history`).
+- **`check-no-cursor-coauthor.sh`**: muestra los commits con co-author cuando la validación falla.
+- **`docs/GITLAB_CI.md`**: requisitos de CI en GitLab (job `git-hygiene`, `GIT_DEPTH: "0"`).
+
+#### Breaking Changes
+
+None. Sin cambios de API ni requisitos de runtime para integradores vía Composer.
+
+#### Migration Steps
+
+1. **Actualiza el bundle** (si usas Composer):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **(Solo colaboradores)** Si CI falla por co-author en historial remoto:
+   ```bash
+   make strip-cursor-coauthor-from-history
+   make check-no-cursor-coauthor
+   git push --force-with-lease origin main
+   ```
+   Ver [GITLAB_CI.md](GITLAB_CI.md) y [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ### Upgrading to 1.0.24
 
 **Release Date**: 2026-07-15
