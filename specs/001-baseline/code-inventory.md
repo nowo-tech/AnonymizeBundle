@@ -2,7 +2,7 @@
 
 **Baseline spec**: [`spec.md`](spec.md)  
 **Package**: `nowo-tech/anonymize-bundle`  
-**Last audited**: 2026-07-07
+**Last audited**: 2026-07-15
 
 Tests under `tests/` are out of Packagist scope.
 
@@ -82,7 +82,7 @@ Tests under `tests/` are out of Packagist scope.
 | `Faker/CreditCardFaker.php` | Card numbers | FR-FAKER-002 |
 | `Faker/DateFaker.php` | Dates | FR-FAKER-002 |
 | `Faker/DniCifFaker.php` | Spanish ID numbers | FR-FAKER-002 |
-| `Faker/EmailFaker.php` | Email addresses | FR-FAKER-002 |
+| `Faker/EmailFaker.php` | Email addresses (optional unique suffix) | FR-FAKER-002, FR-FAKER-003 |
 | `Faker/EnumFaker.php` | Enum pick | FR-FAKER-002 |
 | `Faker/FileFaker.php` | File paths | FR-FAKER-002 |
 | `Faker/HashFaker.php` | Hash replacement | FR-FAKER-002 |
@@ -115,7 +115,7 @@ Tests under `tests/` are out of Packagist scope.
 
 | Source file | Spec section | Requirement IDs |
 | --- | --- | --- |
-| `Service/AnonymizeService.php` | Core anonymization loop | FR-SVC-001 |
+| `Service/AnonymizeService.php` | Core anonymization loop (merged row to fakers) | FR-SVC-001 |
 | `Service/EntityAnonymizerServiceInterface.php` | Entity anonymizer contract | FR-SVC-001 |
 | `Service/PatternMatcher.php` | Attribute pattern matching | FR-SVC-002 |
 | `Service/PreFlightCheckService.php` | Preflight validation | FR-SVC-003 |
@@ -150,3 +150,27 @@ Tests under `tests/` are out of Packagist scope.
 | Services | 12 | 12 |
 | Helpers & internal | 3 | 3 |
 | **Total production sources** | **80** | **80** |
+
+## Maintainer tooling (out of `src/`, REQ-GIT-001)
+
+Not shipped in the Packagist archive; mapped for repository traceability.
+
+| Artifact | Spec section | Requirement IDs |
+| --- | --- | --- |
+| `.scripts/check-no-cursor-coauthor.sh` | Git history audit | REQ-GIT-001 |
+| `.scripts/strip-cursor-coauthor-from-history.sh` | History rewrite | REQ-GIT-001 |
+| `.githooks/commit-msg` | Strip co-author trailers | REQ-GIT-001 |
+| `.cursor/rules/01-git-commits.mdc` | Cursor commit rule | REQ-GIT-001 |
+| `.github/workflows/ci.yml` (`git-hygiene` job) | CI gate | REQ-GIT-001 |
+| `docs/GITLAB_CI.md` | GitLab CI requirements | REQ-GIT-001, FR-DOCS-001 |
+| `docs/TEST_COVERAGE_PROPOSAL.md` | Coverage roadmap | FR-DOCS-003 |
+
+## PHPUnit coverage exclusions
+
+Per [`phpunit.xml.dist`](../../phpunit.xml.dist); integration tests cover orchestration paths.
+
+| Source file | Reason |
+| --- | --- |
+| `Command/AnonymizeCommand.php` | High-volume CLI branches; integration coverage |
+| `Service/AnonymizeService.php` | Batch orchestration; integration coverage |
+| `Helper/OrmHelper.php` | Metadata helpers; unit + integration coverage |

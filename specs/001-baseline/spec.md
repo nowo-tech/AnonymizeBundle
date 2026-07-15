@@ -2,10 +2,12 @@
 
 **Feature Branch**: `001-baseline`  
 **Created**: 2026-07-07  
+**Last updated**: 2026-07-15  
 **Status**: Active  
 
 **Package**: `nowo-tech/anonymize-bundle`  
 **Configuration root**: `nowo_anonymize`  
+**Runtime**: PHP **8.2+**, Symfony **6.1+** (see `composer.json` and README)  
 **Code inventory**: [`code-inventory.md`](code-inventory.md)
 
 ---
@@ -66,10 +68,15 @@ Doctrine entity anonymization for **dev/test** environments: PHP attributes mark
 
 - **FR-FAKER-001**: `FakerFactory` / `FakerFactoryInterface` resolve faker by type enum or service name.
 - **FR-FAKER-002**: Built-in faker classes implement `FakerInterface` for documented types (email, iban, masking, hash preserve, etc.).
+- **FR-FAKER-003**: `EmailFaker` supports `ensure_unique` (default `true`), `unique_field` (default `id`), and `unique_separator` (default `.`) so generated emails avoid unique constraint violations when a row record is available.
+
+### Enums
+
+- **FR-ENUM-001**: `FakerType` and `SymfonyService` enumerate built-in faker types and service-backed faker references.
 
 ### Core services
 
-- **FR-SVC-001**: `AnonymizeService` orchestrates ORM/DBAL anonymization loops with batching and dry-run.
+- **FR-SVC-001**: `AnonymizeService` orchestrates ORM/DBAL anonymization loops with batching and dry-run; passes the merged row record (original + in-pass anonymized values) to all fakers.
 - **FR-SVC-002**: `PatternMatcher` applies include/exclude patterns from attributes.
 - **FR-SVC-003**: `PreFlightCheckService` validates connections, entities, and environment before run.
 - **FR-SVC-004**: `EnvironmentProtectionService` blocks prod execution.
@@ -82,14 +89,25 @@ Doctrine entity anonymization for **dev/test** environments: PHP attributes mark
 - **FR-HELPER-001**: `DbalHelper` / `OrmHelper` abstract connection and metadata access.
 - **FR-INT-001**: `KernelParameterBagAdapter` reads kernel params without tight coupling.
 
+### Repository hygiene (maintainers)
+
+- **REQ-GIT-001**: Git history must not contain Cursor agent `Co-authored-by` trailers (`cursoragent@cursor.com`). Enforced by `.githooks/commit-msg`, `.scripts/check-no-cursor-coauthor.sh`, `.scripts/strip-cursor-coauthor-from-history.sh`, `make check-no-cursor-coauthor` (in `release-check`), and CI job `git-hygiene` with full history (`fetch-depth: 0`). Documented in [`docs/GITLAB_CI.md`](../../docs/GITLAB_CI.md), [`docs/CONTRIBUTING.md`](../../docs/CONTRIBUTING.md), and [`docs/RELEASE.md`](../../docs/RELEASE.md).
+
+### Documentation
+
+- **FR-DOCS-001**: All files under `docs/` are written in **English** (including examples and descriptive text).
+- **FR-DOCS-002**: Integrator docs (`USAGE.md`, `CONFIGURATION.md`, `INSTALLATION.md`, `FAKERS.md`, `CHANGELOG.md`, `UPGRADING.md`) stay aligned with public API and configuration.
+- **FR-DOCS-003**: Coverage improvement notes live in [`docs/TEST_COVERAGE_PROPOSAL.md`](../../docs/TEST_COVERAGE_PROPOSAL.md).
+
 ---
 
 ## Success Criteria
 
 - **SC-001**: **80/80** production files mapped in [`code-inventory.md`](code-inventory.md).
 - **SC-002**: Config keys match [`docs/CONFIGURATION.md`](../../docs/CONFIGURATION.md).
-- **SC-003**: `composer qa` and demo `make release-check` pass.
-- **SC-004**: PHPUnit covers Faker edge cases, environment guard, and batch iteration.
+- **SC-003**: `composer qa` and demo `make release-check` pass (includes `check-no-cursor-coauthor`).
+- **SC-004**: PHPUnit covers Faker edge cases, environment guard, and batch iteration; orchestration classes excluded per [`phpunit.xml.dist`](../../phpunit.xml.dist) are covered by integration tests (see [`docs/TEST_COVERAGE_PROPOSAL.md`](../../docs/TEST_COVERAGE_PROPOSAL.md)).
+- **SC-005**: `make check-no-cursor-coauthor` exits 0 on `main`; CI `git-hygiene` job passes on push and pull request.
 
 ---
 
@@ -97,9 +115,10 @@ Doctrine entity anonymization for **dev/test** environments: PHP attributes mark
 
 - Anonymizing production databases by default.
 - Guarantees for MongoDB beyond documented commands unless extended in spec.
+- `git replace` as a substitute for cleaning co-author trailers on remotes.
 
 ---
 
 ## Validation
 
-`composer qa`, PHPUnit, PHPStan. Update spec + inventory when adding `src/` files.
+`composer qa`, PHPUnit, PHPStan, `make check-no-cursor-coauthor`, and CI `git-hygiene`. Update spec + inventory when adding `src/` files or maintainer hygiene tooling.

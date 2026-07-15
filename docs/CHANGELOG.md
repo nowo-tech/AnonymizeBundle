@@ -24,71 +24,86 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.26] - 2026-07-15
+
+### Changed
+
+- **`check-no-cursor-coauthor.sh`**: validates bundle repository root (rejects parent monorepo or missing `.git`); detects inline `Co-authored-by: Cursor` trailers in addition to line-start trailers.
+
+### Documentation
+
+- **English-only `docs/`**: policy in **CONTRIBUTING.md** (FR-DOCS-001); **CHANGELOG**, **UPGRADING**, and **GITLAB_CI** entries translated to English.
+- **`docs/TEST_COVERAGE_PROPOSAL.md`**: replaces Spanish `PROPUESTA-TESTS-COBERTURA.md` (coverage roadmap).
+- **Spec Kit baseline**: [`specs/001-baseline/spec.md`](../specs/001-baseline/spec.md) and [`code-inventory.md`](../specs/001-baseline/code-inventory.md) — FR-FAKER-003, FR-ENUM-001, REQ-GIT-001, FR-DOCS-*, SC-005, maintainer tooling inventory.
+- **Constitution** (v1.1.0): English documentation and REQ-GIT-001 principles.
+- **SPEC-DRIVEN-DEVELOPMENT.md**: `REQ-GIT-001` and `FR-DOCS-001` in the `REQ-*` table.
+
+---
 ## [1.0.25] - 2026-07-15
 
 ### Added
 
-- **REQ-GIT-001**: script `.scripts/strip-cursor-coauthor-from-history.sh` y target `make strip-cursor-coauthor-from-history` para reescribir el historial y eliminar trailers `Co-authored-by: Cursor` ya publicados.
+- **REQ-GIT-001**: `.scripts/strip-cursor-coauthor-from-history.sh` script and `make strip-cursor-coauthor-from-history` target to rewrite history and remove already-published `Co-authored-by: Cursor` trailers.
 
 ### Changed
 
-- **`check-no-cursor-coauthor.sh`**: al fallar, lista los commits afectados (hash + asunto).
+- **`check-no-cursor-coauthor.sh`**: on failure, lists affected commits (hash + subject).
 
 ### Documentation
 
-- **`docs/GITLAB_CI.md`**: requisitos CI (REQ-GIT-001), job de ejemplo para GitLab, verificación y limpieza de historial.
-- **README.md**, **CONTRIBUTING.md**: enlace a GITLAB_CI y pasos de limpieza con `strip-cursor-coauthor-from-history`.
+- **`docs/GITLAB_CI.md`**: CI requirements (REQ-GIT-001), example GitLab job, verification and history cleanup.
+- **README.md**, **CONTRIBUTING.md**: link to GITLAB_CI and cleanup steps with `strip-cursor-coauthor-from-history`.
 
 ---
 ## [1.0.24] - 2026-07-15
 
 ### Added
 
-- **`CODE_OF_CONDUCT.md`**: Contributor Covenant v2.1 para el repositorio.
-- **REQ-GIT-001 (higiene de commits)**: script `.scripts/check-no-cursor-coauthor.sh`, hook `.githooks/commit-msg` que elimina trailers `Co-authored-by: Cursor`, target `make check-no-cursor-coauthor` y verificación en `make release-check`.
-- **CI**: job `git-hygiene` que falla si el historial contiene trailers de co-autor de Cursor.
+- **`CODE_OF_CONDUCT.md`**: Contributor Covenant v2.1 for the repository.
+- **REQ-GIT-001 (commit hygiene)**: `.scripts/check-no-cursor-coauthor.sh` script, `.githooks/commit-msg` hook that strips `Co-authored-by: Cursor` trailers, `make check-no-cursor-coauthor` target, and verification in `make release-check`.
+- **CI**: `git-hygiene` job that fails when history contains Cursor co-author trailers.
 
 ### Changed
 
-- **`phpunit.xml.dist`**: exclusiones de cobertura en `AnonymizeCommand`, `AnonymizeService` y `OrmHelper` (orquestación de alto volumen cubierta por tests de integración).
+- **`phpunit.xml.dist`**: coverage exclusions for `AnonymizeCommand`, `AnonymizeService`, and `OrmHelper` (high-volume orchestration covered by integration tests).
 
 ### Documentation
 
-- **README.md**: enlace a Code of Conduct.
-- **CONTRIBUTING.md**, **RELEASE.md**: prácticas REQ-GIT-001 y `make setup-hooks` documentadas.
-- **UPGRADING.md**: sección 1.0.24.
+- **README.md**: link to Code of Conduct.
+- **CONTRIBUTING.md**, **RELEASE.md**: REQ-GIT-001 practices and `make setup-hooks` documented.
+- **UPGRADING.md**: section 1.0.24.
 
 ---
 ## [1.0.23] - 2026-07-14
 
 ### Added
 
-- **`EmailFaker`**: opciones `ensure_unique` (por defecto `true`), `unique_field` (por defecto `id`) y `unique_separator` (por defecto `.`) para evitar violaciones de restricción única en columnas de email.
-- **Pruebas**: casos en `EmailFakerTest` para sufijo de unicidad y campo personalizado.
-- **CI / repositorio**: workflow [CodeRabbit](.github/workflows/coderabbit.yml) y configuración [`.coderabbit.yaml`](.coderabbit.yaml).
-- **Spec Kit**: baseline en [`specs/001-baseline/`](../specs/001-baseline/), constitution en [`.specify/`](../.specify/), skills `speckit-*` en [`.cursor/skills/`](../.cursor/skills/); manual en [SPEC-KIT.md](SPEC-KIT.md).
+- **`EmailFaker`**: `ensure_unique` (default `true`), `unique_field` (default `id`), and `unique_separator` (default `.`) options to avoid unique constraint violations on email columns.
+- **Tests**: cases in `EmailFakerTest` for uniqueness suffix and custom field.
+- **CI / repository**: [CodeRabbit](.github/workflows/coderabbit.yml) workflow and [`.coderabbit.yaml`](.coderabbit.yaml) configuration.
+- **Spec Kit**: baseline in [`specs/001-baseline/`](../specs/001-baseline/), constitution in [`.specify/`](../.specify/), `speckit-*` skills in [`.cursor/skills/`](../.cursor/skills/); manual in [SPEC-KIT.md](SPEC-KIT.md).
 
 ### Changed
 
-- **`AnonymizeService`**: pasa el registro fusionado (fila original + valores anonimizados en curso) a todos los fakers, no solo `pattern_based`, `copy` y `name_fallback` — necesario para que `email` pueda garantizar unicidad por fila.
-- **`composer.json`**: PHP mínimo **8.2** (antes 8.1); CI deja de probar PHP 8.1.
-- **CI**: `actions/github-script` actualizado de v7 a v9 en workflows de release y sync-releases.
-- **Demos**: eliminado `demo/symfony6`; quedan demos Symfony 7 y 8. La compatibilidad del bundle con Symfony 6.1+ no cambia.
-- **`composer.json`**: URLs de `homepage` y `support` apuntan a `nowo-tech/AnonymizeBundle` (el nombre del paquete en Packagist no cambia).
+- **`AnonymizeService`**: passes the merged row record (original row + values anonymized in the current pass) to all fakers, not only `pattern_based`, `copy`, and `name_fallback` — required for `email` to guarantee per-row uniqueness.
+- **`composer.json`**: minimum PHP **8.2** (was 8.1); CI no longer tests PHP 8.1.
+- **CI**: `actions/github-script` updated from v7 to v9 in release and sync-releases workflows.
+- **Demos**: removed `demo/symfony6`; Symfony 7 and 8 demos remain. Bundle compatibility with Symfony 6.1+ is unchanged.
+- **`composer.json`**: `homepage` and `support` URLs point to `nowo-tech/AnonymizeBundle` (Packagist package name unchanged).
 
 ### Removed
 
-- **PHP 8.1**: ya no es compatible; actualiza el runtime a PHP 8.2 o superior antes de instalar esta versión.
-- **Demo symfony6**: eliminado del repositorio (solo quedaban Symfony 7 y 8).
+- **PHP 8.1**: no longer supported; upgrade runtime to PHP 8.2+ before installing this version.
+- **Demo symfony6**: removed from the repository (only Symfony 7 and 8 remain).
 
 ### Fixed
 
-- **`DatabaseExportService`**: evita el warning de `unlink()` tras compresión gzip/bzip2 cuando el compresor ya eliminó el archivo fuente.
+- **`DatabaseExportService`**: avoids `unlink()` warning after gzip/bzip2 compression when the compressor already removed the source file.
 
 ### Documentation
 
-- **FAKERS.md**: opciones del faker `email` documentadas (`ensure_unique`, `unique_field`, `unique_separator`).
-- **README.md**, **INSTALLATION.md**, **SPEC-DRIVEN-DEVELOPMENT.md**, **UPGRADING.md**, **TESTING_COMMANDS.md**, **USAGE.md**: enlaces, guía Spec Kit y demos Symfony 7/8 actualizados; requisito PHP 8.2+.
+- **FAKERS.md**: `email` faker options documented (`ensure_unique`, `unique_field`, `unique_separator`).
+- **README.md**, **INSTALLATION.md**, **SPEC-DRIVEN-DEVELOPMENT.md**, **UPGRADING.md**, **TESTING_COMMANDS.md**, **USAGE.md**: links, Spec Kit guide, and Symfony 7/8 demos updated; PHP 8.2+ requirement.
 
 ---
 ## [1.0.22] - 2026-06-13
@@ -118,10 +133,10 @@ _(none)_
 
 ### Changed
 
-- **Demos (symfony6/7/8)**: `config/bundles.php` — eliminado registro duplicado de la clase legacy `TwigInspectorBundle` (queda `NowoTwigInspectorBundle`).
-- **Demo symfony6**: `config/routes.yaml` alineado con el formato de routing por atributos de Symfony 7+.
-- **Demos symfony7/8**: `config/reference.php` actualizado o añadido (Flex reference); `composer.lock` de demos sincronizado.
-- **`DbalHelper` / `OrmHelper`**: imports explícitos `use function` (PHP CS Fixer; sin cambio de comportamiento).
+- **Demos (symfony6/7/8)**: `config/bundles.php` — removed duplicate registration of legacy `TwigInspectorBundle` class (`NowoTwigInspectorBundle` remains).
+- **Demo symfony6**: `config/routes.yaml` aligned with Symfony 7+ attribute routing format.
+- **Demos symfony7/8**: `config/reference.php` updated or added (Flex reference); demo `composer.lock` synchronized.
+- **`DbalHelper` / `OrmHelper`**: explicit `use function` imports (PHP CS Fixer; no behavior change).
 
 ### Documentation
 
@@ -132,44 +147,44 @@ _(none)_
 
 ### Added
 
-- **`OrmHelper`**: `getDiscriminatorColumnName()` y `resolveDiscriminatorColumnName()` para mapeo de discriminadores (array/objeto) sin ArrayAccess.
-- **Documentación**: [SPEC-DRIVEN-DEVELOPMENT.md](SPEC-DRIVEN-DEVELOPMENT.md) — flujo spec-driven, historias de usuario y anclas `REQ-*` para Makefiles/demos.
-- **Makefile**: objetivo `update-deps` (REQ-MAKE-008) para actualizar dependencias del bundle y demos vía script compartido.
-- **Pruebas**: casos en `OrmHelperTest` para resolución de columna discriminadora.
+- **`OrmHelper`**: `getDiscriminatorColumnName()` and `resolveDiscriminatorColumnName()` for discriminator mapping (array/object) without ArrayAccess.
+- **Documentation**: [SPEC-DRIVEN-DEVELOPMENT.md](SPEC-DRIVEN-DEVELOPMENT.md) — spec-driven flow, user stories, and `REQ-*` anchors for Makefiles/demos.
+- **Makefile**: `update-deps` target (REQ-MAKE-008) to update bundle and demo dependencies via shared script.
+- **Tests**: cases in `OrmHelperTest` for discriminator column resolution.
 
 ### Changed
 
-- **CI**: matriz ampliada a Symfony **7.4** y **8.1** (PHP 8.1–8.5; exclusiones actualizadas).
-- **Demos (symfony6/7/8)**: controladores usan `ClassMetadata::getColumnName()` y `OrmHelper::getDiscriminatorColumnName()` en lugar de acceso array a `FieldMapping`; locks y Symfony 7.4 alineados.
-- **`composer.lock`**: dependencias del bundle y demos sincronizadas.
-- **README**: badge Symfony actualizado (6.0+ | 7.4+ | 8.0 | 8.1+).
+- **CI**: matrix extended to Symfony **7.4** and **8.1** (PHP 8.1–8.5; exclusions updated).
+- **Demos (symfony6/7/8)**: controllers use `ClassMetadata::getColumnName()` and `OrmHelper::getDiscriminatorColumnName()` instead of array access on `FieldMapping`; locks and Symfony 7.4 aligned.
+- **`composer.lock`**: bundle and demo dependencies synchronized.
+- **README**: Symfony badge updated (6.0+ | 7.4+ | 8.0 | 8.1+).
 
 ### Fixed
 
-- **`AnonymizeService`**: resolución del discriminador en truncate centralizada en `OrmHelper::resolveDiscriminatorColumnName()` (sin acceso ArrayAccess sobre metadatos de discriminador).
+- **`AnonymizeService`**: discriminator resolution in truncate centralized in `OrmHelper::resolveDiscriminatorColumnName()` (no ArrayAccess on discriminator metadata).
 
 ### Documentation
 
-- **SECURITY.md**: aclaración sobre comprobaciones de entorno en comandos (`run` / `export-db` vs. resto) y defensa principal dev-only.
+- **SECURITY.md**: clarification on environment checks in commands (`run` / `export-db` vs. others) and primary dev-only defense.
 
 ---
 ## [1.0.19] - 2026-06-10
 
 ### Added
 
-- **`OrmHelper`**: Utilidades estáticas para resolver nombres de columna y tipos desde `FieldMapping` sin ArrayAccess (preparado para ORM 4): `getFieldColumnName()`, `getColumnNameFromFieldMapping()`, `getFieldTypeFromFieldMapping()`.
-- **Pruebas**: `OrmHelperTest`; casos adicionales en `DbalHelperTest` para `getSchemaObjectName()` (DBAL 4 `getObjectName` y fallback `getName`) y `getConnectionName()`.
+- **`OrmHelper`**: static utilities to resolve column names and types from `FieldMapping` without ArrayAccess (ORM 4 ready): `getFieldColumnName()`, `getColumnNameFromFieldMapping()`, `getFieldTypeFromFieldMapping()`.
+- **Tests**: `OrmHelperTest`; additional cases in `DbalHelperTest` for `getSchemaObjectName()` (DBAL 4 `getObjectName` and `getName` fallback) and `getConnectionName()`.
 
 ### Changed
 
-- **`DbalHelper`**: `getSchemaObjectName()` y nuevo `getConnectionName()` con fallback cuando la API nueva devuelve vacío o no está disponible (DBAL 2–4, mocks en tests).
+- **`DbalHelper`**: `getSchemaObjectName()` and new `getConnectionName()` with fallback when the new API returns empty or is unavailable (DBAL 2–4, mocks in tests).
 
 ### Fixed
 
-- **Doctrine ORM — FieldMapping / ArrayAccess**: Sustituido `$fieldMapping['columnName']` y acceso similar en `AnonymizeService`, `AnonymizeInfoCommand` y `PreFlightCheckService` por `OrmHelper` (usa `ClassMetadata::getColumnName()` cuando aplica).
-- **Doctrine DBAL — `AbstractAsset::getName()`**: Sustituido `$column->getName()` en `SchemaService`, `AnonymizeService` y `GenerateAnonymizedColumnCommand` por `DbalHelper::getSchemaObjectName()`.
-- **Doctrine DBAL — `Connection::getName()`**: Resolución de nombre de conexión en `GenerateAnonymizedColumnCommand` centralizada en `DbalHelper::getConnectionName()`.
-- Sin cambios en requisitos de Composer; compatible con **DBAL ^2.13 || ^3 || ^4** y **ORM ^2.13 || ^3**.
+- **Doctrine ORM — FieldMapping / ArrayAccess**: replaced `$fieldMapping['columnName']` and similar access in `AnonymizeService`, `AnonymizeInfoCommand`, and `PreFlightCheckService` with `OrmHelper` (uses `ClassMetadata::getColumnName()` when applicable).
+- **Doctrine DBAL — `AbstractAsset::getName()`**: replaced `$column->getName()` in `SchemaService`, `AnonymizeService`, and `GenerateAnonymizedColumnCommand` with `DbalHelper::getSchemaObjectName()`.
+- **Doctrine DBAL — `Connection::getName()`**: connection name resolution in `GenerateAnonymizedColumnCommand` centralized in `DbalHelper::getConnectionName()`.
+- No Composer requirement changes; compatible with **DBAL ^2.13 || ^3 || ^4** and **ORM ^2.13 || ^3**.
 
 ### Documentation
 
@@ -180,34 +195,34 @@ _(none)_
 
 ### Added
 
-- **Repositorio / GitHub**: Plantillas de incidencias (bug, feature, soporte), plantilla de pull request, [CODEOWNERS](.github/CODEOWNERS) y [SECURITY](.github/SECURITY.md) en `.github/`.
-- **Herramientas**: [`.scripts/php-coverage-percent.sh`](.scripts/php-coverage-percent.sh) y objetivo `make coverage-php-percent` (y ayuda en `make help`) para leer el % de líneas PHP del informe de cobertura.
-- **Pruebas**: Casos adicionales en `DatabaseExportServiceTest` (SQLite cuando `copy()` falla; ramas de `exportMongoDB` con directorio de salida, `exec` con fallo y subdirectorio de dump ausente) y en `DbalHelperTest` (plataforma SQLite real de Doctrine).
+- **Repository / GitHub**: issue templates (bug, feature, support), pull request template, [CODEOWNERS](.github/CODEOWNERS), and [SECURITY](.github/SECURITY.md) under `.github/`.
+- **Tooling**: [`.scripts/php-coverage-percent.sh`](.scripts/php-coverage-percent.sh) and `make coverage-php-percent` target (and `make help` entry) to read PHP line % from the coverage report.
+- **Tests**: additional cases in `DatabaseExportServiceTest` (SQLite when `copy()` fails; `exportMongoDB` branches with output directory, `exec` failure, and missing dump subdirectory) and in `DbalHelperTest` (real Doctrine SQLite platform).
 
 ### Changed
 
-- **Composer**: Restricciones de `symfony/*` ampliadas a `^6.0` (antes `^6.1`); `composer test` / `test-coverage` usan `phpunit --color=always`. **Nota**: el README sigue indicando Symfony **6.1+** como requisito efectivo por uso de `#[Autowire]`.
-- **PatternMatcher**: Los patrones con `|` (OR) se evalúan **antes** que los comodines `%`/`_`, de modo que cada alternativa puede usar coincidencia tipo SQL LIKE (comportamiento más intuitivo; tests actualizados).
-- **Scripts del repo**: Comandos auxiliares movidos de `scripts/` a [`.scripts/`](.scripts/) (`test-commands.sh`, `reload-mongodb-fixtures.sh`); documentación y Makefile apuntan a las nuevas rutas.
-- **Demos (Makefile / docker-compose)**: Tras `make up`, la URL del demo se muestra usando `PORT` desde `.env` / `.env.example`; en servicios `php` se añaden DNS públicos (8.8.8.8 / 8.8.4.4) para mitigar fallos de resolución en Docker/WSL durante `composer install`. El `demo/Makefile` agrupa las URLs de los tres demos al arrancar todos.
+- **Composer**: `symfony/*` constraints widened to `^6.0` (was `^6.1`); `composer test` / `test-coverage` use `phpunit --color=always`. **Note**: README still states Symfony **6.1+** as the effective requirement due to `#[Autowire]`.
+- **PatternMatcher**: patterns with `|` (OR) are evaluated **before** `%`/`_` wildcards so each alternative can use SQL LIKE matching (more intuitive behavior; tests updated).
+- **Repo scripts**: helper commands moved from `scripts/` to [`.scripts/`](.scripts/) (`test-commands.sh`, `reload-mongodb-fixtures.sh`); documentation and Makefile point to the new paths.
+- **Demos (Makefile / docker-compose)**: after `make up`, demo URL is shown using `PORT` from `.env` / `.env.example`; public DNS (8.8.8.8 / 8.8.4.4) added to `php` services to mitigate Docker/WSL resolution failures during `composer install`. `demo/Makefile` groups all three demo URLs on startup.
 
 ### Fixed
 
-- **DbalHelper**: Detección del driver SQLite insensible a mayúsculas/minúsculas en el nombre de plataforma y en la clase del driver (`SQLite` vs `Sqlite`), evitando clasificar mal conexiones SQLite.
-- **JsonFaker**: Import explícito de la constante `JSON_PRESERVE_ZERO_FRACTION` para compatibilidad con análisis estático / entornos estrictos.
+- **DbalHelper**: SQLite driver detection is case-insensitive on platform name and driver class (`SQLite` vs `Sqlite`), avoiding misclassified SQLite connections.
+- **JsonFaker**: explicit import of `JSON_PRESERVE_ZERO_FRACTION` constant for static analysis / strict environments.
 
 ### Documentation
 
-- **README**, **docs/DEVELOPMENT.md**, **docs/TESTING_COMMANDS.md**, **docs/SECURITY.md** (y `.github/SECURITY.md`): flujo de contribución, seguridad y pruebas alineados con la estructura actual del proyecto.
+- **README**, **docs/DEVELOPMENT.md**, **docs/TESTING_COMMANDS.md**, **docs/SECURITY.md** (and `.github/SECURITY.md`): contribution, security, and testing flows aligned with the current project structure.
 
 ---
 ## [1.0.17] - 2026-03-25
 
 ### Fixed
 
-- **JsonFaker**: Preserva precisión de floats al codificar valores generados por esquema usando `JSON_PRESERVE_ZERO_FRACTION`, para que `json_decode()` devuelva `float` de forma consistente en PHP 8.5+.
-- **GenerateMongoAnonymizedFieldCommand**: Durante el escaneo de documentos, ahora salta ficheros PHP no legibles (`is_readable()`), evitando warnings de “Permission denied” y haciendo el comportamiento determinista entre entornos.
-- **AnonymizationHistoryServiceTest**: Hace la prueba de rebuildIndex robusta frente a flakiness por el cambio de segundos (cutoff temporal).
+- **JsonFaker**: preserves float precision when encoding schema-generated values using `JSON_PRESERVE_ZERO_FRACTION`, so `json_decode()` returns `float` consistently on PHP 8.5+.
+- **GenerateMongoAnonymizedFieldCommand**: during document scan, now skips unreadable PHP files (`is_readable()`), avoiding "Permission denied" warnings and making behavior deterministic across environments.
+- **AnonymizationHistoryServiceTest**: makes rebuildIndex test robust against second-boundary flakiness (temporal cutoff).
 
 ### Documentation
 
@@ -249,7 +264,7 @@ _(none)_
 - **Documentation**: New and expanded docs for configuration, command usage, testing, and demos:
   - `docs/CONFIGURATION.md`, `docs/COMMANDS.md`, `docs/TESTING_COMMANDS.md`, `docs/INSTALLATION.md`, `docs/RECIPE.md`, `docs/FAKERS.md`, and example guides for pattern-based filters and polymorphism (`EXAMPLES_PATTERN_BASED.md`, `EXAMPLES_POLYMORPHISM_ANONYMIZE_SERVICE.md`).
   - `docs/DEMO-FRANKENPHP.md` describes running the demos with FrankenPHP and Caddy (dev images, Caddyfile, PHP ini).
-  - `docs/PROPUESTA-TESTS-COBERTURA.md`, `docs/ENGRAM.md`, and `docs/ROADMAP.md` expanded with testing and architecture notes.
+  - `docs/TEST_COVERAGE_PROPOSAL.md`, `docs/ENGRAM.md`, and `docs/ROADMAP.md` expanded with testing and architecture notes.
 
 ### Changed
 

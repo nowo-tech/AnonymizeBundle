@@ -1,70 +1,70 @@
-# GitLab CI — requisitos y configuración
+# GitLab CI — requirements and configuration
 
-Este documento recoge los **requisitos de CI** del repositorio y cómo aplicarlos en GitLab. El bundle publica en GitHub (Actions + Packagist); si el proyecto se espeja o migra a GitLab interno, estos requisitos deben replicarse en el pipeline.
+This document describes the repository **CI requirements** and how to apply them on GitLab. The bundle publishes via GitHub (Actions + Packagist); if the project is mirrored or migrated to internal GitLab, these requirements must be replicated in the pipeline.
 
-## Requisitos de CI
+## CI requirements
 
-### REQ-GIT-001 — Historial sin co-author de Cursor
+### REQ-GIT-001 — History without Cursor co-author
 
-Los mensajes de commit **no deben** incluir trailers del agente Cursor:
+Commit messages **must not** include Cursor agent trailers:
 
 ```text
 Co-authored-by: Cursor <cursoragent@cursor.com>
 ```
 
-ni variantes con `cursoragent@cursor.com`.
+or any variant containing `cursoragent@cursor.com`.
 
-| Artefacto | Ubicación | Uso |
-|-----------|-----------|-----|
-| Verificación | `.scripts/check-no-cursor-coauthor.sh` | Falla si el historial del ref contiene trailers |
-| Limpieza | `.scripts/strip-cursor-coauthor-from-history.sh` | Reescribe mensajes y elimina trailers ya presentes |
-| Hook preventivo | `.githooks/commit-msg` | Quita trailers antes de crear el commit (`make setup-hooks`) |
-| Makefile | `make check-no-cursor-coauthor` | Atajo local y en `make release-check` |
-| Makefile | `make strip-cursor-coauthor-from-history` | Reescribe historial local de `main` (luego `force-push`) |
+| Artifact | Location | Purpose |
+|----------|----------|---------|
+| Verification | `.scripts/check-no-cursor-coauthor.sh` | Fails if the ref history contains trailers |
+| Cleanup | `.scripts/strip-cursor-coauthor-from-history.sh` | Rewrites messages and removes existing trailers |
+| Preventive hook | `.githooks/commit-msg` | Strips trailers before creating the commit (`make setup-hooks`) |
+| Makefile | `make check-no-cursor-coauthor` | Local shortcut and part of `make release-check` |
+| Makefile | `make strip-cursor-coauthor-from-history` | Rewrites local `main` history (then `force-push`) |
 
-#### Verificar (local o job de CI)
+#### Verify (local or CI job)
 
 ```bash
 chmod +x .scripts/check-no-cursor-coauthor.sh
 ./.scripts/check-no-cursor-coauthor.sh HEAD
 ```
 
-Equivalente:
+Equivalent:
 
 ```bash
-make setup-hooks    # una vez por clone
+make setup-hooks    # once per clone
 make check-no-cursor-coauthor
 ```
 
-Si falla, el script lista los commits afectados.
+On failure, the script lists affected commits.
 
-#### Limpiar historial ya publicado
+#### Clean already-published history
 
-Cuando el check falla en CI (clone fresco del remoto), **`git replace` no sirve**: solo oculta commits sucios en tu máquina y no corrige `origin`.
+When the check fails in CI (fresh clone from remote), **`git replace` does not help**: it only hides dirty commits on your machine and does not fix `origin`.
 
-1. Asegúrate de no tener cambios sin commitear.
-2. Ejecuta la reescritura sobre la rama principal (por defecto `main`):
+1. Ensure you have no uncommitted changes.
+2. Run the rewrite on the main branch (default `main`):
 
 ```bash
 chmod +x .scripts/strip-cursor-coauthor-from-history.sh
 ./.scripts/strip-cursor-coauthor-from-history.sh main
 ```
 
-3. Vuelve a comprobar:
+3. Verify again:
 
 ```bash
 make check-no-cursor-coauthor
 ```
 
-4. Publica el historial reescrito (coordinar con el equipo):
+4. Publish the rewritten history (coordinate with the team):
 
 ```bash
 git push --force-with-lease origin main
 ```
 
-5. Si hay tags de release afectados, recréalos sobre el commit de release y haz force-push del tag.
+5. If release tags are affected, recreate them on the release commit and force-push the tag.
 
-#### Job de ejemplo en `.gitlab-ci.yml`
+#### Example job in `.gitlab-ci.yml`
 
 ```yaml
 stages:
@@ -84,25 +84,25 @@ git-hygiene:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 ```
 
-`GIT_DEPTH: "0"` es obligatorio: con shallow clone el job no ve todo el historial y podría pasar por error.
+`GIT_DEPTH: "0"` is required: with a shallow clone the job does not see full history and may pass incorrectly.
 
-#### Prevención
+#### Prevention
 
-- Ejecuta `make setup-hooks` al clonar.
-- No añadas manualmente `Co-authored-by: Cursor` en mensajes de commit.
-- Antes de release: `make release-check` (incluye `check-no-cursor-coauthor`).
+- Run `make setup-hooks` when cloning.
+- Do not add `Co-authored-by: Cursor` manually to commit messages.
+- Before release: `make release-check` (includes `check-no-cursor-coauthor`).
 
 ---
 
-## Package Registry (opcional)
+## Package Registry (optional)
 
-Si el bundle se publica en el Package Registry de GitLab interno (`https://gitlab.internal.nowo.tech`), sigue el mismo patrón que otros bundles de `nowo/bundles`:
+If the bundle is published to the internal GitLab Package Registry (`https://gitlab.internal.nowo.tech`), follow the same pattern as other `nowo/bundles` bundles:
 
-1. Configura `composer.json` con el repositorio del grupo.
-2. Añade un stage `deploy` que invoque la API de Composer al crear un tag.
-3. Documenta `auth.json` en el proyecto consumidor.
+1. Configure `composer.json` with the group repository.
+2. Add a `deploy` stage that calls the Composer API when a tag is created.
+3. Document `auth.json` in the consuming project.
 
-Ejemplo mínimo de publicación por tag:
+Minimal tag publish example:
 
 ```yaml
 deploy:
@@ -120,8 +120,8 @@ deploy:
 
 ---
 
-## Referencias
+## References
 
-- [CONTRIBUTING.md](CONTRIBUTING.md) — hooks y flujo de contribución
-- [RELEASE.md](RELEASE.md) — `check-no-cursor-coauthor` antes del push de release
-- [.github/workflows/ci.yml](../.github/workflows/ci.yml) — job `git-hygiene` en GitHub Actions
+- [CONTRIBUTING.md](CONTRIBUTING.md) — hooks and contribution flow
+- [RELEASE.md](RELEASE.md) — `check-no-cursor-coauthor` before release push
+- [.github/workflows/ci.yml](../.github/workflows/ci.yml) — `git-hygiene` job on GitHub Actions

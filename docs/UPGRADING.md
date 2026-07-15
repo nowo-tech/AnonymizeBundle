@@ -24,34 +24,57 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.26
+
+**Release Date**: 2026-07-15
+
+#### What's New
+
+- **Documentation**: all `docs/` files are English-only (FR-DOCS-001); coverage notes moved to `docs/TEST_COVERAGE_PROPOSAL.md`.
+- **Spec Kit baseline**: updated requirements (EmailFaker uniqueness, REQ-GIT-001, coverage exclusions, PHP 8.2+).
+- **`check-no-cursor-coauthor.sh`**: stricter repository-root validation for CI and monorepo checkouts.
+
+#### Breaking Changes
+
+None. No API, configuration, or runtime requirement changes for Composer integrators.
+
+#### Migration Steps
+
+1. **Update the bundle** (if you use Composer):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **(Contributors only)** If you linked to `PROPUESTA-TESTS-COBERTURA.md`, use `docs/TEST_COVERAGE_PROPOSAL.md` instead.
+
 ### Upgrading to 1.0.25
 
 **Release Date**: 2026-07-15
 
 #### What's New
 
-- **REQ-GIT-001**: script `strip-cursor-coauthor-from-history` para limpiar trailers de Cursor en commits ya pusheados (`make strip-cursor-coauthor-from-history`).
-- **`check-no-cursor-coauthor.sh`**: muestra los commits con co-author cuando la validación falla.
-- **`docs/GITLAB_CI.md`**: requisitos de CI en GitLab (job `git-hygiene`, `GIT_DEPTH: "0"`).
+- **REQ-GIT-001**: `strip-cursor-coauthor-from-history` script to clean Cursor trailers from already-pushed commits (`make strip-cursor-coauthor-from-history`).
+- **`check-no-cursor-coauthor.sh`**: shows commits with co-author when validation fails.
+- **`docs/GITLAB_CI.md`**: GitLab CI requirements (job `git-hygiene`, `GIT_DEPTH: "0"`).
 
 #### Breaking Changes
 
-None. Sin cambios de API ni requisitos de runtime para integradores vía Composer.
+None. No API or runtime requirement changes for Composer integrators.
 
 #### Migration Steps
 
-1. **Actualiza el bundle** (si usas Composer):
+1. **Update the bundle** (if you use Composer):
    ```bash
    composer update nowo-tech/anonymize-bundle
    ```
 
-2. **(Solo colaboradores)** Si CI falla por co-author en historial remoto:
+2. **(Contributors only)** If CI fails due to co-author in remote history:
    ```bash
    make strip-cursor-coauthor-from-history
    make check-no-cursor-coauthor
    git push --force-with-lease origin main
    ```
-   Ver [GITLAB_CI.md](GITLAB_CI.md) y [CONTRIBUTING.md](CONTRIBUTING.md).
+   See [GITLAB_CI.md](GITLAB_CI.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### Upgrading to 1.0.24
 
@@ -59,22 +82,22 @@ None. Sin cambios de API ni requisitos de runtime para integradores vía Compose
 
 #### What's New
 
-- **`CODE_OF_CONDUCT.md`**: estándares de comunidad (Contributor Covenant v2.1).
-- **REQ-GIT-001**: el repositorio rechaza trailers `Co-authored-by: Cursor` / `cursoragent@cursor.com` en el historial (CI + `make check-no-cursor-coauthor`). Los colaboradores que clonen el repo deben ejecutar `make setup-hooks` una vez.
-- **`phpunit.xml.dist`**: exclusiones de cobertura en clases de orquestación CLI/servicio (`AnonymizeCommand`, `AnonymizeService`, `OrmHelper`).
+- **`CODE_OF_CONDUCT.md`**: community standards (Contributor Covenant v2.1).
+- **REQ-GIT-001**: the repository rejects `Co-authored-by: Cursor` / `cursoragent@cursor.com` trailers in history (CI + `make check-no-cursor-coauthor`). Contributors who clone the repo must run `make setup-hooks` once.
+- **`phpunit.xml.dist`**: coverage exclusions for CLI/service orchestration classes (`AnonymizeCommand`, `AnonymizeService`, `OrmHelper`).
 
 #### Breaking Changes
 
-None. No API, configuración ni requisitos de runtime cambian para quien instala el paquete vía Composer.
+None. No API, configuration, or runtime requirements change for Composer package consumers.
 
 #### Migration Steps
 
-1. **Actualiza el bundle** (si usas Composer):
+1. **Update the bundle** (if you use Composer):
    ```bash
    composer update nowo-tech/anonymize-bundle
    ```
 
-2. **(Solo colaboradores del repositorio)** Instala hooks y verifica el historial antes de commitear:
+2. **(Repository contributors only)** Install hooks and verify history before committing:
    ```bash
    make setup-hooks
    make check-no-cursor-coauthor
@@ -86,12 +109,12 @@ None. No API, configuración ni requisitos de runtime cambian para quien instala
 
 #### What's New
 
-- **`EmailFaker`**: por defecto añade un sufijo único al local-part del email (p. ej. `user.123@domain.test`) usando el campo `id` del registro, evitando errores de restricción `UNIQUE` en tablas con email único.
-- **`AnonymizeService`**: todos los fakers reciben el registro de la fila (fusionado con valores ya anonimizados en la misma pasada).
-- **`DatabaseExportService`**: corrección del warning `unlink()` tras exportación comprimida con gzip/bzip2.
-- **PHP 8.2+**: requisito mínimo de PHP subido de 8.1 a 8.2.
-- **Demos**: eliminado `demo/symfony6`; quedan `demo/symfony7` y `demo/symfony8`. La compatibilidad del bundle con Symfony 6.1+ no cambia.
-- **Mantenimiento**: workflow CodeRabbit, Spec Kit baseline y documentación asociada (sin impacto en integradores que solo usan el paquete vía Composer).
+- **`EmailFaker`**: by default appends a unique suffix to the email local-part (e.g. `user.123@domain.test`) using the row `id` field, avoiding `UNIQUE` constraint errors on tables with unique email.
+- **`AnonymizeService`**: all fakers receive the row record (merged with values already anonymized in the same pass).
+- **`DatabaseExportService`**: fix for `unlink()` warning after gzip/bzip2 compressed export.
+- **PHP 8.2+**: minimum PHP requirement raised from 8.1 to 8.2.
+- **Demos**: removed `demo/symfony6`; `demo/symfony7` and `demo/symfony8` remain. Bundle compatibility with Symfony 6.1+ is unchanged.
+- **Maintenance**: CodeRabbit workflow, Spec Kit baseline, and associated documentation (no impact on integrators who only use the package via Composer).
 
 #### Breaking Changes
 
@@ -101,7 +124,7 @@ None. No API, configuración ni requisitos de runtime cambian para quien instala
   composer update nowo-tech/anonymize-bundle
   ```
 
-**Behavior change (no API break):** los emails generados con el faker `email` incluyen un sufijo único cuando hay registro disponible (`ensure_unique` es `true` por defecto). Si necesitas el formato anterior sin sufijo:
+**Behavior change (no API break):** emails generated with the `email` faker include a unique suffix when a row record is available (`ensure_unique` defaults to `true`). If you need the previous format without a suffix:
 
 ```php
 #[AnonymizeProperty(type: 'email', options: ['ensure_unique' => false])]
@@ -110,18 +133,18 @@ private ?string $email = null;
 
 #### Migration Steps
 
-1. **Actualiza PHP** a 8.2 o superior si aún usas 8.1.
+1. **Upgrade PHP** to 8.2 or higher if you still use 8.1.
 
-2. **Actualiza el bundle**:
+2. **Update the bundle**:
    ```bash
    composer update nowo-tech/anonymize-bundle
    ```
 
-3. **(Opcional)** Si clonaste los demos del repositorio, usa `demo/symfony7` o `demo/symfony8`; no existe `demo/symfony6`.
+3. **(Optional)** If you cloned repository demos, use `demo/symfony7` or `demo/symfony8`; `demo/symfony6` no longer exists.
 
-4. **(Opcional)** Si tus tests o fixtures asumen emails sin sufijo de id, ajusta expectativas o desactiva `ensure_unique` en la entidad.
+4. **(Optional)** If tests or fixtures assume emails without an id suffix, adjust expectations or disable `ensure_unique` on the entity.
 
-5. **(Opcional)** QA local:
+5. **(Optional)** Local QA:
    ```bash
    make test
    ```
@@ -132,8 +155,8 @@ private ?string $email = null;
 
 #### What's New
 
-- **PHPStan**: análisis estático en nivel 8 con baseline; mejoras de tipado en `src/` y tests (sin cambios de API pública).
-- **Demos**: eliminado `demo/symfony6` del repositorio; quedan demos Symfony 7 y 8. La compatibilidad del bundle con Symfony 6.1+ no cambia.
+- **PHPStan**: level 8 static analysis with baseline; typing improvements in `src/` and tests (no public API changes).
+- **Demos**: removed `demo/symfony6` from the repository; Symfony 7 and 8 demos remain. Bundle compatibility with Symfony 6.1+ is unchanged.
 
 #### Breaking Changes
 
@@ -141,14 +164,14 @@ None for bundle consumers. If you relied on the **Symfony 6 demo** in this repos
 
 #### Migration Steps
 
-1. **Actualiza el bundle**:
+1. **Update the bundle**:
    ```bash
    composer update nowo-tech/anonymize-bundle
    ```
 
-2. **(Opcional)** Si clonaste los demos, usa `demo/symfony7` o `demo/symfony8`; elimina referencias locales a `demo/symfony6`.
+2. **(Optional)** If you cloned demos, use `demo/symfony7` or `demo/symfony8`; remove local references to `demo/symfony6`.
 
-3. **(Opcional)** QA local:
+3. **(Optional)** Local QA:
    ```bash
    make test
    composer phpstan
@@ -160,7 +183,7 @@ None for bundle consumers. If you relied on the **Symfony 6 demo** in this repos
 
 #### What's New
 
-- **Demos**: limpieza de registro duplicado de Twig Inspector en `bundles.php`; rutas y reference de Symfony 7+ alineados. Sin cambios en la API pública del bundle.
+- **Demos**: duplicate Twig Inspector registration removed from `bundles.php`; Symfony 7+ routes and reference aligned. No public bundle API changes.
 
 #### Breaking Changes
 
@@ -168,12 +191,12 @@ None.
 
 #### Migration Steps
 
-1. **Actualiza el bundle**:
+1. **Update the bundle**:
    ```bash
    composer update nowo-tech/anonymize-bundle
    ```
 
-2. **(Opcional)** Si mantienes un fork de los demos, elimina entradas duplicadas de `TwigInspectorBundle` en `config/bundles.php` si las tienes.
+2. **(Optional)** If you maintain a demo fork, remove duplicate `TwigInspectorBundle` entries from `config/bundles.php` if present.
 
 ### Upgrading to 1.0.20
 
@@ -181,9 +204,9 @@ None.
 
 #### What's New
 
-- **Doctrine discriminadores**: `OrmHelper` resuelve nombres de columna discriminadora sin ArrayAccess; `AnonymizeService` y demos alineados.
-- **CI / Symfony**: pruebas en Symfony 7.4 y 8.1 además de 6.4, 7.0 y 8.0.
-- **Mantenimiento**: `make update-deps` actualiza locks del bundle y demos; documento [SPEC-DRIVEN-DEVELOPMENT.md](SPEC-DRIVEN-DEVELOPMENT.md) para contribuidores.
+- **Doctrine discriminators**: `OrmHelper` resolves discriminator column names without ArrayAccess; `AnonymizeService` and demos aligned.
+- **CI / Symfony**: tests on Symfony 7.4 and 8.1 in addition to 6.4, 7.0, and 8.0.
+- **Maintenance**: `make update-deps` updates bundle and demo locks; [SPEC-DRIVEN-DEVELOPMENT.md](SPEC-DRIVEN-DEVELOPMENT.md) for contributors.
 
 #### Breaking Changes
 
@@ -191,14 +214,14 @@ None.
 
 #### Migration Steps
 
-1. **Actualiza el bundle**:
+1. **Update the bundle**:
    ```bash
    composer update nowo-tech/anonymize-bundle
    ```
 
-2. **(Opcional)** Si mantienes demos o forks con `$fieldMapping['columnName']` o `$discCol['name']`, usa `OrmHelper` / `ClassMetadata::getColumnName()`.
+2. **(Optional)** If you maintain demos or forks using `$fieldMapping['columnName']` or `$discCol['name']`, use `OrmHelper` / `ClassMetadata::getColumnName()`.
 
-3. **(Opcional)** QA local:
+3. **(Optional)** Local QA:
    ```bash
    make test
    ```
@@ -209,23 +232,23 @@ None.
 
 #### What's New
 
-- **Compatibilidad Doctrine**: El bundle deja de usar accesos deprecados a `FieldMapping` vía ArrayAccess y a `getName()` en objetos de esquema DBAL / conexiones. La lógica está centralizada en `OrmHelper` y `DbalHelper` con fallback para DBAL 2–4 y ORM 2.13–3.x.
-- **Sin cambios de API pública**: Los comandos, servicios y atributos expuestos al consumidor no cambian.
+- **Doctrine compatibility**: the bundle no longer uses deprecated `FieldMapping` ArrayAccess and `getName()` on DBAL schema objects / connections. Logic is centralized in `OrmHelper` and `DbalHelper` with fallback for DBAL 2–4 and ORM 2.13–3.x.
+- **No public API changes**: exposed commands, services, and attributes are unchanged.
 
 #### Breaking Changes
 
-None. Actualización transparente para proyectos que usan el bundle como dependencia Composer.
+None. Transparent upgrade for projects using the bundle as a Composer dependency.
 
 #### Migration Steps
 
-1. **Actualiza el bundle**:
+1. **Update the bundle**:
    ```bash
    composer update nowo-tech/anonymize-bundle
    ```
 
-2. **(Opcional)** Si mantienes un fork o extensión que accedía a `$metadata->getFieldMapping(...)['columnName']` o `$column->getName()`, migra a `OrmHelper::getFieldColumnName()` / `OrmHelper::getColumnNameFromFieldMapping()` y `DbalHelper::getSchemaObjectName()`.
+2. **(Optional)** If you maintain a fork or extension that accessed `$metadata->getFieldMapping(...)['columnName']` or `$column->getName()`, migrate to `OrmHelper::getFieldColumnName()` / `OrmHelper::getColumnNameFromFieldMapping()` and `DbalHelper::getSchemaObjectName()`.
 
-3. **(Opcional)** QA local:
+3. **(Optional)** Local QA:
    ```bash
    make test
    ```
@@ -236,10 +259,10 @@ None. Actualización transparente para proyectos que usan el bundle como depende
 
 #### What's New
 
-- **Pattern matching**: Patrones con `|` y `%` en filtros de inclusión/exclusión: primero se parte por `|`, luego cada parte puede usar comodines LIKE. Revisa reglas que mezclaban ambos si dependían del orden anterior.
-- **SQLite**: Mejor detección del driver cuando Doctrine reporta la plataforma SQLite con distinta capitalización.
-- **Repositorio**: Plantillas de GitHub, CODEOWNERS y políticas de seguridad publicadas en `.github/`; scripts de ayuda bajo `.scripts/`.
-- **Demos**: Mensajes de URL al arranque y DNS opcional en Compose para entornos WSL/Docker con problemas de resolución hacia Packagist.
+- **Pattern matching**: patterns with `|` and `%` in include/exclude filters: split by `|` first, then each part may use LIKE wildcards. Review rules that mixed both if they depended on the previous order.
+- **SQLite**: improved driver detection when Doctrine reports the SQLite platform with different capitalization.
+- **Repository**: GitHub templates, CODEOWNERS, and security policies under `.github/`; helper scripts under `.scripts/`.
+- **Demos**: startup URL messages and optional Compose DNS for WSL/Docker environments with Packagist resolution issues.
 
 #### Breaking Changes
 
@@ -251,14 +274,14 @@ None for bundle consumers at the PHP API level. Behaviour change only for **patt
 
 #### Migration Steps
 
-1. **Actualiza el bundle**:
+1. **Update the bundle**:
    ```bash
    composer update nowo-tech/anonymize-bundle
    ```
 
-2. **(Opcional)** Si usas patrones con `|` y `%`, valida en staging que los filtros sigan coincidiendo con los registros esperados.
+2. **(Optional)** If you use patterns with `|` and `%`, validate in staging that filters still match expected records.
 
-3. **(Opcional)** QA local:
+3. **(Optional)** Local QA:
    ```bash
    make test-coverage
    ```
@@ -269,22 +292,22 @@ None for bundle consumers at the PHP API level. Behaviour change only for **patt
 
 #### What's New
 
-- **JsonFaker**: Preserva precisión de floats en JSON generado desde esquemas (usando `JSON_PRESERVE_ZERO_FRACTION`) para que `json_decode()` devuelva `float` de forma consistente en PHP 8.5+.
-- **GenerateMongoAnonymizedFieldCommand**: El escaneo de documentos ahora ignora ficheros PHP no legibles (`is_readable()`), evitando warnings de “Permission denied” y mejorando la determinidad del test/ejecución.
-- **Testing**: Ajustes de robustez en tests de historial para evitar flakiness por cambios de segundo en entornos rápidos/CI.
+- **JsonFaker**: preserves float precision in JSON generated from schemas (using `JSON_PRESERVE_ZERO_FRACTION`) so `json_decode()` returns `float` consistently on PHP 8.5+.
+- **GenerateMongoAnonymizedFieldCommand**: document scan now skips unreadable PHP files (`is_readable()`), avoiding "Permission denied" warnings and improving test/runtime determinism.
+- **Testing**: history test robustness adjustments to avoid flakiness from second-boundary changes in fast environments/CI.
 
 #### Breaking Changes
 
-None. No hay cambios de API pública del bundle.
+None. No public bundle API changes.
 
 #### Migration Steps
 
-1. **Actualiza el bundle**:
+1. **Update the bundle**:
    ```bash
    composer update nowo-tech/anonymize-bundle
    ```
 
-2. **(Opcional)** Ejecuta tus tests/local QA:
+2. **(Optional)** Run local QA:
    ```bash
    make test-coverage
    ```

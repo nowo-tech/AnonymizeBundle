@@ -2,6 +2,9 @@
 
 Thank you for considering contributing to Anonymize Bundle!
 
+## Documentation language
+
+All files under `docs/` must be written in **English** (including examples and descriptive text).
 
 ## Code of Conduct
 

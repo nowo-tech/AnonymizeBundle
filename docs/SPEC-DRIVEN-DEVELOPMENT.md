@@ -57,9 +57,11 @@ The sections below state **behavior**; this subsection states **intent** in back
 
 | ID | Where | What it marks |
 | --- | --- | --- |
-| `REQ-DEMO-007` | `demo/Makefile` | # Run update-bundle in each demo before tests (REQ-DEMO-007) |
+| `REQ-DEMO-007` | `demo/Makefile` | Run update-bundle in each demo before tests |
+| `REQ-GIT-001` | `.githooks/commit-msg`, `.scripts/check-no-cursor-coauthor.sh`, `.scripts/strip-cursor-coauthor-from-history.sh`, `Makefile` (`check-no-cursor-coauthor`, `strip-cursor-coauthor-from-history`, `release-check`), `.github/workflows/ci.yml` (`git-hygiene`) | No Cursor co-author trailers in git history; audit before release; CI gate with full history |
+| `FR-DOCS-001` | `docs/*` | All documentation under `docs/` in English |
 
-When you change scripted behavior, **update the existing `REQ-*` comment** if the ID still matches the rule, or **add a new `REQ-*`** and document it here and in the PR description.
+When you change scripted behavior, **update the existing `REQ-*` comment** if the ID still matches the rule, or **add a new `REQ-*`** and document it here, in [`specs/001-baseline/spec.md`](../specs/001-baseline/spec.md), and in the PR description.
 
 ---
 
@@ -97,6 +99,8 @@ This repository uses [GitHub Spec Kit](https://github.com/github/spec-kit) with 
 | **Operator manual** (install, init, usage) | [`SPEC-KIT.md`](SPEC-KIT.md) |
 | Baseline spec | [`specs/001-baseline/spec.md`](../specs/001-baseline/spec.md) |
 | Code inventory (100%) | [`specs/001-baseline/code-inventory.md`](../specs/001-baseline/code-inventory.md) |
+| Coverage proposal | [`docs/TEST_COVERAGE_PROPOSAL.md`](TEST_COVERAGE_PROPOSAL.md) |
+| GitLab CI requirements | [`docs/GITLAB_CI.md`](GITLAB_CI.md) |
 | Constitution | [`.specify/memory/constitution.md`](../.specify/memory/constitution.md) |
 | Cursor Agent skills | [`.cursor/skills/`](../.cursor/skills/) (`speckit-*`) |
 
