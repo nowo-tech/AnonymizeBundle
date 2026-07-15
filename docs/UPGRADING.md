@@ -24,6 +24,33 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.24
+
+**Release Date**: 2026-07-15
+
+#### What's New
+
+- **`CODE_OF_CONDUCT.md`**: estándares de comunidad (Contributor Covenant v2.1).
+- **REQ-GIT-001**: el repositorio rechaza trailers `Co-authored-by: Cursor` / `cursoragent@cursor.com` en el historial (CI + `make check-no-cursor-coauthor`). Los colaboradores que clonen el repo deben ejecutar `make setup-hooks` una vez.
+- **`phpunit.xml.dist`**: exclusiones de cobertura en clases de orquestación CLI/servicio (`AnonymizeCommand`, `AnonymizeService`, `OrmHelper`).
+
+#### Breaking Changes
+
+None. No API, configuración ni requisitos de runtime cambian para quien instala el paquete vía Composer.
+
+#### Migration Steps
+
+1. **Actualiza el bundle** (si usas Composer):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **(Solo colaboradores del repositorio)** Instala hooks y verifica el historial antes de commitear:
+   ```bash
+   make setup-hooks
+   make check-no-cursor-coauthor
+   ```
+
 ### Upgrading to 1.0.23
 
 **Release Date**: 2026-07-14

@@ -24,6 +24,25 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.24] - 2026-07-15
+
+### Added
+
+- **`CODE_OF_CONDUCT.md`**: Contributor Covenant v2.1 para el repositorio.
+- **REQ-GIT-001 (higiene de commits)**: script `.scripts/check-no-cursor-coauthor.sh`, hook `.githooks/commit-msg` que elimina trailers `Co-authored-by: Cursor`, target `make check-no-cursor-coauthor` y verificación en `make release-check`.
+- **CI**: job `git-hygiene` que falla si el historial contiene trailers de co-autor de Cursor.
+
+### Changed
+
+- **`phpunit.xml.dist`**: exclusiones de cobertura en `AnonymizeCommand`, `AnonymizeService` y `OrmHelper` (orquestación de alto volumen cubierta por tests de integración).
+
+### Documentation
+
+- **README.md**: enlace a Code of Conduct.
+- **CONTRIBUTING.md**, **RELEASE.md**: prácticas REQ-GIT-001 y `make setup-hooks` documentadas.
+- **UPGRADING.md**: sección 1.0.24.
+
+---
 ## [1.0.23] - 2026-07-14
 
 ### Added
