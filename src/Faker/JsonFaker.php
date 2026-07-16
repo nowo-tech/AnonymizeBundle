@@ -21,9 +21,9 @@ use const JSON_THROW_ON_ERROR;
  * @copyright 2025 Nowo.tech
  */
 #[AsAlias(id: 'nowo_anonymize.faker.json')]
-final class JsonFaker implements FakerInterface
+final readonly class JsonFaker implements FakerInterface
 {
-    private readonly FakerGenerator $faker;
+    private FakerGenerator $faker;
 
     /**
      * Creates a new JsonFaker instance.

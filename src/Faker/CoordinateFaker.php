@@ -20,9 +20,9 @@ use const JSON_THROW_ON_ERROR;
  * @copyright 2025 Nowo.tech
  */
 #[AsAlias(id: 'nowo_anonymize.faker.coordinate')]
-final class CoordinateFaker implements FakerInterface
+final readonly class CoordinateFaker implements FakerInterface
 {
-    private readonly FakerGenerator $faker;
+    private FakerGenerator $faker;
 
     /**
      * Creates a new CoordinateFaker instance.

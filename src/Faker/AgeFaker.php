@@ -18,9 +18,9 @@ use const M_PI;
  * @copyright 2025 Nowo.tech
  */
 #[AsAlias(id: 'nowo_anonymize.faker.age')]
-final class AgeFaker implements FakerInterface
+final readonly class AgeFaker implements FakerInterface
 {
-    private readonly FakerGenerator $faker;
+    private FakerGenerator $faker;
 
     /**
      * Creates a new AgeFaker instance.

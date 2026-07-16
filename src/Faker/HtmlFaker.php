@@ -23,9 +23,9 @@ use const PHP_URL_HOST;
  * @copyright 2025 Nowo.tech
  */
 #[AsAlias(id: 'nowo_anonymize.faker.html')]
-final class HtmlFaker implements FakerInterface
+final readonly class HtmlFaker implements FakerInterface
 {
-    private readonly FakerGenerator $faker;
+    private FakerGenerator $faker;
 
     /**
      * Creates a new HtmlFaker instance.

@@ -29,9 +29,9 @@ use const PHP_INT_MAX;
  * @copyright 2025 Nowo.tech
  */
 #[AsAlias(id: 'nowo_anonymize.faker.utm')]
-final class UtmFaker implements FakerInterface
+final readonly class UtmFaker implements FakerInterface
 {
-    private readonly FakerGenerator $faker;
+    private FakerGenerator $faker;
 
     public const SOURCE_TYPE   = 'source';
     public const MEDIUM_TYPE   = 'medium';

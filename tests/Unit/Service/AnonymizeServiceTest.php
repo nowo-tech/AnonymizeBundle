@@ -2842,7 +2842,7 @@ class AnonymizeServiceTest extends TestCase
             'Entity3' => [
                 'metadata'   => $metadata3,
                 'reflection' => $this->createMock(ReflectionClass::class),
-                'attribute'  => new Anonymize(truncate: true, truncate_order: null), // After explicit orders
+                'attribute'  => new Anonymize(truncate: true), // After explicit orders
             ],
         ];
 

@@ -24,6 +24,30 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.27
+
+**Release Date**: 2026-07-16
+
+#### What's New
+
+- **REQ-GIT-001 tooling**: `check-no-cursor-coauthor` ignores local `git replace`; strip script requires a clean working tree.
+- **Code quality**: selected classes marked `readonly` via Rector (no API or runtime change for integrators).
+- **Documentation**: `docs/GITLAB_CI.md` replaced by [`docs/GITHUB_CI.md`](GITHUB_CI.md) (GitHub Actions `git-hygiene`).
+- **Demos**: `update-deps` Make include wired with `COMPOSE` / `SERVICE_PHP` for Symfony 7 and 8 demos.
+
+#### Breaking Changes
+
+None. No API, configuration, or runtime requirement changes for Composer integrators.
+
+#### Migration Steps
+
+1. **Update the bundle** (if you use Composer):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **(Contributors only)** If you linked to `docs/GITLAB_CI.md`, use [`docs/GITHUB_CI.md`](GITHUB_CI.md) instead.
+
 ### Upgrading to 1.0.26
 
 **Release Date**: 2026-07-15
@@ -55,7 +79,7 @@ None. No API, configuration, or runtime requirement changes for Composer integra
 
 - **REQ-GIT-001**: `strip-cursor-coauthor-from-history` script to clean Cursor trailers from already-pushed commits (`make strip-cursor-coauthor-from-history`).
 - **`check-no-cursor-coauthor.sh`**: shows commits with co-author when validation fails.
-- **`docs/GITLAB_CI.md`**: GitLab CI requirements (job `git-hygiene`, `GIT_DEPTH: "0"`).
+- **CI docs**: REQ-GIT-001 requirements (job `git-hygiene`, full history checkout). See [`GITHUB_CI.md`](GITHUB_CI.md) (formerly `GITLAB_CI.md`).
 
 #### Breaking Changes
 
@@ -74,7 +98,7 @@ None. No API or runtime requirement changes for Composer integrators.
    make check-no-cursor-coauthor
    git push --force-with-lease origin main
    ```
-   See [GITLAB_CI.md](GITLAB_CI.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
+   See [GITHUB_CI.md](GITHUB_CI.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### Upgrading to 1.0.24
 

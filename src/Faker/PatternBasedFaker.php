@@ -30,9 +30,9 @@ use function is_string;
  * @copyright 2025 Nowo.tech
  */
 #[AsAlias(id: 'nowo_anonymize.faker.pattern_based')]
-final class PatternBasedFaker implements FakerInterface
+final readonly class PatternBasedFaker implements FakerInterface
 {
-    private readonly FakerGenerator $faker;
+    private FakerGenerator $faker;
 
     /**
      * Creates a new PatternBasedFaker instance.

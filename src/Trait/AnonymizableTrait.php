@@ -38,8 +38,6 @@ trait AnonymizableTrait
      * Sets whether this record has been anonymized.
      *
      * @param bool $anonymized True if the record has been anonymized, false otherwise
-     *
-     * @return $this
      */
     public function setAnonymized(bool $anonymized): self
     {

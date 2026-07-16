@@ -18,9 +18,9 @@ use function sprintf;
  * @copyright 2025 Nowo.tech
  */
 #[AsAlias(id: 'nowo_anonymize.faker.color')]
-final class ColorFaker implements FakerInterface
+final readonly class ColorFaker implements FakerInterface
 {
-    private readonly FakerGenerator $faker;
+    private FakerGenerator $faker;
 
     /**
      * Creates a new ColorFaker instance.

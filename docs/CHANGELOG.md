@@ -24,6 +24,27 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.27] - 2026-07-16
+
+### Changed
+
+- **`check-no-cursor-coauthor.sh`**: uses `git --no-replace-objects` so local `git replace` refs cannot hide Cursor co-author trailers that CI would still see.
+- **`strip-cursor-coauthor-from-history.sh`**: refuses a dirty working tree before rewrite; clears local replace refs more reliably.
+- **Rector / PHP 8.2**: many final fakers and small services marked `readonly class` (no behavior change); minor test/docblock cleanups.
+- **PHPStan**: `phpstan-baseline.neon` regenerated after the readonly refactor.
+- **Demo Makefiles** (`symfony7` / `symfony8`): define `COMPOSE` and `SERVICE_PHP` for the shared `update-deps` include; `test-coverage` falls back when demos have no Composer test scripts.
+- **Dependencies**: root and demo `composer.lock` refreshed (e.g. PHP CS Fixer).
+
+### Removed
+
+- **`docs/GITLAB_CI.md`**: replaced by GitHub Actions documentation (see below).
+
+### Documentation
+
+- **`docs/GITHUB_CI.md`**: REQ-GIT-001 requirements for GitHub Actions (`git-hygiene`, `fetch-depth: 0`, verify/strip workflow).
+- **README.md**, **CONTRIBUTING.md**, **SPEC-DRIVEN-DEVELOPMENT.md**, constitution and Spec Kit baseline: links updated from `GITLAB_CI` to `GITHUB_CI`.
+
+---
 ## [1.0.26] - 2026-07-15
 
 ### Changed

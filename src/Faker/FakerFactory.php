@@ -23,7 +23,7 @@ use function sprintf;
  * @copyright 2025 Nowo.tech
  */
 // #[AsAlias(id: self::SERVICE_NAME)]
-final class FakerFactory implements FakerFactoryInterface
+final readonly class FakerFactory implements FakerFactoryInterface
 {
     public const SERVICE_NAME = 'nowo_anonymize.faker_factory';
 
@@ -35,8 +35,8 @@ final class FakerFactory implements FakerFactoryInterface
      */
     public function __construct(
         // #[Autowire('%nowo_anonymize.locale%')]
-        private readonly string $locale = 'en_US',
-        private readonly ?ContainerInterface $container = null
+        private string $locale = 'en_US',
+        private ?ContainerInterface $container = null
     ) {
     }
 

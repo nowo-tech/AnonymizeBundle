@@ -92,7 +92,7 @@ use function is_string;
  * private ?string $exampleField = null;
  */
 #[Autoconfigure(public: true)]
-final class ExampleCustomFaker implements FakerInterface
+final readonly class ExampleCustomFaker implements FakerInterface
 {
     /**
      * Creates a new ExampleCustomFaker instance.
@@ -105,7 +105,7 @@ final class ExampleCustomFaker implements FakerInterface
      * @param EntityManagerInterface|null $entityManager Optional entity manager for accessing related entities
      */
     public function __construct(
-        private readonly ?EntityManagerInterface $entityManager = null
+        private ?EntityManagerInterface $entityManager = null
     ) {
     }
 

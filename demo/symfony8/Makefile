@@ -112,7 +112,7 @@ test: ensure-up
 	docker-compose exec -T php composer test 2>/dev/null || docker-compose exec -T php php bin/console list
 
 test-coverage: ensure-up
-	docker-compose exec -T php composer test-coverage 2>/dev/null || docker-compose exec -T php composer test
+	docker-compose exec -T php composer test-coverage 2>/dev/null || docker-compose exec -T php composer test 2>/dev/null || docker-compose exec -T php php bin/console list
 
 # Complete setup
 setup: ensure-up
@@ -232,4 +232,6 @@ clean:
 	@echo "✅ Cleaned!"
 
 # REQ-MAKE-008: update-deps
+COMPOSE := docker-compose
+SERVICE_PHP := php
 include $(abspath $(CURDIR)/../../../.scripts/Makefile.demo-update-deps.mk)

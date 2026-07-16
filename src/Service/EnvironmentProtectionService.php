@@ -19,7 +19,7 @@ use function sprintf;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
-final class EnvironmentProtectionService
+final readonly class EnvironmentProtectionService
 {
     /**
      * Creates a new EnvironmentProtectionService instance.
@@ -27,7 +27,7 @@ final class EnvironmentProtectionService
      * @param ParameterBagInterface $parameterBag The parameter bag for accessing kernel parameters
      */
     public function __construct(
-        private readonly ParameterBagInterface $parameterBag
+        private ParameterBagInterface $parameterBag
     ) {
     }
 

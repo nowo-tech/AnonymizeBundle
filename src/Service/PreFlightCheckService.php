@@ -34,7 +34,7 @@ use function sprintf;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
-final class PreFlightCheckService
+final readonly class PreFlightCheckService
 {
     /**
      * Creates a new PreFlightCheckService instance.
@@ -42,7 +42,7 @@ final class PreFlightCheckService
      * @param FakerFactoryInterface $fakerFactory The faker factory for validating faker types
      */
     public function __construct(
-        private readonly FakerFactoryInterface $fakerFactory
+        private FakerFactoryInterface $fakerFactory
     ) {
     }
 

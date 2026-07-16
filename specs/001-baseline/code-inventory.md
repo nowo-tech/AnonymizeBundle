@@ -162,7 +162,7 @@ Not shipped in the Packagist archive; mapped for repository traceability.
 | `.githooks/commit-msg` | Strip co-author trailers | REQ-GIT-001 |
 | `.cursor/rules/01-git-commits.mdc` | Cursor commit rule | REQ-GIT-001 |
 | `.github/workflows/ci.yml` (`git-hygiene` job) | CI gate | REQ-GIT-001 |
-| `docs/GITLAB_CI.md` | GitLab CI requirements | REQ-GIT-001, FR-DOCS-001 |
+| `docs/GITHUB_CI.md` | GitHub Actions CI requirements | REQ-GIT-001, FR-DOCS-001 |
 | `docs/TEST_COVERAGE_PROPOSAL.md` | Coverage roadmap | FR-DOCS-003 |
 
 ## PHPUnit coverage exclusions

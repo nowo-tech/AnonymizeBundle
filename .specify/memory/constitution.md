@@ -21,7 +21,7 @@ Follow declared PHP/Symfony ranges in `composer.json` and README badges (PHP **8
 All files under `docs/` must be written in English. See **FR-DOCS-001** in the baseline spec.
 
 ### VII. Git commit hygiene (REQ-GIT-001)
-No Cursor agent `Co-authored-by` trailers in published history. Hooks, scripts, `release-check`, and CI `git-hygiene` enforce this. See [`docs/GITLAB_CI.md`](../docs/GITLAB_CI.md).
+No Cursor agent `Co-authored-by` trailers in published history. Hooks, scripts, `release-check`, and CI `git-hygiene` enforce this. See [`docs/GITHUB_CI.md`](../docs/GITHUB_CI.md).
 
 ## Governance
 Amendments update this file, baseline spec when principles affect behavior, and `CHANGELOG.md` when consumer-visible.

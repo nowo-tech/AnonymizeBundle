@@ -24,9 +24,15 @@ fi
 echo "WARN: rewriting history for ref ${REF} (local only until force-push)." >&2
 echo "WARN: coordinate with the team; tags and open MRs/PRs may need updating." >&2
 
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "ERROR: working tree is dirty. Commit or stash changes before rewriting history." >&2
+  exit 1
+fi
+
 # git replace only hides dirty commits locally; it does not fix CI/remotes.
 if [ -n "$(git replace -l 2>/dev/null || true)" ]; then
   echo "Removing local git replace refs before rewrite..." >&2
+  # shellcheck disable=SC2046
   git replace -d $(git replace -l) >/dev/null 2>&1 || true
 fi
 

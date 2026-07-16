@@ -25,12 +25,6 @@ parameters:
 			path: src/Command/AnonymizationHistoryCommand.php
 
 		-
-			message: '#^Cannot call method writeln\(\) on Symfony\\Component\\Console\\Output\\OutputInterface\|null\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Command/AnonymizeCommand.php
-
-		-
 			message: '#^Method Nowo\\AnonymizeBundle\\Command\\AnonymizeCommand\:\:processConnection\(\) has parameter \$entityFilter with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -973,6 +967,12 @@ parameters:
 			path: tests/Unit/DependencyInjection/ConfigurationTest.php
 
 		-
+			message: '#^Call to function in_array\(\) with Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:ADDRESS\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:AGE\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:BOOLEAN\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:COLOR\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:COMPANY\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:CONSTANT\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:COORDINATE\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:COPY\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:COUNTRY\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:CREDIT_CARD\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:DATE\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:DNI_CIF\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:EMAIL\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:ENUM\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:FILE\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:HASH\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:HASH_PRESERVE\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:HTML\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:IBAN\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:IP_ADDRESS\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:JSON\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:LANGUAGE\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:MAC_ADDRESS\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:MAP\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:MASKING\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:NAME\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:NAME_FALLBACK\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:NULL\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:NUMERIC\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:PASSWORD\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:PATTERN_BASED\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:PHONE\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:SERVICE\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:SHUFFLE\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:SURNAME\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:TEXT\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:URL\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:USERNAME\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:UTM\|Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:UUID and array\{Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:EMAIL, Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:NAME, Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:SURNAME, Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:AGE, Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:PHONE, Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:IBAN, Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:CREDIT_CARD, Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:ADDRESS, \.\.\.\} will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Enum/FakerTypeTest.php
+
+		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertCount\(\) with arguments 40, array\{Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:EMAIL, Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:NAME, Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:SURNAME, Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:AGE, Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:PHONE, Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:IBAN, Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:CREDIT_CARD, Nowo\\AnonymizeBundle\\Enum\\FakerType\:\:ADDRESS, \.\.\.\} and ''FakerType case…'' will always evaluate to true\.$#'
 			identifier: method.alreadyNarrowedType
 			count: 1
@@ -986,6 +986,12 @@ parameters:
 
 		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertNull\(\) with null will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Enum/FakerTypeTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true and ''Case ADDRESS should…''\|''Case AGE should…''\|''Case BOOLEAN should…''\|''Case COLOR should…''\|''Case COMPANY should…''\|''Case CONSTANT…''\|''Case COORDINATE…''\|''Case COPY should…''\|''Case COUNTRY should…''\|''Case CREDIT_CARD…''\|''Case DATE should…''\|''Case DNI_CIF should…''\|''Case EMAIL should…''\|''Case ENUM should…''\|''Case FILE should…''\|''Case HASH should…''\|''Case HASH_PRESERVE…''\|''Case HTML should…''\|''Case IBAN should…''\|''Case IP_ADDRESS…''\|''Case JSON should…''\|''Case LANGUAGE…''\|''Case MAC_ADDRESS…''\|''Case MAP should…''\|''Case MASKING should…''\|''Case NAME should…''\|''Case NAME_FALLBACK…''\|''Case NULL should…''\|''Case NUMERIC should…''\|''Case PASSWORD…''\|''Case PATTERN_BASED…''\|''Case PHONE should…''\|''Case SERVICE should…''\|''Case SHUFFLE should…''\|''Case SURNAME should…''\|''Case TEXT should…''\|''Case URL should…''\|''Case USERNAME…''\|''Case UTM should…''\|''Case UUID should…'' will always evaluate to true\.$#'
 			identifier: method.alreadyNarrowedType
 			count: 1
 			path: tests/Unit/Enum/FakerTypeTest.php
@@ -1173,7 +1179,7 @@ parameters:
 		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
 			identifier: method.alreadyNarrowedType
-			count: 13
+			count: 16
 			path: tests/Unit/Faker/EmailFakerTest.php
 
 		-

@@ -100,7 +100,7 @@ This repository uses [GitHub Spec Kit](https://github.com/github/spec-kit) with 
 | Baseline spec | [`specs/001-baseline/spec.md`](../specs/001-baseline/spec.md) |
 | Code inventory (100%) | [`specs/001-baseline/code-inventory.md`](../specs/001-baseline/code-inventory.md) |
 | Coverage proposal | [`docs/TEST_COVERAGE_PROPOSAL.md`](TEST_COVERAGE_PROPOSAL.md) |
-| GitLab CI requirements | [`docs/GITLAB_CI.md`](GITLAB_CI.md) |
+| GitHub Actions CI requirements | [`docs/GITHUB_CI.md`](GITHUB_CI.md) |
 | Constitution | [`.specify/memory/constitution.md`](../.specify/memory/constitution.md) |
 | Cursor Agent skills | [`.cursor/skills/`](../.cursor/skills/) (`speckit-*`) |
 

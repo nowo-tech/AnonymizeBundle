@@ -91,7 +91,7 @@ Doctrine entity anonymization for **dev/test** environments: PHP attributes mark
 
 ### Repository hygiene (maintainers)
 
-- **REQ-GIT-001**: Git history must not contain Cursor agent `Co-authored-by` trailers (`cursoragent@cursor.com`). Enforced by `.githooks/commit-msg`, `.scripts/check-no-cursor-coauthor.sh`, `.scripts/strip-cursor-coauthor-from-history.sh`, `make check-no-cursor-coauthor` (in `release-check`), and CI job `git-hygiene` with full history (`fetch-depth: 0`). Documented in [`docs/GITLAB_CI.md`](../../docs/GITLAB_CI.md), [`docs/CONTRIBUTING.md`](../../docs/CONTRIBUTING.md), and [`docs/RELEASE.md`](../../docs/RELEASE.md).
+- **REQ-GIT-001**: Git history must not contain Cursor agent `Co-authored-by` trailers (`cursoragent@cursor.com`). Enforced by `.githooks/commit-msg`, `.scripts/check-no-cursor-coauthor.sh`, `.scripts/strip-cursor-coauthor-from-history.sh`, `make check-no-cursor-coauthor` (in `release-check`), and CI job `git-hygiene` with full history (`fetch-depth: 0`). Documented in [`docs/GITHUB_CI.md`](../../docs/GITHUB_CI.md), [`docs/CONTRIBUTING.md`](../../docs/CONTRIBUTING.md), and [`docs/RELEASE.md`](../../docs/RELEASE.md).
 
 ### Documentation
 

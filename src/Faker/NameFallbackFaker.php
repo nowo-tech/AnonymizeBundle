@@ -20,9 +20,9 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  * @copyright 2025 Nowo.tech
  */
 #[AsAlias(id: 'nowo_anonymize.faker.name_fallback')]
-final class NameFallbackFaker implements FakerInterface
+final readonly class NameFallbackFaker implements FakerInterface
 {
-    private readonly FakerGenerator $faker;
+    private FakerGenerator $faker;
 
     /**
      * Creates a new NameFallbackFaker instance.

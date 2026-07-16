@@ -25,8 +25,10 @@ fi
 
 PATTERN='(^Co-authored-by: Cursor <cursoragent@cursor.com>$|^Co-authored-by:.*cursoragent@cursor\.com| Co-authored-by: Cursor <cursoragent@cursor.com>| Co-authored-by:.*cursoragent@cursor\.com)'
 
+# Use --no-replace-objects so local `git replace` refs cannot hide dirty history
+# that CI (fresh clone) would still see.
 MATCHES="$(
-  git log "${REF}" --format=%B \
+  git --no-replace-objects log "${REF}" --format=%B \
     | grep -E "${PATTERN}" \
     || true
 )"
@@ -34,12 +36,12 @@ MATCHES="$(
 if [ -n "${MATCHES}" ]; then
   echo "ERROR: Cursor co-author trailers found in git history (ref: ${REF})" >&2
   echo "Offending commits:" >&2
-  git log "${REF}" --format='%H %s' | while read -r hash subject; do
-    if git log -1 --format=%B "${hash}" | grep -qE 'cursoragent@cursor\.com'; then
+  git --no-replace-objects log "${REF}" --format='%H %s' | while read -r hash subject; do
+    if git --no-replace-objects log -1 --format=%B "${hash}" | grep -qE 'cursoragent@cursor\.com'; then
       echo "  ${hash} ${subject}" >&2
     fi
   done
-  echo "Run: git log ${REF} --format=%B | grep -i co-authored-by" >&2
+  echo "Run: git --no-replace-objects log ${REF} --format=%B | grep -i co-authored-by" >&2
   echo "${MATCHES}" | head -5 >&2
   exit 1
 fi

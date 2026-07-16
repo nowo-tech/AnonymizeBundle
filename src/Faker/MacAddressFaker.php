@@ -18,9 +18,9 @@ use const STR_PAD_LEFT;
  * @copyright 2025 Nowo.tech
  */
 #[AsAlias(id: 'nowo_anonymize.faker.mac_address')]
-final class MacAddressFaker implements FakerInterface
+final readonly class MacAddressFaker implements FakerInterface
 {
-    private readonly FakerGenerator $faker;
+    private FakerGenerator $faker;
 
     /**
      * Creates a new MacAddressFaker instance.

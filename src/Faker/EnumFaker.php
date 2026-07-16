@@ -19,9 +19,9 @@ use function is_array;
  * @copyright 2025 Nowo.tech
  */
 #[AsAlias(id: 'nowo_anonymize.faker.enum')]
-final class EnumFaker implements FakerInterface
+final readonly class EnumFaker implements FakerInterface
 {
-    private readonly FakerGenerator $faker;
+    private FakerGenerator $faker;
 
     /**
      * Creates a new EnumFaker instance.

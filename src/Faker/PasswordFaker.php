@@ -19,9 +19,9 @@ use function strlen;
  * @copyright 2025 Nowo.tech
  */
 #[AsAlias(id: 'nowo_anonymize.faker.password')]
-final class PasswordFaker implements FakerInterface
+final readonly class PasswordFaker implements FakerInterface
 {
-    private readonly FakerGenerator $faker;
+    private FakerGenerator $faker;
 
     /**
      * Creates a new PasswordFaker instance.

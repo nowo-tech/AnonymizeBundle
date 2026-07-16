@@ -24,7 +24,7 @@ use function sprintf;
  * @copyright 2025 Nowo.tech
  */
 #[Exclude]
-final class ServiceFaker implements FakerInterface
+final readonly class ServiceFaker implements FakerInterface
 {
     /**
      * Creates a new ServiceFaker instance.
@@ -33,8 +33,8 @@ final class ServiceFaker implements FakerInterface
      * @param string $serviceName The name of the service to use for anonymization
      */
     public function __construct(
-        private readonly ContainerInterface $container,
-        private readonly string $serviceName
+        private ContainerInterface $container,
+        private string $serviceName
     ) {
     }
 

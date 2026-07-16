@@ -185,7 +185,7 @@ See [FAKERS.md](docs/FAKERS.md) for complete list and configuration options.
 - [Changelog](docs/CHANGELOG.md)
 - [Upgrading](docs/UPGRADING.md)
 - [Release](docs/RELEASE.md)
-- [GitLab CI requirements](docs/GITLAB_CI.md)
+- [GitHub Actions CI requirements](docs/GITHUB_CI.md)
 - [Security](docs/SECURITY.md)
 - [Engram](docs/ENGRAM.md)
 - [Spec-driven development](docs/SPEC-DRIVEN-DEVELOPMENT.md)

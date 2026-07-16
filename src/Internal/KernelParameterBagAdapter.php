@@ -21,10 +21,10 @@ use function sprintf;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
-final class KernelParameterBagAdapter implements ParameterBagInterface
+final readonly class KernelParameterBagAdapter implements ParameterBagInterface
 {
     public function __construct(
-        private readonly ContainerInterface $container
+        private ContainerInterface $container
     ) {
     }
 

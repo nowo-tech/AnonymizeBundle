@@ -130,7 +130,6 @@ class AnonymizePropertyTest extends TestCase
             weight: 5,
             includePatterns: $includePatterns,
             excludePatterns: $excludePatterns,
-            service: null,
             options: $options,
         );
 

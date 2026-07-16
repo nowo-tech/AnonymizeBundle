@@ -18,9 +18,9 @@ use function is_string;
  * @copyright 2025 Nowo.tech
  */
 #[AsAlias(id: 'nowo_anonymize.faker.dni_cif')]
-final class DniCifFaker implements FakerInterface
+final readonly class DniCifFaker implements FakerInterface
 {
-    private readonly FakerGenerator $faker;
+    private FakerGenerator $faker;
 
     public const DNI_TYPE  = 'dni';
     public const CIF_TYPE  = 'cif';
