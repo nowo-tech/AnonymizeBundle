@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Integration\Command;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Result;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\FieldMapping;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Exception;
@@ -148,10 +153,10 @@ class AnonymizeCommandTest extends TestCase
         $config         = $this->createMock(Configuration::class);
         $em             = $this->createMock(EntityManagerInterface::class);
 
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection = $this->createMock(Connection::class);
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
 
-        $schemaManager = $this->createMock(\Doctrine\DBAL\Schema\AbstractSchemaManager::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
         $schemaManager->method('tablesExist')->willReturn(true);
 
         $connection->method('createSchemaManager')->willReturn($schemaManager);
@@ -203,10 +208,10 @@ class AnonymizeCommandTest extends TestCase
         $config         = $this->createMock(Configuration::class);
         $em             = $this->createMock(EntityManagerInterface::class);
 
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection = $this->createMock(Connection::class);
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
 
-        $schemaManager = $this->createMock(\Doctrine\DBAL\Schema\AbstractSchemaManager::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
         $schemaManager->method('tablesExist')->with([$tableName])->willReturn(true);
 
         $connection->method('createSchemaManager')->willReturn($schemaManager);
@@ -263,10 +268,10 @@ class AnonymizeCommandTest extends TestCase
         $config         = $this->createMock(Configuration::class);
         $em             = $this->createMock(EntityManagerInterface::class);
 
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection = $this->createMock(Connection::class);
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
 
-        $schemaManager = $this->createMock(\Doctrine\DBAL\Schema\AbstractSchemaManager::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
         $schemaManager->method('tablesExist')->with([$tableName])->willReturn(true);
 
         $connection->method('createSchemaManager')->willReturn($schemaManager);
@@ -318,10 +323,10 @@ class AnonymizeCommandTest extends TestCase
         $config         = $this->createMock(Configuration::class);
         $em             = $this->createMock(EntityManagerInterface::class);
 
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection = $this->createMock(Connection::class);
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
 
-        $schemaManager = $this->createMock(\Doctrine\DBAL\Schema\AbstractSchemaManager::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
         $schemaManager->method('tablesExist')->with([$tableName])->willReturn(true);
 
         $connection->method('createSchemaManager')->willReturn($schemaManager);
@@ -373,12 +378,12 @@ class AnonymizeCommandTest extends TestCase
         $metadata->method('hasAssociation')->willReturn(false);
         $metadata->method('getFieldNames')->willReturn([]);
 
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
 
         $record     = ['id' => 1];
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection = $this->createMock(Connection::class);
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')->willReturnCallback(static fn ($v): string => "'" . str_replace("'", "''", (string) $v) . "'");
         $connection->method('fetchOne')->willReturn('1');
@@ -391,7 +396,7 @@ class AnonymizeCommandTest extends TestCase
         $connection->method('beginTransaction')->willReturnCallback(static function (): void {});
         $connection->method('commit')->willReturnCallback(static function (): void {});
 
-        $schemaManager = $this->createMock(\Doctrine\DBAL\Schema\AbstractSchemaManager::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
         $schemaManager->method('tablesExist')->with([$tableName])->willReturn(true);
         $connection->method('createSchemaManager')->willReturn($schemaManager);
 
@@ -451,12 +456,12 @@ class AnonymizeCommandTest extends TestCase
         $metadata->method('hasAssociation')->willReturn(false);
         $metadata->method('getFieldNames')->willReturn([]);
 
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
 
         $record     = ['id' => 1];
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection = $this->createMock(Connection::class);
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')->willReturnCallback(static fn ($v): string => "'" . str_replace("'", "''", (string) $v) . "'");
         $connection->method('fetchOne')->willReturn('1');
@@ -469,7 +474,7 @@ class AnonymizeCommandTest extends TestCase
         $connection->method('beginTransaction')->willReturnCallback(static function (): void {});
         $connection->method('commit')->willReturnCallback(static function (): void {});
 
-        $schemaManager = $this->createMock(\Doctrine\DBAL\Schema\AbstractSchemaManager::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
         $schemaManager->method('tablesExist')->with([$tableName])->willReturn(true);
         $connection->method('createSchemaManager')->willReturn($schemaManager);
 
@@ -529,16 +534,16 @@ class AnonymizeCommandTest extends TestCase
         $metadata->method('hasAssociation')->willReturn(false);
         $metadata->method('getFieldNames')->willReturn(['id', 'email']);
         $metadata->method('getFieldMapping')->willReturnMap([
-            ['id', new \Doctrine\ORM\Mapping\FieldMapping('id', 'integer', 'id')],
-            ['email', new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email')],
+            ['id', new FieldMapping('id', 'integer', 'id')],
+            ['email', new FieldMapping('email', 'string', 'email')],
         ]);
 
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
 
         $record     = ['id' => 1, 'email' => 'user@example.com'];
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection = $this->createMock(Connection::class);
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')->willReturnCallback(static fn ($v): string => "'" . str_replace("'", "''", (string) $v) . "'");
         $connection->method('fetchOne')->willReturn('1');
@@ -557,7 +562,7 @@ class AnonymizeCommandTest extends TestCase
         $emailColumn = $this->createMock(Column::class);
         $emailColumn->method('getName')->willReturn('email');
 
-        $schemaManager = $this->createMock(\Doctrine\DBAL\Schema\AbstractSchemaManager::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
         $schemaManager->method('tablesExist')->with([$tableName])->willReturn(true);
         $schemaManager->method('listTableColumns')->with($tableName)->willReturn(['id' => $idColumn, 'email' => $emailColumn]);
         $connection->method('createSchemaManager')->willReturn($schemaManager);
@@ -614,10 +619,10 @@ class AnonymizeCommandTest extends TestCase
         $config         = $this->createMock(Configuration::class);
         $em             = $this->createMock(EntityManagerInterface::class);
 
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection = $this->createMock(Connection::class);
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
 
-        $schemaManager = $this->createMock(\Doctrine\DBAL\Schema\AbstractSchemaManager::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
         $schemaManager->method('tablesExist')->with([$tableName])->willReturn(false);
 
         $connection->method('createSchemaManager')->willReturn($schemaManager);

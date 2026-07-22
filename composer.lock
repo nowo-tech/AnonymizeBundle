@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a1d1f56354995eeadf2c2e33b908eb4d",
+    "content-hash": "68a8b323adc47a0b0b3a1018959a9f40",
     "packages": [
         {
             "name": "doctrine/collections",
@@ -248,16 +248,16 @@
         },
         {
             "name": "doctrine/doctrine-bundle",
-            "version": "2.18.3",
+            "version": "2.18.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/DoctrineBundle.git",
-                "reference": "241d61f6bbc77275d5a9f95d514241c058bf2d0a"
+                "reference": "175f8ffa7ad574e1b5ccb66f1301a21524c88ce6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/DoctrineBundle/zipball/241d61f6bbc77275d5a9f95d514241c058bf2d0a",
-                "reference": "241d61f6bbc77275d5a9f95d514241c058bf2d0a",
+                "url": "https://api.github.com/repos/doctrine/DoctrineBundle/zipball/175f8ffa7ad574e1b5ccb66f1301a21524c88ce6",
+                "reference": "175f8ffa7ad574e1b5ccb66f1301a21524c88ce6",
                 "shasum": ""
             },
             "require": {
@@ -293,10 +293,12 @@
                 "phpunit/phpunit": "^10.5.53 || ^12.3.10",
                 "psr/log": "^1.1.4 || ^2.0 || ^3.0",
                 "symfony/doctrine-messenger": "^6.4 || ^7.0",
+                "symfony/event-dispatcher": "^6.4 || ^7.0",
                 "symfony/expression-language": "^6.4 || ^7.0",
                 "symfony/http-kernel": "^6.4 || ^7.0",
                 "symfony/messenger": "^6.4 || ^7.0",
                 "symfony/property-info": "^6.4 || ^7.0",
+                "symfony/runtime": "^6.4 || ^7.0",
                 "symfony/security-bundle": "^6.4 || ^7.0",
                 "symfony/stopwatch": "^6.4 || ^7.0",
                 "symfony/string": "^6.4 || ^7.0",
@@ -350,7 +352,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/DoctrineBundle/issues",
-                "source": "https://github.com/doctrine/DoctrineBundle/tree/2.18.3"
+                "source": "https://github.com/doctrine/DoctrineBundle/tree/2.18.4"
             },
             "funding": [
                 {
@@ -366,7 +368,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-06-08T08:22:50+00:00"
+            "time": "2026-07-11T08:41:11+00:00"
         },
         {
             "name": "doctrine/event-manager",
@@ -4321,6 +4323,92 @@
                 "source": "https://github.com/nikic/PHP-Parser/tree/v5.8.0"
             },
             "time": "2026-07-04T14:30:18+00:00"
+        },
+        {
+            "name": "nowo-tech/phpstan-frankenphp",
+            "version": "v1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nowo-tech/PhpStanFrankenPhp.git",
+                "reference": "c27fbbec6f3430763ddf9854f5ec6b0ebb15f1fd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nowo-tech/PhpStanFrankenPhp/zipball/c27fbbec6f3430763ddf9854f5ec6b0ebb15f1fd",
+                "reference": "c27fbbec6f3430763ddf9854f5ec6b0ebb15f1fd",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1 <8.6",
+                "phpstan/phpstan": "^2.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.0",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpunit/phpunit": "^10.0 || ^11.0",
+                "rector/rector": "^2.0",
+                "symfony/http-foundation": "^6.4 || ^7.0 || ^8.0",
+                "symfony/process": "^6.4 || ^7.0 || ^8.0",
+                "symfony/service-contracts": "^2.5 || ^3.0"
+            },
+            "type": "phpstan-extension",
+            "extra": {
+                "phpstan": {
+                    "includes": [
+                        "extension.neon"
+                    ]
+                },
+                "branch-alias": {
+                    "dev-main": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "NowoTech\\PhpStanFrankenPhp\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Héctor Franco Aceituno",
+                    "email": "hectorfranco@nowo.tech",
+                    "homepage": "https://github.com/HecFranco",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Nowo.tech",
+                    "homepage": "https://nowo.tech"
+                }
+            ],
+            "description": "PHPStan rules to migrate PHP apps from PHP-FPM to FrankenPHP classic mode, then worker mode. Rules are split by migration level with documented justification and application order.",
+            "homepage": "https://github.com/nowo-tech/PhpStanFrankenPhp",
+            "keywords": [
+                "PHPStan",
+                "code-quality",
+                "frankenphp",
+                "laravel",
+                "long-running",
+                "migration",
+                "php-fpm",
+                "static-analysis",
+                "symfony",
+                "worker"
+            ],
+            "support": {
+                "issues": "https://github.com/nowo-tech/PhpStanFrankenPhp/issues",
+                "source": "https://github.com/nowo-tech/PhpStanFrankenPhp"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/HecFranco",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-07-22T15:59:27+00:00"
         },
         {
             "name": "phar-io/manifest",

@@ -10,9 +10,12 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\ORM\EntityManagerInterface;
 use Nowo\AnonymizeBundle\Service\CommandRunnerInterface;
 use Nowo\AnonymizeBundle\Service\DatabaseExportService;
+use Nowo\AnonymizeBundle\Service\SystemCommandRunner;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 use function dirname;
 
@@ -27,7 +30,7 @@ use const PHP_OS_FAMILY;
 class DatabaseExportServiceTest extends TestCase
 {
     private string $tempDir;
-    private \PHPUnit\Framework\MockObject\MockObject $container;
+    private MockObject $container;
 
     protected function setUp(): void
     {
@@ -440,17 +443,8 @@ class DatabaseExportServiceTest extends TestCase
         $dirAsDest = $this->tempDir . '/dest_is_dir_' . uniqid('', true);
         mkdir($dirAsDest, 0o755, true);
 
-        // copy() to a directory emits a PHP warning; we only assert the null return.
-        $prev = set_error_handler(static fn (int $errno, string $errstr): bool => str_contains($errstr, 'copy()') && str_contains($errstr, 'directory'));
-        try {
-            $result = $method->invoke($service, $connection, $dirAsDest);
-        } finally {
-            if ($prev !== null) {
-                set_error_handler($prev);
-            } else {
-                restore_error_handler();
-            }
-        }
+        // copy() to a directory emits a PHP warning; suppress and assert null return.
+        $result = @$method->invoke($service, $connection, $dirAsDest);
         $this->assertNull($result);
     }
 
@@ -1128,7 +1122,7 @@ class DatabaseExportServiceTest extends TestCase
         $projectDir = $this->tempDir . '/project';
         mkdir($projectDir, 0o755, true);
 
-        $kernel = $this->createMock(\Symfony\Component\HttpKernel\KernelInterface::class);
+        $kernel = $this->createMock(KernelInterface::class);
         $kernel->method('getProjectDir')
             ->willReturn($projectDir);
 
@@ -1184,7 +1178,7 @@ class DatabaseExportServiceTest extends TestCase
         $gitignorePath = $projectDir . '/.gitignore';
         file_put_contents($gitignorePath, "exports/\n");
 
-        $kernel = $this->createMock(\Symfony\Component\HttpKernel\KernelInterface::class);
+        $kernel = $this->createMock(KernelInterface::class);
         $kernel->method('getProjectDir')
             ->willReturn($projectDir);
 
@@ -1908,7 +1902,7 @@ class DatabaseExportServiceTest extends TestCase
      */
     public function testCommandExistsReturnsFalseForNonexistentCommand(): void
     {
-        $runner = new \Nowo\AnonymizeBundle\Service\SystemCommandRunner();
+        $runner = new SystemCommandRunner();
         $result = $runner->commandExists('nonexistent_command_xyz_' . uniqid());
         $this->assertFalse($result);
     }
@@ -1918,7 +1912,7 @@ class DatabaseExportServiceTest extends TestCase
      */
     public function testCommandExistsReturnsTrueForExistingCommand(): void
     {
-        $runner = new \Nowo\AnonymizeBundle\Service\SystemCommandRunner();
+        $runner = new SystemCommandRunner();
         $result = $runner->commandExists('php');
         $this->assertTrue($result);
     }

@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Tests\Integration\Command;
 
 use Nowo\AnonymizeBundle\Command\GenerateMongoAnonymizedFieldCommand;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 use function is_string;
 
@@ -21,7 +23,7 @@ use function is_string;
  */
 class GenerateMongoAnonymizedFieldCommandTest extends TestCase
 {
-    private \PHPUnit\Framework\MockObject\MockObject $container;
+    private MockObject $container;
     private GenerateMongoAnonymizedFieldCommand $command;
 
     protected function setUp(): void
@@ -184,7 +186,7 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
      */
     public function testGetProjectRootReturnsFromKernel(): void
     {
-        $kernel = $this->createMock(\Symfony\Component\HttpKernel\KernelInterface::class);
+        $kernel = $this->createMock(KernelInterface::class);
         $kernel->method('getProjectDir')
             ->willReturn('/test/project');
 
@@ -213,12 +215,12 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         mkdir($tmpDir, 0o755, true);
         mkdir($docPath, 0o755, true);
 
-        $kernel = $this->createMock(\Symfony\Component\HttpKernel\KernelInterface::class);
+        $kernel = $this->createMock(KernelInterface::class);
         $kernel->method('getProjectDir')->willReturn($tmpDir);
 
         // Container that only has get/has (no hasParameter) so getProjectRoot uses kernel path
         $container = new class($kernel) implements ContainerInterface {
-            public function __construct(private readonly \Symfony\Component\HttpKernel\KernelInterface $kernel)
+            public function __construct(private readonly KernelInterface $kernel)
             {
             }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Tests\Unit\Faker\Example;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Nowo\AnonymizeBundle\Faker\Example\ExampleCustomFaker;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -135,7 +136,7 @@ final class ExampleCustomFakerTest extends TestCase
         $entityManager->expects($this->once())
             ->method('getRepository')
             ->with('App\Entity\RelatedEntity')
-            ->willReturn($this->createMock(\Doctrine\ORM\EntityRepository::class));
+            ->willReturn($this->createMock(EntityRepository::class));
 
         $result = $faker->generate($options);
 

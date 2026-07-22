@@ -25,9 +25,9 @@ The demos use:
 - **Docker Compose** with the app and the parent bundle mounted as volumes (`../..` → `/var/anonymize-bundle`).
 - **Two Caddyfiles**: `Caddyfile` (production, with worker) and `Caddyfile.dev` (development, no worker).
 - An **entrypoint** script that selects the Caddyfile from **`FRANKENPHP_MODE`** (`classic` | `worker`), defined in the demo **`.env`** / `.env.example` and passed by Compose (not baked into the Dockerfile). **Default is `worker`.** Edit `.env` and run `docker compose up -d` (recreate) to switch modes without rebuilding. If unset, the entrypoint uses `worker`.
-- **Symfony 8 demo on the latest PHP available** in official FrankenPHP images when constraints allow (currently **PHP 8.5** → `dunglas/frankenphp:1-php8.5`). The Symfony 7 demo stays on PHP 8.2 to match that major.
+- **Symfony 8 demo on the latest PHP available** in official FrankenPHP images when constraints allow (currently **PHP 8.5** → `dunglas/frankenphp:1-php8.5`).
 
-There are demos for **Symfony 7** and **8** (e.g. **demo/symfony7**, **demo/symfony8**). Each has its own Dockerfile, docker-compose.yml and Makefile. From the bundle root you run e.g. `make -C demo/symfony8 up` (see the demo's README for the URL and port).
+There is a demo for **Symfony 8** (`demo/symfony8`) with its own Dockerfile, docker-compose.yml and Makefile. From the bundle root you run e.g. `make -C demo/symfony8 up` (see the demo's README for the URL and port).
 
 ## Timeouts (REQ-RUNTIME-001)
 
@@ -54,7 +54,7 @@ The main difference between development and production is:
 | Symfony cache on startup | Cleared in Makefile before `up` | Not cleared (or warmup only) |
 | `APP_ENV` / `APP_DEBUG` | `dev` / `1` | `prod` / `0` (or `dev` + worker for compatibility tests) |
 
-**Ports:** Each demo uses `PORT` from its `.env`. To run multiple demos at once, set a different `PORT` per demo (e.g. 8007 for symfony7, 8008 for symfony8) as per the bundle standard protocol.
+**Ports:** The demo uses `PORT` from its `.env` (default for Symfony 8: see `.env.example`, typically 8002 / 8008 depending on local overrides).
 
 ---
 
@@ -109,7 +109,7 @@ Each demo's **docker-compose.yml** passes `FRANKENPHP_MODE=${FRANKENPHP_MODE:-wo
 
 ### 5. Start the demo (development)
 
-From the bundle root: `make -C demo/symfony8 up` (or symfony7). Or from the demo directory: `make up`.
+From the bundle root: `make -C demo/symfony8 up`. Or from the demo directory: `make up`.
 
 ---
 

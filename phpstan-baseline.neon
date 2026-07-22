@@ -769,49 +769,49 @@ parameters:
 			path: tests/Integration/Service/DatabaseExportServiceTest.php
 
 		-
-			message: '#^Class Psr\\Container\\ContainerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:1447 does not have a constructor and must be instantiated without any parameters\.$#'
+			message: '#^Class Psr\\Container\\ContainerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:1441 does not have a constructor and must be instantiated without any parameters\.$#'
 			identifier: new.noConstructor
 			count: 1
 			path: tests/Integration/Service/DatabaseExportServiceTest.php
 
 		-
-			message: '#^Method Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:1046\:\:exec\(\) never assigns null to &\$output so it can be removed from the by\-ref type\.$#'
+			message: '#^Method Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:1040\:\:exec\(\) never assigns null to &\$output so it can be removed from the by\-ref type\.$#'
 			identifier: parameterByRef.unusedType
 			count: 1
 			path: tests/Integration/Service/DatabaseExportServiceTest.php
 
 		-
-			message: '#^Method Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:154\:\:exec\(\) never assigns null to &\$output so it can be removed from the by\-ref type\.$#'
+			message: '#^Method Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:157\:\:exec\(\) never assigns null to &\$output so it can be removed from the by\-ref type\.$#'
 			identifier: parameterByRef.unusedType
 			count: 1
 			path: tests/Integration/Service/DatabaseExportServiceTest.php
 
 		-
-			message: '#^Method Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:774\:\:exec\(\) never assigns null to &\$output so it can be removed from the by\-ref type\.$#'
+			message: '#^Method Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:768\:\:exec\(\) never assigns null to &\$output so it can be removed from the by\-ref type\.$#'
 			identifier: parameterByRef.unusedType
 			count: 1
 			path: tests/Integration/Service/DatabaseExportServiceTest.php
 
 		-
-			message: '#^Method Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:811\:\:exec\(\) never assigns null to &\$output so it can be removed from the by\-ref type\.$#'
+			message: '#^Method Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:805\:\:exec\(\) never assigns null to &\$output so it can be removed from the by\-ref type\.$#'
 			identifier: parameterByRef.unusedType
 			count: 1
 			path: tests/Integration/Service/DatabaseExportServiceTest.php
 
 		-
-			message: '#^Method Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:845\:\:exec\(\) never assigns null to &\$output so it can be removed from the by\-ref type\.$#'
+			message: '#^Method Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:839\:\:exec\(\) never assigns null to &\$output so it can be removed from the by\-ref type\.$#'
 			identifier: parameterByRef.unusedType
 			count: 1
 			path: tests/Integration/Service/DatabaseExportServiceTest.php
 
 		-
-			message: '#^Method Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:87\:\:exec\(\) never assigns null to &\$output so it can be removed from the by\-ref type\.$#'
+			message: '#^Method Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:878\:\:exec\(\) never assigns null to &\$output so it can be removed from the by\-ref type\.$#'
 			identifier: parameterByRef.unusedType
 			count: 1
 			path: tests/Integration/Service/DatabaseExportServiceTest.php
 
 		-
-			message: '#^Method Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:884\:\:exec\(\) never assigns null to &\$output so it can be removed from the by\-ref type\.$#'
+			message: '#^Method Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:90\:\:exec\(\) never assigns null to &\$output so it can be removed from the by\-ref type\.$#'
 			identifier: parameterByRef.unusedType
 			count: 1
 			path: tests/Integration/Service/DatabaseExportServiceTest.php
@@ -841,25 +841,25 @@ parameters:
 			path: tests/Integration/Service/DatabaseExportServiceTest.php
 
 		-
-			message: '#^Property Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:1046\:\:\$commands type has no value type specified in iterable type array\.$#'
+			message: '#^Property Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:1040\:\:\$commands type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: tests/Integration/Service/DatabaseExportServiceTest.php
 
 		-
-			message: '#^Property Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:154\:\:\$executed type has no value type specified in iterable type array\.$#'
+			message: '#^Property Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:157\:\:\$executed type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: tests/Integration/Service/DatabaseExportServiceTest.php
 
 		-
-			message: '#^Property Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:87\:\:\$executed type has no value type specified in iterable type array\.$#'
+			message: '#^Property Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:878\:\:\$commands type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: tests/Integration/Service/DatabaseExportServiceTest.php
 
 		-
-			message: '#^Property Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:884\:\:\$commands type has no value type specified in iterable type array\.$#'
+			message: '#^Property Nowo\\AnonymizeBundle\\Service\\CommandRunnerInterface@anonymous/tests/Integration/Service/DatabaseExportServiceTest\.php\:90\:\:\$executed type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: tests/Integration/Service/DatabaseExportServiceTest.php
@@ -1519,19 +1519,19 @@ parameters:
 			path: tests/Unit/Helper/DbalHelperTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Internal/KernelParameterBagAdapterTest\.php\:113\:\:\$container has no type specified\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Internal/KernelParameterBagAdapterTest\.php\:114\:\:\$container has no type specified\.$#'
 			identifier: missingType.property
 			count: 1
 			path: tests/Unit/Internal/KernelParameterBagAdapterTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Internal/KernelParameterBagAdapterTest\.php\:48\:\:\$container has no type specified\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Internal/KernelParameterBagAdapterTest\.php\:49\:\:\$container has no type specified\.$#'
 			identifier: missingType.property
 			count: 1
 			path: tests/Unit/Internal/KernelParameterBagAdapterTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Internal/KernelParameterBagAdapterTest\.php\:86\:\:\$container has no type specified\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Internal/KernelParameterBagAdapterTest\.php\:87\:\:\$container has no type specified\.$#'
 			identifier: missingType.property
 			count: 1
 			path: tests/Unit/Internal/KernelParameterBagAdapterTest.php
@@ -1735,169 +1735,169 @@ parameters:
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1002 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1006 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1064 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1068 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1126 has an uninitialized readonly property \$testColumn\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1130 has an uninitialized readonly property \$testColumn\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1199 has an uninitialized readonly property \$missingColumn\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1203 has an uninitialized readonly property \$missingColumn\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1266 has an uninitialized readonly property \$missingColumn\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1270 has an uninitialized readonly property \$missingColumn\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1329 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1333 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1375 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1379 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1431 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1435 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1494 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1498 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1557 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1561 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1620 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1624 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1665 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1669 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1790 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1794 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1837 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1841 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1876 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1880 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1914 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1918 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1968 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1972 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:2006 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:2010 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:222 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:226 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:290 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:294 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:363 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:367 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:469 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:473 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:536 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:540 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:603 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:607 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:750 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:754 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:813 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:817 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:875 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:879 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:937 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
+			message: '#^Class class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:941 has an uninitialized readonly property \$testProperty\. Assign it in the constructor\.$#'
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
@@ -1915,169 +1915,169 @@ parameters:
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1002\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1006\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1064\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1068\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1126\:\:\$testColumn is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1130\:\:\$testColumn is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1199\:\:\$missingColumn is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1203\:\:\$missingColumn is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1266\:\:\$missingColumn is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1270\:\:\$missingColumn is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1329\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1333\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1375\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1379\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1431\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1435\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1494\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1498\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1557\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1561\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1620\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1624\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1665\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1669\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1790\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1794\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1837\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1841\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1876\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1880\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1914\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1918\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1968\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:1972\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:2006\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:2010\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:222\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:226\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:290\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:294\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:363\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:367\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:469\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:473\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:536\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:540\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:603\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:607\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:750\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:754\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:813\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:817\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:875\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:879\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php
 
 		-
-			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:937\:\:\$testProperty is unused\.$#'
+			message: '#^Property class@anonymous/tests/Unit/Service/PreFlightCheckServiceTest\.php\:941\:\:\$testProperty is unused\.$#'
 			identifier: property.unused
 			count: 1
 			path: tests/Unit/Service/PreFlightCheckServiceTest.php

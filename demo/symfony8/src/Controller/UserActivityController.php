@@ -9,6 +9,8 @@ namespace App\Controller;
 // TODO: Add mongodb/mongodb to composer.json when MongoDB ODM support is added
 use DateTime;
 use Exception;
+use MongoDB\BSON\ObjectId;
+use MongoDB\BSON\UTCDateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -157,7 +159,7 @@ class UserActivityController extends AbstractController
                     'userName'  => $request->request->get('userName', ''),
                     'ipAddress' => $request->request->get('ipAddress', ''),
                     'action'    => $request->request->get('action', ''),
-                    'timestamp' => new \MongoDB\BSON\UTCDateTime(new DateTime($request->request->get('timestamp', 'now'))),
+                    'timestamp' => new UTCDateTime(new DateTime($request->request->get('timestamp', 'now'))),
                     'metadata'  => [
                         'userAgent' => $request->request->get('userAgent', ''),
                         'sessionId' => $request->request->get('sessionId', ''),
@@ -190,7 +192,7 @@ class UserActivityController extends AbstractController
         }
 
         try {
-            $activity = $collection->findOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+            $activity = $collection->findOne(['_id' => new ObjectId($id)]);
 
             if (!$activity) {
                 throw $this->createNotFoundException('User activity not found');
@@ -215,7 +217,7 @@ class UserActivityController extends AbstractController
         }
 
         try {
-            $activity = $collection->findOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+            $activity = $collection->findOne(['_id' => new ObjectId($id)]);
 
             if (!$activity) {
                 throw $this->createNotFoundException('User activity not found');
@@ -227,7 +229,7 @@ class UserActivityController extends AbstractController
                     'userName'  => $request->request->get('userName', ''),
                     'ipAddress' => $request->request->get('ipAddress', ''),
                     'action'    => $request->request->get('action', ''),
-                    'timestamp' => new \MongoDB\BSON\UTCDateTime(new DateTime($request->request->get('timestamp', 'now'))),
+                    'timestamp' => new UTCDateTime(new DateTime($request->request->get('timestamp', 'now'))),
                     'metadata'  => [
                         'userAgent' => $request->request->get('userAgent', ''),
                         'sessionId' => $request->request->get('sessionId', ''),
@@ -237,7 +239,7 @@ class UserActivityController extends AbstractController
                 ];
 
                 $collection->updateOne(
-                    ['_id' => new \MongoDB\BSON\ObjectId($id)],
+                    ['_id' => new ObjectId($id)],
                     ['$set' => $updateData],
                 );
 
@@ -266,7 +268,7 @@ class UserActivityController extends AbstractController
 
         if ($this->isCsrfTokenValid('delete' . $id, $request->request->get('_token'))) {
             try {
-                $result = $collection->deleteOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+                $result = $collection->deleteOne(['_id' => new ObjectId($id)]);
 
                 if ($result->getDeletedCount() > 0) {
                     $this->addFlash('success', 'User activity deleted successfully!');

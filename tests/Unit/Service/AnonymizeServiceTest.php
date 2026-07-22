@@ -4,23 +4,34 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Unit\Service;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
+use Doctrine\DBAL\Schema\Column;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\DiscriminatorColumnMapping;
+use Doctrine\ORM\Mapping\FieldMapping;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Exception;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
+use Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
+use Nowo\AnonymizeBundle\Service\AnonymizeStatistics;
 use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
+use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use RuntimeException;
 use stdClass;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 use function in_array;
 
@@ -332,7 +343,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesEmptyRecords(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -362,7 +373,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesProgressCallback(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -396,12 +407,12 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesStatistics(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
         $reflection = $this->createMock(ReflectionClass::class);
-        $statistics = new \Nowo\AnonymizeBundle\Service\AnonymizeStatistics();
+        $statistics = new AnonymizeStatistics();
 
         $em->method('getConnection')
             ->willReturn($connection);
@@ -425,7 +436,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesEntityLevelPatterns(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -456,7 +467,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesDryRunMode(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -485,7 +496,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesNonExistentProperties(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -512,7 +523,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -547,7 +558,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityReturnsPropertyStatsWhenPropertyUpdated(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -565,8 +576,8 @@ class AnonymizeServiceTest extends TestCase
         $metadata->method('hasAssociation')->willReturn(false);
         $metadata->method('getFieldNames')->willReturn(['id', 'email']);
         $metadata->method('getFieldMapping')->willReturnMap([
-            ['id', new \Doctrine\ORM\Mapping\FieldMapping('id', 'integer', 'id')],
-            ['email', new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email')],
+            ['id', new FieldMapping('id', 'integer', 'id')],
+            ['email', new FieldMapping('email', 'string', 'email')],
         ]);
         $metadata->method('getIdentifierColumnNames')->willReturn(['id']);
 
@@ -579,7 +590,7 @@ class AnonymizeServiceTest extends TestCase
 
                 return $callCount === 1 ? [$record] : [];
             });
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -613,7 +624,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesRelationshipPatterns(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -639,7 +650,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
 
@@ -664,7 +675,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityAddsDiscriminatorToQueryWhenPolymorphic(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -684,7 +695,7 @@ class AnonymizeServiceTest extends TestCase
             : ['name' => 'type'];
         $metadata->discriminatorValue = 'sms';
 
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -715,7 +726,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesEntityLevelExcludePatterns(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -733,7 +744,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
 
@@ -753,7 +764,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesEntityLevelMultipleExcludeConfigs(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -771,7 +782,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'role' => 'admin', 'status' => 'active']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
 
@@ -795,7 +806,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesEntityLevelExcludePatternsArrayValue(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -813,7 +824,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'user@nowo.tech']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
 
@@ -834,7 +845,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesPropertyIncludePatterns(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -855,7 +866,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email');
+        $fieldMapping = new FieldMapping('email', 'string', 'email');
         $metadata->method('getFieldMapping')
             ->with('email')
             ->willReturn($fieldMapping);
@@ -866,7 +877,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 50, 'email' => 'test@example.com']]); // ID doesn't match pattern
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -900,7 +911,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesPropertyExcludePatterns(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -921,7 +932,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email');
+        $fieldMapping = new FieldMapping('email', 'string', 'email');
         $metadata->method('getFieldMapping')
             ->with('email')
             ->willReturn($fieldMapping);
@@ -932,7 +943,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com', 'status' => 'deleted']]); // Status matches exclude pattern
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -966,14 +977,14 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesAnonymizableTrait(): void
     {
         $em            = $this->createMock(EntityManagerInterface::class);
-        $connection    = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $schemaManager = $this->createMock(\Doctrine\DBAL\Schema\AbstractSchemaManager::class);
+        $connection    = $this->createMock(Connection::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
         $metadata      = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
         $testEntity = new class {
-            use \Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
+            use AnonymizableTrait;
 
             #[AnonymizeProperty(type: 'email')]
             public string $email = 'test@example.com';
@@ -990,7 +1001,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email');
+        $fieldMapping = new FieldMapping('email', 'string', 'email');
         $metadata->method('getFieldMapping')
             ->with('email')
             ->willReturn($fieldMapping);
@@ -1007,14 +1018,14 @@ class AnonymizeServiceTest extends TestCase
             ->with(['test_table'])
             ->willReturn(true);
 
-        $column = $this->createMock(\Doctrine\DBAL\Schema\Column::class);
+        $column = $this->createMock(Column::class);
         $column->method('getName')
             ->willReturn('anonymized');
         $schemaManager->method('listTableColumns')
             ->with('test_table')
             ->willReturn(['anonymized' => $column]);
 
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -1047,14 +1058,14 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesAnonymizableTraitWithoutColumn(): void
     {
         $em            = $this->createMock(EntityManagerInterface::class);
-        $connection    = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $schemaManager = $this->createMock(\Doctrine\DBAL\Schema\AbstractSchemaManager::class);
+        $connection    = $this->createMock(Connection::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
         $metadata      = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
 
         $testEntity = new class {
-            use \Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
+            use AnonymizableTrait;
 
             #[AnonymizeProperty(type: 'email')]
             public string $email = 'test@example.com';
@@ -1071,7 +1082,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email');
+        $fieldMapping = new FieldMapping('email', 'string', 'email');
         $metadata->method('getFieldMapping')
             ->with('email')
             ->willReturn($fieldMapping);
@@ -1088,14 +1099,14 @@ class AnonymizeServiceTest extends TestCase
             ->with(['test_table'])
             ->willReturn(true);
 
-        $column = $this->createMock(\Doctrine\DBAL\Schema\Column::class);
+        $column = $this->createMock(Column::class);
         $column->method('getName')
             ->willReturn('other_column');
         $schemaManager->method('listTableColumns')
             ->with('test_table')
             ->willReturn(['other_column' => $column]);
 
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -1128,8 +1139,8 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesEventDispatcherSkipAnonymization(): void
     {
         $em              = $this->createMock(EntityManagerInterface::class);
-        $connection      = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $eventDispatcher = $this->createMock(\Symfony\Contracts\EventDispatcher\EventDispatcherInterface::class);
+        $connection      = $this->createMock(Connection::class);
+        $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $metadata        = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -1155,7 +1166,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email');
+        $fieldMapping = new FieldMapping('email', 'string', 'email');
         $metadata->method('getFieldMapping')
             ->with('email')
             ->willReturn($fieldMapping);
@@ -1166,7 +1177,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -1177,7 +1188,7 @@ class AnonymizeServiceTest extends TestCase
         // Mock event to skip anonymization
         $eventDispatcher->method('dispatch')
             ->willReturnCallback(static function ($event) {
-                if ($event instanceof \Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent) {
+                if ($event instanceof AnonymizePropertyEvent) {
                     $event->setSkipAnonymization(true);
                 }
 
@@ -1210,8 +1221,8 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesEventDispatcherModifiedValue(): void
     {
         $em              = $this->createMock(EntityManagerInterface::class);
-        $connection      = $this->createMock(\Doctrine\DBAL\Connection::class);
-        $eventDispatcher = $this->createMock(\Symfony\Contracts\EventDispatcher\EventDispatcherInterface::class);
+        $connection      = $this->createMock(Connection::class);
+        $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $metadata        = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -1237,7 +1248,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email');
+        $fieldMapping = new FieldMapping('email', 'string', 'email');
         $metadata->method('getFieldMapping')
             ->with('email')
             ->willReturn($fieldMapping);
@@ -1248,7 +1259,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -1259,7 +1270,7 @@ class AnonymizeServiceTest extends TestCase
         // Mock event to modify anonymized value
         $eventDispatcher->method('dispatch')
             ->willReturnCallback(static function ($event) {
-                if ($event instanceof \Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent) {
+                if ($event instanceof AnonymizePropertyEvent) {
                     $event->setAnonymizedValue('modified@example.com');
                 }
 
@@ -1291,7 +1302,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesIntegerFieldType(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -1312,7 +1323,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('age', 'integer', 'age');
+        $fieldMapping = new FieldMapping('age', 'integer', 'age');
         $metadata->method('getFieldMapping')
             ->with('age')
             ->willReturn($fieldMapping);
@@ -1323,7 +1334,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'age' => '25']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -1356,7 +1367,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesFloatFieldType(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -1377,7 +1388,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('price', 'float', 'price');
+        $fieldMapping = new FieldMapping('price', 'float', 'price');
         $metadata->method('getFieldMapping')
             ->with('price')
             ->willReturn($fieldMapping);
@@ -1388,7 +1399,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'price' => '99.99']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -1421,7 +1432,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesBooleanFieldType(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -1442,7 +1453,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('active', 'boolean', 'active');
+        $fieldMapping = new FieldMapping('active', 'boolean', 'active');
         $metadata->method('getFieldMapping')
             ->with('active')
             ->willReturn($fieldMapping);
@@ -1453,7 +1464,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'active' => '1']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -1486,7 +1497,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesNullValues(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -1507,7 +1518,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email');
+        $fieldMapping = new FieldMapping('email', 'string', 'email');
         $metadata->method('getFieldMapping')
             ->with('email')
             ->willReturn($fieldMapping);
@@ -1519,7 +1530,7 @@ class AnonymizeServiceTest extends TestCase
         // Record with null email - should still anonymize
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => null]]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -1559,7 +1570,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesBooleanTrueValue(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -1580,7 +1591,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('active', 'boolean', 'active');
+        $fieldMapping = new FieldMapping('active', 'boolean', 'active');
         $metadata->method('getFieldMapping')
             ->with('active')
             ->willReturn($fieldMapping);
@@ -1591,7 +1602,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'active' => '0']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -1624,7 +1635,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesBooleanFalseValue(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -1645,7 +1656,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('active', 'boolean', 'active');
+        $fieldMapping = new FieldMapping('active', 'boolean', 'active');
         $metadata->method('getFieldMapping')
             ->with('active')
             ->willReturn($fieldMapping);
@@ -1656,7 +1667,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'active' => '1']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -1689,7 +1700,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesDifferentIntegerTypes(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -1710,7 +1721,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('count', 'smallint', 'count');
+        $fieldMapping = new FieldMapping('count', 'smallint', 'count');
         $metadata->method('getFieldMapping')
             ->with('count')
             ->willReturn($fieldMapping);
@@ -1721,7 +1732,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'count' => '10']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -1754,7 +1765,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesDecimalFieldType(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -1775,7 +1786,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('amount', 'decimal', 'amount');
+        $fieldMapping = new FieldMapping('amount', 'decimal', 'amount');
         $metadata->method('getFieldMapping')
             ->with('amount')
             ->willReturn($fieldMapping);
@@ -1786,7 +1797,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'amount' => '50.50']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -1819,7 +1830,7 @@ class AnonymizeServiceTest extends TestCase
     public function testBuildQueryWithRelationshipsHandlesNonExistentAssociations(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -1841,7 +1852,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata->method('hasAssociation')
             ->with('nonexistent')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email');
+        $fieldMapping = new FieldMapping('email', 'string', 'email');
         $metadata->method('getFieldMapping')
             ->with('email')
             ->willReturn($fieldMapping);
@@ -1850,7 +1861,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata->method('getIdentifierColumnNames')
             ->willReturn(['id']);
 
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('fetchAllAssociative')
@@ -1887,7 +1898,7 @@ class AnonymizeServiceTest extends TestCase
     public function testBuildQueryWithRelationshipsHandlesDuplicatePatternFields(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -1911,7 +1922,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata->method('getIdentifierColumnNames')
             ->willReturn(['id']);
 
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('fetchAllAssociative')
@@ -1941,7 +1952,7 @@ class AnonymizeServiceTest extends TestCase
     public function testConvertValueHandlesDifferentFieldTypes(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -1962,7 +1973,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('count', 'integer', 'count');
+        $fieldMapping = new FieldMapping('count', 'integer', 'count');
         $metadata->method('getFieldMapping')
             ->with('count')
             ->willReturn($fieldMapping);
@@ -1973,7 +1984,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'count' => '10']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -2006,7 +2017,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesNullableOption(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -2027,7 +2038,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email');
+        $fieldMapping = new FieldMapping('email', 'string', 'email');
         $metadata->method('getFieldMapping')
             ->with('email')
             ->willReturn($fieldMapping);
@@ -2038,7 +2049,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -2093,7 +2104,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityHandlesNullableOptionZeroProbability(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -2114,7 +2125,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email');
+        $fieldMapping = new FieldMapping('email', 'string', 'email');
         $metadata->method('getFieldMapping')
             ->with('email')
             ->willReturn($fieldMapping);
@@ -2125,7 +2136,7 @@ class AnonymizeServiceTest extends TestCase
 
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'test@example.com']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -2187,7 +2198,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityPreservesNullValues(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -2208,7 +2219,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email');
+        $fieldMapping = new FieldMapping('email', 'string', 'email');
         $metadata->method('getFieldMapping')
             ->with('email')
             ->willReturn($fieldMapping);
@@ -2220,7 +2231,7 @@ class AnonymizeServiceTest extends TestCase
         // Record with null email - should NOT be anonymized when preserve_null is true
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => null]]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -2268,7 +2279,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityAnonymizesNonNullValuesWithPreserveNull(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -2289,7 +2300,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email');
+        $fieldMapping = new FieldMapping('email', 'string', 'email');
         $metadata->method('getFieldMapping')
             ->with('email')
             ->willReturn($fieldMapping);
@@ -2301,7 +2312,7 @@ class AnonymizeServiceTest extends TestCase
         // Record with non-null email - should be anonymized even when preserve_null is true
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'email' => 'original@example.com']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -2341,7 +2352,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityBypassesEntityExclusion(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -2365,7 +2376,7 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(true);
         $metadata->method('hasAssociation')
             ->willReturn(false);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('sensitiveNotes', 'text', 'sensitive_notes');
+        $fieldMapping = new FieldMapping('sensitiveNotes', 'text', 'sensitive_notes');
         $metadata->method('getFieldMapping')
             ->with('sensitiveNotes')
             ->willReturn($fieldMapping);
@@ -2377,7 +2388,7 @@ class AnonymizeServiceTest extends TestCase
         // Record that matches entity exclusion pattern (will be excluded)
         $connection->method('fetchAllAssociative')
             ->willReturn([['id' => 1, 'sensitive_notes' => 'Sensitive data', 'role' => 'admin']]);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -2429,7 +2440,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityDelegatesToAnonymizeServiceWhenSet(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -2448,7 +2459,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata->method('getFieldNames')
             ->willReturn([]);
 
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -2502,7 +2513,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityDelegatesToAnonymizeServiceDryRun(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -2552,7 +2563,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityThrowsWhenAnonymizeServiceNotImplementInterface(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -2588,7 +2599,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityWithAnonymizeServiceSkipsExcludedRecord(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -2632,7 +2643,7 @@ class AnonymizeServiceTest extends TestCase
     public function testAnonymizeEntityUsesAnonymizeBatchWhenSupportsBatch(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -2644,7 +2655,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata->method('hasAssociation')->willReturn(false);
         $metadata->method('getFieldNames')->willReturn([]);
 
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')->willReturnCallback(static fn ($val): string => "'" . str_replace("'", "''", (string) $val) . "'");
@@ -2686,7 +2697,7 @@ class AnonymizeServiceTest extends TestCase
     public function testTruncateTablesReturnsEmptyWhenNoTruncateEntities(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -2723,7 +2734,7 @@ class AnonymizeServiceTest extends TestCase
     public function testTruncateTablesTruncatesForMySQL(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -2741,12 +2752,12 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn('test_table');
 
         // Mock driver to return MySQL
-        $driver = $this->createMock(\Doctrine\DBAL\Driver::class);
+        $driver = $this->createMock(Driver::class);
         $connection->method('getDriver')
             ->willReturn($driver);
 
         // Mock platform to return MySQL platform
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $connection->method('getDatabasePlatform')
             ->willReturn($platform);
 
@@ -2784,7 +2795,7 @@ class AnonymizeServiceTest extends TestCase
     public function testTruncateTablesOrdersByTruncateOrder(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata1  = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -2806,12 +2817,12 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn('table_b');
 
         // Mock driver to return MySQL
-        $driver = $this->createMock(\Doctrine\DBAL\Driver::class);
+        $driver = $this->createMock(Driver::class);
         $connection->method('getDriver')
             ->willReturn($driver);
 
         // Mock platform to return MySQL platform
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $connection->method('getDatabasePlatform')
             ->willReturn($platform);
 
@@ -2862,7 +2873,7 @@ class AnonymizeServiceTest extends TestCase
     public function testTruncateTablesSortsByTableNameWhenSameOrder(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadataA  = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -2876,9 +2887,9 @@ class AnonymizeServiceTest extends TestCase
         $metadataA->method('getTableName')->willReturn('table_alpha');
         $metadataB->method('getTableName')->willReturn('table_beta');
 
-        $driver = $this->createMock(\Doctrine\DBAL\Driver::class);
+        $driver = $this->createMock(Driver::class);
         $connection->method('getDriver')->willReturn($driver);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
 
@@ -2920,7 +2931,7 @@ class AnonymizeServiceTest extends TestCase
     public function testTruncateTablesHandlesDryRun(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -2931,7 +2942,7 @@ class AnonymizeServiceTest extends TestCase
         $metadata->method('getTableName')
             ->willReturn('test_table');
 
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('fetchOne')
@@ -2958,7 +2969,7 @@ class AnonymizeServiceTest extends TestCase
     public function testTruncateTablesHandlesPostgreSQL(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -2970,12 +2981,12 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn('test_table');
 
         // Mock driver to return PostgreSQL
-        $driver = $this->createMock(\Doctrine\DBAL\Driver::class);
+        $driver = $this->createMock(Driver::class);
         $connection->method('getDriver')
             ->willReturn($driver);
 
         // Mock platform to return PostgreSQL platform
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\PostgreSQLPlatform::class);
+        $platform = $this->createMock(PostgreSQLPlatform::class);
         $connection->method('getDatabasePlatform')
             ->willReturn($platform);
 
@@ -3016,7 +3027,7 @@ class AnonymizeServiceTest extends TestCase
     public function testTruncateTablesHandlesSQLite(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -3028,12 +3039,12 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn('test_table');
 
         // Mock driver to return SQLite
-        $driver = $this->createMock(\Doctrine\DBAL\Driver::class);
+        $driver = $this->createMock(Driver::class);
         $connection->method('getDriver')
             ->willReturn($driver);
 
         // Mock platform to return SQLite platform (use AbstractPlatform and configure params)
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $connection->method('getDatabasePlatform')
             ->willReturn($platform);
 
@@ -3086,7 +3097,7 @@ class AnonymizeServiceTest extends TestCase
     public function testTruncateTablesHandlesUnknownDriverWithDeleteFrom(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -3094,9 +3105,9 @@ class AnonymizeServiceTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $metadata->method('getTableName')->willReturn('custom_table');
 
-        $driver = $this->createMock(\Doctrine\DBAL\Driver::class);
+        $driver = $this->createMock(Driver::class);
         $connection->method('getDriver')->willReturn($driver);
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('getParams')->willReturn(['driver' => 'pdo_oci']);
 
@@ -3132,7 +3143,7 @@ class AnonymizeServiceTest extends TestCase
     public function testTruncateTablesCallsProgressCallback(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -3144,12 +3155,12 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn('test_table');
 
         // Mock driver to return MySQL
-        $driver = $this->createMock(\Doctrine\DBAL\Driver::class);
+        $driver = $this->createMock(Driver::class);
         $connection->method('getDriver')
             ->willReturn($driver);
 
         // Mock platform to return MySQL platform
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $connection->method('getDatabasePlatform')
             ->willReturn($platform);
 
@@ -3185,7 +3196,7 @@ class AnonymizeServiceTest extends TestCase
     public function testTruncateTablesUsesDeleteByDiscriminatorWhenPolymorphic(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -3203,7 +3214,7 @@ class AnonymizeServiceTest extends TestCase
             : ['name' => 'type'];
         $metadata->discriminatorValue = 'customer';
 
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')
@@ -3242,7 +3253,7 @@ class AnonymizeServiceTest extends TestCase
     public function testTruncateTablesPolymorphicCallsProgressCallbackWithDiscriminatorMessage(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
-        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection = $this->createMock(Connection::class);
         $metadata   = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -3256,7 +3267,7 @@ class AnonymizeServiceTest extends TestCase
             : ['name' => 'type'];
         $metadata->discriminatorValue = 'customer';
 
-        $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
+        $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('quote')

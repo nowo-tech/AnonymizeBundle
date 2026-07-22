@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Service;
 
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpKernel\Kernel;
 
 use function array_slice;
 use function sprintf;
@@ -83,7 +84,7 @@ final class AnonymizationHistoryService
             'timestamp' => time(),
             'datetime'  => date('Y-m-d H:i:s'),
             'metadata'  => array_merge([
-                'environment'     => $_ENV['APP_ENV'] ?? 'unknown',
+                'environment'     => ($_SERVER['APP_ENV'] ?? getenv('APP_ENV')) ?: 'unknown',
                 'php_version'     => PHP_VERSION,
                 'symfony_version' => $this->getSymfonyVersion(),
             ], $metadata),
@@ -436,9 +437,9 @@ final class AnonymizationHistoryService
         }
         $kernelExists = $this->kernelClassExistsProvider !== null
             ? ($this->kernelClassExistsProvider)()
-            : class_exists(\Symfony\Component\HttpKernel\Kernel::class);
+            : class_exists(Kernel::class);
         if ($kernelExists) {
-            return \Symfony\Component\HttpKernel\Kernel::VERSION;
+            return Kernel::VERSION;
         }
 
         return 'unknown';

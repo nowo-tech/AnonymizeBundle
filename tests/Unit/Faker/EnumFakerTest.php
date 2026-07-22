@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Unit\Faker;
 
+use Faker\Generator;
 use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Faker\EnumFaker;
 use PHPUnit\Framework\TestCase;
@@ -234,7 +235,7 @@ class EnumFakerTest extends TestCase
         $weighted    = ['first' => 10, 'second' => 20, 'last' => 30];
         $totalWeight = 60;
 
-        $mockFaker = $this->createMock(\Faker\Generator::class);
+        $mockFaker = $this->createMock(Generator::class);
         $mockFaker->method('randomFloat')
             ->willReturn($totalWeight + 1.0);
 

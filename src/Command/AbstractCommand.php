@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Command;
 
+use Doctrine\DBAL\Connection;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 
@@ -21,12 +22,12 @@ abstract class AbstractCommand extends SymfonyCommand
      * Quotes a single identifier (table or column name) for use in SQL queries.
      * Compatible with both DBAL 2.x and 3.x.
      *
-     * @param \Doctrine\DBAL\Connection $connection The database connection
+     * @param Connection $connection The database connection
      * @param string $identifier The identifier to quote
      *
      * @return string The quoted identifier
      */
-    protected function quoteIdentifier(\Doctrine\DBAL\Connection $connection, string $identifier): string
+    protected function quoteIdentifier(Connection $connection, string $identifier): string
     {
         return DbalHelper::quoteIdentifier($connection, $identifier);
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Service;
 
+use Nowo\AnonymizeBundle\AnonymizeBundle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 use function in_array;
@@ -92,7 +93,7 @@ final readonly class EnvironmentProtectionService
         $bundlesPath = $projectDir . '/config/bundles.php';
         if (file_exists($bundlesPath)) {
             $bundles     = require $bundlesPath;
-            $bundleClass = \Nowo\AnonymizeBundle\AnonymizeBundle::class;
+            $bundleClass = AnonymizeBundle::class;
             if (isset($bundles[$bundleClass])) {
                 $allowedEnvs = $bundles[$bundleClass];
                 if (is_array($allowedEnvs) && isset($allowedEnvs['prod']) && $allowedEnvs['prod'] === true) {

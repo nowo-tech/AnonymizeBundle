@@ -8,6 +8,10 @@ use BadMethodCallException;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Platforms\SQLitePlatform;
+use Doctrine\DBAL\ServerVersionProvider;
 use Exception;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use PHPUnit\Framework\TestCase;
@@ -469,7 +473,7 @@ class DbalHelperTest extends TestCase
         $connection = $this->createMock(Connection::class);
         $connection->method('getDriver')->willReturn($driver);
         $connection->method('getDatabasePlatform')
-            ->willReturn(new \Doctrine\DBAL\Platforms\MySQLPlatform());
+            ->willReturn(new MySQLPlatform());
         $connection->method('getParams')->willReturn([]);
 
         $result = DbalHelper::getDriverName($connection);
@@ -486,7 +490,7 @@ class DbalHelperTest extends TestCase
         $connection = $this->createMock(Connection::class);
         $connection->method('getDriver')->willReturn($driver);
         $connection->method('getDatabasePlatform')
-            ->willReturn(new \Doctrine\DBAL\Platforms\PostgreSQLPlatform());
+            ->willReturn(new PostgreSQLPlatform());
         $connection->method('getParams')->willReturn([]);
 
         $result = DbalHelper::getDriverName($connection);
@@ -503,7 +507,7 @@ class DbalHelperTest extends TestCase
         $connection = $this->createMock(Connection::class);
         $connection->method('getDriver')->willReturn($driver);
         $connection->method('getDatabasePlatform')
-            ->willReturn(new \Doctrine\DBAL\Platforms\SQLitePlatform());
+            ->willReturn(new SQLitePlatform());
         $connection->method('getParams')->willReturn([]);
 
         $result = DbalHelper::getDriverName($connection);
@@ -869,7 +873,7 @@ final class DriverStubWithGetName implements Driver
         throw new BadMethodCallException('Not used in this test');
     }
 
-    public function getDatabasePlatform(\Doctrine\DBAL\ServerVersionProvider $versionProvider): AbstractPlatform
+    public function getDatabasePlatform(ServerVersionProvider $versionProvider): AbstractPlatform
     {
         throw new BadMethodCallException('Not used in this test');
     }

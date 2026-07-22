@@ -9,6 +9,7 @@ use Nowo\AnonymizeBundle\Internal\KernelParameterBagAdapter;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use stdClass;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 /**
@@ -42,7 +43,7 @@ class KernelParameterBagAdapterTest extends TestCase
         $paramBag = $this->createMock(ParameterBagInterface::class);
         $paramBag->method('get')->with('nowo_anonymize.locale')->willReturn('en_US');
 
-        $kernelContainer = $this->createMock(\Symfony\Component\DependencyInjection\Container::class);
+        $kernelContainer = $this->createMock(Container::class);
         $kernelContainer->method('getParameterBag')->willReturn($paramBag);
 
         $kernel = new class {
@@ -107,7 +108,7 @@ class KernelParameterBagAdapterTest extends TestCase
         $paramBag = $this->createMock(ParameterBagInterface::class);
         $paramBag->method('get')->with('test.param')->willReturn('value');
 
-        $kernelContainer = $this->createMock(\Symfony\Component\DependencyInjection\Container::class);
+        $kernelContainer = $this->createMock(Container::class);
         $kernelContainer->method('getParameterBag')->willReturn($paramBag);
 
         $kernel = new class {

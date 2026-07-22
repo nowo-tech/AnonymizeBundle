@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Tests\Integration\Command;
 
 use Nowo\AnonymizeBundle\Command\AnonymizationHistoryCommand;
+use Nowo\AnonymizeBundle\Service\AnonymizationHistoryService;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
@@ -198,7 +199,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testExecuteRunIdFound(): void
     {
-        $historyService = new \Nowo\AnonymizeBundle\Service\AnonymizationHistoryService($this->tempDir);
+        $historyService = new AnonymizationHistoryService($this->tempDir);
         $stats          = ['global' => ['total_processed' => 10, 'total_updated' => 8], 'entities' => []];
         $path           = $historyService->saveRun($stats, ['connection' => 'default']);
         $content        = json_decode(file_get_contents($path), true);
@@ -218,7 +219,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testExecuteRunIdWithEntityStatisticsDisplaysEntitySection(): void
     {
-        $historyService = new \Nowo\AnonymizeBundle\Service\AnonymizationHistoryService($this->tempDir);
+        $historyService = new AnonymizationHistoryService($this->tempDir);
         $stats          = [
             'global'   => ['total_entities' => 1, 'total_processed' => 10, 'total_updated' => 8, 'total_skipped' => 2, 'duration' => 1.0, 'start_time' => time(), 'end_time' => time()],
             'entities' => [
@@ -253,7 +254,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testExecuteCompareTwoRuns(): void
     {
-        $historyService = new \Nowo\AnonymizeBundle\Service\AnonymizationHistoryService($this->tempDir);
+        $historyService = new AnonymizationHistoryService($this->tempDir);
         $path1          = $historyService->saveRun(['global' => ['total_processed' => 10], 'entities' => []], []);
         $path2          = $historyService->saveRun(['global' => ['total_processed' => 20], 'entities' => []], []);
         $id1            = json_decode(file_get_contents($path1), true)['id'] ?? '';
@@ -272,7 +273,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testExecuteListsRunsWithRunsDisplaysTable(): void
     {
-        $historyService = new \Nowo\AnonymizeBundle\Service\AnonymizationHistoryService($this->tempDir);
+        $historyService = new AnonymizationHistoryService($this->tempDir);
         $historyService->saveRun(
             ['global' => ['total_entities' => 2, 'total_processed' => 100, 'total_updated' => 98, 'duration' => 1.5], 'entities' => []],
             [],
@@ -301,7 +302,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testExecuteWithLimitWhenRunsExist(): void
     {
-        $historyService = new \Nowo\AnonymizeBundle\Service\AnonymizationHistoryService($this->tempDir);
+        $historyService = new AnonymizationHistoryService($this->tempDir);
         $historyService->saveRun(['global' => ['total_processed' => 5], 'entities' => []], []);
         $historyService->saveRun(['global' => ['total_processed' => 10], 'entities' => []], []);
 
@@ -321,7 +322,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testExecuteRunIdWithJsonOutput(): void
     {
-        $historyService = new \Nowo\AnonymizeBundle\Service\AnonymizationHistoryService($this->tempDir);
+        $historyService = new AnonymizationHistoryService($this->tempDir);
         $path           = $historyService->saveRun(['global' => ['total_processed' => 10], 'entities' => []], []);
         $runId          = json_decode(file_get_contents($path), true)['id'] ?? '';
 
@@ -345,11 +346,11 @@ class AnonymizationHistoryCommandTest extends TestCase
         $envDir = sys_get_temp_dir() . '/anonymize_env_' . uniqid();
         mkdir($envDir, 0o777, true);
 
-        $backup                             = $_ENV['NOWO_ANONYMIZE_HISTORY_DIR'] ?? null;
-        $_ENV['NOWO_ANONYMIZE_HISTORY_DIR'] = $envDir;
+        $backup                                = $_SERVER['NOWO_ANONYMIZE_HISTORY_DIR'] ?? null;
+        $_SERVER['NOWO_ANONYMIZE_HISTORY_DIR'] = $envDir;
 
         try {
-            $historyService = new \Nowo\AnonymizeBundle\Service\AnonymizationHistoryService($envDir);
+            $historyService = new AnonymizationHistoryService($envDir);
             $historyService->saveRun(['global' => ['total_processed' => 3], 'entities' => []], []);
 
             $container = $this->createMock(ContainerInterface::class);
@@ -365,9 +366,9 @@ class AnonymizationHistoryCommandTest extends TestCase
             $this->assertStringContainsString('Anonymization History', $content);
         } finally {
             if ($backup !== null) {
-                $_ENV['NOWO_ANONYMIZE_HISTORY_DIR'] = $backup;
+                $_SERVER['NOWO_ANONYMIZE_HISTORY_DIR'] = $backup;
             } else {
-                unset($_ENV['NOWO_ANONYMIZE_HISTORY_DIR']);
+                unset($_SERVER['NOWO_ANONYMIZE_HISTORY_DIR']);
             }
             $this->removeDirectory($envDir);
         }
@@ -382,11 +383,11 @@ class AnonymizationHistoryCommandTest extends TestCase
         $historyDir = getcwd() . '/var/' . $suffix;
         mkdir($historyDir, 0o777, true);
 
-        $backup                             = $_ENV['NOWO_ANONYMIZE_HISTORY_DIR'] ?? null;
-        $_ENV['NOWO_ANONYMIZE_HISTORY_DIR'] = '%kernel.project_dir%/var/' . $suffix;
+        $backup                                = $_SERVER['NOWO_ANONYMIZE_HISTORY_DIR'] ?? null;
+        $_SERVER['NOWO_ANONYMIZE_HISTORY_DIR'] = '%kernel.project_dir%/var/' . $suffix;
 
         try {
-            $historyService = new \Nowo\AnonymizeBundle\Service\AnonymizationHistoryService($historyDir);
+            $historyService = new AnonymizationHistoryService($historyDir);
             $historyService->saveRun(['global' => ['total_processed' => 1], 'entities' => []], []);
 
             $container = $this->createMock(ContainerInterface::class);
@@ -402,9 +403,9 @@ class AnonymizationHistoryCommandTest extends TestCase
             $this->assertStringContainsString('Anonymization History', $content);
         } finally {
             if ($backup !== null) {
-                $_ENV['NOWO_ANONYMIZE_HISTORY_DIR'] = $backup;
+                $_SERVER['NOWO_ANONYMIZE_HISTORY_DIR'] = $backup;
             } else {
-                unset($_ENV['NOWO_ANONYMIZE_HISTORY_DIR']);
+                unset($_SERVER['NOWO_ANONYMIZE_HISTORY_DIR']);
             }
             $this->removeDirectory($historyDir);
         }
@@ -427,7 +428,7 @@ class AnonymizationHistoryCommandTest extends TestCase
         $container->setParameter('kernel.project_dir', $projectDir);
         $container->compile(false);
 
-        $historyService = new \Nowo\AnonymizeBundle\Service\AnonymizationHistoryService($historySubDir);
+        $historyService = new AnonymizationHistoryService($historySubDir);
         $historyService->saveRun(['global' => ['total_processed' => 7], 'entities' => []], []);
 
         $command = new AnonymizationHistoryCommand($container);
@@ -495,7 +496,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testDisplayRunShowsNASuccessRateWhenProcessedZero(): void
     {
-        $historyService = new \Nowo\AnonymizeBundle\Service\AnonymizationHistoryService($this->tempDir);
+        $historyService = new AnonymizationHistoryService($this->tempDir);
         $stats          = [
             'global'   => ['total_processed' => 0, 'duration' => 0],
             'entities' => [
@@ -529,7 +530,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testExecuteCompareWithEntitiesDisplaysEntityComparisonSection(): void
     {
-        $historyService = new \Nowo\AnonymizeBundle\Service\AnonymizationHistoryService($this->tempDir);
+        $historyService = new AnonymizationHistoryService($this->tempDir);
         $entities1      = [
             'App\Entity\User@default' => [
                 'entity'     => 'App\Entity\User',
@@ -574,11 +575,11 @@ class AnonymizationHistoryCommandTest extends TestCase
         $envDir = sys_get_temp_dir() . '/anonymize_throw_' . uniqid();
         mkdir($envDir, 0o777, true);
 
-        $backup                             = $_ENV['NOWO_ANONYMIZE_HISTORY_DIR'] ?? null;
-        $_ENV['NOWO_ANONYMIZE_HISTORY_DIR'] = $envDir;
+        $backup                                = $_SERVER['NOWO_ANONYMIZE_HISTORY_DIR'] ?? null;
+        $_SERVER['NOWO_ANONYMIZE_HISTORY_DIR'] = $envDir;
 
         try {
-            $historyService = new \Nowo\AnonymizeBundle\Service\AnonymizationHistoryService($envDir);
+            $historyService = new AnonymizationHistoryService($envDir);
             $historyService->saveRun(['global' => ['total_processed' => 1], 'entities' => []], []);
 
             $container = $this->createMock(ContainerInterface::class);
@@ -596,9 +597,9 @@ class AnonymizationHistoryCommandTest extends TestCase
             $this->assertStringContainsString('Anonymization History', $content);
         } finally {
             if ($backup !== null) {
-                $_ENV['NOWO_ANONYMIZE_HISTORY_DIR'] = $backup;
+                $_SERVER['NOWO_ANONYMIZE_HISTORY_DIR'] = $backup;
             } else {
-                unset($_ENV['NOWO_ANONYMIZE_HISTORY_DIR']);
+                unset($_SERVER['NOWO_ANONYMIZE_HISTORY_DIR']);
             }
             $this->removeDirectory($envDir);
         }

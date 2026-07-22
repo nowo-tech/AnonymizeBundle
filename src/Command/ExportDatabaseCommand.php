@@ -6,6 +6,7 @@ namespace Nowo\AnonymizeBundle\Command;
 
 use Exception;
 use Nowo\AnonymizeBundle\Enum\SymfonyService;
+use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Internal\KernelParameterBagAdapter;
 use Nowo\AnonymizeBundle\Service\DatabaseExportService;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
@@ -161,8 +162,8 @@ final class ExportDatabaseCommand extends AbstractCommand
         $doctrine    = $this->container->get(SymfonyService::DOCTRINE);
         $allManagers = $doctrine->getManagerNames();
 
-        // Check for MongoDB connection from environment
-        $mongodbUrl         = $_ENV['MONGODB_URL'] ?? getenv('MONGODB_URL');
+        // Check for MongoDB connection from environment ($_SERVER is reset per FrankenPHP worker request; avoid $_ENV)
+        $mongodbUrl         = ($_SERVER['MONGODB_URL'] ?? getenv('MONGODB_URL')) ?: null;
         $hasMongoRequested  = !empty($connections) && in_array('mongodb', $connections, true);
         $shouldIncludeMongo = (empty($connections) && $mongodbUrl) || $hasMongoRequested;
 
@@ -218,7 +219,7 @@ final class ExportDatabaseCommand extends AbstractCommand
                     $io->writeln(sprintf('Exporting <info>%s</info> (mongodb)...', $managerName));
 
                     // Try to get MongoDB connection info from environment
-                    $mongodbUrl = $_ENV['MONGODB_URL'] ?? getenv('MONGODB_URL');
+                    $mongodbUrl = ($_SERVER['MONGODB_URL'] ?? getenv('MONGODB_URL')) ?: null;
 
                     if ($mongodbUrl) {
                         // Parse MongoDB URL
@@ -249,7 +250,7 @@ final class ExportDatabaseCommand extends AbstractCommand
                     // Handle ORM connections (MySQL, PostgreSQL, SQLite)
                     $em         = $doctrine->getManager($managerName);
                     $connection = $em->getConnection();
-                    $driver     = \Nowo\AnonymizeBundle\Helper\DbalHelper::getDriverName($connection);
+                    $driver     = DbalHelper::getDriverName($connection);
                     $database   = $connection->getDatabase();
 
                     $io->writeln(sprintf('Exporting <info>%s</info> (%s)...', $managerName, $driver));

@@ -7,6 +7,7 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\DependencyInjection;
 use Nowo\AnonymizeBundle\DependencyInjection\Configuration;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 
 /**
@@ -168,7 +169,7 @@ class ConfigurationTest extends TestCase
      */
     public function testExportCompressionInvalidValueThrows(): void
     {
-        $this->expectException(\Symfony\Component\Config\Definition\Exception\InvalidConfigurationException::class);
+        $this->expectException(InvalidConfigurationException::class);
 
         $this->processConfiguration([['export' => ['compression' => 'invalid']]]);
     }

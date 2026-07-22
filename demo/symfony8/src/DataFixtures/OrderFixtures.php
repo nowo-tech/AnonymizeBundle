@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\DataFixtures;
 
 use App\Entity\Order;
+use App\Entity\Type;
 use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -49,7 +50,7 @@ class OrderFixtures extends Fixture implements DependentFixtureInterface
             // Set type relationship if reference exists
             if (isset($orderData['type'])) {
                 try {
-                    $order->setType($this->getReference('type_' . $orderData['type'], \App\Entity\Type::class));
+                    $order->setType($this->getReference('type_' . $orderData['type'], Type::class));
                 } catch (OutOfBoundsException $e) {
                     // Reference doesn't exist, skip setting type
                 }

@@ -6,6 +6,8 @@ namespace App\Controller;
 
 use DateTime;
 use Exception;
+use MongoDB\BSON\ObjectId;
+use MongoDB\BSON\UTCDateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -119,7 +121,7 @@ class CustomerProfileController extends AbstractController
                     'website'    => $request->request->get('website', ''),
                     'age'        => (int) $request->request->get('age', 0),
                     'status'     => $request->request->get('status', 'active'),
-                    'createdAt'  => new \MongoDB\BSON\UTCDateTime(new DateTime($request->request->get('createdAt', 'now'))),
+                    'createdAt'  => new UTCDateTime(new DateTime($request->request->get('createdAt', 'now'))),
                     'anonymized' => false,
                 ];
                 $collection->insertOne($data);
@@ -147,7 +149,7 @@ class CustomerProfileController extends AbstractController
         }
 
         try {
-            $profile = $collection->findOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+            $profile = $collection->findOne(['_id' => new ObjectId($id)]);
             if (!$profile) {
                 throw $this->createNotFoundException('Customer profile not found');
             }
@@ -175,7 +177,7 @@ class CustomerProfileController extends AbstractController
         }
 
         try {
-            $profile = $collection->findOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+            $profile = $collection->findOne(['_id' => new ObjectId($id)]);
             if (!$profile) {
                 throw $this->createNotFoundException('Customer profile not found');
             }
@@ -199,10 +201,10 @@ class CustomerProfileController extends AbstractController
                         'website'   => $request->request->get('website', ''),
                         'age'       => (int) $request->request->get('age', 0),
                         'status'    => $request->request->get('status', 'active'),
-                        'createdAt' => new \MongoDB\BSON\UTCDateTime(new DateTime($request->request->get('createdAt', 'now'))),
+                        'createdAt' => new UTCDateTime(new DateTime($request->request->get('createdAt', 'now'))),
                     ],
                 ];
-                $collection->updateOne(['_id' => new \MongoDB\BSON\ObjectId($id)], $updateData);
+                $collection->updateOne(['_id' => new ObjectId($id)], $updateData);
                 $this->addFlash('success', 'Customer profile updated successfully!');
 
                 return $this->redirectToRoute('mongodb_customer_profile_index');
@@ -229,7 +231,7 @@ class CustomerProfileController extends AbstractController
 
         if ($this->isCsrfTokenValid('delete' . $id, $request->request->get('_token'))) {
             try {
-                $collection->deleteOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+                $collection->deleteOne(['_id' => new ObjectId($id)]);
                 $this->addFlash('success', 'Customer profile deleted successfully!');
             } catch (Exception $e) {
                 $this->addFlash('error', 'Error deleting profile: ' . $e->getMessage());

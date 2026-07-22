@@ -5,15 +5,19 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Tests\Unit\Service;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\FieldMapping;
 use Exception;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
+use Nowo\AnonymizeBundle\Enum\FakerType;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Faker\FakerFactoryInterface;
+use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -50,7 +54,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -66,7 +70,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn(true);
         // getFieldMapping returns FieldMapping which implements ArrayAccess
         // Create a real FieldMapping instance with the columnName property
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -136,7 +140,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -186,7 +190,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -202,7 +206,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn(true);
         // getFieldMapping returns FieldMapping which implements ArrayAccess
         // Create a real FieldMapping instance with the columnName property
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -254,7 +258,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -270,7 +274,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn(true);
         // getFieldMapping returns FieldMapping which implements ArrayAccess
         // Create a real FieldMapping instance with the columnName property
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -314,7 +318,7 @@ class PreFlightCheckServiceTest extends TestCase
     public function testFakerFactoryCreateExceptionIsReported(): void
     {
         $fakerFactory = new class implements FakerFactoryInterface {
-            public function create(\Nowo\AnonymizeBundle\Enum\FakerType|string $type, ?string $serviceName = null): \Nowo\AnonymizeBundle\Faker\FakerInterface
+            public function create(FakerType|string $type, ?string $serviceName = null): FakerInterface
             {
                 throw new Exception('Faker creation failed');
             }
@@ -330,7 +334,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -344,7 +348,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -395,7 +399,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
@@ -436,7 +440,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -450,7 +454,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('missing_column', 'string', 'missing_column');
+        $fieldMapping = new FieldMapping('missing_column', 'string', 'missing_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -501,7 +505,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -517,7 +521,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn(true);
         // getFieldMapping returns FieldMapping which implements ArrayAccess
         // Create a real FieldMapping instance with the columnName property
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -568,7 +572,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -584,7 +588,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn(true);
         // getFieldMapping returns FieldMapping which implements ArrayAccess
         // Create a real FieldMapping instance with the columnName property
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -634,7 +638,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
@@ -675,7 +679,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -724,7 +728,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -738,7 +742,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -782,7 +786,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -796,7 +800,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -844,7 +848,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -858,7 +862,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -906,7 +910,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -920,7 +924,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -971,7 +975,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -985,7 +989,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -1033,7 +1037,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -1047,7 +1051,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -1095,7 +1099,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -1109,7 +1113,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('testColumn', 'string', 'testColumn');
+        $fieldMapping = new FieldMapping('testColumn', 'string', 'testColumn');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -1158,7 +1162,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -1172,7 +1176,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('missing_column', 'string', 'missing_column');
+        $fieldMapping = new FieldMapping('missing_column', 'string', 'missing_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -1231,7 +1235,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -1245,7 +1249,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('missing_column', 'string', 'missing_column');
+        $fieldMapping = new FieldMapping('missing_column', 'string', 'missing_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -1298,7 +1302,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -1312,7 +1316,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -1357,7 +1361,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')->willReturn($connection);
-        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
         $connection->method('createSchemaManager')->willReturn($schemaManager);
 
         $metadata                     = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
@@ -1365,7 +1369,7 @@ class PreFlightCheckServiceTest extends TestCase
         $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')->willReturn('test_table');
         $metadata->method('hasField')->willReturn(true);
-        $metadata->method('getFieldMapping')->willReturn(new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column'));
+        $metadata->method('getFieldMapping')->willReturn(new FieldMapping('test_column', 'string', 'test_column'));
 
         $schemaManager->method('tablesExist')->willReturn(true);
         $column = $this->createMock(Column::class);
@@ -1400,7 +1404,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -1414,7 +1418,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -1463,7 +1467,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -1477,7 +1481,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -1526,7 +1530,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -1540,7 +1544,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -1589,7 +1593,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -1603,7 +1607,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -1648,7 +1652,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')->willReturn($connection);
-        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
         $connection->method('createSchemaManager')->willReturn($schemaManager);
 
         $metadata                     = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
@@ -1656,7 +1660,7 @@ class PreFlightCheckServiceTest extends TestCase
         $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')->willReturn('test_table');
         $metadata->method('hasField')->willReturn(true);
-        $metadata->method('getFieldMapping')->willReturn(new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column'));
+        $metadata->method('getFieldMapping')->willReturn(new FieldMapping('test_column', 'string', 'test_column'));
         $schemaManager->method('tablesExist')->willReturn(true);
         $column = $this->createMock(Column::class);
         $column->method('getName')->willReturn('test_column');
@@ -1687,7 +1691,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
@@ -1726,7 +1730,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $metadata = $this->getMockBuilder(ClassMetadata::class)
             ->disableOriginalConstructor()
@@ -1766,7 +1770,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $connection->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $connection->method('createSchemaManager')
             ->willReturn($schemaManager);
@@ -1780,7 +1784,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->willReturn('test_table');
         $metadata->method('hasField')
             ->willReturn(true);
-        $fieldMapping = new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column');
+        $fieldMapping = new FieldMapping('test_column', 'string', 'test_column');
         $metadata->method('getFieldMapping')
             ->willReturn($fieldMapping);
 
@@ -1819,7 +1823,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')->willReturn($connection);
-        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
         $connection->method('createSchemaManager')->willReturn($schemaManager);
 
         $metadata                     = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
@@ -1827,7 +1831,7 @@ class PreFlightCheckServiceTest extends TestCase
         $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')->willReturn('test_table');
         $metadata->method('hasField')->willReturn(true);
-        $metadata->method('getFieldMapping')->willReturn(new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column'));
+        $metadata->method('getFieldMapping')->willReturn(new FieldMapping('test_column', 'string', 'test_column'));
 
         $schemaManager->method('tablesExist')->willReturn(true);
         $column = $this->createMock(Column::class);
@@ -1858,7 +1862,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')->willReturn($connection);
-        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
         $connection->method('createSchemaManager')->willReturn($schemaManager);
 
         $metadata                     = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
@@ -1866,7 +1870,7 @@ class PreFlightCheckServiceTest extends TestCase
         $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')->willReturn('test_table');
         $metadata->method('hasField')->willReturn(true);
-        $metadata->method('getFieldMapping')->willReturn(new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column'));
+        $metadata->method('getFieldMapping')->willReturn(new FieldMapping('test_column', 'string', 'test_column'));
 
         $schemaManager->method('tablesExist')->willReturn(true);
         $column = $this->createMock(Column::class);
@@ -1896,7 +1900,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')->willReturn($connection);
-        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
         $connection->method('createSchemaManager')->willReturn($schemaManager);
 
         $metadata                     = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
@@ -1904,7 +1908,7 @@ class PreFlightCheckServiceTest extends TestCase
         $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')->willReturn('test_table');
         $metadata->method('hasField')->willReturn(true);
-        $metadata->method('getFieldMapping')->willReturn(new \Doctrine\ORM\Mapping\FieldMapping('col', 'string', 'col'));
+        $metadata->method('getFieldMapping')->willReturn(new FieldMapping('col', 'string', 'col'));
 
         $schemaManager->method('tablesExist')->willReturn(true);
         $column = $this->createMock(Column::class);
@@ -1951,7 +1955,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')->willReturn($connection);
-        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
         $connection->method('createSchemaManager')->willReturn($schemaManager);
 
         $metadata                     = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
@@ -1959,7 +1963,7 @@ class PreFlightCheckServiceTest extends TestCase
         $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')->willReturn('test_table');
         $metadata->method('hasField')->willReturn(true);
-        $metadata->method('getFieldMapping')->willReturn(new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column'));
+        $metadata->method('getFieldMapping')->willReturn(new FieldMapping('test_column', 'string', 'test_column'));
         $schemaManager->method('tablesExist')->willReturn(true);
         $column = $this->createMock(Column::class);
         $column->method('getName')->willReturn('test_column');
@@ -1990,7 +1994,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
 
         $em->method('getConnection')->willReturn($connection);
-        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
         $connection->method('createSchemaManager')->willReturn($schemaManager);
 
         $metadata                     = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
@@ -1998,7 +2002,7 @@ class PreFlightCheckServiceTest extends TestCase
         $metadata->isEmbeddedClass    = false;
         $metadata->method('getTableName')->willReturn('test_table');
         $metadata->method('hasField')->willReturn(true);
-        $metadata->method('getFieldMapping')->willReturn(new \Doctrine\ORM\Mapping\FieldMapping('test_column', 'string', 'test_column'));
+        $metadata->method('getFieldMapping')->willReturn(new FieldMapping('test_column', 'string', 'test_column'));
 
         $schemaManager->method('tablesExist')->with(['test_table'])->willReturn(true);
         $schemaManager->method('listTableColumns')->with('test_table')->willThrowException(new Exception('Schema not available'));

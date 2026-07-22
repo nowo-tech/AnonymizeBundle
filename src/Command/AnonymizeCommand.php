@@ -12,6 +12,7 @@ use Nowo\AnonymizeBundle\Event\AfterAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Internal\KernelParameterBagAdapter;
+use Nowo\AnonymizeBundle\Service\AnonymizationHistoryService;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\AnonymizeStatistics;
 use Nowo\AnonymizeBundle\Service\AnonymizeStatisticsDisplay;
@@ -359,7 +360,7 @@ final class AnonymizeCommand extends AbstractCommand
                 }
             }
 
-            $historyService = new \Nowo\AnonymizeBundle\Service\AnonymizationHistoryService($historyDir);
+            $historyService = new AnonymizationHistoryService($historyDir);
             $metadata       = [
                 'command'     => 'nowo:anonymize:run',
                 'connections' => $connections,

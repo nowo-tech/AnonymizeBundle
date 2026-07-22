@@ -24,6 +24,29 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.29
+
+**Release Date**: 2026-07-22
+
+#### What's New
+
+- **Demos**: removed `demo/symfony7`; `demo/symfony8` remains. Bundle compatibility with Symfony 7.x is unchanged.
+- **PHPStan (maintainers)**: optional FrankenPHP rules via `nowo-tech/phpstan-frankenphp`.
+- **Export**: `MONGODB_URL` resolved via `$_SERVER` / `getenv()` for FrankenPHP worker compatibility.
+
+#### Breaking Changes
+
+None for Composer integrators. If you relied on the **Symfony 7 demo** in this repository, use `demo/symfony8` instead.
+
+#### Migration Steps
+
+1. **Update the bundle** (if you use Composer):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **(Optional)** If you cloned repository demos, use `demo/symfony8`; `demo/symfony7` no longer exists.
+
 ### Upgrading to 1.0.28
 
 **Release Date**: 2026-07-22
@@ -387,7 +410,7 @@ None. No public bundle API changes.
    composer update nowo-tech/anonymize-bundle
    ```
 
-2. **Clone / demo users**: Pull latest `composer.lock` under `demo/symfony7|8` or run `composer update nowo-tech/twig-inspector-bundle` inside each demo if you maintain a fork.
+2. **Clone / demo users**: Pull latest `composer.lock` under `demo/symfony8` or run `composer update nowo-tech/twig-inspector-bundle` inside the demo if you maintain a fork.
 
 3. **Optional**: Recreate demo containers after pulling (`make down && make up` in each demo) so Compose picks up the new port layout.
 
@@ -426,7 +449,7 @@ None. There are no public API or configuration changes; all refactors are intern
 
 #### What's New
 
-- **Pre-release checks**: The main project Makefile has a `release-check` target that runs code style, tests with coverage, and demo healthchecks. Useful before creating a new tag. Demo Makefiles (symfony7, symfony8) have `release-verify`, `restart`, and `build` targets for local and CI use.
+- **Pre-release checks**: The main project Makefile has a `release-check` target that runs code style, tests with coverage, and demo healthchecks. Useful before creating a new tag. The demo Makefile (`symfony8`) has `release-verify`, `restart`, and `build` targets for local and CI use.
 
 #### What's Changed
 
@@ -456,11 +479,11 @@ None. Fully backward compatible.
 
 #### What's Fixed
 
-- **Custom anonymizer service (anonymizeService)**: The bundle resolves custom anonymizer services by service id (typically the class FQCN). In Symfony, services are private by default and are inlined when the container is compiled, so `$container->get(YourAnonymizer::class)` can fail with "The service or alias has been removed or inlined". If you use `#[Anonymize(anonymizeService: YourAnonymizer::class)]` (or any service id), **declare that service as public** in your `config/services.yaml` so the bundle can resolve it. See the demos: `App\Service\SmsNotificationAnonymizerService` is set to `public: true` in `demo/symfony7` and `demo/symfony8`.
+- **Custom anonymizer service (anonymizeService)**: The bundle resolves custom anonymizer services by service id (typically the class FQCN). In Symfony, services are private by default and are inlined when the container is compiled, so `$container->get(YourAnonymizer::class)` can fail with "The service or alias has been removed or inlined". If you use `#[Anonymize(anonymizeService: YourAnonymizer::class)]` (or any service id), **declare that service as public** in your `config/services.yaml` so the bundle can resolve it. See the demo: `App\Service\SmsNotificationAnonymizerService` is set to `public: true` in `demo/symfony8`.
 
 #### Demo-only changes
 
-- **Docker / make install**: Demo Makefiles (symfony7, symfony8) now use `docker-compose run --rm php composer install` for the install step so `make install` and `make up` work even when the PHP container has exited (e.g. because `vendor/` was missing). No action needed unless you maintain a fork of the demo.
+- **Docker / make install**: The demo Makefile (`symfony8`) uses `docker-compose run --rm php composer install` for the install step so `make install` and `make up` work even when the PHP container has exited (e.g. because `vendor/` was missing). No action needed unless you maintain a fork of the demo.
 - **PostgreSQL init**: The demo's Postgres init script was updated so the `users` table uses columns `first_name`, `last_name`, `credit_card` (matching Doctrine's underscore naming). If you already ran the demo and have a Postgres data directory (e.g. `demo/symfony8/.data/postgres`), remove it and run `make setup` again so the init runs with the new schema; otherwise the `postgres` entity manager will fail pre-flight with "Column first_name (from mapping) does not exist".
 
 #### Breaking Changes
@@ -513,7 +536,7 @@ None. If you already use a custom anonymizer service and it is not public, you m
 
 2. **Implement the new interface methods** in every class that implements `EntityAnonymizerServiceInterface`:
    - Add `public function supportsBatch(): bool` — return `false` to keep current record-by-record behaviour, or `true` to use batch mode.
-   - Add `public function anonymizeBatch(EntityManagerInterface $em, ClassMetadata $metadata, array $records, bool $dryRun): array` — if you use record-by-record, you can implement it by calling `anonymize()` for each record and returning `[$index => $updates, ...]` for non-empty updates. See the demo `SmsNotificationAnonymizerService` in `demo/symfony7/src/Service/` (and symfony8) for an example.
+   - Add `public function anonymizeBatch(EntityManagerInterface $em, ClassMetadata $metadata, array $records, bool $dryRun): array` — if you use record-by-record, you can implement it by calling `anonymize()` for each record and returning `[$index => $updates, ...]` for non-empty updates. See the demo `SmsNotificationAnonymizerService` in `demo/symfony8/src/Service/` for an example.
 
 3. **Clear cache**:
    ```bash

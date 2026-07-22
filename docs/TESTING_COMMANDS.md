@@ -50,7 +50,6 @@ This script automatically tests **all bundle commands with their main options** 
 ./.scripts/test-commands.sh all
 
 # Test in a specific demo
-./.scripts/test-commands.sh symfony7
 ./.scripts/test-commands.sh symfony8
 ```
 
@@ -95,7 +94,6 @@ The script tests **26 command combinations** (26 entries in the `COMMANDS` array
 1. Docker and Docker Compose must be installed
 2. Demo containers must be running:
    ```bash
-   cd demo/symfony7 && docker-compose up -d
    cd demo/symfony8 && docker-compose up -d
    ```
 
@@ -116,7 +114,7 @@ The script provides:
 🚀 Starting AnonymizeBundle command tests
 
 ==========================================
-🧪 Testing: symfony7
+🧪 Testing: symfony8
 ==========================================
 
 Testing: nowo:anonymize:info
@@ -133,7 +131,7 @@ Testing: nowo:anonymize:info --connection default
 ...
 
 ==========================================
-📊 Summary for symfony7:
+📊 Summary for symfony8:
    ✅ Successful: 26
    ❌ Failed: 2
    ⚠️  Skipped: 1
@@ -245,7 +243,7 @@ php bin/console nowo:anonymize:generate-mongo-field --collection user_activities
 
 ## Testing Checklist
 
-For each demo (Symfony 7 and 8):
+For the Symfony 8 demo:
 
 - [ ] `nowo:anonymize:info` works for all connections (default, postgres, sqlite)
 - [ ] `nowo:anonymize:run --dry-run` works for all connections
@@ -262,8 +260,6 @@ For each demo (Symfony 7 and 8):
 ### Containers not running
 
 ```bash
-cd demo/symfony7 && docker-compose up -d
-cd demo/symfony7 && docker-compose up -d
 cd demo/symfony8 && docker-compose up -d
 ```
 

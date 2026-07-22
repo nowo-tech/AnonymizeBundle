@@ -213,4 +213,4 @@ If you prefer not to copy the real file (e.g. for size or privacy), generate a p
 
 - [USAGE.md](USAGE.md#anonymizing-via-a-custom-service-anonymizeservice) — `anonymizeService` and `EntityAnonymizerServiceInterface`.
 - [USAGE.md](USAGE.md#polymorphic-entities-sticti) — Truncation and query filtering for polymorphic entities (STI/CTI).
-- Demo entities: `SmsNotification` + `SmsNotificationAnonymizerService` in the bundle demos (symfony7/8).
+- Demo entities: `SmsNotification` + `SmsNotificationAnonymizerService` in the bundle demo (`demo/symfony8`).

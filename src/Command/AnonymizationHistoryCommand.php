@@ -365,7 +365,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
         }
 
         if ($historyDir === null) {
-            $historyDir = $_ENV['NOWO_ANONYMIZE_HISTORY_DIR'] ?? self::DEFAULT_HISTORY_DIR;
+            $historyDir = ($_SERVER['NOWO_ANONYMIZE_HISTORY_DIR'] ?? getenv('NOWO_ANONYMIZE_HISTORY_DIR')) ?: self::DEFAULT_HISTORY_DIR;
         }
 
         if (str_contains((string) $historyDir, '%kernel.project_dir%')) {

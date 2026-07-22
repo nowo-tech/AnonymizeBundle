@@ -9,9 +9,12 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\FieldMapping;
+use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Exception;
 use Nowo\AnonymizeBundle\Command\AnonymizeInfoCommand;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -57,7 +60,7 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandReturnsFailureWhenNoEntityManagers(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $doctrine  = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine  = $this->createMock(ManagerRegistry::class);
 
         $container->method('get')
             ->with('doctrine')
@@ -82,7 +85,7 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandReturnsFailureWhenConnectionOptionMatchesNoManager(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $doctrine  = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine  = $this->createMock(ManagerRegistry::class);
 
         $container->method('get')->with('doctrine')->willReturn($doctrine);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
@@ -103,7 +106,7 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandHandlesEmptyConnections(): void
     {
         $container  = $this->createMock(ContainerInterface::class);
-        $doctrine   = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine   = $this->createMock(ManagerRegistry::class);
         $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
 
@@ -148,7 +151,7 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandHandlesExceptionDuringProcessing(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $doctrine  = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine  = $this->createMock(ManagerRegistry::class);
 
         $container->method('get')
             ->with('doctrine')
@@ -213,7 +216,7 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandHandlesLocaleOption(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $doctrine  = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine  = $this->createMock(ManagerRegistry::class);
 
         $container->method('get')
             ->with('doctrine')
@@ -238,7 +241,7 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandHandlesConnectionOption(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $doctrine  = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine  = $this->createMock(ManagerRegistry::class);
 
         $container->method('get')
             ->with('doctrine')
@@ -280,7 +283,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $metadata = $this->createMock(ClassMetadata::class);
         $metadata->method('getTableName')->willReturn('info_entity');
         $metadata->method('hasField')->with('email')->willReturn(true);
-        $metadata->method('getFieldMapping')->with('email')->willReturn(new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email'));
+        $metadata->method('getFieldMapping')->with('email')->willReturn(new FieldMapping('email', 'string', 'email'));
 
         $metadataDriver = $this->createMock(MappingDriver::class);
         $metadataDriver->method('getAllClassNames')->willReturn([$className]);
@@ -305,7 +308,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $em->method('getClassMetadata')->with($className)->willReturn($metadata);
 
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
@@ -348,7 +351,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $em->method('getConfiguration')->willReturn($config);
         $em->method('getConnection')->willReturn($connection);
 
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default', 'other' => 'other']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
@@ -404,7 +407,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $em->method('getClassMetadata')->with($className)->willReturn($metadata);
 
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
@@ -451,7 +454,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $metadata = $this->createMock(ClassMetadata::class);
         $metadata->method('getTableName')->willReturn('full_property_entity');
         $metadata->method('hasField')->with('phone')->willReturn(true);
-        $metadata->method('getFieldMapping')->with('phone')->willReturn(new \Doctrine\ORM\Mapping\FieldMapping('phone', 'string', 'phone'));
+        $metadata->method('getFieldMapping')->with('phone')->willReturn(new FieldMapping('phone', 'string', 'phone'));
 
         $metadataDriver = $this->createMock(MappingDriver::class);
         $metadataDriver->method('getAllClassNames')->willReturn([$className]);
@@ -473,7 +476,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $em->method('getClassMetadata')->with($className)->willReturn($metadata);
 
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
@@ -537,7 +540,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $em->method('getClassMetadata')->with($className)->willReturn($metadata);
 
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
@@ -578,8 +581,8 @@ class AnonymizeInfoCommandTest extends TestCase
         $metadata->method('getTableName')->willReturn('same_weight_entity');
         $metadata->method('hasField')->willReturnMap([['email', true], ['name', true]]);
         $metadata->method('getFieldMapping')->willReturnMap([
-            ['email', new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email')],
-            ['name', new \Doctrine\ORM\Mapping\FieldMapping('name', 'string', 'name')],
+            ['email', new FieldMapping('email', 'string', 'email')],
+            ['name', new FieldMapping('name', 'string', 'name')],
         ]);
 
         $metadataDriver = $this->createMock(MappingDriver::class);
@@ -605,7 +608,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $em->method('getClassMetadata')->with($className)->willReturn($metadata);
 
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
@@ -654,7 +657,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $metadataWithProp = $this->createMock(ClassMetadata::class);
         $metadataWithProp->method('getTableName')->willReturn('with_prop_entity');
         $metadataWithProp->method('hasField')->with('email')->willReturn(true);
-        $metadataWithProp->method('getFieldMapping')->with('email')->willReturn(new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email'));
+        $metadataWithProp->method('getFieldMapping')->with('email')->willReturn(new FieldMapping('email', 'string', 'email'));
 
         $metadataDriver = $this->createMock(MappingDriver::class);
         $metadataDriver->method('getAllClassNames')->willReturn([$emptyClassName, $withPropClassName]);
@@ -675,9 +678,9 @@ class AnonymizeInfoCommandTest extends TestCase
         $em->method('getConfiguration')->willReturn($config);
         $em->method('getConnection')->willReturn($connection);
         $em->method('getClassMetadata')
-            ->willReturnCallback(static fn (string $class): \PHPUnit\Framework\MockObject\MockObject => $class === $emptyClassName ? $metadataEmpty : $metadataWithProp);
+            ->willReturnCallback(static fn (string $class): MockObject => $class === $emptyClassName ? $metadataEmpty : $metadataWithProp);
 
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
@@ -712,8 +715,8 @@ class AnonymizeInfoCommandTest extends TestCase
         $metadata->method('getTableName')->willReturn('diff_weight_entity');
         $metadata->method('hasField')->willReturnMap([['name', true], ['email', true]]);
         $metadata->method('getFieldMapping')->willReturnMap([
-            ['name', new \Doctrine\ORM\Mapping\FieldMapping('name', 'string', 'name')],
-            ['email', new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email')],
+            ['name', new FieldMapping('name', 'string', 'name')],
+            ['email', new FieldMapping('email', 'string', 'email')],
         ]);
 
         $metadataDriver = $this->createMock(MappingDriver::class);
@@ -736,7 +739,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $em->method('getClassMetadata')->with($className)->willReturn($metadata);
 
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
@@ -772,7 +775,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $metadata = $this->createMock(ClassMetadata::class);
         $metadata->method('getTableName')->willReturn('match_pattern_entity');
         $metadata->method('hasField')->with('email')->willReturn(true);
-        $metadata->method('getFieldMapping')->with('email')->willReturn(new \Doctrine\ORM\Mapping\FieldMapping('email', 'string', 'email'));
+        $metadata->method('getFieldMapping')->with('email')->willReturn(new FieldMapping('email', 'string', 'email'));
 
         $metadataDriver = $this->createMock(MappingDriver::class);
         $metadataDriver->method('getAllClassNames')->willReturn([$className]);
@@ -797,7 +800,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $em->method('getClassMetadata')->with($className)->willReturn($metadata);
 
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 

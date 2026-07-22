@@ -211,7 +211,7 @@ The bundle includes a comprehensive testing script to verify all commands work c
 ./.scripts/test-commands.sh all
 
 # Test in a specific demo
-./.scripts/test-commands.sh symfony7
+./.scripts/test-commands.sh symfony8
 ```
 
 The script tests **26 command combinations** (entries in `scripts/test-commands.sh`). See [TESTING_COMMANDS.md](docs/TESTING_COMMANDS.md) for details.

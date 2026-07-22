@@ -6,6 +6,8 @@ namespace App\Controller;
 
 use DateTime;
 use Exception;
+use MongoDB\BSON\ObjectId;
+use MongoDB\BSON\UTCDateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -119,7 +121,7 @@ class DeviceInfoController extends AbstractController
                     'osVersion'      => $request->request->get('osVersion', ''),
                     'browserVersion' => $request->request->get('browserVersion', ''),
                     'isActive'       => $request->request->get('isActive') === '1',
-                    'lastSeen'       => new \MongoDB\BSON\UTCDateTime(new DateTime($request->request->get('lastSeen', 'now'))),
+                    'lastSeen'       => new UTCDateTime(new DateTime($request->request->get('lastSeen', 'now'))),
                     'anonymized'     => false,
                 ];
                 $collection->insertOne($data);
@@ -147,7 +149,7 @@ class DeviceInfoController extends AbstractController
         }
 
         try {
-            $device = $collection->findOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+            $device = $collection->findOne(['_id' => new ObjectId($id)]);
             if (!$device) {
                 throw $this->createNotFoundException('Device info not found');
             }
@@ -175,7 +177,7 @@ class DeviceInfoController extends AbstractController
         }
 
         try {
-            $device = $collection->findOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+            $device = $collection->findOne(['_id' => new ObjectId($id)]);
             if (!$device) {
                 throw $this->createNotFoundException('Device info not found');
             }
@@ -199,10 +201,10 @@ class DeviceInfoController extends AbstractController
                         'osVersion'      => $request->request->get('osVersion', ''),
                         'browserVersion' => $request->request->get('browserVersion', ''),
                         'isActive'       => $request->request->get('isActive') === '1',
-                        'lastSeen'       => new \MongoDB\BSON\UTCDateTime(new DateTime($request->request->get('lastSeen', 'now'))),
+                        'lastSeen'       => new UTCDateTime(new DateTime($request->request->get('lastSeen', 'now'))),
                     ],
                 ];
-                $collection->updateOne(['_id' => new \MongoDB\BSON\ObjectId($id)], $updateData);
+                $collection->updateOne(['_id' => new ObjectId($id)], $updateData);
                 $this->addFlash('success', 'Device info updated successfully!');
 
                 return $this->redirectToRoute('mongodb_device_info_index');
@@ -229,7 +231,7 @@ class DeviceInfoController extends AbstractController
 
         if ($this->isCsrfTokenValid('delete' . $id, $request->request->get('_token'))) {
             try {
-                $collection->deleteOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+                $collection->deleteOne(['_id' => new ObjectId($id)]);
                 $this->addFlash('success', 'Device info deleted successfully!');
             } catch (Exception $e) {
                 $this->addFlash('error', 'Error deleting device: ' . $e->getMessage());

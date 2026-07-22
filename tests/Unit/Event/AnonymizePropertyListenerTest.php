@@ -7,6 +7,7 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Event;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 
@@ -22,8 +23,8 @@ use ReflectionProperty;
  */
 class AnonymizePropertyListenerTest extends TestCase
 {
-    private \PHPUnit\Framework\MockObject\MockObject $em;
-    private \PHPUnit\Framework\MockObject\MockObject $metadata;
+    private MockObject $em;
+    private MockObject $metadata;
 
     protected function setUp(): void
     {

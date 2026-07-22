@@ -6,6 +6,8 @@ namespace App\Controller;
 
 use DateTime;
 use Exception;
+use MongoDB\BSON\ObjectId;
+use MongoDB\BSON\UTCDateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -118,7 +120,7 @@ class TransactionLogController extends AbstractController
                     'currency'        => $request->request->get('currency', 'EUR'),
                     'transactionHash' => $request->request->get('transactionHash', ''),
                     'status'          => $request->request->get('status', 'pending'),
-                    'transactionDate' => new \MongoDB\BSON\UTCDateTime(new DateTime($request->request->get('transactionDate', 'now'))),
+                    'transactionDate' => new UTCDateTime(new DateTime($request->request->get('transactionDate', 'now'))),
                     'anonymized'      => false,
                 ];
                 $collection->insertOne($data);
@@ -146,7 +148,7 @@ class TransactionLogController extends AbstractController
         }
 
         try {
-            $transaction = $collection->findOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+            $transaction = $collection->findOne(['_id' => new ObjectId($id)]);
             if (!$transaction) {
                 throw $this->createNotFoundException('Transaction log not found');
             }
@@ -174,7 +176,7 @@ class TransactionLogController extends AbstractController
         }
 
         try {
-            $transaction = $collection->findOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+            $transaction = $collection->findOne(['_id' => new ObjectId($id)]);
             if (!$transaction) {
                 throw $this->createNotFoundException('Transaction log not found');
             }
@@ -197,10 +199,10 @@ class TransactionLogController extends AbstractController
                         'currency'        => $request->request->get('currency', 'EUR'),
                         'transactionHash' => $request->request->get('transactionHash', ''),
                         'status'          => $request->request->get('status', 'pending'),
-                        'transactionDate' => new \MongoDB\BSON\UTCDateTime(new DateTime($request->request->get('transactionDate', 'now'))),
+                        'transactionDate' => new UTCDateTime(new DateTime($request->request->get('transactionDate', 'now'))),
                     ],
                 ];
-                $collection->updateOne(['_id' => new \MongoDB\BSON\ObjectId($id)], $updateData);
+                $collection->updateOne(['_id' => new ObjectId($id)], $updateData);
                 $this->addFlash('success', 'Transaction log updated successfully!');
 
                 return $this->redirectToRoute('mongodb_transaction_log_index');
@@ -227,7 +229,7 @@ class TransactionLogController extends AbstractController
 
         if ($this->isCsrfTokenValid('delete' . $id, $request->request->get('_token'))) {
             try {
-                $collection->deleteOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+                $collection->deleteOne(['_id' => new ObjectId($id)]);
                 $this->addFlash('success', 'Transaction log deleted successfully!');
             } catch (Exception $e) {
                 $this->addFlash('error', 'Error deleting transaction: ' . $e->getMessage());

@@ -6,6 +6,8 @@ namespace App\Controller;
 
 use DateTime;
 use Exception;
+use MongoDB\BSON\ObjectId;
+use MongoDB\BSON\UTCDateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -118,7 +120,7 @@ class AnalyticsEventController extends AbstractController
                     'userIdHash'         => $request->request->get('userIdHash', ''),
                     'category'           => $request->request->get('category', ''),
                     'dataClassification' => $request->request->get('dataClassification', 'ANONYMIZED'),
-                    'timestamp'          => new \MongoDB\BSON\UTCDateTime(new DateTime($request->request->get('timestamp', 'now'))),
+                    'timestamp'          => new UTCDateTime(new DateTime($request->request->get('timestamp', 'now'))),
                     'anonymized'         => false,
                 ];
                 $collection->insertOne($data);
@@ -146,7 +148,7 @@ class AnalyticsEventController extends AbstractController
         }
 
         try {
-            $event = $collection->findOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+            $event = $collection->findOne(['_id' => new ObjectId($id)]);
             if (!$event) {
                 throw $this->createNotFoundException('Analytics event not found');
             }
@@ -174,7 +176,7 @@ class AnalyticsEventController extends AbstractController
         }
 
         try {
-            $event = $collection->findOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+            $event = $collection->findOne(['_id' => new ObjectId($id)]);
             if (!$event) {
                 throw $this->createNotFoundException('Analytics event not found');
             }
@@ -197,10 +199,10 @@ class AnalyticsEventController extends AbstractController
                         'userIdHash'         => $request->request->get('userIdHash', ''),
                         'category'           => $request->request->get('category', ''),
                         'dataClassification' => $request->request->get('dataClassification', 'ANONYMIZED'),
-                        'timestamp'          => new \MongoDB\BSON\UTCDateTime(new DateTime($request->request->get('timestamp', 'now'))),
+                        'timestamp'          => new UTCDateTime(new DateTime($request->request->get('timestamp', 'now'))),
                     ],
                 ];
-                $collection->updateOne(['_id' => new \MongoDB\BSON\ObjectId($id)], $updateData);
+                $collection->updateOne(['_id' => new ObjectId($id)], $updateData);
                 $this->addFlash('success', 'Analytics event updated successfully!');
 
                 return $this->redirectToRoute('mongodb_analytics_event_index');
@@ -227,7 +229,7 @@ class AnalyticsEventController extends AbstractController
 
         if ($this->isCsrfTokenValid('delete' . $id, $request->request->get('_token'))) {
             try {
-                $collection->deleteOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+                $collection->deleteOne(['_id' => new ObjectId($id)]);
                 $this->addFlash('success', 'Analytics event deleted successfully!');
             } catch (Exception $e) {
                 $this->addFlash('error', 'Error deleting event: ' . $e->getMessage());

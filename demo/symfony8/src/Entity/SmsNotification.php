@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Service\SmsNotificationAnonymizerService;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
@@ -23,7 +24,7 @@ use Nowo\AnonymizeBundle\Attribute\Anonymize;
 #[ORM\Entity]
 #[ORM\DiscriminatorValue('sms')]
 #[Anonymize(
-    anonymizeService: \App\Service\SmsNotificationAnonymizerService::class,
+    anonymizeService: SmsNotificationAnonymizerService::class,
     truncate: true,
     truncate_order: 2,
 )]

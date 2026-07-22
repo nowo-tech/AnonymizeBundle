@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
@@ -18,6 +19,7 @@ use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -31,7 +33,7 @@ use Symfony\Component\Console\Output\BufferedOutput;
  */
 class GenerateAnonymizedColumnCommandTest extends TestCase
 {
-    private \PHPUnit\Framework\MockObject\MockObject $container;
+    private MockObject $container;
     private AnonymizeService $anonymizeService;
     private GenerateAnonymizedColumnCommand $command;
 
@@ -78,7 +80,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
     {
         $em       = $this->createMock(EntityManagerInterface::class);
         $doctrine = $this->createMock(ManagerRegistry::class);
-        $config   = $this->createMock(\Doctrine\ORM\Configuration::class);
+        $config   = $this->createMock(Configuration::class);
 
         $this->container->method('has')
             ->with(SymfonyService::DOCTRINE)
@@ -141,7 +143,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $metadataDriver = $this->createMock(MappingDriver::class);
         $metadataDriver->method('getAllClassNames')->willReturn([$className]);
 
-        $config = $this->createMock(\Doctrine\ORM\Configuration::class);
+        $config = $this->createMock(Configuration::class);
         $config->method('getMetadataDriverImpl')->willReturn($metadataDriver);
 
         $platform = $this->createMock(AbstractPlatform::class);
@@ -207,7 +209,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $metadataDriver = $this->createMock(MappingDriver::class);
         $metadataDriver->method('getAllClassNames')->willReturn([$className]);
 
-        $config = $this->createMock(\Doctrine\ORM\Configuration::class);
+        $config = $this->createMock(Configuration::class);
         $config->method('getMetadataDriverImpl')->willReturn($metadataDriver);
 
         $platform      = $this->createMock(AbstractPlatform::class);
@@ -296,7 +298,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $metadataDriver = $this->createMock(MappingDriver::class);
         $metadataDriver->method('getAllClassNames')->willReturn([$className]);
 
-        $config = $this->createMock(\Doctrine\ORM\Configuration::class);
+        $config = $this->createMock(Configuration::class);
         $config->method('getMetadataDriverImpl')->willReturn($metadataDriver);
 
         $connection = $this->createMock(Connection::class);
@@ -349,7 +351,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
     {
         $em       = $this->createMock(EntityManagerInterface::class);
         $doctrine = $this->createMock(ManagerRegistry::class);
-        $config   = $this->createMock(\Doctrine\ORM\Configuration::class);
+        $config   = $this->createMock(Configuration::class);
 
         $this->container->method('has')
             ->with(SymfonyService::DOCTRINE)
@@ -384,13 +386,13 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
     {
         $em       = $this->createMock(EntityManagerInterface::class);
         $doctrine = $this->createMock(ManagerRegistry::class);
-        $config   = $this->createMock(\Doctrine\ORM\Configuration::class);
+        $config   = $this->createMock(Configuration::class);
 
         $this->container->method('has')->with(SymfonyService::DOCTRINE)->willReturn(true);
         $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
 
         $doctrine->method('getManagerNames')->willReturn(['orm' => 'doctrine.orm.orm']);
-        $doctrine->method('getManager')->willReturnCallback(static fn (?string $name = null): \PHPUnit\Framework\MockObject\MockObject => $em);
+        $doctrine->method('getManager')->willReturnCallback(static fn (?string $name = null): MockObject => $em);
 
         $em->method('getConfiguration')->willReturn($config);
         $config->method('getMetadataDriverImpl')->willReturn(null);
@@ -457,7 +459,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $metadataDriver = $this->createMock(MappingDriver::class);
         $metadataDriver->method('getAllClassNames')->willReturn([$className]);
 
-        $config = $this->createMock(\Doctrine\ORM\Configuration::class);
+        $config = $this->createMock(Configuration::class);
         $config->method('getMetadataDriverImpl')->willReturn($metadataDriver);
 
         $platform = $this->createMock(AbstractPlatform::class);
@@ -531,7 +533,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $metadataDriver = $this->createMock(MappingDriver::class);
         $metadataDriver->method('getAllClassNames')->willReturn([$className]);
 
-        $config = $this->createMock(\Doctrine\ORM\Configuration::class);
+        $config = $this->createMock(Configuration::class);
         $config->method('getMetadataDriverImpl')->willReturn($metadataDriver);
 
         $platform = $this->createMock(AbstractPlatform::class);
@@ -599,7 +601,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $metadataDriver = $this->createMock(MappingDriver::class);
         $metadataDriver->method('getAllClassNames')->willReturn([$className]);
 
-        $config = $this->createMock(\Doctrine\ORM\Configuration::class);
+        $config = $this->createMock(Configuration::class);
         $config->method('getMetadataDriverImpl')->willReturn($metadataDriver);
 
         $platform = $this->createMock(AbstractPlatform::class);
@@ -677,7 +679,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $metadataDriver = $this->createMock(MappingDriver::class);
         $metadataDriver->method('getAllClassNames')->willReturn([$className]);
 
-        $config = $this->createMock(\Doctrine\ORM\Configuration::class);
+        $config = $this->createMock(Configuration::class);
         $config->method('getMetadataDriverImpl')->willReturn($metadataDriver);
 
         $platform = $this->createMock(AbstractPlatform::class);

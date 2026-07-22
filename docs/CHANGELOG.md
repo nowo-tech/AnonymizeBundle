@@ -24,6 +24,28 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.29] - 2026-07-22
+
+### Added
+
+- **Dev**: `nowo-tech/phpstan-frankenphp` (`^1.0`) with classic/worker rulesets included from `phpstan.neon.dist`.
+
+### Changed
+
+- **PHP-CS-Fixer**: `fully_qualified_strict_types.import_symbols` enabled (prefer `use` + short names).
+- **FrankenPHP-safe env**: `ExportDatabaseCommand` reads `MONGODB_URL` from `$_SERVER` / `getenv()` (not `$_ENV`), so worker mode resets do not hide the variable.
+- **Code style**: FQCN → imported short names across commands/services/tests; PHPStan baseline refreshed.
+- **Demo aggregate**: Makefile, scripts, and docs target the single remaining demo.
+
+### Removed
+
+- **Demo `symfony7`**: removed from the repository (only **`demo/symfony8`** remains). Bundle compatibility with Symfony 7.x is unchanged.
+
+### Documentation
+
+- **README.md**, **DEMO-FRANKENPHP.md**, **TESTING_COMMANDS.md**, **USAGE.md**, **EXAMPLES_POLYMORPHISM_ANONYMIZE_SERVICE.md**, **UPGRADING.md**: references updated from Symfony 7/8 demos to Symfony 8 only.
+
+---
 ## [1.0.28] - 2026-07-22
 
 ### Added

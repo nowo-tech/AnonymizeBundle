@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Script to reload MongoDB fixtures in all demos
-# Usage: ./.scripts/reload-mongodb-fixtures.sh [symfony7|symfony8|all]
-#        or from scripts/ directory: ./reload-mongodb-fixtures.sh [symfony7|symfony8|all]
+# Usage: ./.scripts/reload-mongodb-fixtures.sh [symfony8|all]
+#        or from scripts/ directory: ./reload-mongodb-fixtures.sh [symfony8|all]
 
 set -e
 
@@ -75,7 +75,7 @@ main() {
     echo ""
     
     if [ "$DEMO" = "all" ]; then
-        for demo in symfony7 symfony8; do
+        for demo in symfony8; do
             reload_fixtures "$demo"
         done
     else

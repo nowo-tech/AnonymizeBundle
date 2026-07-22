@@ -8,14 +8,18 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Nowo\AnonymizeBundle\Command\ExportDatabaseCommand;
 use Nowo\AnonymizeBundle\Enum\SymfonyService;
+use Nowo\AnonymizeBundle\Internal\KernelParameterBagAdapter;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
@@ -27,7 +31,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
  */
 class ExportDatabaseCommandTest extends TestCase
 {
-    private \PHPUnit\Framework\MockObject\MockObject $container;
+    private MockObject $container;
     private ExportDatabaseCommand $command;
 
     protected function setUp(): void
@@ -96,7 +100,7 @@ class ExportDatabaseCommandTest extends TestCase
             'kernel.debug'       => true,
             'kernel.project_dir' => sys_get_temp_dir(),
         ]);
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn([]);
 
         $container = $this->createMock(ContainerInterface::class);
@@ -123,7 +127,7 @@ class ExportDatabaseCommandTest extends TestCase
             'kernel.debug'       => true,
             'kernel.project_dir' => sys_get_temp_dir(),
         ]);
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
 
         $container = $this->createMock(ContainerInterface::class);
@@ -198,7 +202,7 @@ class ExportDatabaseCommandTest extends TestCase
         $result = $method->invoke($this->command);
 
         $this->assertInstanceOf(ParameterBagInterface::class, $result);
-        $this->assertInstanceOf(\Nowo\AnonymizeBundle\Internal\KernelParameterBagAdapter::class, $result);
+        $this->assertInstanceOf(KernelParameterBagAdapter::class, $result);
     }
 
     /**
@@ -264,7 +268,7 @@ class ExportDatabaseCommandTest extends TestCase
             'nowo_anonymize.export.output_dir' => $customExportDir,
         ]);
 
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
@@ -276,7 +280,7 @@ class ExportDatabaseCommandTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $container = new \Symfony\Component\DependencyInjection\ContainerBuilder($parameterBag);
+        $container = new ContainerBuilder($parameterBag);
         $container->set('parameter_bag', $parameterBag);
         $container->set(SymfonyService::DOCTRINE, $doctrine);
 
@@ -308,7 +312,7 @@ class ExportDatabaseCommandTest extends TestCase
             'nowo_anonymize.export.auto_gitignore'   => false,
         ]);
 
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
@@ -320,7 +324,7 @@ class ExportDatabaseCommandTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $container = new \Symfony\Component\DependencyInjection\ContainerBuilder($parameterBag);
+        $container = new ContainerBuilder($parameterBag);
         $container->set('parameter_bag', $parameterBag);
         $container->set(SymfonyService::DOCTRINE, $doctrine);
 
@@ -347,7 +351,7 @@ class ExportDatabaseCommandTest extends TestCase
             'kernel.debug'       => true,
             'kernel.project_dir' => $projectDir,
         ]);
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
@@ -359,7 +363,7 @@ class ExportDatabaseCommandTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $container = new \Symfony\Component\DependencyInjection\ContainerBuilder($parameterBag);
+        $container = new ContainerBuilder($parameterBag);
         $container->set('parameter_bag', $parameterBag);
         $container->set(SymfonyService::DOCTRINE, $doctrine);
 
@@ -385,8 +389,8 @@ class ExportDatabaseCommandTest extends TestCase
      */
     public function testExecuteWithMongoConnectionAndMongoUrlParsesUrlAndAttemptsExport(): void
     {
-        $backup              = $_ENV['MONGODB_URL'] ?? null;
-        $_ENV['MONGODB_URL'] = 'mongodb://myhost:27018/mydb?authSource=admin';
+        $backup                 = $_SERVER['MONGODB_URL'] ?? null;
+        $_SERVER['MONGODB_URL'] = 'mongodb://myhost:27018/mydb?authSource=admin';
 
         try {
             $parameterBag = new ParameterBag([
@@ -394,7 +398,7 @@ class ExportDatabaseCommandTest extends TestCase
                 'kernel.debug'       => true,
                 'kernel.project_dir' => sys_get_temp_dir(),
             ]);
-            $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+            $doctrine = $this->createMock(ManagerRegistry::class);
             $doctrine->method('getManagerNames')->willReturn([]);
 
             $container = $this->createMock(ContainerInterface::class);
@@ -414,9 +418,9 @@ class ExportDatabaseCommandTest extends TestCase
             $this->assertStringContainsString('Failed to export', $content);
         } finally {
             if ($backup !== null) {
-                $_ENV['MONGODB_URL'] = $backup;
+                $_SERVER['MONGODB_URL'] = $backup;
             } else {
-                unset($_ENV['MONGODB_URL']);
+                unset($_SERVER['MONGODB_URL']);
             }
         }
     }
@@ -428,9 +432,9 @@ class ExportDatabaseCommandTest extends TestCase
      */
     public function testExecuteWithMongoConnectionNoUrlGetsParamsFromDoctrineAndAttemptsExport(): void
     {
-        $backup = $_ENV['MONGODB_URL'] ?? null;
-        if (isset($_ENV['MONGODB_URL'])) {
-            unset($_ENV['MONGODB_URL']);
+        $backup = $_SERVER['MONGODB_URL'] ?? null;
+        if (isset($_SERVER['MONGODB_URL'])) {
+            unset($_SERVER['MONGODB_URL']);
         }
 
         try {
@@ -447,7 +451,7 @@ class ExportDatabaseCommandTest extends TestCase
             $em = $this->createMock(EntityManagerInterface::class);
             $em->method('getConnection')->willReturn($connection);
 
-            $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+            $doctrine = $this->createMock(ManagerRegistry::class);
             $doctrine->method('getManagerNames')->willReturn(['mongodb' => 'doctrine_mongodb.odm.mongodb_document_manager']);
             $doctrine->method('getManager')->with('mongodb')->willReturn($em);
 
@@ -468,9 +472,9 @@ class ExportDatabaseCommandTest extends TestCase
             $this->assertStringContainsString('Failed to export', $content);
         } finally {
             if ($backup !== null) {
-                $_ENV['MONGODB_URL'] = $backup;
+                $_SERVER['MONGODB_URL'] = $backup;
             } else {
-                unset($_ENV['MONGODB_URL']);
+                unset($_SERVER['MONGODB_URL']);
             }
         }
     }
@@ -481,9 +485,9 @@ class ExportDatabaseCommandTest extends TestCase
      */
     public function testExecuteWithMongoConnectionRequestedWhenNoMongoUrl(): void
     {
-        $backup = $_ENV['MONGODB_URL'] ?? null;
-        if (isset($_ENV['MONGODB_URL'])) {
-            unset($_ENV['MONGODB_URL']);
+        $backup = $_SERVER['MONGODB_URL'] ?? null;
+        if (isset($_SERVER['MONGODB_URL'])) {
+            unset($_SERVER['MONGODB_URL']);
         }
 
         try {
@@ -492,7 +496,7 @@ class ExportDatabaseCommandTest extends TestCase
                 'kernel.debug'       => true,
                 'kernel.project_dir' => sys_get_temp_dir(),
             ]);
-            $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+            $doctrine = $this->createMock(ManagerRegistry::class);
             $doctrine->method('getManagerNames')->willReturn([]);
             $doctrine->method('getManager')->with('mongodb')->willThrowException(new Exception('No manager for mongodb'));
 
@@ -512,7 +516,7 @@ class ExportDatabaseCommandTest extends TestCase
             $this->assertStringContainsString('1 export(s) failed', $content);
         } finally {
             if ($backup !== null) {
-                $_ENV['MONGODB_URL'] = $backup;
+                $_SERVER['MONGODB_URL'] = $backup;
             }
         }
     }
@@ -528,7 +532,7 @@ class ExportDatabaseCommandTest extends TestCase
             'kernel.project_dir' => sys_get_temp_dir(),
         ]);
 
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willThrowException(new Exception('Manager failed'));
 
@@ -569,7 +573,7 @@ class ExportDatabaseCommandTest extends TestCase
         $em = $this->createMock(EntityManagerInterface::class);
         $em->method('getConnection')->willReturn($connection);
 
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
@@ -632,7 +636,7 @@ class ExportDatabaseCommandTest extends TestCase
         $em = $this->createMock(EntityManagerInterface::class);
         $em->method('getConnection')->willReturn($connection);
 
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
@@ -691,7 +695,7 @@ class ExportDatabaseCommandTest extends TestCase
         $em = $this->createMock(EntityManagerInterface::class);
         $em->method('getConnection')->willReturn($connection);
 
-        $doctrine = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 

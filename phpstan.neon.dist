@@ -3,6 +3,8 @@
 
 includes:
     - phpstan-baseline.neon
+    - vendor/nowo-tech/phpstan-frankenphp/ruleset-classic.neon
+    - vendor/nowo-tech/phpstan-frankenphp/ruleset-worker.neon
 
 parameters:
     level: 8

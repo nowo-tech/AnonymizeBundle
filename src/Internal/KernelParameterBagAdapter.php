@@ -7,6 +7,7 @@ namespace Nowo\AnonymizeBundle\Internal;
 use InvalidArgumentException;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use UnitEnum;
 
@@ -52,7 +53,7 @@ final readonly class KernelParameterBagAdapter implements ParameterBagInterface
             $kernelContainer = $property->getValue($kernel);
         }
 
-        if ($kernelContainer instanceof \Symfony\Component\DependencyInjection\Container) {
+        if ($kernelContainer instanceof Container) {
             if (method_exists($kernelContainer, 'getParameterBag')) {
                 $paramBag = $kernelContainer->getParameterBag();
 

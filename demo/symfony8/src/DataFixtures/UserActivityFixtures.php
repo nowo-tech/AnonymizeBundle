@@ -7,6 +7,7 @@ namespace App\DataFixtures;
 use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use MongoDB\BSON\UTCDateTime;
 use MongoDB\Client;
 
 use function sprintf;
@@ -77,7 +78,7 @@ class UserActivityFixtures extends Fixture
                 'userName'  => sprintf('User %d', $i),
                 'ipAddress' => sprintf('%d.%d.%d.%d', rand(1, 255), rand(1, 255), rand(1, 255), rand(1, 255)),
                 'action'    => $actions[array_rand($actions)],
-                'timestamp' => new \MongoDB\BSON\UTCDateTime($timestamp->getTimestamp() * 1000),
+                'timestamp' => new UTCDateTime($timestamp->getTimestamp() * 1000),
                 'metadata'  => [
                     'userAgent' => sprintf('Mozilla/5.0 (Browser %d)', $i),
                     'sessionId' => sprintf('session_%s', bin2hex(random_bytes(8))),

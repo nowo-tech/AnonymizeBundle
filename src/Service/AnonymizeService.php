@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Service;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\DiscriminatorColumnMapping;
+use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Exception;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
@@ -15,6 +18,7 @@ use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Helper\OrmHelper;
+use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionProperty;
@@ -71,7 +75,7 @@ final class AnonymizeService
         $entities       = [];
         $metadataDriver = $em->getConfiguration()->getMetadataDriverImpl();
 
-        if (!$metadataDriver instanceof \Doctrine\Persistence\Mapping\Driver\MappingDriver) {
+        if (!$metadataDriver instanceof MappingDriver) {
             return $entities;
         }
 
@@ -302,7 +306,7 @@ final class AnonymizeService
         }
         $discCol   = $metadata->discriminatorColumn ?? null;
         $discValue = $metadata->discriminatorValue ?? null;
-        if (!$discCol instanceof \Doctrine\ORM\Mapping\DiscriminatorColumnMapping || $discValue === null) {
+        if (!$discCol instanceof DiscriminatorColumnMapping || $discValue === null) {
             return ['column' => null, 'value' => null];
         }
         $columnName = OrmHelper::resolveDiscriminatorColumnName($discCol);
@@ -700,14 +704,14 @@ final class AnonymizeService
     /**
      * Updates a record in the database.
      *
-     * @param \Doctrine\DBAL\Connection $connection The database connection
+     * @param Connection $connection The database connection
      * @param string $tableName The table name
      * @param array<string, mixed> $record The original record
      * @param array<string, mixed> $updates The updates to apply
      * @param ClassMetadata $metadata The entity metadata
      */
     private function updateRecord(
-        \Doctrine\DBAL\Connection $connection,
+        Connection $connection,
         string $tableName,
         array $record,
         array $updates,
@@ -765,7 +769,7 @@ final class AnonymizeService
      */
     private function usesAnonymizableTrait(ReflectionClass $reflection): bool
     {
-        $traitName = \Nowo\AnonymizeBundle\Trait\AnonymizableTrait::class;
+        $traitName = AnonymizableTrait::class;
 
         foreach ($reflection->getTraitNames() as $trait) {
             if ($trait === $traitName) {
@@ -979,7 +983,7 @@ final class AnonymizeService
      * Builds a COUNT(*) query for the main table with optional discriminator filter.
      * Used to get total record count for progress without loading all rows.
      *
-     * @param \Doctrine\DBAL\Connection $connection The database connection
+     * @param Connection $connection The database connection
      * @param string $tableName The main table name
      * @param string|null $discColumn Discriminator column name (null if not polymorphic)
      * @param mixed $discValue Discriminator value
@@ -987,7 +991,7 @@ final class AnonymizeService
      * @return string The SQL COUNT query
      */
     private function buildCountQuery(
-        \Doctrine\DBAL\Connection $connection,
+        Connection $connection,
         string $tableName,
         ?string $discColumn,
         mixed $discValue
@@ -1013,7 +1017,7 @@ final class AnonymizeService
     /**
      * Appends ORDER BY primary key and LIMIT/OFFSET to a query for stable chunked reads.
      *
-     * @param \Doctrine\DBAL\Connection $connection The database connection
+     * @param Connection $connection The database connection
      * @param string $query The base SELECT query (with WHERE if any)
      * @param ClassMetadata $metadata The entity metadata
      * @param string $mainTableAlias The main table alias (e.g. t0)
@@ -1023,7 +1027,7 @@ final class AnonymizeService
      * @return string The query with ORDER BY, LIMIT and OFFSET
      */
     private function appendOrderByAndLimit(
-        \Doctrine\DBAL\Connection $connection,
+        Connection $connection,
         string $query,
         ClassMetadata $metadata,
         string $mainTableAlias,

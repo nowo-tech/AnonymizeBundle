@@ -9,6 +9,7 @@ use Exception;
 use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
+use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -251,7 +252,7 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
      */
     private function usesAnonymizableTrait(ReflectionClass $reflection): bool
     {
-        $traitName = \Nowo\AnonymizeBundle\Trait\AnonymizableTrait::class;
+        $traitName = AnonymizableTrait::class;
 
         foreach ($reflection->getTraitNames() as $trait) {
             if ($trait === $traitName) {
