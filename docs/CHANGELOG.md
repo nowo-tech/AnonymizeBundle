@@ -21,7 +21,7 @@ _(none)_
 
 ### Documentation
 
-_(none)_
+- **README.md**: FrankenPHP banner replaced with transparent PNG (`docs/images/frankenphp-friendly.png`).
 
 ---
 ## [1.0.30] - 2026-07-23
