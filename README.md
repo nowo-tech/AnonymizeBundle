@@ -8,7 +8,7 @@
 
 > 📋 **Compatible with Symfony 6.1+, 7.x, and 8.x** - This bundle requires Symfony 6.1 or higher (Symfony 6.0 is not supported).
 
-![FrankenPHP Friendly Worker Mode](docs/images/frankenphp-friendly.jpg)
+![FrankenPHP Friendly Worker Mode](docs/images/frankenphp-friendly.png)
 
 This bundle is **FrankenPHP worker mode friendly**.
 
