@@ -5158,7 +5158,7 @@
             "dist": {
                 "type": "path",
                 "url": "/var/anonymize-bundle",
-                "reference": "85cb44fa1580340682abb5ab536fe227ed0b3088"
+                "reference": "7033749bfae388a45b087612a610b48d8a7cc761"
             },
             "require": {
                 "doctrine/dbal": "^2.13 || ^3.0 || ^4.0",
