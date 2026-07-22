@@ -39,6 +39,18 @@ class SystemCommandRunnerTest extends TestCase
     }
 
     /**
+     * commandExists can use an injected proc_open callable (legacy test hook).
+     */
+    public function testCommandExistsViaInjectedProcOpenSuccess(): void
+    {
+        $runner = new SystemCommandRunner(
+            static fn (string $command, array $descriptors, array &$pipes) => proc_open($command, $descriptors, $pipes),
+        );
+
+        $this->assertTrue($runner->commandExists('php'));
+    }
+
+    /**
      * commandExists returns false for a nonexistent command.
      */
     public function testCommandExistsReturnsFalseForNonexistentCommand(): void
@@ -84,5 +96,19 @@ class SystemCommandRunnerTest extends TestCase
     {
         $code = $this->runner->exec('php -r "exit(0);"');
         $this->assertSame(0, $code);
+    }
+
+    /**
+     * exec stops a hung command when the timeout elapses (REQ-RUNTIME-001).
+     */
+    public function testExecTimesOutAndStopsProcess(): void
+    {
+        $runner = new SystemCommandRunner(null, 1.0, 1.0);
+        $output = [];
+        $code   = $runner->exec('php -r "sleep(10);"', $output);
+
+        $this->assertSame(124, $code);
+        $this->assertNotEmpty($output);
+        $this->assertStringContainsString('timed out', implode(' ', $output));
     }
 }

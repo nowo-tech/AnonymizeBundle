@@ -807,6 +807,31 @@ class DbalHelperTest extends TestCase
 
         $this->assertSame('app_db', DbalHelper::getConnectionName($connection));
     }
+
+    /**
+     * getSchemaObjectName throws when the asset exposes neither object name nor getName().
+     */
+    public function testGetSchemaObjectNameThrowsWhenUnresolved(): void
+    {
+        $asset = new class {};
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Cannot resolve schema object name');
+        DbalHelper::getSchemaObjectName($asset);
+    }
+
+    /**
+     * getConnectionName throws when neither getName() nor usable params are available.
+     */
+    public function testGetConnectionNameThrowsWhenUnresolved(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getParams')->willReturn([]);
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Cannot resolve connection name');
+        DbalHelper::getConnectionName($connection);
+    }
 }
 
 /**

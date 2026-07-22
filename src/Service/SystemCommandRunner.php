@@ -4,37 +4,104 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Service;
 
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
+use Symfony\Component\Process\Process;
+
 use function escapeshellarg;
+use function explode;
 use function in_array;
 use function proc_close;
-use function proc_open;
+use function rtrim;
 use function stream_get_contents;
 
 use const PHP_OS;
 
 /**
- * Default implementation of CommandRunnerInterface that delegates to PHP's
- * process execution functions.
+ * Default implementation of CommandRunnerInterface using Symfony Process.
  *
- * An optional proc-open callable can be injected for testing (e.g. to simulate
- * proc_open failure without changing the environment).
+ * Applies hard and idle timeouts (REQ-RUNTIME-001) so FrankenPHP / FPM workers
+ * are not left blocked by hung mysqldump / pg_dump / mongodump / compression tools.
  *
- * @phpstan-type ProcOpenCallable callable(string, array<int, array{0: string, 1: string}|array{0: string}, array<int, resource>): resource|false
+ * An optional proc-open callable can be injected for testing commandExists() only.
  */
 final class SystemCommandRunner implements CommandRunnerInterface
 {
-    /** @var ProcOpenCallable|null */
+    private const DEFAULT_TIMEOUT_SECONDS = 180.0;
+
+    /** @var (callable(string, array, array): (false|resource))|null */
     private $procOpen;
 
+    private readonly float $idleTimeoutSeconds;
+
     /**
-     * @param ProcOpenCallable|null $procOpen Optional. When null, uses PHP's proc_open.
+     * @param (callable(string, array, array): (false|resource))|null $procOpen Optional. When null, uses Symfony Process for commandExists().
+     * @param float $timeoutSeconds Wall-clock timeout for exec() (and idle timeout when idle is null)
+     * @param float|null $idleTimeoutSeconds Idle timeout; defaults to the same as $timeoutSeconds
      */
-    public function __construct(?callable $procOpen = null)
-    {
-        $this->procOpen = $procOpen;
+    public function __construct(
+        ?callable $procOpen = null,
+        private readonly float $timeoutSeconds = self::DEFAULT_TIMEOUT_SECONDS,
+        ?float $idleTimeoutSeconds = null,
+    ) {
+        $this->procOpen           = $procOpen;
+        $this->idleTimeoutSeconds = $idleTimeoutSeconds ?? $timeoutSeconds;
     }
 
     public function commandExists(string $command): bool
+    {
+        if ($this->procOpen !== null) {
+            return $this->commandExistsViaProcOpen($command);
+        }
+
+        $whereIsCommand = (PHP_OS === 'WINNT') ? 'where' : 'which';
+        $process        = Process::fromShellCommandline($whereIsCommand . ' ' . escapeshellarg($command));
+        $process->setTimeout(10.0);
+        $process->setIdleTimeout(10.0);
+
+        try {
+            $process->run();
+            // @codeCoverageIgnoreStart
+        } catch (ProcessTimedOutException) {
+            // Defensive: which/where should not hang; stop if the OS misbehaves.
+            $process->stop(0);
+
+            return false;
+        }
+        // @codeCoverageIgnoreEnd
+
+        $stdout = $process->getOutput();
+
+        return $process->isSuccessful() && !in_array($stdout, ['', '0'], true);
+    }
+
+    public function exec(string $command, ?array &$output = null): int
+    {
+        $process = Process::fromShellCommandline($command);
+        $process->setTimeout($this->timeoutSeconds);
+        $process->setIdleTimeout($this->idleTimeoutSeconds);
+
+        try {
+            $process->run();
+        } catch (ProcessTimedOutException) {
+            $process->stop(0);
+            if ($output !== null) {
+                $output = ['Command timed out after ' . $this->timeoutSeconds . ' seconds'];
+            }
+
+            return 124;
+        }
+
+        if ($output !== null) {
+            $stdout = $process->getOutput();
+            $stderr = $process->getErrorOutput();
+            $merged = $stdout . ($stderr !== '' ? "\n" . $stderr : '');
+            $output = $merged === '' ? [] : explode("\n", rtrim($merged, "\n"));
+        }
+
+        return $process->getExitCode() ?? 1;
+    }
+
+    private function commandExistsViaProcOpen(string $command): bool
     {
         $whereIsCommand = (PHP_OS === 'WINNT') ? 'where' : 'which';
         $cmd            = $whereIsCommand . ' ' . escapeshellarg($command);
@@ -45,7 +112,7 @@ final class SystemCommandRunner implements CommandRunnerInterface
         ];
         $pipes = [];
 
-        $procOpen = $this->procOpen ?? (static fn (string $c, array $d, array &$p) => proc_open($c, $d, $p));
+        $procOpen = $this->procOpen;
         $process  = $procOpen($cmd, $descriptors, $pipes);
 
         if ($process === false) {
@@ -56,19 +123,5 @@ final class SystemCommandRunner implements CommandRunnerInterface
         $returnCode = proc_close($process);
 
         return $returnCode === 0 && !in_array($stdout, ['', '0', false], true);
-    }
-
-    public function exec(string $command, ?array &$output = null): int
-    {
-        $outputLines = [];
-        $returnCode  = 0;
-
-        exec($command, $outputLines, $returnCode);
-
-        if ($output !== null) {
-            $output = $outputLines;
-        }
-
-        return $returnCode;
     }
 }

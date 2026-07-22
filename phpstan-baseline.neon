@@ -625,20 +625,26 @@ parameters:
 			path: src/Service/PreFlightCheckService.php
 
 		-
+			message: '#^Method Nowo\\AnonymizeBundle\\Service\\SystemCommandRunner\:\:__construct\(\) has parameter \$procOpen with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: src/Service/SystemCommandRunner.php
+
+		-
 			message: '#^Offset 1 does not exist on array\{\}\.$#'
 			identifier: offsetAccess.notFound
 			count: 1
 			path: src/Service/SystemCommandRunner.php
 
 		-
-			message: '#^PHPDoc tag @param for parameter \$procOpen with type mixed is not subtype of native type \(callable\)\|null\.$#'
-			identifier: parameter.phpDocType
-			count: 1
+			message: '#^Property Nowo\\AnonymizeBundle\\Service\\SystemCommandRunner\:\:\$procOpen type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
 			path: src/Service/SystemCommandRunner.php
 
 		-
-			message: '#^PHPDoc tag @phpstan\-type ProcOpenCallable has invalid value\: Unexpected token "\(", expected TOKEN_PHPDOC_EOL at offset 296 on line 8$#'
-			identifier: phpDoc.parseError
+			message: '#^Trying to invoke \(callable\(string, array, array\)\: \(resource\|false\)\)\|null but it might not be a callable\.$#'
+			identifier: callable.nonCallable
 			count: 1
 			path: src/Service/SystemCommandRunner.php
 

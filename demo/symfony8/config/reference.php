@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 // This file is auto-generated and is for apps only. Bundles SHOULD NOT rely on its content.
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
@@ -948,6 +946,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         compression?: "none"|"gzip"|"bzip2"|"zip"|Param, // Compression format: none, gzip, bzip2, zip // Default: "gzip"
  *         connections?: list<scalar|Param|null>,
  *         auto_gitignore?: bool|Param, // Automatically create/update .gitignore to exclude export directory // Default: true
+ *         timeout?: int|Param, // Hard timeout in seconds for mysqldump/pg_dump/mongodump/compression subprocesses (REQ-RUNTIME-001). Keep below PHP max_execution_time and Caddy write timeout. // Default: 180
  *     },
  * }
  * @psalm-type NowoTwigInspectorConfig = array{

@@ -1,9 +1,23 @@
 #!/bin/sh
 set -e
 
-if [ "${APP_ENV:-prod}" = "dev" ] && [ -f /etc/frankenphp/Caddyfile.dev ]; then
-	cp /etc/frankenphp/Caddyfile.dev /etc/frankenphp/Caddyfile
-fi
+# FRANKENPHP_MODE: classic | worker (REQ-DEMO-010). Default: worker.
+MODE="${FRANKENPHP_MODE:-worker}"
+case "$MODE" in
+	classic)
+		if [ -f /etc/frankenphp/Caddyfile.dev ]; then
+			cp /etc/frankenphp/Caddyfile.dev /etc/frankenphp/Caddyfile
+		fi
+		;;
+	worker)
+		# Keep default Caddyfile (worker enabled)
+		;;
+	*)
+		echo "Unknown FRANKENPHP_MODE=$MODE (expected classic|worker)" >&2
+		exit 1
+		;;
+esac
+echo "FrankenPHP mode: $MODE"
 
 echo "🚀 Starting demo entrypoint script..."
 

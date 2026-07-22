@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Lightweight pre-commit gate (REQ-MAKE-006). Full QA stays in CI / release-check.
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+if [ -x .scripts/check-no-cursor-coauthor.sh ]; then
+  ./.scripts/check-no-cursor-coauthor.sh HEAD
+fi

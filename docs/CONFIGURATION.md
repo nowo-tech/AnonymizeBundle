@@ -146,6 +146,7 @@ nowo_anonymize:
 - **`compression`** (string, default: `'gzip'`): Compression format. Options: `none`, `gzip`, `bzip2`, `zip`
 - **`connections`** (array, default: `[]`): Specific connections to export. Empty array means all connections
 - **`auto_gitignore`** (boolean, default: `true`): Automatically create/update `.gitignore` to exclude export directory
+- **`timeout`** (integer, default: `180`): Hard timeout in **seconds** for `mysqldump` / `pg_dump` / `mongodump` / compression subprocesses (**REQ-RUNTIME-001**). Applied as Symfony Process wall-clock **and** idle timeout; on expiry the process is stopped. Keep this value **below** PHP `max_execution_time` and the HTTP server write timeout (see [DEMO-FRANKENPHP.md](DEMO-FRANKENPHP.md#timeouts-req-runtime-001)).
 
 **Example**:
 ```yaml
@@ -157,6 +158,7 @@ nowo_anonymize:
         compression: gzip
         connections: []  # Export all connections
         auto_gitignore: true
+        timeout: 180
 ```
 
 **Filename Pattern Examples**:

@@ -86,6 +86,11 @@ final class Configuration implements ConfigurationInterface
                             ->info('Automatically create/update .gitignore to exclude export directory')
                             ->defaultValue(true)
                         ->end()
+                        ->integerNode('timeout')
+                            ->info('Hard timeout in seconds for mysqldump/pg_dump/mongodump/compression subprocesses (REQ-RUNTIME-001). Keep below PHP max_execution_time and Caddy write timeout.')
+                            ->defaultValue(180)
+                            ->min(1)
+                        ->end()
                     ->end()
                 ->end()
             ->end();

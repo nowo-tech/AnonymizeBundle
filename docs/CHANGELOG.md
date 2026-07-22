@@ -24,6 +24,34 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.28] - 2026-07-22
+
+### Added
+
+- **`.githooks/pre-commit`**: lightweight REQ-GIT-001 check before commit (REQ-MAKE-006).
+- **`make down-dev`**: stop root compose with `--remove-orphans` (REQ-MAKE-007).
+- **`export.timeout`**: configurable subprocess timeout (default 180s) for database export dumps/compression (**REQ-RUNTIME-001**).
+- **`symfony/process`**: direct Composer dependency (`^6 || ^7 || ^8`) for timed export subprocesses.
+
+### Changed
+
+- **Coverage**: PHP line coverage raised to **≥99%** (REQ-TEST-003) via extra EmailFaker/DbalHelper tests and removing a redundant `isSafeEnvironment` check after `performChecks()` in `ExportDatabaseCommand`.
+- **`KernelParameterBagAdapter`**: legacy Container fallback marked `@codeCoverageIgnore` (unreachable on stock Symfony).
+- **`SystemCommandRunner`**: uses Symfony Process with wall-clock and idle timeouts; stops hung dump/compression subprocesses.
+- **PHP-CS-Fixer**: comment clarified so the finder clearly includes the test suites (REQ-CS-002).
+- **Demos (REQ-DEMO-010)**: `FRANKENPHP_MODE` in Compose/`.env.example` (default `worker`); Symfony 8 demo on FrankenPHP **PHP 8.5**; entrypoint selects Caddyfile from mode; Caddy/PHP timeout hierarchy aligned with `export.timeout`.
+- **Demo `release-verify`**: polls HTTP until ready (up to 90s) instead of a fixed short sleep after FrankenPHP recreate.
+- **PHPStan**: `phpstan-baseline.neon` regenerated.
+
+### Removed
+
+_(none)_
+
+### Documentation
+
+- **CONFIGURATION.md**, **DEMO-FRANKENPHP.md**, **SECURITY.md**, **README.md**, **UPGRADING.md**, **CONTRIBUTING.md**: `export.timeout`, REQ-RUNTIME-001 timeout hierarchy, and pre-commit hook documented.
+
+---
 ## [1.0.27] - 2026-07-16
 
 ### Changed

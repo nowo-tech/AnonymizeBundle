@@ -6,6 +6,7 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Faker;
 
 use Nowo\AnonymizeBundle\Faker\EmailFaker;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
 
 use function strlen;
 
@@ -222,6 +223,36 @@ class EmailFakerTest extends TestCase
 
         $this->assertIsString($email);
         $this->assertMatchesRegularExpression('/^[^\s@]+\.abc-def@[^\s@]+\.[^\s@]+$/', $email);
+    }
+
+    /**
+     * appendUniqueSuffix leaves the email unchanged when the unique field is empty.
+     */
+    public function testAppendUniqueSuffixSkipsEmptyUniqueValue(): void
+    {
+        $faker  = new EmailFaker('en_US');
+        $method = new ReflectionMethod(EmailFaker::class, 'appendUniqueSuffix');
+
+        $result = $method->invoke($faker, 'user@example.test', [
+            'record' => ['id' => ''],
+        ]);
+
+        $this->assertSame('user@example.test', $result);
+    }
+
+    /**
+     * appendUniqueSuffix leaves malformed emails (no @) unchanged.
+     */
+    public function testAppendUniqueSuffixSkipsEmailWithoutAtSign(): void
+    {
+        $faker  = new EmailFaker('en_US');
+        $method = new ReflectionMethod(EmailFaker::class, 'appendUniqueSuffix');
+
+        $result = $method->invoke($faker, 'not-an-email', [
+            'record' => ['id' => 99],
+        ]);
+
+        $this->assertSame('not-an-email', $result);
     }
 
     /**

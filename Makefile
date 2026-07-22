@@ -5,7 +5,7 @@ COMPOSE_FILE := docker-compose.yml
 COMPOSE     := docker-compose -f $(COMPOSE_FILE)
 SERVICE_PHP := php
 
-.PHONY: help up down build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up assets release-check release-check-demos composer-sync rector rector-dry phpstan update update-deps update-deps-demos validate check-no-cursor-coauthor strip-cursor-coauthor-from-history
+.PHONY: help up down down-dev build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up assets release-check release-check-demos composer-sync rector rector-dry phpstan update update-deps update-deps-demos validate check-no-cursor-coauthor strip-cursor-coauthor-from-history
 
 # Default target
 help:
@@ -16,6 +16,7 @@ help:
 	@echo "Targets:"
 	@echo "  up            Start Docker container"
 	@echo "  down          Stop Docker container"
+	@echo "  down-dev      Stop containers (keep volumes; REQ-MAKE-007)"
 	@echo "  build         Rebuild Docker image (no cache)"
 	@echo "  shell         Open shell in container"
 	@echo "  install       Install Composer dependencies"
@@ -67,6 +68,10 @@ up:
 # Stop container (root docker-compose)
 down:
 	docker-compose -f docker-compose.yml down
+
+# Stop containers without removing volumes (REQ-MAKE-007)
+down-dev:
+	docker-compose -f docker-compose.yml down --remove-orphans
 
 # Ensure root container is running (start if not). Used by cs-fix, cs-check, qa, install, test, test-coverage.
 ensure-up:
@@ -196,7 +201,7 @@ setup-hooks:
 	@chmod +x .githooks/pre-commit 2>/dev/null || true
 	@chmod +x .githooks/commit-msg 2>/dev/null || true
 	@git config core.hooksPath .githooks
-	@echo "✅ Git hooks installed (.githooks — includes commit-msg for REQ-GIT-001)."
+	@echo "✅ Git hooks installed (.githooks — pre-commit + commit-msg for REQ-GIT-001)."
 
 
 # REQ-MAKE-008: update-deps (REQ-MAKE-008)

@@ -50,6 +50,7 @@ final class AnonymizeExtension extends Extension
         $container->setParameter('nowo_anonymize.export.compression', $exportConfig['compression'] ?? 'gzip');
         $container->setParameter('nowo_anonymize.export.connections', $exportConfig['connections'] ?? []);
         $container->setParameter('nowo_anonymize.export.auto_gitignore', $exportConfig['auto_gitignore'] ?? true);
+        $container->setParameter('nowo_anonymize.export.timeout', $exportConfig['timeout'] ?? 180);
     }
 
     /**

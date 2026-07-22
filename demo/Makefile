@@ -162,15 +162,19 @@ test-coverage-all:
 release-check: update-bundle-all test-coverage-all release-verify
 	@echo "✅ All demos passed release-check."
 
-# Release verify: for each demo, up → sleep → healthcheck (HTTP 200) → down
+# Release verify: for each demo, up → wait until HTTP 200 (or timeout) → down
 release-verify:
 	@for demo in symfony7 symfony8; do \
 		port=$$(case $$demo in symfony7) echo 8000;; symfony8) echo 8002;; *) echo 8000;; esac); \
 		echo "🔍 Release verify: $$demo (port $$port)..."; \
 		$(MAKE) up-$$demo; \
-		echo "⏳ Waiting for $$demo to be ready..."; \
-		sleep 15; \
-		code=$$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:$$port 2>/dev/null || echo "000"); \
+		echo "⏳ Waiting for $$demo to be ready (up to 90s)..."; \
+		code="000"; \
+		for i in $$(seq 1 45); do \
+			code=$$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:$$port 2>/dev/null || echo "000"); \
+			if [ "$$code" = "200" ]; then break; fi; \
+			sleep 2; \
+		done; \
 		$(MAKE) down-$$demo 2>/dev/null || true; \
 		if [ "$$code" != "200" ]; then echo "❌ $$demo healthcheck failed (HTTP $$code)"; exit 1; fi; \
 		echo "✅ $$demo OK (HTTP $$code)"; \

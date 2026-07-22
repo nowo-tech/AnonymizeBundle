@@ -58,6 +58,9 @@ final readonly class KernelParameterBagAdapter implements ParameterBagInterface
 
                 return $paramBag->get($name);
             }
+
+            // @codeCoverageIgnoreStart
+            // Legacy path for exotic Container subclasses without getParameterBag() (unreachable on stock Symfony).
             $paramReflection = new ReflectionClass($kernelContainer);
             if ($paramReflection->hasProperty('parameterBag')) {
                 $paramProperty = $paramReflection->getProperty('parameterBag');
@@ -69,6 +72,7 @@ final readonly class KernelParameterBagAdapter implements ParameterBagInterface
             if (method_exists($kernelContainer, 'getParameter')) {
                 return $kernelContainer->getParameter($name);
             }
+            // @codeCoverageIgnoreEnd
         }
 
         throw new InvalidArgumentException(sprintf('Parameter "%s" not found', $name));

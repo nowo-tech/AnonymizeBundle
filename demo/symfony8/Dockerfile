@@ -1,5 +1,5 @@
-# FrankenPHP + PHP 8.4 for Symfony 8 demo
-FROM dunglas/frankenphp:1-php8.4
+# FrankenPHP + latest PHP available for Symfony 8 (REQ-DEMO-010)
+FROM dunglas/frankenphp:1-php8.5
 
 WORKDIR /app
 

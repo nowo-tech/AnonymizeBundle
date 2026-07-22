@@ -104,15 +104,6 @@ final class ExportDatabaseCommand extends AbstractCommand
             return self::FAILURE;
         }
 
-        if (!$environmentProtection->isSafeEnvironment()) {
-            $io->error(sprintf(
-                'This command can only be executed in "dev" or "test" environment. Current environment: "%s".',
-                $environmentProtection->getEnvironment(),
-            ));
-
-            return self::FAILURE;
-        }
-
         // Get configuration
         $outputDir       = $input->getOption('output-dir');
         $filenamePattern = $input->getOption('filename-pattern');
@@ -146,6 +137,10 @@ final class ExportDatabaseCommand extends AbstractCommand
                 ? $parameterBag->get('nowo_anonymize.export.auto_gitignore')
                 : true
         );
+
+        $timeout = $parameterBag->has('nowo_anonymize.export.timeout')
+            ? (float) $parameterBag->get('nowo_anonymize.export.timeout')
+            : 180.0;
 
         // Resolve kernel.project_dir if present (use parameter to avoid synthetic kernel service)
         if (str_contains((string) $outputDir, '%kernel.project_dir%')) {
@@ -192,6 +187,8 @@ final class ExportDatabaseCommand extends AbstractCommand
             $filenamePattern,
             $compression,
             $autoGitignore,
+            null,
+            $timeout,
         );
 
         $io->title('Database Export');
@@ -203,6 +200,7 @@ final class ExportDatabaseCommand extends AbstractCommand
                 ['Filename Pattern', $filenamePattern],
                 ['Compression', $compression],
                 ['Auto .gitignore', $autoGitignore ? 'Yes' : 'No'],
+                ['Subprocess timeout (s)', (string) $timeout],
                 ['Connections', implode(', ', $managersToProcess)],
             ],
         );

@@ -115,6 +115,6 @@ return (new Config())
         (new Finder())
             ->in(__DIR__)
             ->exclude(['vendor', 'var', 'coverage', '.phpunit.cache'])
-            // tests/ is included (do not exclude)
+            // Unit and integration suites stay in the finder
     )
 ;

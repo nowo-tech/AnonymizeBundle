@@ -24,6 +24,36 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.28
+
+**Release Date**: 2026-07-22
+
+#### What's New
+
+- **REQ-RUNTIME-001**: `export.timeout` (default **180** seconds) for dump/compression subprocesses via Symfony Process; demo Caddy/PHP deadlines documented.
+- **Dependency**: `symfony/process` (`^6 || ^7 || ^8`) is now a direct `require` (usually already present in Symfony apps).
+- **Standards compliance**: coverage ≥99%, `down-dev`, pre-commit hook, FrankenPHP `FRANKENPHP_MODE` / PHP 8.5 on Symfony 8 demo.
+
+#### Breaking Changes
+
+None. New optional config key with a safe default; Composer will install `symfony/process` if missing.
+
+#### Migration Steps
+
+1. **Update the bundle** (if you use Composer):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+2. **(Optional)** Tune export timeout if dumps need longer than 180s:
+   ```yaml
+   nowo_anonymize:
+       export:
+           enabled: true
+           timeout: 300
+   ```
+   Keep PHP `max_execution_time` and Caddy write timeout **above** this value (see [DEMO-FRANKENPHP.md](DEMO-FRANKENPHP.md#timeouts-req-runtime-001)).
+
 ### Upgrading to 1.0.27
 
 **Release Date**: 2026-07-16

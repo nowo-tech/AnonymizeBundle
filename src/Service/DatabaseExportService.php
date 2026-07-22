@@ -36,6 +36,7 @@ final class DatabaseExportService
      * @param string $compression The compression format (none, gzip, bzip2, zip)
      * @param bool $autoGitignore Whether to automatically update .gitignore
      * @param CommandRunnerInterface|null $commandRunner Optional command runner abstraction
+     * @param float $timeoutSeconds Subprocess timeout for dumps/compression (REQ-RUNTIME-001)
      */
     public function __construct(
         private readonly ContainerInterface $container,
@@ -44,8 +45,9 @@ final class DatabaseExportService
         private readonly string $compression,
         private readonly bool $autoGitignore,
         private ?CommandRunnerInterface $commandRunner = null,
+        float $timeoutSeconds = 180.0,
     ) {
-        $this->commandRunner ??= new SystemCommandRunner();
+        $this->commandRunner ??= new SystemCommandRunner(null, $timeoutSeconds);
     }
 
     /**

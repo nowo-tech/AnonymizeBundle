@@ -16,6 +16,7 @@ This bundle is **development-only** (see below). It anonymizes data for local/te
 | Misuse in production | Documented as dev-only; install with `--dev` and do not register bundle in `prod`. |
 | Commands in prod console | `nowo:anonymize:run` and `nowo:anonymize:export-db` check `kernel.environment` (dev/test) and config files; other commands assume dev-only installation—do not rely on them as a sole prod barrier. Avoid `bin/console --env=dev` against production databases. |
 | Data leakage in logs | Avoid verbose logging of raw PII in anonymization pipelines. |
+| Hung export subprocesses (FrankenPHP/FPM) | `export.timeout` (default 180s) on Symfony Process; demo Caddy/PHP deadlines sit above it (REQ-RUNTIME-001). |
 
 ## Dependencies
 
@@ -54,7 +55,7 @@ Before tagging a release, confirm:
 | **Logging** | Logs do not print secrets, tokens, or session identifiers unnecessarily. |
 | **Cryptography** | If used: keys from secure config; never hardcoded. |
 | **Permissions / exposure** | Routes and admin features documented; roles configured for production. |
-| **Limits / DoS** | Timeouts, size limits, rate limits where applicable. |
+| **Limits / DoS** | `export.timeout` + PHP/Caddy hierarchy documented (REQ-RUNTIME-001). |
 
 Record confirmation in the release PR or tag notes.
 

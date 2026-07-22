@@ -1,6 +1,6 @@
 {
     "name": "nowo-tech/anonymize-demo-symfony8",
-    "description": "Demo project for Anonymize Bundle - Symfony 8.1 with MySQL and PostgreSQL",
+    "description": "Demo project for Anonymize Bundle - Symfony 8.1 with MySQL and PostgreSQL (FrankenPHP / PHP 8.5)",
     "type": "project",
     "license": "MIT",
     "require": {

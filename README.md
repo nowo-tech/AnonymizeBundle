@@ -64,7 +64,7 @@ Looking for: **database anonymization**, **test data generator**, **GDPR complia
 - ✅ Configurable output directories: Customize where statistics and exports are saved
 - ✅ Table truncation: Empty tables before anonymization with configurable execution order (for polymorphic entities, only rows of that discriminator are deleted)
 - ✅ Custom entity anonymizer: Delegate anonymization to a service per entity via `anonymizeService` (`EntityAnonymizerServiceInterface`)
-- ✅ **FrankenPHP** — Compatible with FrankenPHP (including worker mode); demos run with FrankenPHP and Caddy (see [demo/README.md](demo/README.md))
+- ✅ **FrankenPHP** — Compatible with FrankenPHP (including worker mode); demos run with FrankenPHP and Caddy; export subprocesses use hard timeouts so workers are not left hung (see [DEMO-FRANKENPHP.md](docs/DEMO-FRANKENPHP.md#timeouts-req-runtime-001))
 
 ## Installation
 
