@@ -44,7 +44,7 @@ class SystemCommandRunnerTest extends TestCase
     public function testCommandExistsViaInjectedProcOpenSuccess(): void
     {
         $runner = new SystemCommandRunner(
-            static fn (string $command, array $descriptors, array &$pipes) => proc_open($command, $descriptors, $pipes),
+            static fn (string $command, array $descriptors, array &$pipes) => proc_open($command, $descriptors, $pipes), // @phpstan-ignore frankenphp.classic.noUnlimitedIoTimeout (test hook for injectable proc_open)
         );
 
         $this->assertTrue($runner->commandExists('php'));

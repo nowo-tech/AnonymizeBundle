@@ -24,6 +24,28 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.30
+
+**Release Date**: 2026-07-23
+
+#### What's New
+
+- **Docs**: README highlights FrankenPHP worker mode friendliness (badge image under `docs/images/`).
+- **Maintainers**: PHPStan ignore for the intentional `proc_open` coverage hook in tests.
+
+#### Breaking Changes
+
+None.
+
+#### Migration Steps
+
+1. **Update the bundle** (if you use Composer):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+No application or configuration changes are required.
+
 ### Upgrading to 1.0.29
 
 **Release Date**: 2026-07-22

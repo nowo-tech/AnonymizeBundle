@@ -24,6 +24,30 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.30] - 2026-07-23
+
+### Added
+
+_(none)_
+
+### Changed
+
+_(none)_
+
+### Fixed
+
+- **PHPStan**: suppress `frankenphp.classic.noUnlimitedIoTimeout` on the intentional `proc_open` test hook in `SystemCommandRunnerTest`.
+
+### Removed
+
+_(none)_
+
+### Documentation
+
+- **README.md**: FrankenPHP worker mode friendly callout with badge image (`docs/images/frankenphp-friendly.jpg`).
+- **README.md**: coverage badge and roadmap status aligned with **≥99%** line coverage / current release.
+
+---
 ## [1.0.29] - 2026-07-22
 
 ### Added

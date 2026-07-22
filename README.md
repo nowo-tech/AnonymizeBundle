@@ -1,12 +1,16 @@
 # Anonymize Bundle
 
-[![CI](https://github.com/nowo-tech/AnonymizeBundle/actions/workflows/ci.yml/badge.svg)](https://github.com/nowo-tech/AnonymizeBundle/actions/workflows/ci.yml) [![Packagist Version](https://img.shields.io/packagist/v/nowo-tech/anonymize-bundle.svg?style=flat)](https://packagist.org/packages/nowo-tech/anonymize-bundle) [![Packagist Downloads](https://img.shields.io/packagist/dt/nowo-tech/anonymize-bundle.svg)](https://packagist.org/packages/nowo-tech/anonymize-bundle) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php)](https://php.net) [![Symfony](https://img.shields.io/badge/Symfony-6.0%2B%20%7C%207.4%2B%20%7C%208.0%20%7C%208.1%2B-000000?logo=symfony)](https://symfony.com) [![GitHub stars](https://img.shields.io/github/stars/nowo-tech/anonymize-bundle.svg?style=social&label=Star)](https://github.com/nowo-tech/AnonymizeBundle) [![Coverage](https://img.shields.io/badge/Coverage-94%25-yellowgreen)](#tests-and-coverage) [![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/nowo-tech/AnonymizeBundle?utm_source=oss&utm_medium=github&utm_campaign=nowo-tech%2FAnonymizeBundle&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)](https://coderabbit.ai)
+[![CI](https://github.com/nowo-tech/AnonymizeBundle/actions/workflows/ci.yml/badge.svg)](https://github.com/nowo-tech/AnonymizeBundle/actions/workflows/ci.yml) [![Packagist Version](https://img.shields.io/packagist/v/nowo-tech/anonymize-bundle.svg?style=flat)](https://packagist.org/packages/nowo-tech/anonymize-bundle) [![Packagist Downloads](https://img.shields.io/packagist/dt/nowo-tech/anonymize-bundle.svg)](https://packagist.org/packages/nowo-tech/anonymize-bundle) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php)](https://php.net) [![Symfony](https://img.shields.io/badge/Symfony-6.0%2B%20%7C%207.4%2B%20%7C%208.0%20%7C%208.1%2B-000000?logo=symfony)](https://symfony.com) [![GitHub stars](https://img.shields.io/github/stars/nowo-tech/anonymize-bundle.svg?style=social&label=Star)](https://github.com/nowo-tech/AnonymizeBundle) [![Coverage](https://img.shields.io/badge/Coverage-%E2%89%A599%25-brightgreen)](#tests-and-coverage) [![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/nowo-tech/AnonymizeBundle?utm_source=oss&utm_medium=github&utm_campaign=nowo-tech%2FAnonymizeBundle&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)](https://coderabbit.ai)
 
 > ⭐ **Found this useful?** [Install from Packagist](https://packagist.org/packages/nowo-tech/anonymize-bundle) · Give it a **star** on [GitHub](https://github.com/nowo-tech/AnonymizeBundle) so more developers can find it.
 
 **Symfony bundle for database anonymization, test data generation, and GDPR compliance.** Anonymize database records using Doctrine attributes and Faker generators. Perfect for development environments, testing, data masking, and privacy compliance.
 
 > 📋 **Compatible with Symfony 6.1+, 7.x, and 8.x** - This bundle requires Symfony 6.1 or higher (Symfony 6.0 is not supported).
+
+![FrankenPHP Friendly Worker Mode](docs/images/frankenphp-friendly.jpg)
+
+This bundle is **FrankenPHP worker mode friendly**.
 
 ## Table of contents
 
@@ -237,11 +241,11 @@ For information about our Git workflow and branching strategy, see [BRANCHING.md
 
 We have an extensive roadmap for future enhancements. See [ROADMAP.md](docs/ROADMAP.md) for details on planned features including:
 
-### Current Status (1.0.22)
+### Current Status (1.0.30)
 
 - **Phase 1 Progress**: 100% complete (built-in faker types implemented via `FakerType` enum)
 - **Total Fakers Available**: **40** types in `FakerType` (including `map`, `utm`, `service`, and data-preservation fakers)
-- **Test Coverage**: Large PHPUnit suite (**1100+** test methods; exact count changes as tests are added). Run `composer test` or `make test` for the current total. **~94.1%** line coverage on `src/` (PHPUnit Lines); target remains **100%** — see `make test-coverage` for the report.
+- **Test Coverage**: Large PHPUnit suite (**1100+** test methods; exact count changes as tests are added). Run `composer test` or `make test` for the current total. **≥99%** line coverage on `src/` (PHPUnit Lines); target remains **100%** — see `make test-coverage` for the report.
  - Some paths (e.g. parts of CLI commands and large services) may be exercised primarily via integration/command tests.
  - Run <code>make test-coverage</code> for the full report.
  - Comprehensive tests for fakers, services, events, attributes, and helpers
