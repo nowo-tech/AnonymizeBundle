@@ -22,7 +22,6 @@ use function sprintf;
 
 use const JSON_PRETTY_PRINT;
 use const JSON_UNESCAPED_SLASHES;
-use const PHP_INT_MAX;
 
 /**
  * Command to display information about anonymizers defined in the application.
@@ -97,7 +96,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
     {
         $io          = new SymfonyStyle($input, $output);
         $locale      = $input->getOption('locale') ?? $this->locale;
-        $connections = $input->getOption('connection');
+        $connections = $input->getOption('connection') ?: $this->connections;
 
         $io->title('Anonymizer Information');
 
@@ -190,8 +189,8 @@ final class AnonymizeInfoCommand extends AbstractCommand
 
                     // Sort properties by weight
                     usort($properties, static function (array $a, array $b): int {
-                        $weightA = $a['weight'] ?? PHP_INT_MAX;
-                        $weightB = $b['weight'] ?? PHP_INT_MAX;
+                        $weightA = $a['weight'];
+                        $weightB = $b['weight'];
                         if ($weightA === $weightB) {
                             return strcmp($a['property']->getName(), $b['property']->getName());
                         }
@@ -206,7 +205,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
                     foreach ($properties as $index => $propertyData) {
                         $property     = $propertyData['property'];
                         $attribute    = $propertyData['attribute'];
-                        $weight       = $propertyData['weight'] ?? PHP_INT_MAX;
+                        $weight       = $propertyData['weight'];
                         $propertyName = $property->getName();
 
                         // Get column name
@@ -221,8 +220,8 @@ final class AnonymizeInfoCommand extends AbstractCommand
                             // Check entity-level patterns first
                             $entityMatches = $patternMatcher->matches(
                                 $record,
-                                $entityAttribute->includePatterns ?? [],
-                                $entityAttribute->excludePatterns ?? [],
+                                $entityAttribute->includePatterns,
+                                $entityAttribute->excludePatterns,
                             );
 
                             if (!$entityMatches) {
@@ -232,8 +231,8 @@ final class AnonymizeInfoCommand extends AbstractCommand
                             // Check property-level patterns
                             if ($patternMatcher->matches(
                                 $record,
-                                $attribute->includePatterns ?? [],
-                                $attribute->excludePatterns ?? [],
+                                $attribute->includePatterns,
+                                $attribute->excludePatterns,
                             )) {
                                 ++$recordsToAnonymize;
                             }
@@ -274,9 +273,9 @@ final class AnonymizeInfoCommand extends AbstractCommand
                             'faker_type'           => $attribute->type,
                             'service'              => $attribute->service,
                             'weight'               => $weight,
-                            'options'              => $attribute->options ?? [],
-                            'include_patterns'     => $attribute->includePatterns ?? [],
-                            'exclude_patterns'     => $attribute->excludePatterns ?? [],
+                            'options'              => $attribute->options,
+                            'include_patterns'     => $attribute->includePatterns,
+                            'exclude_patterns'     => $attribute->excludePatterns,
                             'total_records'        => $totalRecords,
                             'records_to_anonymize' => $recordsToAnonymize,
                             'percentage'           => $percentage,

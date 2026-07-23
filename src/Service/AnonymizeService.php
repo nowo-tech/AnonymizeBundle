@@ -30,12 +30,17 @@ use function count;
 use function in_array;
 use function is_array;
 use function is_bool;
+use function is_string;
 use function sprintf;
 
 use const PHP_INT_MAX;
 
 /**
  * Service for anonymizing database records.
+ *
+ * @phpstan-type PatternValue = string|list<string>
+ * @phpstan-type PatternSet = array<string, PatternValue>
+ * @phpstan-type Patterns = PatternSet|list<PatternSet>
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
@@ -68,7 +73,7 @@ final class AnonymizeService
      *
      * @param EntityManagerInterface $em The entity manager
      *
-     * @return array<string, array{metadata: ClassMetadata, reflection: ReflectionClass, attribute: Anonymize}> Array of entities with their metadata
+     * @return array<string, array{metadata: ClassMetadata<object>, reflection: ReflectionClass<object>, attribute: Anonymize}> Array of entities with their metadata
      */
     public function getAnonymizableEntities(EntityManagerInterface $em): array
     {
@@ -109,9 +114,9 @@ final class AnonymizeService
     /**
      * Gets all properties from an entity that have the AnonymizeProperty attribute.
      *
-     * @param ReflectionClass $reflection The entity reflection class
+     * @param ReflectionClass<object> $reflection The entity reflection class
      *
-     * @return array<string, array{property: ReflectionProperty, attribute: AnonymizeProperty, weight: int}> Array of properties with their attributes and weights
+     * @return list<array{property: ReflectionProperty, attribute: AnonymizeProperty, weight: int}> Array of properties with their attributes and weights
      */
     public function getAnonymizableProperties(ReflectionClass $reflection): array
     {
@@ -158,7 +163,7 @@ final class AnonymizeService
      * Tables are processed in order: first by truncate_order (if defined), then alphabetically.
      *
      * @param EntityManagerInterface $em The entity manager
-     * @param array<string, array{metadata: ClassMetadata, reflection: ReflectionClass, attribute: Anonymize}> $entities Array of entities with their metadata
+     * @param array<string, array{metadata: ClassMetadata<object>, reflection: ReflectionClass<object>, attribute: Anonymize}> $entities Array of entities with their metadata
      * @param bool $dryRun If true, only show what would be truncated without making changes
      * @param callable|null $progressCallback Optional progress callback (tableName, message)
      *
@@ -295,13 +300,14 @@ final class AnonymizeService
      * Used to truncate only this entity's rows when truncate=true on a child/root of STI/CTI.
      * Uses public metadata properties for compatibility with Doctrine ORM 2.x and 3.x.
      *
+     * @param ClassMetadata<object> $metadata
+     *
      * @return array{column: string|null, value: string|null}
      */
     private function getDiscriminatorForTruncate(ClassMetadata $metadata): array
     {
-        $none            = 0;
-        $inheritanceType = $metadata->inheritanceType ?? $none;
-        if ($inheritanceType === $none) {
+        $inheritanceType = $metadata->inheritanceType;
+        if ($inheritanceType === ClassMetadata::INHERITANCE_TYPE_NONE) {
             return ['column' => null, 'value' => null];
         }
         $discCol   = $metadata->discriminatorColumn ?? null;
@@ -321,9 +327,9 @@ final class AnonymizeService
      * Anonymizes records for a given entity.
      *
      * @param EntityManagerInterface $em The entity manager
-     * @param ClassMetadata $metadata The entity metadata
-     * @param ReflectionClass $reflection The entity reflection class
-     * @param array<string, array{property: ReflectionProperty, attribute: AnonymizeProperty, weight: int}> $properties The properties to anonymize
+     * @param ClassMetadata<object> $metadata The entity metadata
+     * @param ReflectionClass<object> $reflection The entity reflection class
+     * @param list<array{property: ReflectionProperty, attribute: AnonymizeProperty, weight: int}> $properties The properties to anonymize
      * @param int $batchSize Chunk size for reading (LIMIT per query) and for committing updates (one transaction per chunk)
      * @param bool $dryRun If true, only show what would be anonymized
      * @param AnonymizeStatistics|null $statistics Optional statistics collector
@@ -676,7 +682,7 @@ final class AnonymizeService
      * Converts a value to the appropriate type for the database field.
      *
      * @param mixed $value The value to convert
-     * @param ClassMetadata $metadata The entity metadata
+     * @param ClassMetadata<object> $metadata The entity metadata
      * @param string $columnName The column name
      *
      * @return mixed The converted value
@@ -708,7 +714,7 @@ final class AnonymizeService
      * @param string $tableName The table name
      * @param array<string, mixed> $record The original record
      * @param array<string, mixed> $updates The updates to apply
-     * @param ClassMetadata $metadata The entity metadata
+     * @param ClassMetadata<object> $metadata The entity metadata
      */
     private function updateRecord(
         Connection $connection,
@@ -763,7 +769,7 @@ final class AnonymizeService
     /**
      * Checks if a class uses the AnonymizableTrait.
      *
-     * @param ReflectionClass $reflection The reflection class
+     * @param ReflectionClass<object> $reflection The reflection class
      *
      * @return bool True if the class uses AnonymizableTrait
      */
@@ -794,7 +800,7 @@ final class AnonymizeService
     /**
      * Extracts all field names from a patterns array (single config or list of configs).
      *
-     * @param array<array<int, array<string, array<string>|string>>|array<string>|string> $patterns
+     * @param array<string, list<string>|string>|list<array<string, list<string>|string>> $patterns
      *
      * @return array<int, string>
      */
@@ -809,12 +815,17 @@ final class AnonymizeService
                 $names = array_merge($names, array_keys($set));
             }
 
-            return array_values(array_unique($names));
+            return array_values(array_filter(array_unique($names), is_string(...)));
         }
 
-        return array_keys($patterns);
+        return array_values(array_filter(array_keys($patterns), is_string(...)));
     }
 
+    /**
+     * @param array<string, list<string>|string>|list<array<string, list<string>|string>> $patterns
+     *
+     * @phpstan-assert-if-true list<array<string, string|list<string>>> $patterns
+     */
     private function isListOfPatternSets(array $patterns): bool
     {
         if ($patterns === [] || !array_is_list($patterns)) {
@@ -833,7 +844,7 @@ final class AnonymizeService
      * Builds a SQL query with JOINs for relationships referenced in patterns.
      *
      * @param EntityManagerInterface $em The entity manager
-     * @param ClassMetadata $metadata The entity metadata
+     * @param ClassMetadata<object> $metadata The entity metadata
      * @param string $tableName The main table name
      * @param array<string> $patternFields Array of pattern field names (e.g., ['id', 'type.name', 'status'])
      *
@@ -904,20 +915,13 @@ final class AnonymizeService
                     $relatedColumnName   = OrmHelper::getColumnNameFromFieldMapping($relatedFieldMapping, $relatedField);
 
                     // Validate that we have valid identifiers before adding to SELECT
-                    if ($relatedColumnName !== '' && $relatedColumnName !== '0' && ($alias !== '' && $alias !== '0')) {
-                        $quotedAlias   = DbalHelper::quoteIdentifier($connection, $alias);
-                        $quotedColumn  = DbalHelper::quoteIdentifier($connection, $relatedColumnName);
-                        $quotedPattern = DbalHelper::quoteIdentifier($connection, $patternField);
-
-                        // Only add if all quoted identifiers are non-empty
-                        if ($quotedAlias !== '' && $quotedAlias !== '0' && ($quotedColumn !== '' && $quotedColumn !== '0') && ($quotedPattern !== '' && $quotedPattern !== '0')) {
-                            $selectFields[] = sprintf(
-                                '%s.%s AS %s',
-                                $quotedAlias,
-                                $quotedColumn,
-                                $quotedPattern,
-                            );
-                        }
+                    if ($relatedColumnName !== '') {
+                        $selectFields[] = sprintf(
+                            '%s.%s AS %s',
+                            DbalHelper::quoteIdentifier($connection, $alias),
+                            DbalHelper::quoteIdentifier($connection, $relatedColumnName),
+                            DbalHelper::quoteIdentifier($connection, $patternField),
+                        );
                     }
                 }
 
@@ -1019,7 +1023,7 @@ final class AnonymizeService
      *
      * @param Connection $connection The database connection
      * @param string $query The base SELECT query (with WHERE if any)
-     * @param ClassMetadata $metadata The entity metadata
+     * @param ClassMetadata<object> $metadata The entity metadata
      * @param string $mainTableAlias The main table alias (e.g. t0)
      * @param int $limit Maximum number of rows
      * @param int $offset Offset for pagination

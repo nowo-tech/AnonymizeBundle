@@ -196,7 +196,7 @@ final readonly class HtmlFaker implements FakerInterface
         $html  = '';
         $style = $includeStyles ? ' style="font-family: Arial, sans-serif;"' : '';
 
-        if ($style !== '' && $style !== '0') {
+        if ($style !== '') {
             $html .= '<div' . $style . '>';
         }
 
@@ -218,7 +218,7 @@ final readonly class HtmlFaker implements FakerInterface
             $html .= '<' . $headingLevel . '>' . htmlspecialchars($this->faker->sentence(3)) . '</' . $headingLevel . '>';
         }
 
-        if ($style !== '' && $style !== '0') {
+        if ($style !== '') {
             $html .= '</div>';
         }
 

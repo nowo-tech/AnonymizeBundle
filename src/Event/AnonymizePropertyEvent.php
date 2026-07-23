@@ -29,7 +29,7 @@ final class AnonymizePropertyEvent extends Event
      * Creates a new AnonymizePropertyEvent instance.
      *
      * @param EntityManagerInterface $entityManager The entity manager
-     * @param ClassMetadata $metadata The entity metadata
+     * @param ClassMetadata<object> $metadata The entity metadata
      * @param ReflectionProperty $property The property reflection
      * @param string $columnName The database column name
      * @param mixed $originalValue The original value before anonymization
@@ -54,7 +54,7 @@ final class AnonymizePropertyEvent extends Event
     /**
      * Gets the entity metadata.
      *
-     * @return ClassMetadata The entity metadata
+     * @return ClassMetadata<object> The entity metadata
      */
     public function getMetadata(): ClassMetadata
     {

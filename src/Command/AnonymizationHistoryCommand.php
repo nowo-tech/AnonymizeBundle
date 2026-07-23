@@ -11,6 +11,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Throwable;
 
 use function count;
@@ -112,7 +113,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
             }
 
             if ($input->getOption('json')) {
-                $output->writeln(json_encode($comparison, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+                $output->writeln(json_encode($comparison, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}');
 
                 return self::SUCCESS;
             }
@@ -132,7 +133,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
             }
 
             if ($input->getOption('json')) {
-                $output->writeln(json_encode($run, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+                $output->writeln(json_encode($run, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}');
 
                 return self::SUCCESS;
             }
@@ -154,7 +155,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
         }
 
         if ($input->getOption('json')) {
-            $output->writeln(json_encode($runs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $output->writeln(json_encode($runs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '[]');
 
             return self::SUCCESS;
         }
@@ -356,7 +357,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
         if ($this->container->has('parameter_bag')) {
             try {
                 $parameterBag = $this->container->get('parameter_bag');
-                if (method_exists($parameterBag, 'has') && $parameterBag->has('nowo_anonymize.history_dir')) {
+                if ($parameterBag instanceof ParameterBagInterface && $parameterBag->has('nowo_anonymize.history_dir')) {
                     $historyDir = $parameterBag->get('nowo_anonymize.history_dir');
                 }
             } catch (Throwable) {

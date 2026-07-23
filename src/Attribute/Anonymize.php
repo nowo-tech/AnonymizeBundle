@@ -28,8 +28,8 @@ final class Anonymize
 {
     /**
      * @param string|null $connection The Doctrine connection name. If null, all connections will be checked
-     * @param array<array<int, array<string, array<string>|string>>|array<string>|string> $includePatterns Single config (field=>pattern) or list of configs (OR between them). If empty, all records are included
-     * @param array<array<int, array<string, array<string>|string>>|array<string>|string> $excludePatterns Single config (field=>pattern) or list of configs (OR between them). E.g. ['id' => '<=100'] or [ ['role'=>'admin','email'=>'%@nowo.tech'], ['status'=>'deleted'] ]. Exclusions take precedence over inclusions
+     * @param array<string, list<string>|string>|list<array<string, list<string>|string>> $includePatterns Single config (field=>pattern) or list of configs (OR between them). If empty, all records are included
+     * @param array<string, list<string>|string>|list<array<string, list<string>|string>> $excludePatterns Single config (field=>pattern) or list of configs (OR between them). E.g. ['id' => '<=100'] or [ ['role'=>'admin','email'=>'%@nowo.tech'], ['status'=>'deleted'] ]. Exclusions take precedence over inclusions
      * @param string|null $anonymizeService Service id (e.g. FQCN or container id) implementing EntityAnonymizerServiceInterface. When set, this service anonymizes each record instead of using AnonymizeProperty attributes
      * @param bool $truncate If true, the table is emptied before anonymization. For polymorphic entities (STI/CTI) only rows of this discriminator are deleted; for normal entities the whole table is truncated
      * @param int|null $truncate_order Order for truncating tables. Lower numbers are executed first. If null, tables are truncated in alphabetical order after those with explicit order

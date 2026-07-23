@@ -59,7 +59,9 @@ class AnonymizationHistoryServiceTest extends TestCase
         $this->assertStringContainsString('run_', basename($filePath));
         $this->assertStringEndsWith('.json', $filePath);
 
-        $content = json_decode(file_get_contents($filePath), true);
+        $fileContent = file_get_contents($filePath);
+        $this->assertIsString($fileContent);
+        $content = json_decode($fileContent, true);
         $this->assertIsArray($content);
         $this->assertArrayHasKey('id', $content);
         $this->assertArrayHasKey('timestamp', $content);
@@ -187,8 +189,10 @@ class AnonymizationHistoryServiceTest extends TestCase
             'total_records'  => 100,
         ];
 
-        $filePath = $service->saveRun($statistics, ['connection' => 'default']);
-        $runId    = json_decode(file_get_contents($filePath), true)['id'];
+        $filePath    = $service->saveRun($statistics, ['connection' => 'default']);
+        $fileContent = file_get_contents($filePath);
+        $this->assertIsString($fileContent);
+        $runId = json_decode($fileContent, true)['id'];
 
         $run = $service->getRun($runId);
         $this->assertIsArray($run);
@@ -291,8 +295,12 @@ class AnonymizationHistoryServiceTest extends TestCase
         $filePath1 = $service->saveRun($statistics1);
         $filePath2 = $service->saveRun($statistics2);
 
-        $runId1 = json_decode(file_get_contents($filePath1), true)['id'];
-        $runId2 = json_decode(file_get_contents($filePath2), true)['id'];
+        $fileContent1 = file_get_contents($filePath1);
+        $fileContent2 = file_get_contents($filePath2);
+        $this->assertIsString($fileContent1);
+        $this->assertIsString($fileContent2);
+        $runId1 = json_decode($fileContent1, true)['id'];
+        $runId2 = json_decode($fileContent2, true)['id'];
 
         $comparison = $service->compareRuns($runId1, $runId2);
         $this->assertIsArray($comparison);
@@ -326,8 +334,12 @@ class AnonymizationHistoryServiceTest extends TestCase
         $filePath1 = $service->saveRun($statistics1);
         $filePath2 = $service->saveRun($statistics2);
 
-        $runId1 = json_decode(file_get_contents($filePath1), true)['id'];
-        $runId2 = json_decode(file_get_contents($filePath2), true)['id'];
+        $fileContent1 = file_get_contents($filePath1);
+        $fileContent2 = file_get_contents($filePath2);
+        $this->assertIsString($fileContent1);
+        $this->assertIsString($fileContent2);
+        $runId1 = json_decode($fileContent1, true)['id'];
+        $runId2 = json_decode($fileContent2, true)['id'];
 
         $comparison = $service->compareRuns($runId1, $runId2);
         $this->assertIsArray($comparison);
@@ -368,8 +380,8 @@ class AnonymizationHistoryServiceTest extends TestCase
         $filePath1 = $service->saveRun($statistics1);
         $filePath2 = $service->saveRun($statistics2);
 
-        $runId1 = json_decode(file_get_contents($filePath1), true)['id'];
-        $runId2 = json_decode(file_get_contents($filePath2), true)['id'];
+        $runId1 = $this->decodeJsonFile($filePath1)['id'];
+        $runId2 = $this->decodeJsonFile($filePath2)['id'];
 
         $comparison = $service->compareRuns($runId1, $runId2);
         $this->assertIsArray($comparison);
@@ -393,11 +405,11 @@ class AnonymizationHistoryServiceTest extends TestCase
 
         // Create a recent run
         $recentFilePath = $service->saveRun($statistics);
-        $recentRunId    = json_decode(file_get_contents($recentFilePath), true)['id'];
+        $recentRunId    = $this->decodeJsonFile($recentFilePath)['id'];
 
         // Create an old run by modifying the file directly
         $oldFilePath             = $service->saveRun($statistics);
-        $oldRunData              = json_decode(file_get_contents($oldFilePath), true);
+        $oldRunData              = $this->decodeJsonFile($oldFilePath);
         $oldRunData['timestamp'] = time() - (35 * 24 * 60 * 60); // 35 days ago
         file_put_contents($oldFilePath, json_encode($oldRunData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
@@ -472,7 +484,7 @@ class AnonymizationHistoryServiceTest extends TestCase
         $indexFile = $this->tempDir . '/index.json';
         $this->assertFileExists($indexFile);
 
-        $index = json_decode(file_get_contents($indexFile), true);
+        $index = $this->decodeJsonFile($indexFile);
         $this->assertIsArray($index);
         $this->assertNotEmpty($index);
     }
@@ -532,8 +544,8 @@ class AnonymizationHistoryServiceTest extends TestCase
         $filePath1 = $service->saveRun($statistics1);
         $filePath2 = $service->saveRun($statistics2);
 
-        $runId1 = json_decode(file_get_contents($filePath1), true)['id'];
-        $runId2 = json_decode(file_get_contents($filePath2), true)['id'];
+        $runId1 = $this->decodeJsonFile($filePath1)['id'];
+        $runId2 = $this->decodeJsonFile($filePath2)['id'];
 
         $comparison = $service->compareRuns($runId1, $runId2);
         $this->assertIsArray($comparison);
@@ -574,7 +586,7 @@ class AnonymizationHistoryServiceTest extends TestCase
 
         $indexFile = $this->tempDir . '/index.json';
         $this->assertFileExists($indexFile);
-        $index = json_decode(file_get_contents($indexFile), true);
+        $index = $this->decodeJsonFile($indexFile);
         $this->assertIsArray($index);
         $this->assertCount(2, $index);
     }
@@ -591,7 +603,7 @@ class AnonymizationHistoryServiceTest extends TestCase
         $oldFilePath = $service->saveRun($statistics);
         $service->saveRun($statistics);
 
-        $oldRunData               = json_decode(file_get_contents($oldFilePath), true);
+        $oldRunData               = $this->decodeJsonFile($oldFilePath);
         $oldRunData['timestamp']  = time() - (35 * 24 * 60 * 60);
         $oldRunData['statistics'] = $statistics;
         file_put_contents($oldFilePath, json_encode($oldRunData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
@@ -626,7 +638,7 @@ class AnonymizationHistoryServiceTest extends TestCase
         $service = new AnonymizationHistoryService($this->tempDir);
 
         $validPath = $service->saveRun(['total_entities' => 1]);
-        $validData = json_decode(file_get_contents($validPath), true);
+        $validData = $this->decodeJsonFile($validPath);
         $validId   = $validData['id'];
 
         $invalidPath = $this->tempDir . '/run_2020-01-01_120000_bad.json';
@@ -636,7 +648,7 @@ class AnonymizationHistoryServiceTest extends TestCase
         // if the clock advances one second before cleanup, the saved run would match timestamp < cutoff and be removed).
         $service->cleanup(365);
         $indexFile = $this->tempDir . '/index.json';
-        $index     = json_decode(file_get_contents($indexFile), true);
+        $index     = $this->decodeJsonFile($indexFile);
         $this->assertIsArray($index);
         $ids = array_column($index, 'id');
         $this->assertContains($validId, $ids);
@@ -646,6 +658,18 @@ class AnonymizationHistoryServiceTest extends TestCase
     /**
      * Helper method to recursively remove directory.
      */
+    /** @return array<string, mixed>|list<mixed> */
+    private function decodeJsonFile(string $filePath): array
+    {
+        $content = file_get_contents($filePath);
+        $this->assertIsString($content);
+
+        $decoded = json_decode($content, true);
+        $this->assertIsArray($decoded);
+
+        return $decoded;
+    }
+
     private function removeDirectory(string $dir): void
     {
         if (!is_dir($dir)) {
@@ -675,7 +699,7 @@ class AnonymizationHistoryServiceTest extends TestCase
         $filePath = $service->saveRun(['global' => []], []);
 
         $this->assertFileExists($filePath);
-        $content = json_decode(file_get_contents($filePath), true);
+        $content = $this->decodeJsonFile($filePath);
         $this->assertSame('unknown', $content['metadata']['symfony_version'] ?? null);
     }
 
@@ -690,7 +714,7 @@ class AnonymizationHistoryServiceTest extends TestCase
         $filePath = $service->saveRun(['global' => []], []);
 
         $this->assertFileExists($filePath);
-        $content = json_decode(file_get_contents($filePath), true);
+        $content = $this->decodeJsonFile($filePath);
         $this->assertSame('unknown', $content['metadata']['symfony_version'] ?? null);
     }
 }

@@ -149,8 +149,7 @@ class CompanyFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $faker = new CompanyFaker('en_US');
-        $this->assertInstanceOf(CompanyFaker::class, $faker);
+        new CompanyFaker('en_US');
     }
 
     /**

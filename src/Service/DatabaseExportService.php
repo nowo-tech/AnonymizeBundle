@@ -6,6 +6,7 @@ namespace Nowo\AnonymizeBundle\Service;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use LogicException;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Psr\Container\ContainerInterface;
 use RecursiveDirectoryIterator;
@@ -65,7 +66,7 @@ final class DatabaseExportService
         $database   = $connection->getDatabase();
 
         // Generate filename
-        $filename   = $this->generateFilename($connectionName, $database, $driver);
+        $filename   = $this->generateFilename($connectionName, (string) $database, $driver);
         $outputPath = rtrim($this->outputDir, '/') . '/' . $filename;
 
         // Ensure output directory exists
@@ -118,7 +119,7 @@ final class DatabaseExportService
     public function exportMongoDB(string $connectionName, string $database, string $host = 'localhost', int $port = 27017): ?string
     {
         // Check if mongodump is available
-        if (!$this->commandRunner->commandExists('mongodump')) {
+        if (!$this->getCommandRunner()->commandExists('mongodump')) {
             return null;
         }
 
@@ -139,7 +140,7 @@ final class DatabaseExportService
             escapeshellarg($this->outputDir),
         );
 
-        $returnCode = $this->commandRunner->exec($command, $output);
+        $returnCode = $this->getCommandRunner()->exec($command, $output);
 
         if ($returnCode !== 0) {
             return null;
@@ -184,7 +185,7 @@ final class DatabaseExportService
      */
     private function exportMySQL(Connection $connection, string $outputPath): ?string
     {
-        if (!$this->commandRunner->commandExists('mysqldump')) {
+        if (!$this->getCommandRunner()->commandExists('mysqldump')) {
             return null;
         }
 
@@ -205,7 +206,7 @@ final class DatabaseExportService
             escapeshellarg($outputPath),
         );
 
-        $returnCode = $this->commandRunner->exec($command, $output);
+        $returnCode = $this->getCommandRunner()->exec($command, $output);
 
         return $returnCode === 0 && file_exists($outputPath) ? $outputPath : null;
     }
@@ -220,7 +221,7 @@ final class DatabaseExportService
      */
     private function exportPostgreSQL(Connection $connection, string $outputPath): ?string
     {
-        if (!$this->commandRunner->commandExists('pg_dump')) {
+        if (!$this->getCommandRunner()->commandExists('pg_dump')) {
             return null;
         }
 
@@ -244,7 +245,7 @@ final class DatabaseExportService
             escapeshellarg($outputPath),
         );
 
-        $returnCode = $this->commandRunner->exec($command, $output);
+        $returnCode = $this->getCommandRunner()->exec($command, $output);
 
         return $returnCode === 0 && file_exists($outputPath) ? $outputPath : null;
     }
@@ -329,15 +330,15 @@ final class DatabaseExportService
 
         switch ($this->compression) {
             case 'gzip':
-                if ($this->commandRunner->commandExists('gzip')) {
-                    $this->commandRunner->exec('gzip ' . escapeshellarg($filePath) . ' 2>&1', $output);
+                if ($this->getCommandRunner()->commandExists('gzip')) {
+                    $this->getCommandRunner()->exec('gzip ' . escapeshellarg($filePath) . ' 2>&1', $output);
                     $compressedPath = $filePath . '.gz';
                 }
                 break;
 
             case 'bzip2':
-                if ($this->commandRunner->commandExists('bzip2')) {
-                    $this->commandRunner->exec('bzip2 ' . escapeshellarg($filePath) . ' 2>&1', $output);
+                if ($this->getCommandRunner()->commandExists('bzip2')) {
+                    $this->getCommandRunner()->exec('bzip2 ' . escapeshellarg($filePath) . ' 2>&1', $output);
                     $compressedPath = $filePath . '.bz2';
                 }
                 break;
@@ -403,7 +404,7 @@ final class DatabaseExportService
      */
     private function createTarArchive(string $directory, string $tarPath): bool
     {
-        if (!$this->commandRunner->commandExists('tar')) {
+        if (!$this->getCommandRunner()->commandExists('tar')) {
             return false;
         }
 
@@ -421,7 +422,7 @@ final class DatabaseExportService
             escapeshellarg($directory),
         );
 
-        $returnCode = $this->commandRunner->exec($command, $output);
+        $returnCode = $this->getCommandRunner()->exec($command, $output);
 
         return $returnCode === 0 && file_exists($tarPath);
     }
@@ -452,6 +453,11 @@ final class DatabaseExportService
         return rmdir($directory);
     }
 
+    private function getCommandRunner(): CommandRunnerInterface
+    {
+        return $this->commandRunner ?? throw new LogicException('Command runner is not initialized.');
+    }
+
     /**
      * Updates the .gitignore file to exclude the export directory.
      */
@@ -474,7 +480,7 @@ final class DatabaseExportService
         $gitignoreEntry    = $relativeExportDir . '/';
 
         // Read existing .gitignore
-        $content = file_exists($gitignorePath) ? file_get_contents($gitignorePath) : '';
+        $content = file_exists($gitignorePath) ? (file_get_contents($gitignorePath) ?: '') : '';
 
         // Check if entry already exists
         if (str_contains($content, $gitignoreEntry)) {

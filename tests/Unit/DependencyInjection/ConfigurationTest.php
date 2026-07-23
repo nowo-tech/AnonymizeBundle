@@ -6,7 +6,6 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\DependencyInjection;
 
 use Nowo\AnonymizeBundle\DependencyInjection\Configuration;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 
@@ -25,6 +24,11 @@ class ConfigurationTest extends TestCase
         $this->processor = new Processor();
     }
 
+    /**
+     * @param list<array<string, mixed>> $configs
+     *
+     * @return array<string, mixed>
+     */
     private function processConfiguration(array $configs): array
     {
         return $this->processor->processConfiguration(new Configuration(), $configs);
@@ -38,7 +42,6 @@ class ConfigurationTest extends TestCase
         $configuration = new Configuration();
         $treeBuilder   = $configuration->getConfigTreeBuilder();
 
-        $this->assertInstanceOf(TreeBuilder::class, $treeBuilder);
         $this->assertSame(Configuration::ALIAS, $treeBuilder->buildTree()->getName());
     }
 

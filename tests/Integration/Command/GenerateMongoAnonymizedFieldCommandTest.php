@@ -37,7 +37,6 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
      */
     public function testCommandInstantiation(): void
     {
-        $this->assertInstanceOf(GenerateMongoAnonymizedFieldCommand::class, $this->command);
         $this->assertEquals('nowo:anonymize:generate-mongo-field', $this->command->getName());
     }
 
@@ -105,6 +104,7 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         $this->assertEquals(GenerateMongoAnonymizedFieldCommand::SUCCESS, $result);
         $this->assertFileExists($tempFile);
         $fileContent = file_get_contents($tempFile);
+        $this->assertIsString($fileContent);
         $this->assertStringContainsString('use(', $fileContent);
         $this->assertStringContainsString('users', $fileContent);
 

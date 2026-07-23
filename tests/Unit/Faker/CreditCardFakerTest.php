@@ -53,6 +53,7 @@ class CreditCardFakerTest extends TestCase
         $this->assertIsString($creditCard);
         $this->assertNotEmpty($creditCard);
         $cleanNumber = preg_replace('/[\s-]/', '', $creditCard);
+        $this->assertIsString($cleanNumber);
         $this->assertStringStartsWith('4', $cleanNumber);
     }
 
@@ -67,6 +68,7 @@ class CreditCardFakerTest extends TestCase
         $this->assertIsString($creditCard);
         $this->assertNotEmpty($creditCard);
         $cleanNumber = preg_replace('/[\s-]/', '', $creditCard);
+        $this->assertIsString($cleanNumber);
         // Mastercard numbers typically start with 5[1-5] or 2[2-7], but Faker may generate variations
         $this->assertMatchesRegularExpression('/^\d{13,19}$/', $cleanNumber);
     }
@@ -97,6 +99,7 @@ class CreditCardFakerTest extends TestCase
         $this->assertNotEmpty($creditCard);
         // Should not contain spaces when formatted is false
         $cleanNumber = preg_replace('/[\s-]/', '', $creditCard);
+        $this->assertIsString($cleanNumber);
         $this->assertMatchesRegularExpression('/^\d{13,19}$/', $cleanNumber);
     }
 
@@ -111,6 +114,7 @@ class CreditCardFakerTest extends TestCase
         $this->assertIsString($creditCard);
         $this->assertNotEmpty($creditCard);
         $cleanNumber = preg_replace('/[\s-]/', '', $creditCard);
+        $this->assertIsString($cleanNumber);
         // American Express numbers typically start with 34 or 37
         $this->assertMatchesRegularExpression('/^\d{13,19}$/', $cleanNumber);
     }
@@ -126,6 +130,7 @@ class CreditCardFakerTest extends TestCase
         $this->assertIsString($creditCard);
         $this->assertNotEmpty($creditCard);
         $cleanNumber = preg_replace('/[\s-]/', '', $creditCard);
+        $this->assertIsString($cleanNumber);
         // Should still be a valid length credit card number
         $this->assertMatchesRegularExpression('/^\d{13,19}$/', $cleanNumber);
     }
@@ -141,6 +146,7 @@ class CreditCardFakerTest extends TestCase
         $this->assertIsString($creditCard);
         $this->assertNotEmpty($creditCard);
         $cleanNumber = preg_replace('/[\s-]/', '', $creditCard);
+        $this->assertIsString($cleanNumber);
         $this->assertMatchesRegularExpression('/^\d{13,19}$/', $cleanNumber);
     }
 

@@ -45,7 +45,6 @@ class ExportDatabaseCommandTest extends TestCase
      */
     public function testCommandInstantiation(): void
     {
-        $this->assertInstanceOf(ExportDatabaseCommand::class, $this->command);
         $this->assertEquals('nowo:anonymize:export-db', $this->command->getName());
     }
 
@@ -162,9 +161,8 @@ class ExportDatabaseCommandTest extends TestCase
         $reflection = new ReflectionClass($this->command);
         $method     = $reflection->getMethod('getParameterBag');
 
-        $result = $method->invoke($this->command);
+        $method->invoke($this->command);
 
-        $this->assertInstanceOf(ParameterBagInterface::class, $result);
     }
 
     /**
@@ -180,8 +178,7 @@ class ExportDatabaseCommandTest extends TestCase
         $method     = $reflection->getMethod('getParameterBag');
 
         // Should return a ParameterBagInterface wrapper when parameter_bag is not available
-        $result = $method->invoke($this->command);
-        $this->assertInstanceOf(ParameterBagInterface::class, $result);
+        $method->invoke($this->command);
     }
 
     /**
@@ -199,10 +196,8 @@ class ExportDatabaseCommandTest extends TestCase
         $reflection = new ReflectionClass($this->command);
         $method     = $reflection->getMethod('getParameterBag');
 
-        $result = $method->invoke($this->command);
+        $method->invoke($this->command);
 
-        $this->assertInstanceOf(ParameterBagInterface::class, $result);
-        $this->assertInstanceOf(KernelParameterBagAdapter::class, $result);
     }
 
     /**

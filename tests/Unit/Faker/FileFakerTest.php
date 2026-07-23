@@ -121,8 +121,7 @@ class FileFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $faker = new FileFaker('en_US');
-        $this->assertInstanceOf(FileFaker::class, $faker);
+        new FileFaker('en_US');
     }
 
     /**

@@ -32,7 +32,7 @@ interface EntityAnonymizerServiceInterface
      * Anonymize a single record. Return columns to update.
      *
      * @param EntityManagerInterface $em Entity manager (for the connection in use)
-     * @param ClassMetadata $metadata Class metadata for the entity (concrete class, e.g. child in STI)
+     * @param ClassMetadata<object> $metadata Class metadata for the entity (concrete class, e.g. child in STI)
      * @param array<string, mixed> $record Raw record from DB (column names as keys)
      * @param bool $dryRun If true, do not perform side effects; only return what would be updated
      *
@@ -49,7 +49,7 @@ interface EntityAnonymizerServiceInterface
      * Anonymize a batch of records. Called only when supportsBatch() returns true.
      *
      * @param EntityManagerInterface $em Entity manager (for the connection in use)
-     * @param ClassMetadata $metadata Class metadata for the entity
+     * @param ClassMetadata<object> $metadata Class metadata for the entity
      * @param array<int, array<string, mixed>> $records List of raw records (same order as chunk)
      * @param bool $dryRun If true, do not perform side effects; only return what would be updated
      *

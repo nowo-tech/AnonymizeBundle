@@ -52,6 +52,7 @@ class ServiceFakerTest extends TestCase
     public function testGenerateWithGenerateMethod(): void
     {
         $mockService = new class {
+            /** @param array<string, mixed> $options */
             public function generate(array $options = []): string
             {
                 return 'generated_value';
@@ -103,6 +104,7 @@ class ServiceFakerTest extends TestCase
     public function testGenerateWithInvokeMethod(): void
     {
         $invokableService = new class {
+            /** @param array<string, mixed> $options */
             public function __invoke(array $options = []): string
             {
                 return 'invoked_value';

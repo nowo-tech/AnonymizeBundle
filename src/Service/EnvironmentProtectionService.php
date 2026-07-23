@@ -9,6 +9,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 use function in_array;
 use function is_array;
+use function is_string;
 use function sprintf;
 
 /**
@@ -58,7 +59,7 @@ final readonly class EnvironmentProtectionService
     private function checkEnvironment(): array
     {
         $errors      = [];
-        $environment = $this->parameterBag->get('kernel.environment');
+        $environment = $this->getStringParameter('kernel.environment');
 
         if (!in_array($environment, ['dev', 'test'], true)) {
             $errors[] = sprintf(
@@ -78,7 +79,7 @@ final readonly class EnvironmentProtectionService
     private function checkConfigurationFiles(): array
     {
         $errors     = [];
-        $projectDir = $this->parameterBag->get('kernel.project_dir');
+        $projectDir = $this->getStringParameter('kernel.project_dir');
 
         // Check if bundle is configured in production config
         $prodConfigPath = $projectDir . '/config/packages/prod/nowo_anonymize.yaml';
@@ -115,7 +116,7 @@ final readonly class EnvironmentProtectionService
      */
     public function getEnvironment(): string
     {
-        return $this->parameterBag->get('kernel.environment');
+        return $this->getStringParameter('kernel.environment');
     }
 
     /**
@@ -128,5 +129,12 @@ final readonly class EnvironmentProtectionService
         $environment = $this->getEnvironment();
 
         return in_array($environment, ['dev', 'test'], true);
+    }
+
+    private function getStringParameter(string $name): string
+    {
+        $value = $this->parameterBag->get($name);
+
+        return is_string($value) ? $value : '';
     }
 }

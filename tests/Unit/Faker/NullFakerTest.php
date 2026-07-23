@@ -33,15 +33,6 @@ class NullFakerTest extends TestCase
     }
 
     /**
-     * Test that NullFaker constructor works.
-     */
-    public function testConstructor(): void
-    {
-        $faker = new NullFaker();
-        $this->assertInstanceOf(NullFaker::class, $faker);
-    }
-
-    /**
      * Test that NullFaker works with empty options.
      */
     public function testGenerateWithEmptyOptions(): void

@@ -242,8 +242,7 @@ class HtmlFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $faker = new HtmlFaker('en_US');
-        $this->assertInstanceOf(HtmlFaker::class, $faker);
+        new HtmlFaker('en_US');
     }
 
     /**

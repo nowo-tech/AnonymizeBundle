@@ -29,11 +29,9 @@ final class OrmHelper
      */
     public static function getFieldColumnName(ClassMetadata $metadata, string $fieldName): string
     {
-        if (method_exists($metadata, 'getColumnName')) {
-            $columnName = $metadata->getColumnName($fieldName);
-            if ($columnName !== '') {
-                return $columnName;
-            }
+        $columnName = $metadata->getColumnName($fieldName);
+        if ($columnName !== '') {
+            return $columnName;
         }
 
         return self::getColumnNameFromFieldMapping($metadata->getFieldMapping($fieldName), $fieldName);

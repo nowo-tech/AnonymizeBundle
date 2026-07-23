@@ -93,8 +93,6 @@ class TextFakerTest extends TestCase
         // If not, we check that the minimum is at least 3 (Faker's practical minimum)
         if (!$allValid) {
             $this->assertGreaterThanOrEqual(3, $minWordCount, 'Minimum word count across all iterations should be at least 3');
-        } else {
-            $this->assertTrue(true, 'At least one generation had 5 or more words');
         }
     }
 
@@ -116,8 +114,7 @@ class TextFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $faker = new TextFaker('en_US');
-        $this->assertInstanceOf(TextFaker::class, $faker);
+        new TextFaker('en_US');
     }
 
     /**

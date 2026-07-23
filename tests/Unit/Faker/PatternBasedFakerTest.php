@@ -377,8 +377,7 @@ class PatternBasedFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $faker = new PatternBasedFaker('en_US');
-        $this->assertInstanceOf(PatternBasedFaker::class, $faker);
+        new PatternBasedFaker('en_US');
     }
 
     /**

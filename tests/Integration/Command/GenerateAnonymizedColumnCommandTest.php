@@ -33,6 +33,7 @@ use Symfony\Component\Console\Output\BufferedOutput;
  */
 class GenerateAnonymizedColumnCommandTest extends TestCase
 {
+    /** @var ContainerInterface&MockObject */
     private MockObject $container;
     private AnonymizeService $anonymizeService;
     private GenerateAnonymizedColumnCommand $command;
@@ -51,7 +52,6 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
      */
     public function testCommandInstantiation(): void
     {
-        $this->assertInstanceOf(GenerateAnonymizedColumnCommand::class, $this->command);
         $this->assertEquals('nowo:anonymize:generate-column-migration', $this->command->getName());
     }
 
@@ -117,7 +117,6 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
     {
         // This test would require complex mocking of AnonymizeService
         // Since AnonymizeService is final, we test the command structure instead
-        $this->assertTrue(true); // Placeholder - actual test would require integration test setup
     }
 
     /**
@@ -341,7 +340,6 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
     {
         // This test would require complex mocking of AnonymizeService
         // Since AnonymizeService is final, we test the command structure instead
-        $this->assertTrue(true); // Placeholder - actual test would require integration test setup
     }
 
     /**
@@ -498,6 +496,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $this->assertEquals(GenerateAnonymizedColumnCommand::SUCCESS, $result);
         $this->assertFileExists($outputPath);
         $content = file_get_contents($outputPath);
+        $this->assertIsString($content);
         $this->assertStringContainsString('ALTER TABLE', $content);
         $this->assertStringContainsString('anonymized', $content);
         $this->assertStringContainsString('generate_column_test', $content);
@@ -572,6 +571,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $this->assertEquals(GenerateAnonymizedColumnCommand::SUCCESS, $result);
         $this->assertFileExists($outputPath);
         $content = file_get_contents($outputPath);
+        $this->assertIsString($content);
         $this->assertStringContainsString('ALTER TABLE', $content);
         $this->assertStringContainsString('anonymized', $content);
         $this->assertStringContainsString('child_trait_table', $content);

@@ -42,23 +42,24 @@ final class DbalHelper
     public static function quoteIdentifier(Connection $connection, string $identifier): string
     {
         // Prefer platform (mockable in tests; in DBAL 4 Connection::quoteSingleIdentifier may be final/static)
-        if (method_exists($connection, 'getDatabasePlatform')) {
-            try {
-                $platform = $connection->getDatabasePlatform();
-                if (method_exists($platform, 'quoteSingleIdentifier')) {
-                    return $platform->quoteSingleIdentifier($identifier);
-                }
-            } catch (Exception) {
-                // Fall through to connection or fallback
+        try {
+            $platform = $connection->getDatabasePlatform();
+            // @phpstan-ignore function.alreadyNarrowedType (kept for older/mocked platforms)
+            if (method_exists($platform, 'quoteSingleIdentifier')) {
+                return $platform->quoteSingleIdentifier($identifier);
             }
+        } catch (Exception) {
+            // Fall through to connection or fallback
         }
 
         // Connection-level quoting (DBAL 3.x when not final)
+        // @phpstan-ignore function.alreadyNarrowedType (DBAL version / mock differences)
         if (method_exists($connection, 'quoteSingleIdentifier')) {
             return $connection->quoteSingleIdentifier($identifier);
         }
 
         // Fallback for older DBAL versions: use quoteIdentifier (DBAL 2.x)
+        // @phpstan-ignore function.alreadyNarrowedType (DBAL version / mock differences)
         if (method_exists($connection, 'quoteIdentifier')) {
             return $connection->quoteIdentifier($identifier);
         }
@@ -186,6 +187,7 @@ final class DbalHelper
             }
         }
 
+        /** @var array<string, mixed> $params */
         $params = $connection->getParams();
         if (isset($params['connectionName']) && is_string($params['connectionName']) && $params['connectionName'] !== '') {
             return $params['connectionName'];

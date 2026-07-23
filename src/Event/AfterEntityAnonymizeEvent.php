@@ -23,8 +23,8 @@ final class AfterEntityAnonymizeEvent extends Event
      * Creates a new AfterEntityAnonymizeEvent instance.
      *
      * @param EntityManagerInterface $entityManager The entity manager
-     * @param ClassMetadata $metadata The entity metadata
-     * @param ReflectionClass $reflection The entity reflection class
+     * @param ClassMetadata<object> $metadata The entity metadata
+     * @param ReflectionClass<object> $reflection The entity reflection class
      * @param int $processed Number of records processed
      * @param int $updated Number of records updated
      * @param array<string, int> $propertyStats Statistics per property
@@ -54,7 +54,7 @@ final class AfterEntityAnonymizeEvent extends Event
     /**
      * Gets the entity metadata.
      *
-     * @return ClassMetadata The entity metadata
+     * @return ClassMetadata<object> The entity metadata
      */
     public function getMetadata(): ClassMetadata
     {
@@ -64,7 +64,7 @@ final class AfterEntityAnonymizeEvent extends Event
     /**
      * Gets the entity reflection class.
      *
-     * @return ReflectionClass The entity reflection class
+     * @return ReflectionClass<object> The entity reflection class
      */
     public function getReflection(): ReflectionClass
     {

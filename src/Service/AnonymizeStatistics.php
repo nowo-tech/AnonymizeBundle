@@ -173,7 +173,7 @@ final class AnonymizeStatistics
      */
     public function toJson(int $flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES): string
     {
-        return json_encode($this->getAll(), $flags);
+        return json_encode($this->getAll(), $flags) ?: '{}';
     }
 
     /**

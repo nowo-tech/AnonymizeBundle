@@ -146,15 +146,6 @@ class CopyFakerTest extends TestCase
     }
 
     /**
-     * Test that CopyFaker constructor works.
-     */
-    public function testConstructor(): void
-    {
-        $faker = new CopyFaker();
-        $this->assertInstanceOf(CopyFaker::class, $faker);
-    }
-
-    /**
      * Test that CopyFaker works with custom fallback options.
      */
     public function testGenerateWithCustomFallbackOptions(): void

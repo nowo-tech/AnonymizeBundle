@@ -97,15 +97,6 @@ class ShuffleFakerTest extends TestCase
     }
 
     /**
-     * Test that ShuffleFaker constructor works.
-     */
-    public function testConstructor(): void
-    {
-        $faker = new ShuffleFaker();
-        $this->assertInstanceOf(ShuffleFaker::class, $faker);
-    }
-
-    /**
      * Test that ShuffleFaker generates different values on multiple calls.
      */
     public function testGenerateDifferentValues(): void

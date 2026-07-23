@@ -133,8 +133,7 @@ class IbanFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $faker = new IbanFaker('en_US');
-        $this->assertInstanceOf(IbanFaker::class, $faker);
+        new IbanFaker('en_US');
     }
 
     /**

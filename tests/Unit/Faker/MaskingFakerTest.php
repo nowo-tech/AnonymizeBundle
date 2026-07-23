@@ -193,13 +193,4 @@ class MaskingFakerTest extends TestCase
         $this->assertIsString($masked);
         $this->assertEquals('*', $masked);
     }
-
-    /**
-     * Test that MaskingFaker constructor works.
-     */
-    public function testConstructor(): void
-    {
-        $faker = new MaskingFaker();
-        $this->assertInstanceOf(MaskingFaker::class, $faker);
-    }
 }

@@ -50,16 +50,16 @@ final readonly class CompanyFaker implements FakerInterface
 
         if ($suffix !== null) {
             // Remove existing suffix if any
-            $companyName = preg_replace('/\s+(Inc\.?|LLC|Ltd\.?|Corp\.?|Corporation)$/i', '', $companyName);
+            $companyName = preg_replace('/\s+(Inc\.?|LLC|Ltd\.?|Corp\.?|Corporation)$/i', '', $companyName) ?? '';
 
             return $companyName . ' ' . $suffix;
         }
 
         if ($type !== null) {
             // Remove existing suffix if any
-            $companyName = preg_replace('/\s+(Inc\.?|LLC|Ltd\.?|Corp\.?|Corporation)$/i', '', $companyName);
+            $companyName = preg_replace('/\s+(Inc\.?|LLC|Ltd\.?|Corp\.?|Corporation)$/i', '', $companyName) ?? '';
 
-            $suffixes = match (strtolower($type)) {
+            $suffixes = match (strtolower((string) $type)) {
                 'corporation', 'corp' => 'Corp.',
                 'llc'                 => 'LLC',
                 'inc'                 => 'Inc.',

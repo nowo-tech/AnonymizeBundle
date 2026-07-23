@@ -40,7 +40,7 @@ final class ConnectionMockHelper
             ->disableOriginalConstructor();
 
         if ($methodsToAdd !== []) {
-            $builder->addMethods(array_unique($methodsToAdd));
+            $builder->addMethods(array_values(array_unique($methodsToAdd)));
         }
 
         return $builder->getMock();

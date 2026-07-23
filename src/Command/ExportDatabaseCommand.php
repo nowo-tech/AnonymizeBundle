@@ -254,12 +254,12 @@ final class ExportDatabaseCommand extends AbstractCommand
                     $database   = $connection->getDatabase();
 
                     $io->writeln(sprintf('Exporting <info>%s</info> (%s)...', $managerName, $driver));
-                    $exportedFile = $exportService->exportConnection($em, $managerName);
+                    $exportedFile = $exportService->exportConnection($em, (string) $managerName);
                 }
 
                 if ($exportedFile !== null && file_exists($exportedFile)) {
                     $fileSize          = filesize($exportedFile);
-                    $fileSizeFormatted = $this->formatBytes($fileSize);
+                    $fileSizeFormatted = $this->formatBytes($fileSize === false ? 0 : $fileSize);
                     $io->writeln(sprintf('  ✓ Exported to: <info>%s</info> (%s)', $exportedFile, $fileSizeFormatted));
                     $exportedFiles[] = $exportedFile;
                     ++$successCount;
@@ -329,7 +329,7 @@ final class ExportDatabaseCommand extends AbstractCommand
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $bytes = max($bytes, 0);
-        $pow   = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow   = (int) floor(($bytes ? log($bytes) : 0) / log(1024));
         $pow   = min($pow, count($units) - 1);
         $bytes /= (1 << (10 * $pow));
 

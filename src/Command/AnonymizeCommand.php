@@ -327,7 +327,7 @@ final class AnonymizeCommand extends AbstractCommand
                     // Interactive confirmation for entity manager
                     if ($interactive && !$statsOnly) {
                         $io->writeln(sprintf('Found <info>%d</info> entity(ies) to process in <info>%s</info>:', count($entities), $managerName));
-                        foreach ($entities as $entityClass) {
+                        foreach (array_keys($entities) as $entityClass) {
                             $io->writeln(sprintf('  - <info>%s</info>', $entityClass));
                         }
                         $io->newLine();
@@ -340,7 +340,7 @@ final class AnonymizeCommand extends AbstractCommand
                     }
                 }
 
-                $this->processConnection($io, $em, $anonymizeService, $batchSize, $dryRun, $managerName, $statistics, $statsOnly, $input, $output, $verbose, $debug, $interactive, $entityFilter);
+                $this->processConnection($io, $em, $anonymizeService, $batchSize, $dryRun, (string) $managerName, $statistics, $statsOnly, $input, $output, $verbose, $debug, $interactive, $entityFilter);
             } catch (Exception $e) {
                 $io->error(sprintf('Error processing entity manager %s: %s', $managerName, $e->getMessage()));
 
@@ -399,6 +399,7 @@ final class AnonymizeCommand extends AbstractCommand
      * @param bool $verbose If true, enable verbose output
      * @param bool $debug If true, enable debug output
      * @param bool $interactive If true, enable interactive mode with confirmations
+     * @param list<string> $entityFilter Entity class names to process
      */
     private function processConnection(
         SymfonyStyle $io,
@@ -612,7 +613,7 @@ final class AnonymizeCommand extends AbstractCommand
                 foreach ($properties as $propertyData) {
                     $property  = $propertyData['property'];
                     $attribute = $propertyData['attribute'];
-                    $weight    = $propertyData['weight'] ?? 'N/A';
+                    $weight    = $propertyData['weight'];
                     $io->writeln(sprintf('    - %s (type: %s, weight: %s)', $property->getName(), $attribute->type, $weight));
                     if ($debug) {
                         if ($attribute->includePatterns !== []) {
@@ -667,7 +668,7 @@ final class AnonymizeCommand extends AbstractCommand
                 $dryRun,
                 $statistics,
                 $progressCallback,
-                $attribute, // Pass entity-level Anonymize attribute for filtering
+                $entityData['attribute'], // Pass entity-level Anonymize attribute for filtering
             );
 
             // Finish progress bar
@@ -682,7 +683,7 @@ final class AnonymizeCommand extends AbstractCommand
                 $managerName,
                 $stats['processed'],
                 $stats['updated'],
-                $stats['propertyStats'] ?? [],
+                $stats['propertyStats'],
             );
 
             // Accumulate totals

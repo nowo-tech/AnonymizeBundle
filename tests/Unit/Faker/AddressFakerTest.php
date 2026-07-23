@@ -131,8 +131,7 @@ class AddressFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $faker = new AddressFaker('en_US');
-        $this->assertInstanceOf(AddressFaker::class, $faker);
+        new AddressFaker('en_US');
     }
 
     /**

@@ -47,7 +47,7 @@ class KernelParameterBagAdapterTest extends TestCase
         $kernelContainer->method('getParameterBag')->willReturn($paramBag);
 
         $kernel = new class {
-            public $container;
+            public mixed $container;
         };
         $kernel->container = $kernelContainer;
 
@@ -85,7 +85,7 @@ class KernelParameterBagAdapterTest extends TestCase
     public function testGetThrowsWhenKernelContainerIsNotContainerInstance(): void
     {
         $kernel = new class {
-            public $container;
+            public mixed $container;
         };
         $kernel->container = new stdClass();
 
@@ -112,7 +112,7 @@ class KernelParameterBagAdapterTest extends TestCase
         $kernelContainer->method('getParameterBag')->willReturn($paramBag);
 
         $kernel = new class {
-            public $container;
+            public mixed $container;
         };
         $kernel->container = $kernelContainer;
 

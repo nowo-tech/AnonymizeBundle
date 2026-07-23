@@ -13,6 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 use function count;
 use function dirname;
@@ -246,7 +247,7 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
         try {
             if ($this->container->has('kernel')) {
                 $kernel = $this->container->get('kernel');
-                if (method_exists($kernel, 'getProjectDir')) {
+                if ($kernel instanceof KernelInterface) {
                     return $kernel->getProjectDir();
                 }
             }

@@ -8,6 +8,8 @@ use Psr\Container\ContainerInterface;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\Exclude;
 
+use function is_callable;
+use function is_object;
 use function sprintf;
 
 /**
@@ -54,6 +56,9 @@ final readonly class ServiceFaker implements FakerInterface
         }
 
         $service = $this->container->get($this->serviceName);
+        if (!is_object($service)) {
+            throw new RuntimeException(sprintf('Service "%s" must be an object.', $this->serviceName));
+        }
 
         if ($service instanceof FakerInterface) {
             return $service->generate($options);
@@ -63,7 +68,7 @@ final readonly class ServiceFaker implements FakerInterface
             return $service->generate($options);
         }
 
-        if (method_exists($service, '__invoke')) {
+        if (is_callable($service)) {
             return $service($options);
         }
 

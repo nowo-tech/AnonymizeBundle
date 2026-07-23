@@ -28,6 +28,10 @@ use function sprintf;
 /**
  * Service for pre-flight validation checks before anonymization.
  *
+ * @phpstan-type PatternValue = string|list<string>
+ * @phpstan-type PatternSet = array<string, PatternValue>
+ * @phpstan-type Patterns = PatternSet|list<PatternSet>
+ *
  * Validates configuration, entities, columns, patterns, and faker types
  * to prevent errors during anonymization execution.
  *
@@ -50,7 +54,7 @@ final readonly class PreFlightCheckService
      * Performs all pre-flight checks for the given entity manager.
      *
      * @param EntityManagerInterface $em The entity manager
-     * @param array<string, array{metadata: ClassMetadata, reflection: ReflectionClass, attribute: Anonymize}> $entities The entities to check
+     * @param array<string, array{metadata: ClassMetadata<object>, reflection: ReflectionClass<object>, attribute: Anonymize}> $entities The entities to check
      *
      * @return array<string, string> Array of error messages (empty if all checks pass)
      */
@@ -118,7 +122,7 @@ final readonly class PreFlightCheckService
      *
      * @param EntityManagerInterface $em The entity manager
      * @param string $className The entity class name
-     * @param ClassMetadata $metadata The entity metadata
+     * @param ClassMetadata<object> $metadata The entity metadata
      *
      * @return array<string> Array of error messages
      */
@@ -148,7 +152,7 @@ final readonly class PreFlightCheckService
      * Checks if column exists in the database table.
      *
      * @param EntityManagerInterface $em The entity manager
-     * @param ClassMetadata $metadata The entity metadata
+     * @param ClassMetadata<object> $metadata The entity metadata
      * @param string $propertyName The property name
      *
      * @return array<string> Array of error messages
@@ -290,7 +294,7 @@ final readonly class PreFlightCheckService
     /**
      * Validates a pattern config: either single set (field=>pattern) or list of sets (OR between configs).
      *
-     * @param array<array<int, array<string, array<string>|string>>|array<string>|string> $config
+     * @param Patterns $config
      *
      * @return array<string>
      */
@@ -322,6 +326,11 @@ final readonly class PreFlightCheckService
         return $errors;
     }
 
+    /**
+     * @param Patterns $config
+     *
+     * @phpstan-assert-if-true list<PatternSet> $config
+     */
     private function isListOfPatternSets(array $config): bool
     {
         if ($config === [] || !array_is_list($config)) {
@@ -366,7 +375,7 @@ final readonly class PreFlightCheckService
     /**
      * Gets anonymizable properties from reflection class.
      *
-     * @param ReflectionClass $reflection The reflection class
+     * @param ReflectionClass<object> $reflection The reflection class
      *
      * @return array<string, array{property: ReflectionProperty, attribute: AnonymizeProperty}>
      */

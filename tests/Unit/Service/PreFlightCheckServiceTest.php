@@ -123,7 +123,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Database connectivity check failed', $errors[0]);
+        $this->assertStringContainsString('Database connectivity check failed', array_values($errors)[0]);
     }
 
     /**
@@ -173,7 +173,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('does not exist in database', $errors[0]);
+        $this->assertStringContainsString('does not exist in database', array_values($errors)[0]);
     }
 
     /**
@@ -225,7 +225,7 @@ class PreFlightCheckServiceTest extends TestCase
         // Create a real reflection class with a property that has an invalid attribute
         $testEntity = new class {
             #[AnonymizeProperty(type: 'invalid_faker_type', weight: 1)]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -241,7 +241,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Invalid faker type', $errors[0]);
+        $this->assertStringContainsString('Invalid faker type', array_values($errors)[0]);
     }
 
     /**
@@ -293,7 +293,7 @@ class PreFlightCheckServiceTest extends TestCase
         // Create a real reflection class with a property that has service type without service name
         $testEntity = new class {
             #[AnonymizeProperty(type: 'service', weight: 1, service: '')]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -309,7 +309,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Faker type "service" requires a "service" option', $errors[0]);
+        $this->assertStringContainsString('Faker type "service" requires a "service" option', array_values($errors)[0]);
     }
 
     /**
@@ -366,7 +366,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -382,8 +382,8 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Could not create faker for type "email":', $errors[0]);
-        $this->assertStringContainsString('Faker creation failed', $errors[0]);
+        $this->assertStringContainsString('Could not create faker for type "email":', array_values($errors)[0]);
+        $this->assertStringContainsString('Faker creation failed', array_values($errors)[0]);
     }
 
     /**
@@ -472,7 +472,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -488,7 +488,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('does not exist in table', $errors[0]);
+        $this->assertStringContainsString('does not exist in table', array_values($errors)[0]);
     }
 
     /**
@@ -539,7 +539,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: ['field' => ''])]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -555,7 +555,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Invalid include pattern', $errors[0]);
+        $this->assertStringContainsString('Invalid include pattern', array_values($errors)[0]);
     }
 
     /**
@@ -606,7 +606,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, excludePatterns: ['' => 'pattern'])]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -622,7 +622,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Invalid exclude pattern', $errors[0]);
+        $this->assertStringContainsString('Invalid exclude pattern', array_values($errors)[0]);
     }
 
     /**
@@ -711,7 +711,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Could not check table existence', $errors[0]);
+        $this->assertStringContainsString('Could not check table existence', array_values($errors)[0]);
     }
 
     /**
@@ -753,7 +753,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -816,7 +816,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: ['id' => '>100'])]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -878,7 +878,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, excludePatterns: ['status' => 'deleted'])]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -943,7 +943,7 @@ class PreFlightCheckServiceTest extends TestCase
                 ['role' => 'admin'],
                 ['status' => 'deleted'],
             ])]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1005,7 +1005,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, excludePatterns: ['email' => ['%@nowo.tech', 'operador@example.com']])]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1067,7 +1067,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'enum', weight: 1, options: ['values' => ['active', 'inactive']])]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1129,7 +1129,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
-            private readonly string $testColumn;
+            public string $testColumn = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1145,7 +1145,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('case mismatch', $errors[0]);
+        $this->assertStringContainsString('case mismatch', array_values($errors)[0]);
     }
 
     /**
@@ -1202,7 +1202,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
-            private readonly string $missingColumn;
+            public string $missingColumn = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1218,7 +1218,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Available columns', $errors[0]);
+        $this->assertStringContainsString('Available columns', array_values($errors)[0]);
     }
 
     /**
@@ -1269,7 +1269,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
-            private readonly string $missingColumn;
+            public string $missingColumn = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1285,7 +1285,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('... and 5 more', $errors[0]);
+        $this->assertStringContainsString('... and 5 more', array_values($errors)[0]);
     }
 
     /**
@@ -1332,7 +1332,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: ['' => '>100'])]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1348,7 +1348,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Invalid include pattern', $errors[0]);
+        $this->assertStringContainsString('Invalid include pattern', array_values($errors)[0]);
     }
 
     /**
@@ -1377,8 +1377,10 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager->method('listTableColumns')->willReturn(['test_column' => $column]);
 
         $testEntity = new class {
+            // Intentionally invalid input; the pre-flight check must report it.
+            /** @phpstan-ignore-next-line argument.type */
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: [-1 => 'value'])]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
         $attribute  = new Anonymize();
@@ -1386,8 +1388,8 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Invalid include pattern', $errors[0]);
-        $this->assertStringContainsString('field must not be empty', $errors[0]);
+        $this->assertStringContainsString('Invalid include pattern', array_values($errors)[0]);
+        $this->assertStringContainsString('field must not be empty', array_values($errors)[0]);
     }
 
     /**
@@ -1434,7 +1436,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: ['id' => ''])]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1450,7 +1452,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Invalid include pattern', $errors[0]);
+        $this->assertStringContainsString('Invalid include pattern', array_values($errors)[0]);
     }
 
     /**
@@ -1497,7 +1499,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, excludePatterns: ['' => 'deleted'])]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1513,7 +1515,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Invalid exclude pattern', $errors[0]);
+        $this->assertStringContainsString('Invalid exclude pattern', array_values($errors)[0]);
     }
 
     /**
@@ -1560,7 +1562,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, excludePatterns: ['status' => ''])]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1576,7 +1578,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Invalid exclude pattern', $errors[0]);
+        $this->assertStringContainsString('Invalid exclude pattern', array_values($errors)[0]);
     }
 
     /**
@@ -1623,7 +1625,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'service', weight: 1)]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1639,7 +1641,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Faker type "service" requires a "service" option', $errors[0]);
+        $this->assertStringContainsString('Faker type "service" requires a "service" option', array_values($errors)[0]);
     }
 
     /**
@@ -1668,7 +1670,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'service', weight: 1, service: 'app.custom_faker')]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
         $attribute  = new Anonymize();
@@ -1793,7 +1795,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
 
@@ -1810,7 +1812,7 @@ class PreFlightCheckServiceTest extends TestCase
         $errors = $this->service->performChecks($em, $entities);
         // Should have error for missing table, but not for column (since table doesn't exist)
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('does not exist in database', $errors[0]);
+        $this->assertStringContainsString('does not exist in database', array_values($errors)[0]);
     }
 
     /**
@@ -1840,7 +1842,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: [['id' => []]])]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
         $attribute  = new Anonymize();
@@ -1848,8 +1850,8 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Invalid include pattern', $errors[0]);
-        $this->assertStringContainsString('must not be empty', $errors[0]);
+        $this->assertStringContainsString('Invalid include pattern', array_values($errors)[0]);
+        $this->assertStringContainsString('must not be empty', array_values($errors)[0]);
     }
 
     /**
@@ -1879,7 +1881,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: [['status' => ['active', '']]])]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
         $attribute  = new Anonymize();
@@ -1887,7 +1889,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Invalid include pattern', $errors[0]);
+        $this->assertStringContainsString('Invalid include pattern', array_values($errors)[0]);
     }
 
     /**
@@ -1917,7 +1919,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: [['id' => '>0'], 'not_an_array'])]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
         $attribute  = new Anonymize();
@@ -1971,7 +1973,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1, includePatterns: [['id' => '>0'], ['status' => '']])]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
         $attribute  = new Anonymize();
@@ -1979,8 +1981,8 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('(config #2)', $errors[0]);
-        $this->assertStringContainsString('pattern must not be empty', $errors[0]);
+        $this->assertStringContainsString('(config #2)', array_values($errors)[0]);
+        $this->assertStringContainsString('pattern must not be empty', array_values($errors)[0]);
     }
 
     /**
@@ -2009,7 +2011,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email')]
-            private readonly string $testProperty;
+            public string $testProperty = '';
         };
         $reflection = new ReflectionClass($testEntity);
         $attribute  = new Anonymize();

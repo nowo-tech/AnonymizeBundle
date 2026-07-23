@@ -23,7 +23,10 @@ use ReflectionProperty;
  */
 class AnonymizePropertyListenerTest extends TestCase
 {
+    /** @var EntityManagerInterface&MockObject */
     private MockObject $em;
+
+    /** @var ClassMetadata<object>&MockObject */
     private MockObject $metadata;
 
     protected function setUp(): void
@@ -41,6 +44,9 @@ class AnonymizePropertyListenerTest extends TestCase
         return new ReflectionProperty($testClass, 'fileUrl');
     }
 
+    /**
+     * @param array<string, mixed> $record
+     */
     private function createEvent(
         string $columnName,
         mixed $originalValue,
@@ -71,10 +77,11 @@ class AnonymizePropertyListenerTest extends TestCase
         $event = $this->createEvent('file_url', 'https://s3.amazonaws.com/bucket/key.pdf', 'https://anon.example/file.pdf');
 
         $listener = static function (AnonymizePropertyEvent $e): void {
-            $e->getOriginalValue();
-            $e->getPropertyName();
-            $e->getColumnName();
-            $e->getRecord();
+            // Touch getters without modifying the event (like a no-op subscriber).
+            self::assertNotNull($e->getOriginalValue());
+            self::assertNotSame('', $e->getPropertyName());
+            self::assertNotSame('', $e->getColumnName());
+            self::assertIsArray($e->getRecord());
             // no setAnonymizedValue / setSkipAnonymization
         };
         $listener($event);

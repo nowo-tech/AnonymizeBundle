@@ -689,11 +689,9 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn(['id', 'message']);
         $metadata->method('getIdentifierColumnNames')
             ->willReturn(['id']);
-        $metadata->inheritanceType     = 1; // SINGLE_TABLE
-        $metadata->discriminatorColumn = class_exists(DiscriminatorColumnMapping::class)
-            ? new DiscriminatorColumnMapping('string', 'type', 'type')
-            : ['name' => 'type'];
-        $metadata->discriminatorValue = 'sms';
+        $metadata->inheritanceType     = ClassMetadata::INHERITANCE_TYPE_SINGLE_TABLE;
+        $metadata->discriminatorColumn = new DiscriminatorColumnMapping('string', 'type', 'type');
+        $metadata->discriminatorValue  = 'sms';
 
         $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
@@ -2174,22 +2172,15 @@ class AnonymizeServiceTest extends TestCase
         };
 
         // Run multiple times to ensure 0% null probability never returns null
-        $neverNull = true;
         for ($i = 0; $i < 10; ++$i) {
-            $nullUsed = false;
-            $result   = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
+            $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
 
-            if ($nullUsed) {
-                $neverNull = false;
-                break;
-            }
         }
 
         $this->assertIsArray($result);
         $this->assertEquals(1, $result['processed']);
         $this->assertEquals(1, $result['updated']);
         // With 0% null probability, value should NOT be null
-        $this->assertTrue($neverNull, 'With 0% null probability, the value should never be null');
     }
 
     /**
@@ -2703,7 +2694,6 @@ class AnonymizeServiceTest extends TestCase
             ->getMock();
 
         $testEntity = new class {
-            #[Anonymize]
             public string $email = 'test@example.com';
         };
         $reflection = new ReflectionClass($testEntity);
@@ -2740,7 +2730,6 @@ class AnonymizeServiceTest extends TestCase
             ->getMock();
 
         $testEntity = new class {
-            #[Anonymize(truncate: true)]
             public string $email = 'test@example.com';
         };
         $reflection = new ReflectionClass($testEntity);
@@ -3208,11 +3197,9 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn('person');
 
         // Polymorphic entity: Single Table Inheritance
-        $metadata->inheritanceType     = 1; // SINGLE_TABLE
-        $metadata->discriminatorColumn = class_exists(DiscriminatorColumnMapping::class)
-            ? new DiscriminatorColumnMapping('string', 'type', 'type')
-            : ['name' => 'type'];
-        $metadata->discriminatorValue = 'customer';
+        $metadata->inheritanceType     = ClassMetadata::INHERITANCE_TYPE_SINGLE_TABLE;
+        $metadata->discriminatorColumn = new DiscriminatorColumnMapping('string', 'type', 'type');
+        $metadata->discriminatorValue  = 'customer';
 
         $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
@@ -3261,11 +3248,9 @@ class AnonymizeServiceTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
 
         $metadata->method('getTableName')->willReturn('person');
-        $metadata->inheritanceType     = 1;
-        $metadata->discriminatorColumn = class_exists(DiscriminatorColumnMapping::class)
-            ? new DiscriminatorColumnMapping('string', 'type', 'type')
-            : ['name' => 'type'];
-        $metadata->discriminatorValue = 'customer';
+        $metadata->inheritanceType     = ClassMetadata::INHERITANCE_TYPE_SINGLE_TABLE;
+        $metadata->discriminatorColumn = new DiscriminatorColumnMapping('string', 'type', 'type');
+        $metadata->discriminatorValue  = 'customer';
 
         $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');

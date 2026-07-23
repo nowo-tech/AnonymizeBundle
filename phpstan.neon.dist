@@ -8,8 +8,22 @@ includes:
 
 parameters:
     level: 8
+    treatPhpDocTypesAsCertain: true
     paths:
         - src
         - tests
     excludePaths:
         - demo/*
+    # Tests keep runtime type assertions (assertIsString, assertNull, …). With
+    # treatPhpDocTypesAsCertain they become tautologies for PHPStan; ignore only
+    # in tests so src still benefits from certain PHPDoc types.
+    ignoreErrors:
+        -
+            identifier: method.alreadyNarrowedType
+            path: tests/*
+        -
+            identifier: function.alreadyNarrowedType
+            path: tests/*
+        -
+            identifier: staticMethod.alreadyNarrowedType
+            path: tests/*

@@ -151,7 +151,7 @@ final readonly class FakerFactory implements FakerFactoryInterface
             FakerType::NULL->value          => new NullFaker(),
             FakerType::UTM->value           => new UtmFaker($this->locale),
             FakerType::MAP->value           => new MapFaker(),
-            FakerType::SERVICE->value       => new ServiceFaker($this->container, $serviceName ?? ''),
+            FakerType::SERVICE->value       => new ServiceFaker($this->container ?? throw new InvalidArgumentException('A service faker requires a container.'), $serviceName ?? ''),
             default                         => throw new InvalidArgumentException(sprintf('Unsupported faker type: %s', $type)),
         };
     }

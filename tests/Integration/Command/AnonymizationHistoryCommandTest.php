@@ -38,6 +38,18 @@ class AnonymizationHistoryCommandTest extends TestCase
         }
     }
 
+    /** @return array<string, mixed>|list<mixed> */
+    private function decodeJsonFile(string $filePath): array
+    {
+        $content = file_get_contents($filePath);
+        $this->assertIsString($content);
+
+        $decoded = json_decode($content, true);
+        $this->assertIsArray($decoded);
+
+        return $decoded;
+    }
+
     private function removeDirectory(string $dir): void
     {
         if (!is_dir($dir)) {
@@ -73,8 +85,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testCommandCanBeInstantiated(): void
     {
-        $command = new AnonymizationHistoryCommand($this->createContainer());
-        $this->assertInstanceOf(AnonymizationHistoryCommand::class, $command);
+        new AnonymizationHistoryCommand($this->createContainer());
     }
 
     /**
@@ -202,7 +213,7 @@ class AnonymizationHistoryCommandTest extends TestCase
         $historyService = new AnonymizationHistoryService($this->tempDir);
         $stats          = ['global' => ['total_processed' => 10, 'total_updated' => 8], 'entities' => []];
         $path           = $historyService->saveRun($stats, ['connection' => 'default']);
-        $content        = json_decode(file_get_contents($path), true);
+        $content        = $this->decodeJsonFile($path);
         $runId          = $content['id'] ?? '';
 
         $command = new AnonymizationHistoryCommand($this->createContainer());
@@ -234,7 +245,7 @@ class AnonymizationHistoryCommandTest extends TestCase
             ],
         ];
         $path  = $historyService->saveRun($stats, ['connection' => 'default']);
-        $runId = json_decode(file_get_contents($path), true)['id'] ?? '';
+        $runId = $this->decodeJsonFile($path)['id'] ?? '';
 
         $command = new AnonymizationHistoryCommand($this->createContainer());
         $input   = new ArrayInput(['--run-id' => $runId]);
@@ -257,8 +268,8 @@ class AnonymizationHistoryCommandTest extends TestCase
         $historyService = new AnonymizationHistoryService($this->tempDir);
         $path1          = $historyService->saveRun(['global' => ['total_processed' => 10], 'entities' => []], []);
         $path2          = $historyService->saveRun(['global' => ['total_processed' => 20], 'entities' => []], []);
-        $id1            = json_decode(file_get_contents($path1), true)['id'] ?? '';
-        $id2            = json_decode(file_get_contents($path2), true)['id'] ?? '';
+        $id1            = $this->decodeJsonFile($path1)['id'] ?? '';
+        $id2            = $this->decodeJsonFile($path2)['id'] ?? '';
 
         $command = new AnonymizationHistoryCommand($this->createContainer());
         $input   = new ArrayInput(['--compare' => $id1 . ',' . $id2]);
@@ -324,7 +335,7 @@ class AnonymizationHistoryCommandTest extends TestCase
     {
         $historyService = new AnonymizationHistoryService($this->tempDir);
         $path           = $historyService->saveRun(['global' => ['total_processed' => 10], 'entities' => []], []);
-        $runId          = json_decode(file_get_contents($path), true)['id'] ?? '';
+        $runId          = $this->decodeJsonFile($path)['id'] ?? '';
 
         $command = new AnonymizationHistoryCommand($this->createContainer());
         $input   = new ArrayInput(['--run-id' => $runId, '--json' => true]);
@@ -510,7 +521,7 @@ class AnonymizationHistoryCommandTest extends TestCase
             ],
         ];
         $path  = $historyService->saveRun($stats, []);
-        $runId = json_decode(file_get_contents($path), true)['id'] ?? '';
+        $runId = $this->decodeJsonFile($path)['id'] ?? '';
 
         $command = new AnonymizationHistoryCommand($this->createContainer());
         $input   = new ArrayInput(['--run-id' => $runId]);
@@ -551,8 +562,8 @@ class AnonymizationHistoryCommandTest extends TestCase
         ];
         $path1 = $historyService->saveRun(['global' => ['total_processed' => 10], 'entities' => $entities1], []);
         $path2 = $historyService->saveRun(['global' => ['total_processed' => 15], 'entities' => $entities2], []);
-        $id1   = json_decode(file_get_contents($path1), true)['id'] ?? '';
-        $id2   = json_decode(file_get_contents($path2), true)['id'] ?? '';
+        $id1   = $this->decodeJsonFile($path1)['id'] ?? '';
+        $id2   = $this->decodeJsonFile($path2)['id'] ?? '';
 
         $command = new AnonymizationHistoryCommand($this->createContainer());
         $input   = new ArrayInput(['--compare' => $id1 . ',' . $id2]);

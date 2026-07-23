@@ -21,7 +21,33 @@ _(none)_
 
 ### Documentation
 
-- **README.md**: FrankenPHP banner replaced with transparent PNG (`docs/images/frankenphp-friendly.png`).
+_(none)_
+
+---
+## [1.0.31] - 2026-07-23
+
+### Added
+
+_(none)_
+
+### Changed
+
+- **PHPStan**: enable `treatPhpDocTypesAsCertain: true`; clear `phpstan-baseline.neon`; ignore `*.alreadyNarrowedType` only under `tests/` so production PHPDocs stay trusted.
+- **`NullFaker`**: native return type narrowed from `mixed` to `null` (still returns `null` at runtime; compatible with `FakerInterface`).
+- **Typing / PHPDoc**: align PHPStan level-8 annotations across services, commands, events, helpers, and attributes (no intentional public API change).
+- **Tests**: polymorphic STI fixtures use `ClassMetadata::INHERITANCE_TYPE_SINGLE_TABLE` (value `1` is `NONE` in Doctrine, not STI).
+
+### Fixed
+
+- **STI / CTI truncate**: detect “no inheritance” via `ClassMetadata::INHERITANCE_TYPE_NONE` instead of comparing to `0` (Doctrine uses `1` for NONE).
+
+### Removed
+
+_(none)_
+
+### Documentation
+
+- **README.md**: FrankenPHP banner uses transparent PNG (`docs/images/frankenphp-friendly.png`); roadmap status bumped to **1.0.31**.
 
 ---
 ## [1.0.30] - 2026-07-23

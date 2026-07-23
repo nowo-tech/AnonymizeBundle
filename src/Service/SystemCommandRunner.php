@@ -28,13 +28,13 @@ final class SystemCommandRunner implements CommandRunnerInterface
 {
     private const DEFAULT_TIMEOUT_SECONDS = 180.0;
 
-    /** @var (callable(string, array, array): (false|resource))|null */
+    /** @var (callable(string, array<int, array{string, string}>, array<int, resource>): (false|resource))|null */
     private $procOpen;
 
     private readonly float $idleTimeoutSeconds;
 
     /**
-     * @param (callable(string, array, array): (false|resource))|null $procOpen Optional. When null, uses Symfony Process for commandExists().
+     * @param (callable(string, array<int, array{string, string}>, array<int, resource>): (false|resource))|null $procOpen Optional. When null, uses Symfony Process for commandExists().
      * @param float $timeoutSeconds Wall-clock timeout for exec() (and idle timeout when idle is null)
      * @param float|null $idleTimeoutSeconds Idle timeout; defaults to the same as $timeoutSeconds
      */
@@ -110,12 +110,22 @@ final class SystemCommandRunner implements CommandRunnerInterface
             1 => ['pipe', 'w'],
             2 => ['pipe', 'w'],
         ];
+        /** @var array<int, resource> $pipes */
         $pipes = [];
 
         $procOpen = $this->procOpen;
-        $process  = $procOpen($cmd, $descriptors, $pipes);
+        if ($procOpen === null) {
+            return false;
+        }
+        $process = $procOpen($cmd, $descriptors, $pipes);
 
         if ($process === false) {
+            return false;
+        }
+
+        if (!isset($pipes[1])) {
+            proc_close($process);
+
             return false;
         }
 

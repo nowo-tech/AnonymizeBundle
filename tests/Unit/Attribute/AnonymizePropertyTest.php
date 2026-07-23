@@ -149,12 +149,6 @@ class AnonymizePropertyTest extends TestCase
         $attribute = new AnonymizeProperty(type: 'email');
 
         // Properties exist and are accessible
-        $this->assertTrue(property_exists($attribute, 'type'));
-        $this->assertTrue(property_exists($attribute, 'weight'));
-        $this->assertTrue(property_exists($attribute, 'includePatterns'));
-        $this->assertTrue(property_exists($attribute, 'excludePatterns'));
-        $this->assertTrue(property_exists($attribute, 'service'));
-        $this->assertTrue(property_exists($attribute, 'options'));
 
         // Properties can be read
         $this->assertEquals('email', $attribute->type);

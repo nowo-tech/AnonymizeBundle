@@ -34,9 +34,8 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandCanBeInstantiated(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $command   = new AnonymizeInfoCommand($container, 'en_US', []);
+        new AnonymizeInfoCommand($container, 'en_US', []);
 
-        $this->assertInstanceOf(AnonymizeInfoCommand::class, $command);
     }
 
     /**
@@ -180,9 +179,8 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandUsesDefaultLocale(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $command   = new AnonymizeInfoCommand($container, 'es_ES', []);
+        new AnonymizeInfoCommand($container, 'es_ES', []);
 
-        $this->assertInstanceOf(AnonymizeInfoCommand::class, $command);
     }
 
     /**
@@ -191,9 +189,8 @@ class AnonymizeInfoCommandTest extends TestCase
     public function testCommandUsesProvidedConnections(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $command   = new AnonymizeInfoCommand($container, 'en_US', ['default', 'postgres']);
+        new AnonymizeInfoCommand($container, 'en_US', ['default', 'postgres']);
 
-        $this->assertInstanceOf(AnonymizeInfoCommand::class, $command);
     }
 
     /**

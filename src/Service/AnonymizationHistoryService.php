@@ -97,7 +97,7 @@ final class AnonymizationHistoryService
 
         $this->filesystem->dumpFile(
             $filePath,
-            json_encode($historyEntry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+            json_encode($historyEntry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}',
         );
 
         // Update index file for quick access
@@ -122,7 +122,7 @@ final class AnonymizationHistoryService
             return [];
         }
 
-        $index = json_decode(file_get_contents($indexFile), true) ?? [];
+        $index = json_decode(file_get_contents($indexFile) ?: '[]', true) ?? [];
         $runs  = [];
 
         foreach ($index as $entry) {
@@ -144,7 +144,7 @@ final class AnonymizationHistoryService
 
             // Load full run data
             if (isset($entry['file']) && file_exists($entry['file'])) {
-                $runData = json_decode(file_get_contents($entry['file']), true);
+                $runData = json_decode(file_get_contents($entry['file']) ?: '{}', true);
                 if ($runData !== null) {
                     $runData['file'] = $entry['file'];
                     $runs[]          = $runData;
@@ -181,12 +181,12 @@ final class AnonymizationHistoryService
             return null;
         }
 
-        $index = json_decode(file_get_contents($indexFile), true) ?? [];
+        $index = json_decode(file_get_contents($indexFile) ?: '[]', true) ?? [];
 
         foreach ($index as $entry) {
             if (isset($entry['id']) && $entry['id'] === $runId) {
                 if (isset($entry['file']) && file_exists($entry['file'])) {
-                    $runData = json_decode(file_get_contents($entry['file']), true);
+                    $runData = json_decode(file_get_contents($entry['file']) ?: '{}', true);
                     if ($runData !== null) {
                         return $runData;
                     }
@@ -285,7 +285,7 @@ final class AnonymizationHistoryService
         $index     = [];
 
         if (file_exists($indexFile)) {
-            $index = json_decode(file_get_contents($indexFile), true) ?? [];
+            $index = json_decode(file_get_contents($indexFile) ?: '[]', true) ?? [];
         }
 
         // Add entry to index
@@ -310,7 +310,7 @@ final class AnonymizationHistoryService
 
         $this->filesystem->dumpFile(
             $indexFile,
-            json_encode($index, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+            json_encode($index, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '[]',
         );
     }
 
@@ -326,10 +326,10 @@ final class AnonymizationHistoryService
         }
 
         $index = [];
-        $files = glob($this->historyDir . '/run_*.json');
+        $files = glob($this->historyDir . '/run_*.json') ?: [];
 
         foreach ($files as $file) {
-            $data = json_decode(file_get_contents($file), true);
+            $data = json_decode(file_get_contents($file) ?: '{}', true);
             if ($data !== null && isset($data['id'])) {
                 $index[] = [
                     'id'        => $data['id'],
@@ -351,7 +351,7 @@ final class AnonymizationHistoryService
         $indexFile = $this->historyDir . '/index.json';
         $this->filesystem->dumpFile(
             $indexFile,
-            json_encode($index, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+            json_encode($index, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '[]',
         );
     }
 

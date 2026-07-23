@@ -137,8 +137,7 @@ class UsernameFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $faker = new UsernameFaker('en_US');
-        $this->assertInstanceOf(UsernameFaker::class, $faker);
+        new UsernameFaker('en_US');
     }
 
     /**
@@ -147,8 +146,7 @@ class UsernameFakerTest extends TestCase
      */
     public function testConstructorWithDefaultLocale(): void
     {
-        $faker = new UsernameFaker();
-        $this->assertInstanceOf(UsernameFaker::class, $faker);
+        $faker    = new UsernameFaker();
         $username = $faker->generate();
         $this->assertIsString($username);
         $this->assertNotEmpty($username);
@@ -394,7 +392,6 @@ class UsernameFakerTest extends TestCase
     public function testConstructorIsInvoked(): void
     {
         $faker = new UsernameFaker('es_ES');
-        $this->assertInstanceOf(UsernameFaker::class, $faker);
         $this->assertNotEmpty($faker->generate());
     }
 

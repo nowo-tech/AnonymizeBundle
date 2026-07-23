@@ -47,6 +47,6 @@ class AnonymizeBundle extends Bundle
             $this->extension = new AnonymizeExtension();
         }
 
-        return $this->extension;
+        return $this->extension ?: null;
     }
 }

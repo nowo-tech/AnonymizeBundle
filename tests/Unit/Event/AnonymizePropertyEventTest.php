@@ -19,7 +19,10 @@ use ReflectionProperty;
  */
 class AnonymizePropertyEventTest extends TestCase
 {
+    /** @var EntityManagerInterface&MockObject */
     private MockObject $em;
+
+    /** @var ClassMetadata<object>&MockObject */
     private MockObject $metadata;
 
     protected function setUp(): void

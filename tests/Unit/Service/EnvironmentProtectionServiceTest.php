@@ -77,7 +77,7 @@ class EnvironmentProtectionServiceTest extends TestCase
 
         $this->assertIsArray($errors);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Unsafe environment', $errors[0]);
+        $this->assertStringContainsString('Unsafe environment', array_values($errors)[0]);
     }
 
     /**
@@ -113,7 +113,7 @@ class EnvironmentProtectionServiceTest extends TestCase
 
         $this->assertIsArray($errors);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Production configuration file detected', $errors[0]);
+        $this->assertStringContainsString('Production configuration file detected', array_values($errors)[0]);
     }
 
     /**
@@ -153,7 +153,7 @@ class EnvironmentProtectionServiceTest extends TestCase
 
         $this->assertIsArray($errors);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Bundle is registered for production', $errors[0]);
+        $this->assertStringContainsString('Bundle is registered for production', array_values($errors)[0]);
     }
 
     /**

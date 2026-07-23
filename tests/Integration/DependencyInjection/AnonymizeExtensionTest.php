@@ -47,8 +47,12 @@ class AnonymizeExtensionTest extends TestCase
         $this->assertEquals([], $container->getParameter('nowo_anonymize.connections'));
         $this->assertFalse($container->getParameter('nowo_anonymize.dry_run'));
         $this->assertEquals(100, $container->getParameter('nowo_anonymize.batch_size'));
-        $this->assertStringContainsString('var/stats', $container->getParameter('nowo_anonymize.stats_output_dir'));
-        $this->assertStringContainsString('var/anonymize_history', $container->getParameter('nowo_anonymize.history_dir'));
+        $statsOutputDir = $container->getParameter('nowo_anonymize.stats_output_dir');
+        $historyDir     = $container->getParameter('nowo_anonymize.history_dir');
+        $this->assertIsString($statsOutputDir);
+        $this->assertIsString($historyDir);
+        $this->assertStringContainsString('var/stats', $statsOutputDir);
+        $this->assertStringContainsString('var/anonymize_history', $historyDir);
     }
 
     /**
@@ -68,6 +72,7 @@ class AnonymizeExtensionTest extends TestCase
             ],
         ];
 
+        /* @phpstan-ignore-next-line argument.type */
         $this->extension->load($configs, $container);
 
         $this->assertEquals('es_ES', $container->getParameter('nowo_anonymize.locale'));
@@ -89,7 +94,9 @@ class AnonymizeExtensionTest extends TestCase
         $this->extension->load($configs, $container);
 
         $this->assertFalse($container->getParameter('nowo_anonymize.export.enabled'));
-        $this->assertStringContainsString('var/exports', $container->getParameter('nowo_anonymize.export.output_dir'));
+        $outputDir = $container->getParameter('nowo_anonymize.export.output_dir');
+        $this->assertIsString($outputDir);
+        $this->assertStringContainsString('var/exports', $outputDir);
         $this->assertEquals('{connection}_{database}_{date}_{time}.{format}', $container->getParameter('nowo_anonymize.export.filename_pattern'));
         $this->assertEquals('gzip', $container->getParameter('nowo_anonymize.export.compression'));
         $this->assertEquals([], $container->getParameter('nowo_anonymize.export.connections'));
@@ -115,6 +122,7 @@ class AnonymizeExtensionTest extends TestCase
             ],
         ];
 
+        /* @phpstan-ignore-next-line argument.type */
         $this->extension->load($configs, $container);
 
         $this->assertTrue($container->getParameter('nowo_anonymize.export.enabled'));
@@ -140,12 +148,15 @@ class AnonymizeExtensionTest extends TestCase
             ],
         ];
 
+        /* @phpstan-ignore-next-line argument.type */
         $this->extension->load($configs, $container);
 
         $this->assertTrue($container->getParameter('nowo_anonymize.export.enabled'));
         $this->assertEquals('bzip2', $container->getParameter('nowo_anonymize.export.compression'));
         // Other export parameters should use defaults
-        $this->assertStringContainsString('var/exports', $container->getParameter('nowo_anonymize.export.output_dir'));
+        $outputDir = $container->getParameter('nowo_anonymize.export.output_dir');
+        $this->assertIsString($outputDir);
+        $this->assertStringContainsString('var/exports', $outputDir);
         $this->assertEquals('{connection}_{database}_{date}_{time}.{format}', $container->getParameter('nowo_anonymize.export.filename_pattern'));
     }
 
@@ -166,6 +177,7 @@ class AnonymizeExtensionTest extends TestCase
             ],
         ];
 
+        /* @phpstan-ignore-next-line argument.type */
         $this->extension->load($configs, $container);
 
         // Last config should take precedence for locale

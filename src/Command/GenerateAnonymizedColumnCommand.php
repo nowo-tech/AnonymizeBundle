@@ -246,7 +246,7 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
     /**
      * Checks if a class uses the AnonymizableTrait.
      *
-     * @param ReflectionClass $reflection The reflection class
+     * @param ReflectionClass<object> $reflection The reflection class
      *
      * @return bool True if the class uses AnonymizableTrait
      */

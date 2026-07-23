@@ -238,15 +238,6 @@ class HashPreserveFakerTest extends TestCase
     }
 
     /**
-     * Test that HashPreserveFaker constructor works.
-     */
-    public function testConstructor(): void
-    {
-        $faker = new HashPreserveFaker();
-        $this->assertInstanceOf(HashPreserveFaker::class, $faker);
-    }
-
-    /**
      * Test that HashPreserveFaker handles preserve_format with hash longer than 20 characters.
      */
     public function testGenerateWithPreserveFormatLongHash(): void

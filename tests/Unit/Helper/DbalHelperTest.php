@@ -578,10 +578,6 @@ class DbalHelperTest extends TestCase
         // Create a platform mock and use reflection to set a custom class name
         $platform = $this->createMock(AbstractPlatform::class);
 
-        // Use reflection to create a mock with a specific class name
-        $reflection = new ReflectionClass($platform);
-        $reflection->getName();
-
         $connection = $this->createMock(Connection::class);
         $connection->method('getDriver')
             ->willReturn($driver);
@@ -785,7 +781,12 @@ class DbalHelperTest extends TestCase
      */
     public function testGetConnectionNameUsesGetName(): void
     {
-        $connection = new ConnectionLogicalNameStub('default');
+        $connection = $this->getMockBuilder(Connection::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getName'])
+            ->getMock();
+        /* @phpstan-ignore-next-line phpunit.mockMethod */
+        $connection->method('getName')->willReturn('default');
 
         $this->assertSame('default', DbalHelper::getConnectionName($connection));
     }
@@ -835,24 +836,6 @@ class DbalHelperTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Cannot resolve connection name');
         DbalHelper::getConnectionName($connection);
-    }
-}
-
-/**
- * Stub Connection that exposes getName() for DBAL 2.x/3.x compatibility tests.
- *
- * @internal
- */
-final class ConnectionLogicalNameStub extends Connection
-{
-    public function __construct(private readonly string $logicalName)
-    {
-        parent::__construct(['driver' => 'pdo_sqlite'], new DriverStubWithGetName());
-    }
-
-    public function getName(): string
-    {
-        return $this->logicalName;
     }
 }
 

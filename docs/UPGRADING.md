@@ -24,6 +24,30 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.31
+
+**Release Date**: 2026-07-23
+
+#### What's New
+
+- **Maintainers**: PHPStan `treatPhpDocTypesAsCertain: true` with an empty baseline; test-only ignores for redundant type assertions.
+- **Correctness**: polymorphic truncate path uses Doctrine’s `INHERITANCE_TYPE_NONE` constant; tests aligned with real Doctrine inheritance constants.
+- **Internal hardening**: tighter PHPDocs/types (`NullFaker` return type `null`, services/commands/helpers annotations).
+- **Docs**: FrankenPHP banner as transparent PNG.
+
+#### Breaking Changes
+
+None.
+
+#### Migration Steps
+
+1. **Update the bundle** (if you use Composer):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+No application or configuration changes are required.
+
 ### Upgrading to 1.0.30
 
 **Release Date**: 2026-07-23

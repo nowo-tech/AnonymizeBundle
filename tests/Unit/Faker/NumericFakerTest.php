@@ -149,8 +149,7 @@ class NumericFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $faker = new NumericFaker('en_US');
-        $this->assertInstanceOf(NumericFaker::class, $faker);
+        new NumericFaker('en_US');
     }
 
     /**

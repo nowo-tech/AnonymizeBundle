@@ -8,7 +8,10 @@ use Nowo\AnonymizeBundle\Faker\CoordinateFaker;
 use PHPUnit\Framework\TestCase;
 
 use function count;
+use function is_array;
 use function strlen;
+
+use const JSON_THROW_ON_ERROR;
 
 /**
  * Test case for CoordinateFaker.
@@ -158,7 +161,7 @@ class CoordinateFakerTest extends TestCase
         }
 
         // Should have some variation
-        $uniqueCoords = array_unique($coords);
+        $uniqueCoords = array_unique(array_map(static fn (array|string $coordinate): string => is_array($coordinate) ? json_encode($coordinate, JSON_THROW_ON_ERROR) : $coordinate, $coords));
         $this->assertGreaterThan(1, count($uniqueCoords));
     }
 
@@ -167,8 +170,7 @@ class CoordinateFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $faker = new CoordinateFaker('en_US');
-        $this->assertInstanceOf(CoordinateFaker::class, $faker);
+        new CoordinateFaker('en_US');
     }
 
     /**

@@ -139,12 +139,6 @@ class AnonymizeTest extends TestCase
     {
         $attribute = new Anonymize(connection: 'test');
 
-        $this->assertTrue(property_exists($attribute, 'connection'));
-        $this->assertTrue(property_exists($attribute, 'includePatterns'));
-        $this->assertTrue(property_exists($attribute, 'excludePatterns'));
-        $this->assertTrue(property_exists($attribute, 'truncate'));
-        $this->assertTrue(property_exists($attribute, 'truncate_order'));
-
         $attribute->connection = 'modified';
         $this->assertEquals('modified', $attribute->connection);
 

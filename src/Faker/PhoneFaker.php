@@ -53,14 +53,14 @@ final readonly class PhoneFaker implements FakerInterface
         // Apply country code if specified
         if ($countryCode !== null) {
             // Remove existing country code if present
-            $phoneNumber = preg_replace('/^\+?\d{1,4}\s*/', '', $phoneNumber);
+            $phoneNumber = preg_replace('/^\+?\d{1,4}\s*/', '', $phoneNumber) ?? '';
             $phoneNumber = $countryCode . ' ' . $phoneNumber;
         }
 
         // Format based on option
         if ($format === 'national') {
             // Remove country code if present
-            $phoneNumber = preg_replace('/^\+?\d{1,4}\s*/', '', $phoneNumber);
+            $phoneNumber = preg_replace('/^\+?\d{1,4}\s*/', '', $phoneNumber) ?? '';
         }
 
         // Add extension if requested

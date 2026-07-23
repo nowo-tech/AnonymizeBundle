@@ -887,7 +887,9 @@ class AnonymizeCommandTest extends TestCase
         $this->assertSame(0, $exitCode);
         $this->assertStringContainsString('Statistics exported to JSON', $out);
         $this->assertFileExists($absoluteJsonPath);
-        $data = json_decode(file_get_contents($absoluteJsonPath), true);
+        $json = file_get_contents($absoluteJsonPath);
+        $this->assertIsString($json);
+        $data = json_decode($json, true);
         $this->assertIsArray($data);
         $this->assertArrayHasKey('global', $data);
     }
@@ -950,7 +952,9 @@ class AnonymizeCommandTest extends TestCase
         $this->assertStringContainsString('Statistics exported to CSV', $out);
         $csvPath = $this->tempDir . '/var/stats/run_stats.csv';
         $this->assertFileExists($csvPath);
-        $this->assertStringContainsString('Total Processed', file_get_contents($csvPath));
+        $csvContent = file_get_contents($csvPath);
+        $this->assertIsString($csvContent);
+        $this->assertStringContainsString('Total Processed', $csvContent);
     }
 
     /**
@@ -1080,7 +1084,9 @@ class AnonymizeCommandTest extends TestCase
 
         $command = new AnonymizeCommand($container);
         $input   = new ArrayInput(['--interactive' => true]);
-        $input->setStream(fopen('data://text/plain,no', 'r'));
+        $stream  = fopen('data://text/plain,no', 'r');
+        $this->assertIsResource($stream);
+        $input->setStream($stream);
         $output = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -1105,7 +1111,9 @@ class AnonymizeCommandTest extends TestCase
 
         $command = new AnonymizeCommand($container);
         $input   = new ArrayInput(['--interactive' => true]);
-        $input->setStream(fopen('data://text/plain,y', 'r'));
+        $stream  = fopen('data://text/plain,y', 'r');
+        $this->assertIsResource($stream);
+        $input->setStream($stream);
         $output = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -1134,7 +1142,7 @@ class AnonymizeCommandTest extends TestCase
 
         $historyDirPath = $this->tempDir . '/history';
         file_put_contents($historyDirPath, '');
-        $container->get('parameter_bag')->set('nowo_anonymize.history_dir', $historyDirPath);
+        $container->getParameterBag()->set('nowo_anonymize.history_dir', $historyDirPath);
 
         $command = new AnonymizeCommand($container);
         $input   = new ArrayInput(['--debug' => true]);

@@ -22,6 +22,9 @@ use function count;
  */
 class AnonymizeStatisticsDisplayTest extends TestCase
 {
+    /**
+     * @param array<string, mixed> $entities
+     */
     private function createStatistics(
         int $totalProcessed = 10,
         int $totalUpdated = 8,
@@ -101,6 +104,7 @@ class AnonymizeStatisticsDisplayTest extends TestCase
 
             $this->assertFileExists($tmp);
             $content = file_get_contents($tmp);
+            $this->assertIsString($content);
             $this->assertJson($content);
             $decoded = json_decode($content, true);
             $this->assertSame(5, $decoded['global']['total_processed'] ?? null);
@@ -129,6 +133,7 @@ class AnonymizeStatisticsDisplayTest extends TestCase
 
             $this->assertFileExists($tmp);
             $content = file_get_contents($tmp);
+            $this->assertIsString($content);
             $this->assertStringContainsString('Section,Key,Value', $content);
             $this->assertStringContainsString('Global,Total Processed,5', $content);
             $text = $out->fetch();

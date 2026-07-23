@@ -23,8 +23,8 @@ final class BeforeEntityAnonymizeEvent extends Event
      * Creates a new BeforeEntityAnonymizeEvent instance.
      *
      * @param EntityManagerInterface $entityManager The entity manager
-     * @param ClassMetadata $metadata The entity metadata
-     * @param ReflectionClass $reflection The entity reflection class
+     * @param ClassMetadata<object> $metadata The entity metadata
+     * @param ReflectionClass<object> $reflection The entity reflection class
      * @param int $totalRecords Total number of records for this entity
      * @param bool $dryRun Whether this is a dry run
      */
@@ -50,7 +50,7 @@ final class BeforeEntityAnonymizeEvent extends Event
     /**
      * Gets the entity metadata.
      *
-     * @return ClassMetadata The entity metadata
+     * @return ClassMetadata<object> The entity metadata
      */
     public function getMetadata(): ClassMetadata
     {
@@ -60,7 +60,7 @@ final class BeforeEntityAnonymizeEvent extends Event
     /**
      * Gets the entity reflection class.
      *
-     * @return ReflectionClass The entity reflection class
+     * @return ReflectionClass<object> The entity reflection class
      */
     public function getReflection(): ReflectionClass
     {

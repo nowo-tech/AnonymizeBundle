@@ -66,7 +66,7 @@ class UrlFakerTest extends TestCase
         $this->assertArrayHasKey('host', $parsed);
         // Should not have path or have empty path
         if (isset($parsed['path'])) {
-            $this->assertEmpty($parsed['path'] ?? '');
+            $this->assertEmpty($parsed['path']);
         }
     }
 
@@ -111,8 +111,7 @@ class UrlFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $faker = new UrlFaker('en_US');
-        $this->assertInstanceOf(UrlFaker::class, $faker);
+        new UrlFaker('en_US');
     }
 
     /**

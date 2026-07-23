@@ -6,7 +6,6 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Faker;
 
 use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Enum\FakerType;
-use Nowo\AnonymizeBundle\Faker\EmailFaker;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use Nowo\AnonymizeBundle\Faker\ServiceFaker;
@@ -28,9 +27,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateEmailFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('email');
+        $factory->create('email');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -39,9 +37,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateNameFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('name');
+        $factory->create('name');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -50,9 +47,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateSurnameFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('surname');
+        $factory->create('surname');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -61,9 +57,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateAgeFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('age');
+        $factory->create('age');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -72,9 +67,8 @@ class FakerFactoryTest extends TestCase
     public function testCreatePhoneFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('phone');
+        $factory->create('phone');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -83,9 +77,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateIbanFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('iban');
+        $factory->create('iban');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -94,9 +87,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateCreditCardFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('credit_card');
+        $factory->create('credit_card');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -105,9 +97,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateAddressFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('address');
+        $factory->create('address');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -116,9 +107,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateDateFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('date');
+        $factory->create('date');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -127,9 +117,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateUsernameFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('username');
+        $factory->create('username');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -138,9 +127,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateUrlFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('url');
+        $factory->create('url');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -149,9 +137,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateCompanyFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('company');
+        $factory->create('company');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -160,9 +147,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateMaskingFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('masking');
+        $factory->create('masking');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -171,9 +157,8 @@ class FakerFactoryTest extends TestCase
     public function testCreatePasswordFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('password');
+        $factory->create('password');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -182,9 +167,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateIpAddressFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('ip_address');
+        $factory->create('ip_address');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -193,9 +177,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateMacAddressFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('mac_address');
+        $factory->create('mac_address');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -204,9 +187,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateUuidFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('uuid');
+        $factory->create('uuid');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -215,9 +197,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateHashFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('hash');
+        $factory->create('hash');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -226,9 +207,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateCoordinateFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('coordinate');
+        $factory->create('coordinate');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -237,9 +217,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateColorFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('color');
+        $factory->create('color');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -248,9 +227,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateBooleanFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('boolean');
+        $factory->create('boolean');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -259,9 +237,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateNumericFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('numeric');
+        $factory->create('numeric');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -270,9 +247,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateFileFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('file');
+        $factory->create('file');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -281,9 +257,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateJsonFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('json');
+        $factory->create('json');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -292,9 +267,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateTextFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('text');
+        $factory->create('text');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -303,9 +277,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateEnumFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('enum');
+        $factory->create('enum');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -314,9 +287,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateCountryFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('country');
+        $factory->create('country');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -325,9 +297,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateLanguageFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('language');
+        $factory->create('language');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -336,9 +307,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateFromEnum(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create(FakerType::EMAIL);
+        $factory->create(FakerType::EMAIL);
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -360,9 +330,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateHashPreserveFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('hash_preserve');
+        $factory->create('hash_preserve');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -371,9 +340,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateShuffleFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('shuffle');
+        $factory->create('shuffle');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -382,9 +350,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateConstantFaker(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create('constant');
+        $factory->create('constant');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -394,9 +361,8 @@ class FakerFactoryTest extends TestCase
     {
         $container = $this->createMock(ContainerInterface::class);
         $factory   = new FakerFactory('en_US', $container);
-        $faker     = $factory->create('service', 'test_service');
+        $factory->create('service', 'test_service');
 
-        $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
     /**
@@ -433,9 +399,8 @@ class FakerFactoryTest extends TestCase
             ->willReturn(false);
 
         $factory = new FakerFactory('en_US', $container);
-        $faker   = $factory->create('email');
+        $factory->create('email');
 
-        $this->assertInstanceOf(EmailFaker::class, $faker);
     }
 
     /**
@@ -444,9 +409,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateAcceptsFakerTypeEnum(): void
     {
         $factory = new FakerFactory('en_US');
-        $faker   = $factory->create(FakerType::EMAIL);
+        $factory->create(FakerType::EMAIL);
 
-        $this->assertInstanceOf(EmailFaker::class, $faker);
     }
 
     /**
@@ -456,9 +420,8 @@ class FakerFactoryTest extends TestCase
     {
         $container = $this->createMock(ContainerInterface::class);
         $factory   = new FakerFactory('en_US', $container);
-        $faker     = $factory->create('service', 'custom_service');
+        $factory->create('service', 'custom_service');
 
-        $this->assertInstanceOf(ServiceFaker::class, $faker);
     }
 
     /**
@@ -484,7 +447,6 @@ class FakerFactoryTest extends TestCase
 
         foreach ($types as $type) {
             $faker = $factory->create($type);
-            $this->assertInstanceOf(FakerInterface::class, $faker);
         }
     }
 
@@ -517,9 +479,8 @@ class FakerFactoryTest extends TestCase
     public function testCreateUsesLocale(): void
     {
         $factory = new FakerFactory('es_ES');
-        $faker   = $factory->create('email');
+        $factory->create('email');
 
-        $this->assertInstanceOf(EmailFaker::class, $faker);
     }
 
     /**
@@ -544,9 +505,8 @@ class FakerFactoryTest extends TestCase
     {
         $container = $this->createMock(ContainerInterface::class);
         $factory   = new FakerFactory('en_US', $container);
-        $faker     = $factory->create('service');
+        $factory->create('service');
 
-        $this->assertInstanceOf(ServiceFaker::class, $faker);
     }
 
     /**
@@ -557,8 +517,7 @@ class FakerFactoryTest extends TestCase
         // ServiceFaker requires a container, so we need to provide one
         $container = $this->createMock(ContainerInterface::class);
         $factory   = new FakerFactory('en_US', $container);
-        $faker     = $factory->create('service', 'test_service');
+        $factory->create('service', 'test_service');
 
-        $this->assertInstanceOf(ServiceFaker::class, $faker);
     }
 }

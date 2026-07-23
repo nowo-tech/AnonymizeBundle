@@ -104,8 +104,7 @@ class ColorFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $faker = new ColorFaker('en_US');
-        $this->assertInstanceOf(ColorFaker::class, $faker);
+        new ColorFaker('en_US');
     }
 
     /**

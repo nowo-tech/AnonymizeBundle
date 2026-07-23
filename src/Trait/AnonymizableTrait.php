@@ -16,6 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
+/** @phpstan-ignore trait.unused (The trait is intentionally consumed by application entities.) */
 trait AnonymizableTrait
 {
     /**

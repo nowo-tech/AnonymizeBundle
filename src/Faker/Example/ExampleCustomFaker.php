@@ -136,7 +136,8 @@ final readonly class ExampleCustomFaker implements FakerInterface
         $record = $options['record'] ?? [];
 
         // Get custom options
-        $preserveOriginal   = $options['preserve_original'] ?? false;
+        $preserveOriginal = $options['preserve_original'] ?? false;
+        /** @var class-string<object>|null $relatedEntityClass */
         $relatedEntityClass = $options['related_entity'] ?? null;
 
         // If preserve_original is true, return the original value unchanged

@@ -10,6 +10,10 @@ use function is_string;
 /**
  * Service for matching records against inclusion/exclusion patterns.
  *
+ * @phpstan-type PatternValue = string|list<string>
+ * @phpstan-type PatternSet = array<string, PatternValue>
+ * @phpstan-type Patterns = PatternSet|list<PatternSet>
+ *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
@@ -23,8 +27,8 @@ final class PatternMatcher
      * must match all inclusion patterns. If no patterns are provided, the record is included.
      *
      * @param array<string, mixed> $record The record to check
-     * @param array<string> $includePatterns Array of patterns to include (e.g., ['id' => '>100', 'status' => 'active'])
-     * @param array<string> $excludePatterns Array of patterns to exclude (e.g., ['id' => '<=100'])
+     * @param Patterns $includePatterns Patterns to include
+     * @param Patterns $excludePatterns Patterns to exclude
      *
      * @return bool True if the record matches (passes inclusion and doesn't match exclusion)
      */
@@ -48,7 +52,7 @@ final class PatternMatcher
      * Returns true if the record matches exclusion (exclude when any config matches).
      *
      * @param array<string, mixed> $record
-     * @param array<array<int, array<string, array<string>|string>>|array<string>|string> $excludePatterns Single AND-clause or list of AND-clauses (OR between them)
+     * @param Patterns $excludePatterns Single AND-clause or list of AND-clauses
      */
     private function matchesExcludePatterns(array $record, array $excludePatterns): bool
     {
@@ -62,6 +66,7 @@ final class PatternMatcher
             return false;
         }
 
+        // @phpstan-ignore-next-line argument.type (the preceding predicate excludes the list-of-sets variant)
         return $this->matchesPatterns($record, $excludePatterns);
     }
 
@@ -69,7 +74,7 @@ final class PatternMatcher
      * Returns true if the record matches inclusion (include when any config matches, when using list of sets).
      *
      * @param array<string, mixed> $record
-     * @param array<array<int, array<string, array<string>|string>>|array<string>|string> $includePatterns Single AND-clause or list of AND-clauses (OR between them)
+     * @param Patterns $includePatterns Single AND-clause or list of AND-clauses
      */
     private function matchesIncludePatterns(array $record, array $includePatterns): bool
     {
@@ -83,11 +88,14 @@ final class PatternMatcher
             return false;
         }
 
+        // @phpstan-ignore-next-line argument.type (the preceding predicate excludes the list-of-sets variant)
         return $this->matchesPatterns($record, $includePatterns);
     }
 
     /**
-     * True if the array is a list of pattern sets (OR between configs), e.g. [ ['role'=>'admin'], ['status'=>'deleted'] ].
+     * @param Patterns $patterns
+     *
+     * @phpstan-assert-if-true list<PatternSet> $patterns
      */
     private function isListOfPatternSets(array $patterns): bool
     {
@@ -111,7 +119,7 @@ final class PatternMatcher
      * All patterns must match for the method to return true.
      *
      * @param array<string, mixed> $record The record to check
-     * @param array<array<string>|string> $patterns Array of patterns (e.g., ['id' => '>100', 'status' => 'active', 'email' => ['%@a.com', 'b@b.com']])
+     * @param PatternSet $patterns Array of patterns
      *
      * @return bool True if all patterns match
      */
@@ -124,7 +132,6 @@ final class PatternMatcher
             $field        = (string) $field;
 
             foreach ($options as $option) {
-                $option = is_string($option) ? $option : (string) $option;
                 if ($this->patternMatchesValue($record, $field, $option)) {
                     $fieldMatched = true;
                     break;
@@ -194,7 +201,7 @@ final class PatternMatcher
         }
 
         // Exact match, contains, or multiple values with | (OR). '|' splits first so each side may use % LIKE.
-        if (is_string($value) && is_string($pattern)) {
+        if (is_string($value)) {
             if (str_contains($pattern, '|')) {
                 $orOptions = explode('|', $pattern);
                 foreach ($orOptions as $option) {

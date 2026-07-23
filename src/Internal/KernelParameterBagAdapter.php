@@ -31,6 +31,8 @@ final readonly class KernelParameterBagAdapter implements ParameterBagInterface
 
     /**
      * {@inheritDoc}
+     *
+     * @return array<string, mixed>|bool|float|int|string|UnitEnum|null
      */
     public function get(string $name): array|bool|string|int|float|UnitEnum|null
     {
@@ -54,26 +56,9 @@ final readonly class KernelParameterBagAdapter implements ParameterBagInterface
         }
 
         if ($kernelContainer instanceof Container) {
-            if (method_exists($kernelContainer, 'getParameterBag')) {
-                $paramBag = $kernelContainer->getParameterBag();
+            $paramBag = $kernelContainer->getParameterBag();
 
-                return $paramBag->get($name);
-            }
-
-            // @codeCoverageIgnoreStart
-            // Legacy path for exotic Container subclasses without getParameterBag() (unreachable on stock Symfony).
-            $paramReflection = new ReflectionClass($kernelContainer);
-            if ($paramReflection->hasProperty('parameterBag')) {
-                $paramProperty = $paramReflection->getProperty('parameterBag');
-                $paramBag      = $paramProperty->getValue($kernelContainer);
-                if ($paramBag instanceof ParameterBagInterface) {
-                    return $paramBag->get($name);
-                }
-            }
-            if (method_exists($kernelContainer, 'getParameter')) {
-                return $kernelContainer->getParameter($name);
-            }
-            // @codeCoverageIgnoreEnd
+            return $paramBag->get($name);
         }
 
         throw new InvalidArgumentException(sprintf('Parameter "%s" not found', $name));
@@ -95,6 +80,8 @@ final readonly class KernelParameterBagAdapter implements ParameterBagInterface
 
     /**
      * {@inheritDoc}
+     *
+     * @param array<string, mixed>|bool|float|int|string|UnitEnum|null $value
      */
     public function set(string $name, array|bool|string|int|float|UnitEnum|null $value): void
     {
@@ -109,6 +96,8 @@ final readonly class KernelParameterBagAdapter implements ParameterBagInterface
 
     /**
      * {@inheritDoc}
+     *
+     * @return array<string, mixed>
      */
     public function all(): array
     {
@@ -117,6 +106,8 @@ final readonly class KernelParameterBagAdapter implements ParameterBagInterface
 
     /**
      * {@inheritDoc}
+     *
+     * @param array<string, mixed> $parameters
      */
     public function add(array $parameters): void
     {

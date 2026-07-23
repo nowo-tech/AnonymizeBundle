@@ -140,7 +140,6 @@ class IpAddressFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $faker = new IpAddressFaker('en_US');
-        $this->assertInstanceOf(IpAddressFaker::class, $faker);
+        new IpAddressFaker('en_US');
     }
 }

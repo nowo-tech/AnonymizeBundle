@@ -201,8 +201,7 @@ class JsonFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $faker = new JsonFaker('en_US');
-        $this->assertInstanceOf(JsonFaker::class, $faker);
+        new JsonFaker('en_US');
     }
 
     /**
