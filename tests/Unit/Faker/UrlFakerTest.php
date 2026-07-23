@@ -111,7 +111,8 @@ class UrlFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        new UrlFaker('en_US');
+        $faker = new UrlFaker('en_US');
+        $this->assertInstanceOf(UrlFaker::class, $faker);
     }
 
     /**

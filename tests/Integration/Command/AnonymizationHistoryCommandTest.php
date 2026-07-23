@@ -85,7 +85,8 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testCommandCanBeInstantiated(): void
     {
-        new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $this->assertInstanceOf(AnonymizationHistoryCommand::class, $command);
     }
 
     /**

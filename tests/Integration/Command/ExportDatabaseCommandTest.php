@@ -161,8 +161,9 @@ class ExportDatabaseCommandTest extends TestCase
         $reflection = new ReflectionClass($this->command);
         $method     = $reflection->getMethod('getParameterBag');
 
-        $method->invoke($this->command);
+        $result = $method->invoke($this->command);
 
+        $this->assertInstanceOf(ParameterBagInterface::class, $result);
     }
 
     /**
@@ -178,7 +179,8 @@ class ExportDatabaseCommandTest extends TestCase
         $method     = $reflection->getMethod('getParameterBag');
 
         // Should return a ParameterBagInterface wrapper when parameter_bag is not available
-        $method->invoke($this->command);
+        $result = $method->invoke($this->command);
+        $this->assertInstanceOf(ParameterBagInterface::class, $result);
     }
 
     /**
@@ -196,8 +198,9 @@ class ExportDatabaseCommandTest extends TestCase
         $reflection = new ReflectionClass($this->command);
         $method     = $reflection->getMethod('getParameterBag');
 
-        $method->invoke($this->command);
-
+        $result = $method->invoke($this->command);
+        $this->assertInstanceOf(ParameterBagInterface::class, $result);
+        $this->assertInstanceOf(KernelParameterBagAdapter::class, $result);
     }
 
     /**

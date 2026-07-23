@@ -170,7 +170,8 @@ class CoordinateFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        new CoordinateFaker('en_US');
+        $faker = new CoordinateFaker('en_US');
+        $this->assertInstanceOf(CoordinateFaker::class, $faker);
     }
 
     /**

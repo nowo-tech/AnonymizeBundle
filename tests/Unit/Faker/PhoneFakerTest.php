@@ -121,7 +121,8 @@ class PhoneFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        new PhoneFaker('en_US');
+        $faker = new PhoneFaker('en_US');
+        $this->assertInstanceOf(PhoneFaker::class, $faker);
     }
 
     /**

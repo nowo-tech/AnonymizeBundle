@@ -112,7 +112,8 @@ class CountryFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        new CountryFaker('en_US');
+        $faker = new CountryFaker('en_US');
+        $this->assertInstanceOf(CountryFaker::class, $faker);
     }
 
     /**

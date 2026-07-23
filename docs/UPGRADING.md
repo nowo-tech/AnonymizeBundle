@@ -24,6 +24,27 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.32
+
+**Release Date**: 2026-07-23
+
+#### What's New
+
+- **CI**: restores test assertions so PHPUnit no longer reports risky tests (`failOnRisky=true`).
+
+#### Breaking Changes
+
+None.
+
+#### Migration Steps
+
+1. **Update the bundle** (if you use Composer):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+No application or configuration changes are required.
+
 ### Upgrading to 1.0.31
 
 **Release Date**: 2026-07-23

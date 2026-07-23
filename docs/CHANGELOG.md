@@ -24,6 +24,29 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.32] - 2026-07-23
+
+### Added
+
+_(none)_
+
+### Changed
+
+_(none)_
+
+### Fixed
+
+- **Tests / CI**: restore `assertInstanceOf` (and placeholder asserts) removed when enabling `treatPhpDocTypesAsCertain`, which made 72 tests risky under `failOnRisky=true` and failed PHPUnit with exit code 1.
+
+### Removed
+
+_(none)_
+
+### Documentation
+
+- **README.md**: roadmap status bumped to **1.0.32**.
+
+---
 ## [1.0.31] - 2026-07-23
 
 ### Added

@@ -124,7 +124,8 @@ class MacAddressFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        new MacAddressFaker('en_US');
+        $faker = new MacAddressFaker('en_US');
+        $this->assertInstanceOf(MacAddressFaker::class, $faker);
     }
 
     /**

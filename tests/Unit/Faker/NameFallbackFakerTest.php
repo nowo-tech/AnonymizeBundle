@@ -131,7 +131,8 @@ class NameFallbackFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        new NameFallbackFaker('en_US');
+        $faker = new NameFallbackFaker('en_US');
+        $this->assertInstanceOf(NameFallbackFaker::class, $faker);
     }
 
     /**

@@ -114,7 +114,8 @@ class TextFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        new TextFaker('en_US');
+        $faker = new TextFaker('en_US');
+        $this->assertInstanceOf(TextFaker::class, $faker);
     }
 
     /**

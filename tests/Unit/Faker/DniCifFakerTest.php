@@ -126,7 +126,8 @@ class DniCifFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        new DniCifFaker('es_ES');
+        $faker = new DniCifFaker('es_ES');
+        $this->assertInstanceOf(DniCifFaker::class, $faker);
     }
 
     /**

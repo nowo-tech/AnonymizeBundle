@@ -141,7 +141,8 @@ class AgeFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        new AgeFaker('en_US');
+        $faker = new AgeFaker('en_US');
+        $this->assertInstanceOf(AgeFaker::class, $faker);
     }
 
     /**

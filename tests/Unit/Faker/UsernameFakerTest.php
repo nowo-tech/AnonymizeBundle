@@ -137,7 +137,8 @@ class UsernameFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        new UsernameFaker('en_US');
+        $faker = new UsernameFaker('en_US');
+        $this->assertInstanceOf(UsernameFaker::class, $faker);
     }
 
     /**

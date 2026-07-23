@@ -115,7 +115,8 @@ class UuidFakerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        new UuidFaker('en_US');
+        $faker = new UuidFaker('en_US');
+        $this->assertInstanceOf(UuidFaker::class, $faker);
     }
 
     /**
