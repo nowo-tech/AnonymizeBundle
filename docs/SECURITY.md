@@ -14,7 +14,9 @@ This bundle is **development-only** (see below). It anonymizes data for local/te
 | Threat | Mitigation |
 |--------|------------|
 | Misuse in production | Documented as dev-only; install with `--dev` and do not register bundle in `prod`. |
-| Commands in prod console | `nowo:anonymize:run` and `nowo:anonymize:export-db` check `kernel.environment` (dev/test) and config files; other commands assume dev-only installation—do not rely on them as a sole prod barrier. Avoid `bin/console --env=dev` against production databases. |
+| Commands in prod console | **All** `nowo:anonymize:*` commands run `EnvironmentProtectionService` (kernel env must be `dev`/`test`; prod config/bundles registration blocked). |
+| `--env=dev` against production DSN | Configurable DSN/host **denylist** (`nowo_anonymize.environment_protection.blocked_dsn_substrings`) matched against `DATABASE_URL` / `MONGODB_URL` (and hosts). |
+| Destructive TRUNCATE | Tables with `truncate=true` require interactive confirmation or `--force`; non-interactive runs abort truncate without `--force`. |
 | Data leakage in logs | Avoid verbose logging of raw PII in anonymization pipelines. |
 | Hung export subprocesses (FrankenPHP/FPM) | `export.timeout` (default 180s) on Symfony Process; demo Caddy/PHP deadlines sit above it (REQ-RUNTIME-001). |
 

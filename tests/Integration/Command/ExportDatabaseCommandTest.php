@@ -11,8 +11,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Nowo\AnonymizeBundle\Command\ExportDatabaseCommand;
-use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use Nowo\AnonymizeBundle\Internal\KernelParameterBagAdapter;
+use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
@@ -37,7 +37,7 @@ class ExportDatabaseCommandTest extends TestCase
     protected function setUp(): void
     {
         $this->container = $this->createMock(ContainerInterface::class);
-        $this->command   = new ExportDatabaseCommand($this->container);
+        $this->command   = new ExportDatabaseCommand($this->container, $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class));
     }
 
     /**
@@ -62,7 +62,7 @@ class ExportDatabaseCommandTest extends TestCase
         $this->assertTrue($definition->hasOption('no-gitignore'));
 
         $compressionOption = $definition->getOption('compression');
-        $this->assertEquals('gzip', $compressionOption->getDefault());
+        $this->assertNull($compressionOption->getDefault());
     }
 
     /**
@@ -70,16 +70,13 @@ class ExportDatabaseCommandTest extends TestCase
      */
     public function testExecuteReturnsFailureWhenEnvironmentProtectionFails(): void
     {
-        $parameterBag = new ParameterBag([
+        $container             = $this->createMock(ContainerInterface::class);
+        $environmentProtection = new EnvironmentProtectionService(new ParameterBag([
             'kernel.environment' => 'prod',
-            'kernel.debug'       => false,
             'kernel.project_dir' => sys_get_temp_dir(),
-        ]);
-        $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag');
-        $container->method('get')->willReturnCallback(static fn (string $id): ?\Symfony\Component\DependencyInjection\ParameterBag\ParameterBag => $id === 'parameter_bag' ? $parameterBag : null);
+        ]), []);
 
-        $command = new ExportDatabaseCommand($container);
+        $command = new ExportDatabaseCommand($container, $environmentProtection, $this->createMock(ManagerRegistry::class));
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -103,10 +100,10 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn([]);
 
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
-        $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag');
+        $container->method('get')->willReturnCallback(static fn (string $id): ?ParameterBag => $id === 'parameter_bag' ? $parameterBag : null);
 
-        $command = new ExportDatabaseCommand($container);
+        $command = new ExportDatabaseCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -130,10 +127,10 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
 
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
-        $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag');
+        $container->method('get')->willReturnCallback(static fn (string $id): ?ParameterBag => $id === 'parameter_bag' ? $parameterBag : null);
 
-        $command = new ExportDatabaseCommand($container);
+        $command = new ExportDatabaseCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--compression' => 'invalid']);
         $output  = new BufferedOutput();
 
@@ -280,9 +277,8 @@ class ExportDatabaseCommandTest extends TestCase
 
         $container = new ContainerBuilder($parameterBag);
         $container->set('parameter_bag', $parameterBag);
-        $container->set(SymfonyService::DOCTRINE, $doctrine);
 
-        $command = new ExportDatabaseCommand($container);
+        $command = new ExportDatabaseCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -293,9 +289,8 @@ class ExportDatabaseCommandTest extends TestCase
     }
 
     /**
-     * Test that when --filename-pattern and --no-gitignore are not passed,
-     * command uses nowo_anonymize.export.filename_pattern and .auto_gitignore from parameter bag (lines 132-135, 146-147).
-     * Note: --compression has default 'gzip', so the parameter bag branch for compression (138-141) is unreachable unless the option had no default.
+     * Test that when --filename-pattern, --compression and --no-gitignore are not passed,
+     * command uses export config from the parameter bag (including compression).
      */
     public function testExecuteUsesFilenamePatternAndAutoGitignoreFromParameterBagWhenOptionsNotPassed(): void
     {
@@ -308,6 +303,7 @@ class ExportDatabaseCommandTest extends TestCase
             'nowo_anonymize.export.output_dir'       => $customExportDir,
             'nowo_anonymize.export.filename_pattern' => $customFilenamePat,
             'nowo_anonymize.export.auto_gitignore'   => false,
+            'nowo_anonymize.export.compression'      => 'none',
         ]);
 
         $doctrine = $this->createMock(ManagerRegistry::class);
@@ -324,9 +320,8 @@ class ExportDatabaseCommandTest extends TestCase
 
         $container = new ContainerBuilder($parameterBag);
         $container->set('parameter_bag', $parameterBag);
-        $container->set(SymfonyService::DOCTRINE, $doctrine);
 
-        $command = new ExportDatabaseCommand($container);
+        $command = new ExportDatabaseCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -336,6 +331,86 @@ class ExportDatabaseCommandTest extends TestCase
         $this->assertStringContainsString($customFilenamePat, $content, 'Filename pattern from parameter bag should appear in configuration table');
         $this->assertStringContainsString('Auto .gitignore', $content);
         $this->assertMatchesRegularExpression('/Auto \.gitignore[\s\S]*?No/', $content, 'Auto .gitignore should be No when nowo_anonymize.export.auto_gitignore is false');
+        $this->assertMatchesRegularExpression('/Compression[\s\S]*?none/', $content);
+    }
+
+    /**
+     * Covers default compression "gzip" and timeout 180 when export config keys are absent.
+     */
+    public function testExecuteUsesDefaultCompressionAndTimeoutWhenConfigKeysMissing(): void
+    {
+        $customExportDir = sys_get_temp_dir() . '/export_defaults_' . uniqid();
+        $parameterBag    = new ParameterBag([
+            'kernel.environment'               => 'dev',
+            'kernel.debug'                     => true,
+            'kernel.project_dir'               => sys_get_temp_dir(),
+            'nowo_anonymize.export.output_dir' => $customExportDir,
+        ]);
+
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getDatabase')->willReturn('test_db');
+        $connection->method('getParams')->willReturn([]);
+        $connection->method('getDriver')->willReturn($this->createMock(Driver::class));
+        $connection->method('getDatabasePlatform')
+            ->willReturn($this->createMock(AbstractPlatform::class));
+        $em->method('getConnection')->willReturn($connection);
+        $doctrine->method('getManager')->with('default')->willReturn($em);
+
+        $container = new ContainerBuilder($parameterBag);
+        $container->set('parameter_bag', $parameterBag);
+
+        $command = new ExportDatabaseCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
+        $input   = new ArrayInput([]);
+        $output  = new BufferedOutput();
+
+        $command->run($input, $output);
+        $content = $output->fetch();
+
+        $this->assertMatchesRegularExpression('/Compression[\s\S]*?gzip/', $content);
+        $this->assertMatchesRegularExpression('/Subprocess timeout \(s\)[\s\S]*?180/', $content);
+    }
+
+    /**
+     * Covers reading nowo_anonymize.export.timeout from the parameter bag.
+     */
+    public function testExecuteUsesTimeoutFromParameterBag(): void
+    {
+        $customExportDir = sys_get_temp_dir() . '/export_timeout_' . uniqid();
+        $parameterBag    = new ParameterBag([
+            'kernel.environment'                => 'dev',
+            'kernel.debug'                      => true,
+            'kernel.project_dir'                => sys_get_temp_dir(),
+            'nowo_anonymize.export.output_dir'  => $customExportDir,
+            'nowo_anonymize.export.timeout'     => 95,
+            'nowo_anonymize.export.compression' => 'none',
+        ]);
+
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getDatabase')->willReturn('test_db');
+        $connection->method('getParams')->willReturn([]);
+        $connection->method('getDriver')->willReturn($this->createMock(Driver::class));
+        $connection->method('getDatabasePlatform')
+            ->willReturn($this->createMock(AbstractPlatform::class));
+        $em->method('getConnection')->willReturn($connection);
+        $doctrine->method('getManager')->with('default')->willReturn($em);
+
+        $container = new ContainerBuilder($parameterBag);
+        $container->set('parameter_bag', $parameterBag);
+
+        $command = new ExportDatabaseCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
+        $input   = new ArrayInput([]);
+        $output  = new BufferedOutput();
+
+        $command->run($input, $output);
+        $content = $output->fetch();
+
+        $this->assertMatchesRegularExpression('/Subprocess timeout \(s\)[\s\S]*?95/', $content);
     }
 
     /**
@@ -363,9 +438,8 @@ class ExportDatabaseCommandTest extends TestCase
 
         $container = new ContainerBuilder($parameterBag);
         $container->set('parameter_bag', $parameterBag);
-        $container->set(SymfonyService::DOCTRINE, $doctrine);
 
-        $command = new ExportDatabaseCommand($container);
+        $command = new ExportDatabaseCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--output-dir' => '%kernel.project_dir%/my_exports']);
         $output  = new BufferedOutput();
 
@@ -400,10 +474,10 @@ class ExportDatabaseCommandTest extends TestCase
             $doctrine->method('getManagerNames')->willReturn([]);
 
             $container = $this->createMock(ContainerInterface::class);
-            $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
-            $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
+            $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag');
+            $container->method('get')->willReturnCallback(static fn (string $id): ?ParameterBag => $id === 'parameter_bag' ? $parameterBag : null);
 
-            $command = new ExportDatabaseCommand($container);
+            $command = new ExportDatabaseCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
             $input   = new ArrayInput(['--connection' => ['mongodb'], '--no-gitignore' => true]);
             $output  = new BufferedOutput();
 
@@ -454,10 +528,10 @@ class ExportDatabaseCommandTest extends TestCase
             $doctrine->method('getManager')->with('mongodb')->willReturn($em);
 
             $container = $this->createMock(ContainerInterface::class);
-            $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
-            $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
+            $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag');
+            $container->method('get')->willReturnCallback(static fn (string $id): ?ParameterBag => $id === 'parameter_bag' ? $parameterBag : null);
 
-            $command = new ExportDatabaseCommand($container);
+            $command = new ExportDatabaseCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
             $input   = new ArrayInput(['--connection' => ['mongodb'], '--no-gitignore' => true]);
             $output  = new BufferedOutput();
 
@@ -499,10 +573,10 @@ class ExportDatabaseCommandTest extends TestCase
             $doctrine->method('getManager')->with('mongodb')->willThrowException(new Exception('No manager for mongodb'));
 
             $container = $this->createMock(ContainerInterface::class);
-            $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
-            $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
+            $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag');
+            $container->method('get')->willReturnCallback(static fn (string $id): ?ParameterBag => $id === 'parameter_bag' ? $parameterBag : null);
 
-            $command = new ExportDatabaseCommand($container);
+            $command = new ExportDatabaseCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
             $input   = new ArrayInput(['--connection' => ['mongodb']]);
             $output  = new BufferedOutput();
 
@@ -535,10 +609,10 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willThrowException(new Exception('Manager failed'));
 
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
-        $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag');
+        $container->method('get')->willReturnCallback(static fn (string $id): ?ParameterBag => $id === 'parameter_bag' ? $parameterBag : null);
 
-        $command = new ExportDatabaseCommand($container);
+        $command = new ExportDatabaseCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--no-gitignore' => true]);
         $output  = new BufferedOutput();
 
@@ -576,10 +650,10 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
-        $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag');
+        $container->method('get')->willReturnCallback(static fn (string $id): ?ParameterBag => $id === 'parameter_bag' ? $parameterBag : null);
 
-        $command = new ExportDatabaseCommand($container);
+        $command = new ExportDatabaseCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--no-gitignore' => true]);
         $output  = new BufferedOutput();
 
@@ -599,7 +673,7 @@ class ExportDatabaseCommandTest extends TestCase
         $container = $this->createMock(ContainerInterface::class);
         // ContainerInterface has only has() and get(); no hasParameter → method_exists is false → fallback to getcwd()
 
-        $command    = new ExportDatabaseCommand($container);
+        $command    = new ExportDatabaseCommand($container, $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class));
         $reflection = new ReflectionClass($command);
         $method     = $reflection->getMethod('getProjectDirFromContainer');
 
@@ -639,10 +713,10 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
-        $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag');
+        $container->method('get')->willReturnCallback(static fn (string $id): ?ParameterBag => $id === 'parameter_bag' ? $parameterBag : null);
 
-        $command = new ExportDatabaseCommand($container);
+        $command = new ExportDatabaseCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput([
             '--output-dir'   => $outputDir,
             '--compression'  => 'none',
@@ -698,10 +772,10 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag' || $id === SymfonyService::DOCTRINE);
-        $container->method('get')->willReturnCallback(static fn (string $id): ParameterBag|\PHPUnit\Framework\MockObject\MockObject|null => $id === 'parameter_bag' ? $parameterBag : ($id === SymfonyService::DOCTRINE ? $doctrine : null));
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag');
+        $container->method('get')->willReturnCallback(static fn (string $id): ?ParameterBag => $id === 'parameter_bag' ? $parameterBag : null);
 
-        $command = new ExportDatabaseCommand($container);
+        $command = new ExportDatabaseCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput([
             '--output-dir'  => $outputDir,
             '--compression' => 'none',
@@ -728,5 +802,13 @@ class ExportDatabaseCommandTest extends TestCase
         if (is_dir($projectDir)) {
             rmdir($projectDir);
         }
+    }
+
+    private function createSafeEnvironmentProtection(): EnvironmentProtectionService
+    {
+        return new EnvironmentProtectionService(new ParameterBag([
+            'kernel.environment' => 'dev',
+            'kernel.project_dir' => sys_get_temp_dir(),
+        ]), []);
     }
 }

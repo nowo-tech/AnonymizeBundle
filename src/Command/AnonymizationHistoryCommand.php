@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Command;
 
 use Nowo\AnonymizeBundle\Service\AnonymizationHistoryService;
+use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -32,10 +33,13 @@ use const JSON_UNESCAPED_SLASHES;
 )]
 final class AnonymizationHistoryCommand extends AbstractCommand
 {
+    use EnvironmentProtectedCommandTrait;
+
     private const DEFAULT_HISTORY_DIR = '%kernel.project_dir%/var/anonymize_history';
 
     public function __construct(
-        private readonly ContainerInterface $container
+        private readonly ContainerInterface $container,
+        private readonly EnvironmentProtectionService $environmentProtection,
     ) {
         parent::__construct();
     }
@@ -82,6 +86,10 @@ final class AnonymizationHistoryCommand extends AbstractCommand
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+
+        if (($exit = $this->failIfEnvironmentUnsafe($io, $this->environmentProtection)) !== null) {
+            return $exit;
+        }
 
         // Get history directory from parameter
         $historyDir     = $this->getHistoryDir();
@@ -374,9 +382,12 @@ final class AnonymizationHistoryCommand extends AbstractCommand
             if ($projectDir !== null) {
                 $historyDir = str_replace('%kernel.project_dir%', $projectDir, (string) $historyDir);
             }
+            // @codeCoverageIgnoreStart
+            // Rare: getcwd() failed so projectDir was null and placeholder remains.
             if (str_contains((string) $historyDir, '%kernel.project_dir%')) {
                 $historyDir = str_replace('%kernel.project_dir%', getcwd() ?: '.', (string) $historyDir);
             }
+            // @codeCoverageIgnoreEnd
         }
 
         return (string) $historyDir;

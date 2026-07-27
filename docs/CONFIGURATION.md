@@ -14,6 +14,7 @@
   - [batch_size](#batch_size)
   - [history_dir](#history_dir)
   - [export](#export)
+  - [environment_protection](#environment_protection)
 - [Environment-Specific Configuration](#environment-specific-configuration)
 - [Command-Line Overrides](#command-line-overrides)
 - [Using FakerFactory in your own services](#using-fakerfactory-in-your-own-services)
@@ -59,6 +60,18 @@ nowo_anonymize:
         compression: gzip        # Compression format: none, gzip, bzip2, zip
         connections: []          # Specific connections to export (empty = all)
         auto_gitignore: true     # Automatically update .gitignore
+        timeout: 180             # Subprocess timeout seconds (REQ-RUNTIME-001)
+    environment_protection:      # Guards for CLI misuse (REQ-SEC-004)
+        blocked_dsn_substrings:  # Case-insensitive; matched against DATABASE_URL / MONGODB_URL + hosts
+            - '://prod'
+            - '@prod.'
+            - '.prod.'
+            - 'prod.'
+            - 'production.'
+            - '/production'
+            - 'live.'
+            - '.live.'
+            - '@live.'
 ```
 
 ## Configuration Options
@@ -180,6 +193,25 @@ filename_pattern: 'backup_{database}_{date}.{format}'
 - `none`: No compression applied
 
 The export command will automatically detect available compression tools and fall back gracefully if a tool is not available.
+
+### environment_protection
+
+**Type**: `array`  
+**Default**: denylist enabled with common production markers  
+**Description**: Extra CLI guards so commands refuse to run against production-like DSNs even when `kernel.environment` is `dev` or `test` (for example `bin/console --env=dev` pointed at a prod database). See [SECURITY.md](SECURITY.md).
+
+**Sub-options**:
+
+- **`blocked_dsn_substrings`** (array of strings): Case-insensitive substrings matched against `DATABASE_URL`, `DATABASE_URL_DEFAULT`, `MONGODB_URL`, `MONGODB_URI`, and the URL host/path. Default includes markers such as `prod.`, `production.`, `live.`, etc. Set to `[]` only in controlled local/CI setups where those substrings appear in non-production DSNs.
+
+**Example**:
+```yaml
+nowo_anonymize:
+    environment_protection:
+        blocked_dsn_substrings:
+            - 'prod.'
+            - 'mycompany-prod'
+```
 
 ## Environment-Specific Configuration
 

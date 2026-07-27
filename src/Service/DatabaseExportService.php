@@ -369,9 +369,12 @@ final class DatabaseExportService
      */
     private function createZipArchive(string $directory, string $zipPath): bool
     {
+        // ext-zip is required in supported environments; keep guard for misconfigured hosts.
+        // @codeCoverageIgnoreStart
         if (!class_exists(ZipArchive::class)) {
             return false;
         }
+        // @codeCoverageIgnoreEnd
 
         $zip = new ZipArchive();
         if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {

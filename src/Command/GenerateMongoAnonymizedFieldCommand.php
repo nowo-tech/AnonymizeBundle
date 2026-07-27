@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Command;
 
 use Exception;
+use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Psr\Container\ContainerInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -37,13 +38,17 @@ use function sprintf;
 )]
 final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
 {
+    use EnvironmentProtectedCommandTrait;
+
     /**
      * Creates a new GenerateMongoAnonymizedFieldCommand instance.
      *
      * @param ContainerInterface $container The service container
+     * @param EnvironmentProtectionService $environmentProtection Environment / DSN guard
      */
     public function __construct(
-        private readonly ContainerInterface $container
+        private readonly ContainerInterface $container,
+        private readonly EnvironmentProtectionService $environmentProtection,
     ) {
         parent::__construct();
     }
@@ -128,6 +133,11 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+
+        if (($exit = $this->failIfEnvironmentUnsafe($io, $this->environmentProtection)) !== null) {
+            return $exit;
+        }
+
         $io->title('Generate MongoDB Anonymized Field Script');
 
         $database      = $input->getOption('database') ?? 'anonymize_demo';
@@ -207,13 +217,14 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
             }
 
             $pathname = $file->getPathname();
+            // Unreadable / failed reads are rare under root Docker CI.
             if (!is_readable($pathname)) {
-                continue;
+                continue; // @codeCoverageIgnore
             }
 
             $content = file_get_contents($pathname);
             if ($content === false) {
-                continue;
+                continue; // @codeCoverageIgnore
             }
 
             // Look for #[Anonymize] attribute (even if commented)
@@ -223,8 +234,8 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
                 // Or: @MongoDB\Document(collection="collection_name")
                 if (preg_match('/collection\s*[=:]\s*[\'"]?([^\'"\s,)]+)[\'"]?/', $content, $matches)) {
                     $collections[] = $matches[1];
-                } elseif (preg_match('/Document\(collection\s*=\s*[\'"]?([^\'"\s,)]+)[\'"]?/', $content, $matches)) {
-                    $collections[] = $matches[1];
+                } elseif (preg_match('/Document\(collection\s*=\s*[\'"]?([^\'"\s,)]+)[\'"]?/', $content, $matches)) { // @codeCoverageIgnore
+                    $collections[] = $matches[1]; // @codeCoverageIgnore
                 }
             }
         }
@@ -251,9 +262,11 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
                     return $kernel->getProjectDir();
                 }
             }
+            // @codeCoverageIgnoreStart
         } catch (Exception) {
-            // Ignore
+            // Ignore broken kernel service; fall through to composer.json walk.
         }
+        // @codeCoverageIgnoreEnd
 
         // Fallback: try to find composer.json
         $dir = __DIR__;
@@ -262,13 +275,17 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
                 return $dir;
             }
             $parent = dirname($dir);
+            // @codeCoverageIgnoreStart
             if ($parent === $dir) {
                 break;
             }
+            // @codeCoverageIgnoreEnd
             $dir = $parent;
         }
 
+        // @codeCoverageIgnoreStart
         return null;
+        // @codeCoverageIgnoreEnd
     }
 
     /**

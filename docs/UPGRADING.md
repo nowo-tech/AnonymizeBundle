@@ -24,6 +24,33 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.33
+
+**Release Date**: 2026-07-27
+
+#### What's New
+
+- **Security (REQ-SEC-004)**: all `nowo:anonymize:*` commands share `EnvironmentProtectionService` (env + config file checks + DSN/host denylist via `environment_protection.blocked_dsn_substrings`).
+- **Truncate safety**: `nowo:anonymize:run` requires interactive confirmation or `--force` before TRUNCATE; non-interactive runs without `--force` abort truncate.
+- **REQ-SF-005**: PHPUnit / CI use `SYMFONY_DEPRECATIONS_HELPER=max[direct]=0`.
+- **REQ-SF-003 / REQ-DI-001**: commands inject `EnvironmentProtectionService` and `ManagerRegistry`; redundant `console.command` YAML tags removed (`#[AsCommand]` only).
+- **Coverage / docs**: PHP Lines **100%**; README and GitHub About aligned (REQ-TEST-003 / REQ-TEST-007 / REQ-DOCS-018).
+
+#### Breaking Changes
+
+- Command constructors now require `EnvironmentProtectionService` (and `ManagerRegistry` where Doctrine is used). Manual `new Command($container)` call sites must be updated (Symfony DI / autoconfigure continues to wire this automatically).
+- Non-interactive truncate without `--force` no longer proceeds silently.
+
+#### Migration Steps
+
+1. Update the bundle and clear cache:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   php bin/console cache:clear
+   ```
+2. CI/scripts that truncate tables: add `--force` when appropriate.
+3. Optionally tune `nowo_anonymize.environment_protection.blocked_dsn_substrings` if legitimate local DSNs contain blocked markers (see [CONFIGURATION.md](CONFIGURATION.md#environment_protection)).
+
 ### Upgrading to 1.0.32
 
 **Release Date**: 2026-07-23

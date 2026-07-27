@@ -6,7 +6,7 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Service;
 
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 
 /**
  * Test case for EnvironmentProtectionService.
@@ -17,112 +17,159 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 class EnvironmentProtectionServiceTest extends TestCase
 {
     /**
-     * Test that performChecks returns empty array for dev environment.
+     * @return array{0: mixed, 1: mixed}
      */
-    public function testPerformChecksReturnsEmptyForDevEnvironment(): void
+    private function backupEnv(string $key): array
     {
-        $parameterBag = $this->createMock(ParameterBagInterface::class);
-        $parameterBag->method('get')
-            ->willReturnCallback(static fn ($key): string|bool|null => match ($key) {
-                'kernel.environment' => 'dev',
-                'kernel.debug'       => true,
-                'kernel.project_dir' => sys_get_temp_dir(),
-                default              => null,
-            });
-
-        $service = new EnvironmentProtectionService($parameterBag);
-        $errors  = $service->performChecks();
-
-        $this->assertIsArray($errors);
-        $this->assertEmpty($errors);
+        return [$_SERVER[$key] ?? null, getenv($key)];
     }
 
     /**
-     * Test that performChecks returns empty array for test environment.
+     * @param array{0: mixed, 1: mixed} $backup
      */
-    public function testPerformChecksReturnsEmptyForTestEnvironment(): void
+    private function restoreEnv(string $key, array $backup): void
     {
-        $parameterBag = $this->createMock(ParameterBagInterface::class);
-        $parameterBag->method('get')
-            ->willReturnCallback(static fn ($key): string|bool|null => match ($key) {
-                'kernel.environment' => 'test',
-                'kernel.debug'       => true,
-                'kernel.project_dir' => sys_get_temp_dir(),
-                default              => null,
-            });
+        [$server, $getenv] = $backup;
 
-        $service = new EnvironmentProtectionService($parameterBag);
-        $errors  = $service->performChecks();
+        if ($server === null) {
+            unset($_SERVER[$key]);
+        } else {
+            $_SERVER[$key] = $server;
+        }
 
-        $this->assertIsArray($errors);
-        $this->assertEmpty($errors);
+        if ($getenv === false || $getenv === null) {
+            putenv($key);
+        } else {
+            putenv($key . '=' . $getenv);
+        }
     }
 
     /**
-     * Test that performChecks returns errors for prod environment.
+     * Unsafe env (prod) fails.
      */
-    public function testPerformChecksReturnsErrorsForProdEnvironment(): void
+    public function testUnsafeProdEnvironmentFails(): void
     {
-        $parameterBag = $this->createMock(ParameterBagInterface::class);
-        $parameterBag->method('get')
-            ->willReturnCallback(static fn ($key): string|false|null => match ($key) {
-                'kernel.environment' => 'prod',
-                'kernel.debug'       => false,
-                'kernel.project_dir' => sys_get_temp_dir(),
-                default              => null,
-            });
+        $service = new EnvironmentProtectionService(new ParameterBag([
+            'kernel.environment' => 'prod',
+            'kernel.project_dir' => sys_get_temp_dir(),
+        ]), []);
 
-        $service = new EnvironmentProtectionService($parameterBag);
-        $errors  = $service->performChecks();
+        $errors = $service->performChecks();
 
-        $this->assertIsArray($errors);
         $this->assertNotEmpty($errors);
         $this->assertStringContainsString('Unsafe environment', array_values($errors)[0]);
     }
 
     /**
-     * Test that performChecks detects production config file.
+     * Blocked DSN substring matches DATABASE_URL.
+     */
+    public function testBlockedDsnSubstringMatchesDatabaseUrl(): void
+    {
+        $backup                  = $this->backupEnv('DATABASE_URL');
+        $_SERVER['DATABASE_URL'] = 'mysql://user:pass@prod-db.example.com:3306/app';
+        putenv('DATABASE_URL=mysql://user:pass@prod-db.example.com:3306/app');
+
+        try {
+            $service = new EnvironmentProtectionService(new ParameterBag([
+                'kernel.environment' => 'dev',
+                'kernel.project_dir' => sys_get_temp_dir(),
+            ]), ['prod-db.example.com']);
+
+            $errors = $service->performChecks();
+
+            $this->assertNotEmpty($errors);
+            $this->assertStringContainsString('Blocked connection marker', array_values($errors)[0]);
+            $this->assertStringContainsString('DATABASE_URL', array_values($errors)[0]);
+        } finally {
+            $this->restoreEnv('DATABASE_URL', $backup);
+        }
+    }
+
+    /**
+     * Empty denylist skips DSN check (even if DATABASE_URL looks production-like).
+     */
+    public function testEmptyDenylistSkipsDsnCheck(): void
+    {
+        $backup                  = $this->backupEnv('DATABASE_URL');
+        $_SERVER['DATABASE_URL'] = 'mysql://user:pass@prod-db.example.com:3306/app';
+        putenv('DATABASE_URL=mysql://user:pass@prod-db.example.com:3306/app');
+
+        try {
+            $service = new EnvironmentProtectionService(new ParameterBag([
+                'kernel.environment' => 'dev',
+                'kernel.project_dir' => sys_get_temp_dir(),
+            ]), []);
+
+            $errors = $service->performChecks();
+
+            $this->assertEmpty($errors);
+        } finally {
+            $this->restoreEnv('DATABASE_URL', $backup);
+        }
+    }
+
+    /**
+     * Safe dev env passes.
+     */
+    public function testSafeDevEnvironmentPasses(): void
+    {
+        $service = new EnvironmentProtectionService(new ParameterBag([
+            'kernel.environment' => 'dev',
+            'kernel.project_dir' => sys_get_temp_dir(),
+        ]), []);
+
+        $errors = $service->performChecks();
+
+        $this->assertEmpty($errors);
+    }
+
+    /**
+     * Safe test env passes.
+     */
+    public function testSafeTestEnvironmentPasses(): void
+    {
+        $service = new EnvironmentProtectionService(new ParameterBag([
+            'kernel.environment' => 'test',
+            'kernel.project_dir' => sys_get_temp_dir(),
+        ]), []);
+
+        $this->assertEmpty($service->performChecks());
+    }
+
+    /**
+     * Detects production config file under project dir.
      */
     public function testPerformChecksDetectsProductionConfigFile(): void
     {
         $tempDir = sys_get_temp_dir() . '/anonymize_test_' . uniqid();
-        mkdir($tempDir, 0o755, true);
-        mkdir($tempDir . '/config', 0o755, true);
-        mkdir($tempDir . '/config/packages', 0o755, true);
         mkdir($tempDir . '/config/packages/prod', 0o755, true);
         file_put_contents($tempDir . '/config/packages/prod/nowo_anonymize.yaml', 'test');
 
-        $parameterBag = $this->createMock(ParameterBagInterface::class);
-        $parameterBag->method('get')
-            ->willReturnCallback(static fn ($key): string|true|null => match ($key) {
+        try {
+            $service = new EnvironmentProtectionService(new ParameterBag([
                 'kernel.environment' => 'dev',
-                'kernel.debug'       => true,
                 'kernel.project_dir' => $tempDir,
-                default              => null,
-            });
+            ]), []);
 
-        $service = new EnvironmentProtectionService($parameterBag);
-        $errors  = $service->performChecks();
+            $errors = $service->performChecks();
 
-        // Cleanup
-        unlink($tempDir . '/config/packages/prod/nowo_anonymize.yaml');
-        rmdir($tempDir . '/config/packages/prod');
-        rmdir($tempDir . '/config/packages');
-        rmdir($tempDir . '/config');
-        rmdir($tempDir);
-
-        $this->assertIsArray($errors);
-        $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Production configuration file detected', array_values($errors)[0]);
+            $this->assertNotEmpty($errors);
+            $this->assertStringContainsString('Production configuration file detected', array_values($errors)[0]);
+        } finally {
+            unlink($tempDir . '/config/packages/prod/nowo_anonymize.yaml');
+            rmdir($tempDir . '/config/packages/prod');
+            rmdir($tempDir . '/config/packages');
+            rmdir($tempDir . '/config');
+            rmdir($tempDir);
+        }
     }
 
     /**
-     * Test that performChecks detects bundle registered for production.
+     * Detects bundle registered for production in bundles.php.
      */
     public function testPerformChecksDetectsBundleRegisteredForProduction(): void
     {
         $tempDir = sys_get_temp_dir() . '/anonymize_test_' . uniqid();
-        mkdir($tempDir, 0o755, true);
         mkdir($tempDir . '/config', 0o755, true);
 
         $bundlesContent = <<<'PHP'
@@ -134,157 +181,97 @@ class EnvironmentProtectionServiceTest extends TestCase
             PHP;
         file_put_contents($tempDir . '/config/bundles.php', $bundlesContent);
 
-        $parameterBag = $this->createMock(ParameterBagInterface::class);
-        $parameterBag->method('get')
-            ->willReturnCallback(static fn ($key): string|true|null => match ($key) {
+        try {
+            $service = new EnvironmentProtectionService(new ParameterBag([
                 'kernel.environment' => 'dev',
-                'kernel.debug'       => true,
                 'kernel.project_dir' => $tempDir,
-                default              => null,
-            });
+            ]), []);
 
-        $service = new EnvironmentProtectionService($parameterBag);
-        $errors  = $service->performChecks();
+            $errors = $service->performChecks();
 
-        // Cleanup
-        unlink($tempDir . '/config/bundles.php');
-        rmdir($tempDir . '/config');
-        rmdir($tempDir);
-
-        $this->assertIsArray($errors);
-        $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Bundle is registered for production', array_values($errors)[0]);
+            $this->assertNotEmpty($errors);
+            $this->assertStringContainsString('Bundle is registered for production', array_values($errors)[0]);
+        } finally {
+            unlink($tempDir . '/config/bundles.php');
+            rmdir($tempDir . '/config');
+            rmdir($tempDir);
+        }
     }
 
-    /**
-     * Test that getEnvironment returns correct environment.
-     */
     public function testGetEnvironment(): void
     {
-        $parameterBag = $this->createMock(ParameterBagInterface::class);
-        $parameterBag->method('get')
-            ->with('kernel.environment')
-            ->willReturn('dev');
+        $service = new EnvironmentProtectionService(new ParameterBag([
+            'kernel.environment' => 'dev',
+            'kernel.project_dir' => sys_get_temp_dir(),
+        ]), []);
 
-        $service     = new EnvironmentProtectionService($parameterBag);
-        $environment = $service->getEnvironment();
-
-        $this->assertEquals('dev', $environment);
+        $this->assertSame('dev', $service->getEnvironment());
     }
 
-    /**
-     * Test that isSafeEnvironment returns true for dev.
-     */
     public function testIsSafeEnvironmentReturnsTrueForDev(): void
     {
-        $parameterBag = $this->createMock(ParameterBagInterface::class);
-        $parameterBag->method('get')
-            ->with('kernel.environment')
-            ->willReturn('dev');
+        $service = new EnvironmentProtectionService(new ParameterBag([
+            'kernel.environment' => 'dev',
+            'kernel.project_dir' => sys_get_temp_dir(),
+        ]), []);
 
-        $service = new EnvironmentProtectionService($parameterBag);
-        $isSafe  = $service->isSafeEnvironment();
-
-        $this->assertTrue($isSafe);
+        $this->assertTrue($service->isSafeEnvironment());
     }
 
-    /**
-     * Test that isSafeEnvironment returns true for test.
-     */
-    public function testIsSafeEnvironmentReturnsTrueForTest(): void
-    {
-        $parameterBag = $this->createMock(ParameterBagInterface::class);
-        $parameterBag->method('get')
-            ->with('kernel.environment')
-            ->willReturn('test');
-
-        $service = new EnvironmentProtectionService($parameterBag);
-        $isSafe  = $service->isSafeEnvironment();
-
-        $this->assertTrue($isSafe);
-    }
-
-    /**
-     * Test that isSafeEnvironment returns false for prod.
-     */
     public function testIsSafeEnvironmentReturnsFalseForProd(): void
     {
-        $parameterBag = $this->createMock(ParameterBagInterface::class);
-        $parameterBag->method('get')
-            ->with('kernel.environment')
-            ->willReturn('prod');
+        $service = new EnvironmentProtectionService(new ParameterBag([
+            'kernel.environment' => 'prod',
+            'kernel.project_dir' => sys_get_temp_dir(),
+        ]), []);
 
-        $service = new EnvironmentProtectionService($parameterBag);
-        $isSafe  = $service->isSafeEnvironment();
-
-        $this->assertFalse($isSafe);
+        $this->assertFalse($service->isSafeEnvironment());
     }
 
-    /**
-     * Test that performChecks handles missing bundles.php file.
-     */
     public function testPerformChecksHandlesMissingBundlesFile(): void
     {
         $tempDir = sys_get_temp_dir() . '/anonymize_test_' . uniqid();
-        mkdir($tempDir, 0o755, true);
         mkdir($tempDir . '/config', 0o755, true);
 
-        $parameterBag = $this->createMock(ParameterBagInterface::class);
-        $parameterBag->method('get')
-            ->willReturnCallback(static fn ($key): string|true|null => match ($key) {
+        try {
+            $service = new EnvironmentProtectionService(new ParameterBag([
                 'kernel.environment' => 'dev',
-                'kernel.debug'       => true,
                 'kernel.project_dir' => $tempDir,
-                default              => null,
-            });
+            ]), []);
 
-        $service = new EnvironmentProtectionService($parameterBag);
-        $errors  = $service->performChecks();
-
-        // Cleanup
-        rmdir($tempDir . '/config');
-        rmdir($tempDir);
-
-        $this->assertIsArray($errors);
-        $this->assertEmpty($errors);
+            $this->assertEmpty($service->performChecks());
+        } finally {
+            rmdir($tempDir . '/config');
+            rmdir($tempDir);
+        }
     }
 
-    /**
-     * Test that performChecks handles bundles.php with array format.
-     */
-    public function testPerformChecksHandlesBundlesArrayFormat(): void
+    public function testEmptyBlockedSubstringIsIgnored(): void
     {
-        $tempDir = sys_get_temp_dir() . '/anonymize_test_' . uniqid();
-        mkdir($tempDir, 0o755, true);
-        mkdir($tempDir . '/config', 0o755, true);
+        $backup                  = $_SERVER['DATABASE_URL'] ?? null;
+        $_SERVER['DATABASE_URL'] = 'mysql://user:pass@localhost/app';
 
-        $bundlesContent = <<<'PHP'
-            <?php
-
-            return [
-                'Nowo\AnonymizeBundle\AnonymizeBundle' => ['all' => true],
-            ];
-            PHP;
-        file_put_contents($tempDir . '/config/bundles.php', $bundlesContent);
-
-        $parameterBag = $this->createMock(ParameterBagInterface::class);
-        $parameterBag->method('get')
-            ->willReturnCallback(static fn ($key): string|true|null => match ($key) {
+        try {
+            $service = new EnvironmentProtectionService(new ParameterBag([
                 'kernel.environment' => 'dev',
-                'kernel.debug'       => true,
-                'kernel.project_dir' => $tempDir,
-                default              => null,
-            });
+                'kernel.project_dir' => sys_get_temp_dir(),
+            ]), ['', 'not-a-match']);
 
-        $service = new EnvironmentProtectionService($parameterBag);
-        $errors  = $service->performChecks();
+            $this->assertEmpty($service->performChecks());
+        } finally {
+            if ($backup !== null) {
+                $_SERVER['DATABASE_URL'] = $backup;
+            } else {
+                unset($_SERVER['DATABASE_URL']);
+            }
+        }
+    }
 
-        // Cleanup
-        unlink($tempDir . '/config/bundles.php');
-        rmdir($tempDir . '/config');
-        rmdir($tempDir);
+    public function testGetEnvironmentReturnsEmptyWhenParameterMissing(): void
+    {
+        $service = new EnvironmentProtectionService(new ParameterBag([]), []);
 
-        $this->assertIsArray($errors);
-        $this->assertEmpty($errors);
+        $this->assertSame('', $service->getEnvironment());
+        $this->assertFalse($service->isSafeEnvironment());
     }
 }

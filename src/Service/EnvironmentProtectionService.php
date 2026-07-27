@@ -10,13 +10,16 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use function in_array;
 use function is_array;
 use function is_string;
+use function parse_url;
 use function sprintf;
+use function str_contains;
+use function strtolower;
 
 /**
- * Service for enhanced environment protection checks.
+ * Environment and DSN guards that block anonymize/export CLI outside safe contexts.
  *
- * Provides comprehensive environment validation to prevent accidental
- * execution in production or unsafe environments.
+ * Combines kernel environment checks with a configurable DSN/host denylist so
+ * `bin/console --env=dev` against a production database is rejected (REQ-SEC-004).
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
@@ -24,37 +27,29 @@ use function sprintf;
 final readonly class EnvironmentProtectionService
 {
     /**
-     * Creates a new EnvironmentProtectionService instance.
-     *
-     * @param ParameterBagInterface $parameterBag The parameter bag for accessing kernel parameters
+     * @param list<string> $blockedDsnSubstrings Case-insensitive substrings matched against connection URLs and hosts
      */
     public function __construct(
-        private ParameterBagInterface $parameterBag
+        private ParameterBagInterface $parameterBag,
+        private array $blockedDsnSubstrings = [],
     ) {
     }
 
     /**
-     * Performs comprehensive environment protection checks.
-     *
-     * @return array<string, string> Array of error messages (empty if all checks pass)
+     * @return array<string, string> Error messages (empty if all checks pass)
      */
     public function performChecks(): array
     {
         $errors = [];
-
-        // Check environment
         $errors = array_merge($errors, $this->checkEnvironment());
-
-        // Check configuration files
         $errors = array_merge($errors, $this->checkConfigurationFiles());
+        $errors = array_merge($errors, $this->checkDatabaseUrls());
 
         return $errors;
     }
 
     /**
-     * Checks if the environment is safe for anonymization.
-     *
-     * @return array<string> Array of error messages
+     * @return list<string>
      */
     private function checkEnvironment(): array
     {
@@ -72,16 +67,13 @@ final readonly class EnvironmentProtectionService
     }
 
     /**
-     * Checks configuration files for production settings.
-     *
-     * @return array<string> Array of error messages
+     * @return list<string>
      */
     private function checkConfigurationFiles(): array
     {
         $errors     = [];
         $projectDir = $this->getStringParameter('kernel.project_dir');
 
-        // Check if bundle is configured in production config
         $prodConfigPath = $projectDir . '/config/packages/prod/nowo_anonymize.yaml';
         if (file_exists($prodConfigPath)) {
             $errors[] = sprintf(
@@ -90,7 +82,6 @@ final readonly class EnvironmentProtectionService
             );
         }
 
-        // Check if bundle is registered in bundles.php for production
         $bundlesPath = $projectDir . '/config/bundles.php';
         if (file_exists($bundlesPath)) {
             $bundles     = require $bundlesPath;
@@ -110,29 +101,76 @@ final readonly class EnvironmentProtectionService
     }
 
     /**
-     * Gets the current environment name.
+     * Rejects DATABASE_URL / MONGODB_URL (and similar) that look like production DSNs.
      *
-     * @return string The environment name
+     * @return list<string>
      */
+    private function checkDatabaseUrls(): array
+    {
+        if ($this->blockedDsnSubstrings === []) {
+            return [];
+        }
+
+        $errors     = [];
+        $candidates = [];
+
+        foreach (['DATABASE_URL', 'DATABASE_URL_DEFAULT', 'MONGODB_URL', 'MONGODB_URI'] as $envKey) {
+            $value = $_SERVER[$envKey] ?? getenv($envKey);
+            if (is_string($value) && $value !== '') {
+                $candidates[$envKey] = $value;
+            }
+        }
+
+        foreach ($candidates as $envKey => $url) {
+            $haystacks = [$url];
+            $parts     = parse_url($url);
+            if (is_array($parts)) {
+                if (isset($parts['host']) && is_string($parts['host'])) {
+                    $haystacks[] = $parts['host'];
+                }
+                if (isset($parts['path']) && is_string($parts['path'])) {
+                    $haystacks[] = $parts['path'];
+                }
+            }
+
+            foreach ($this->blockedDsnSubstrings as $needle) {
+                if ($needle === '') {
+                    continue;
+                }
+                $needleLower = strtolower($needle);
+                foreach ($haystacks as $haystack) {
+                    if (str_contains(strtolower($haystack), $needleLower)) {
+                        $errors[] = sprintf(
+                            'Blocked connection marker "%s" found in %s. Refusing to run against a denylisted DSN/host (configure nowo_anonymize.environment_protection.blocked_dsn_substrings or clear production URLs).',
+                            $needle,
+                            $envKey,
+                        );
+
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        return $errors;
+    }
+
     public function getEnvironment(): string
     {
         return $this->getStringParameter('kernel.environment');
     }
 
-    /**
-     * Checks if the current environment is safe for anonymization.
-     *
-     * @return bool True if safe, false otherwise
-     */
     public function isSafeEnvironment(): bool
     {
-        $environment = $this->getEnvironment();
-
-        return in_array($environment, ['dev', 'test'], true);
+        return in_array($this->getEnvironment(), ['dev', 'test'], true);
     }
 
     private function getStringParameter(string $name): string
     {
+        if (!$this->parameterBag->has($name)) {
+            return '';
+        }
+
         $value = $this->parameterBag->get($name);
 
         return is_string($value) ? $value : '';

@@ -31,10 +31,11 @@ final readonly class ServiceFaker implements FakerInterface
     /**
      * Creates a new ServiceFaker instance.
      *
-     * @param ContainerInterface $container The service container
+     * @param ContainerInterface $container Documented strategy/service-id registry for custom faker ids (REQ-DI-001 exception for closed plugin registries), not a general service locator
      * @param string $serviceName The name of the service to use for anonymization
      */
     public function __construct(
+        /** Documented strategy/service-id registry for custom faker ids (REQ-DI-001 exception for closed plugin registries), not a general service locator. */
         private ContainerInterface $container,
         private string $serviceName
     ) {
@@ -56,6 +57,7 @@ final readonly class ServiceFaker implements FakerInterface
         }
 
         $service = $this->container->get($this->serviceName);
+        // Scalars / arrays from the container cannot anonymize; require an object (or callable object).
         if (!is_object($service)) {
             throw new RuntimeException(sprintf('Service "%s" must be an object.', $this->serviceName));
         }

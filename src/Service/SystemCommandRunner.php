@@ -114,9 +114,12 @@ final class SystemCommandRunner implements CommandRunnerInterface
         $pipes = [];
 
         $procOpen = $this->procOpen;
+        // Defensive: only reached if called with a null hook (production path uses Process above).
+        // @codeCoverageIgnoreStart
         if ($procOpen === null) {
             return false;
         }
+        // @codeCoverageIgnoreEnd
         $process = $procOpen($cmd, $descriptors, $pipes);
 
         if ($process === false) {

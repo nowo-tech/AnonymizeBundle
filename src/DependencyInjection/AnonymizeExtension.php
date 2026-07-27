@@ -51,6 +51,12 @@ final class AnonymizeExtension extends Extension
         $container->setParameter('nowo_anonymize.export.connections', $exportConfig['connections'] ?? []);
         $container->setParameter('nowo_anonymize.export.auto_gitignore', $exportConfig['auto_gitignore'] ?? true);
         $container->setParameter('nowo_anonymize.export.timeout', $exportConfig['timeout'] ?? 180);
+
+        $protectionConfig = $config['environment_protection'] ?? [];
+        $container->setParameter(
+            'nowo_anonymize.environment_protection.blocked_dsn_substrings',
+            $protectionConfig['blocked_dsn_substrings'] ?? [],
+        );
     }
 
     /**

@@ -24,6 +24,38 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.33] - 2026-07-27
+
+### Added
+
+- **`environment_protection.blocked_dsn_substrings`**: configurable DSN/host denylist so CLI refuses production-like `DATABASE_URL` / `MONGODB_URL` even with `--env=dev` (REQ-SEC-004).
+- **`EnvironmentProtectedCommandTrait`**: shared env/DSN guard used by all `nowo:anonymize:*` commands.
+- **`nowo:anonymize:run --force`**: required for non-interactive TRUNCATE confirmation.
+
+### Changed
+
+- **Security**: every anonymize CLI command runs `EnvironmentProtectionService` (kernel env, prod config/bundles registration, DSN denylist).
+- **TRUNCATE**: requires interactive confirmation or `--force`; non-interactive runs without `--force` abort truncate.
+- **DI / Symfony wiring (REQ-SF-003 / REQ-DI-001)**: commands inject `EnvironmentProtectionService` and `ManagerRegistry` where needed; redundant `console.command` YAML tags removed (`#[AsCommand]` only).
+- **Export CLI**: `--compression` option default is now `null` (falls back to config or `gzip`).
+- **CI / PHPUnit (REQ-SF-005)**: `SYMFONY_DEPRECATIONS_HELPER=max[direct]=0` in `phpunit.xml.dist` and GitHub Actions.
+
+### Fixed
+
+- **Coverage**: PHPUnit Lines coverage on measured `src/` restored to **100%** (with existing justified exclusions for large orchestration classes).
+
+### Removed
+
+_(none)_
+
+### Documentation
+
+- **SECURITY.md** / **CONFIGURATION.md**: document denylist, uniform command guards, and truncate/`--force` behaviour.
+- **UPGRADING.md**: migration notes for 1.0.33 (constructor injection, `--force`).
+- **README.md**: coverage badge/section **100%**; roadmap status **1.0.33**.
+- **GitHub About**: Packagist website + discoverability topics (REQ-DOCS-018).
+
+---
 ## [1.0.32] - 2026-07-23
 
 ### Added

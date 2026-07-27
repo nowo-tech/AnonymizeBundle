@@ -6,6 +6,7 @@ namespace Nowo\AnonymizeBundle\Tests\Integration\Command;
 
 use Nowo\AnonymizeBundle\Command\AnonymizationHistoryCommand;
 use Nowo\AnonymizeBundle\Service\AnonymizationHistoryService;
+use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
@@ -85,7 +86,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testCommandCanBeInstantiated(): void
     {
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $this->assertInstanceOf(AnonymizationHistoryCommand::class, $command);
     }
 
@@ -94,7 +95,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testCommandConfigureSetsOptions(): void
     {
-        $command    = new AnonymizationHistoryCommand($this->createContainer());
+        $command    = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $definition = $command->getDefinition();
 
         $this->assertTrue($definition->hasOption('limit'));
@@ -111,7 +112,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testCommandHandlesCompareOptionWithInvalidInput(): void
     {
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
 
         $input  = new ArrayInput(['--compare' => 'single_id']);
         $output = new BufferedOutput();
@@ -126,7 +127,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testExecuteListsRunsEmpty(): void
     {
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -141,7 +142,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testExecuteCleanup(): void
     {
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--cleanup' => true, '--days' => '30']);
         $output  = new BufferedOutput();
 
@@ -155,7 +156,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testExecuteWithLimit(): void
     {
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--limit' => '5']);
         $output  = new BufferedOutput();
 
@@ -168,7 +169,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testExecuteRunIdNotFound(): void
     {
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--run-id' => 'nonexistent-id-123']);
         $output  = new BufferedOutput();
 
@@ -182,7 +183,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testExecuteCompareRunsNotFound(): void
     {
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--compare' => 'id1,id2']);
         $output  = new BufferedOutput();
 
@@ -196,7 +197,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testExecuteJsonOutput(): void
     {
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--json' => true]);
         $output  = new BufferedOutput();
 
@@ -217,7 +218,7 @@ class AnonymizationHistoryCommandTest extends TestCase
         $content        = $this->decodeJsonFile($path);
         $runId          = $content['id'] ?? '';
 
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--run-id' => $runId]);
         $output  = new BufferedOutput();
 
@@ -248,7 +249,7 @@ class AnonymizationHistoryCommandTest extends TestCase
         $path  = $historyService->saveRun($stats, ['connection' => 'default']);
         $runId = $this->decodeJsonFile($path)['id'] ?? '';
 
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--run-id' => $runId]);
         $output  = new BufferedOutput();
 
@@ -272,7 +273,7 @@ class AnonymizationHistoryCommandTest extends TestCase
         $id1            = $this->decodeJsonFile($path1)['id'] ?? '';
         $id2            = $this->decodeJsonFile($path2)['id'] ?? '';
 
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--compare' => $id1 . ',' . $id2]);
         $output  = new BufferedOutput();
 
@@ -291,7 +292,7 @@ class AnonymizationHistoryCommandTest extends TestCase
             [],
         );
 
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -318,7 +319,7 @@ class AnonymizationHistoryCommandTest extends TestCase
         $historyService->saveRun(['global' => ['total_processed' => 5], 'entities' => []], []);
         $historyService->saveRun(['global' => ['total_processed' => 10], 'entities' => []], []);
 
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--limit' => '1']);
         $output  = new BufferedOutput();
 
@@ -338,7 +339,7 @@ class AnonymizationHistoryCommandTest extends TestCase
         $path           = $historyService->saveRun(['global' => ['total_processed' => 10], 'entities' => []], []);
         $runId          = $this->decodeJsonFile($path)['id'] ?? '';
 
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--run-id' => $runId, '--json' => true]);
         $output  = new BufferedOutput();
 
@@ -367,7 +368,7 @@ class AnonymizationHistoryCommandTest extends TestCase
 
             $container = $this->createMock(ContainerInterface::class);
             $container->method('has')->with('parameter_bag')->willReturn(false);
-            $command = new AnonymizationHistoryCommand($container);
+            $command = new AnonymizationHistoryCommand($container, $this->createSafeEnvironmentProtection());
             $input   = new ArrayInput([]);
             $output  = new BufferedOutput();
 
@@ -404,7 +405,7 @@ class AnonymizationHistoryCommandTest extends TestCase
 
             $container = $this->createMock(ContainerInterface::class);
             $container->method('has')->with('parameter_bag')->willReturn(false);
-            $command = new AnonymizationHistoryCommand($container);
+            $command = new AnonymizationHistoryCommand($container, $this->createSafeEnvironmentProtection());
             $input   = new ArrayInput([]);
             $output  = new BufferedOutput();
 
@@ -443,7 +444,7 @@ class AnonymizationHistoryCommandTest extends TestCase
         $historyService = new AnonymizationHistoryService($historySubDir);
         $historyService->saveRun(['global' => ['total_processed' => 7], 'entities' => []], []);
 
-        $command = new AnonymizationHistoryCommand($container);
+        $command = new AnonymizationHistoryCommand($container, $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -459,7 +460,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testFormatDurationFormatsCorrectly(): void
     {
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $ref     = new ReflectionClass($command);
         $method  = $ref->getMethod('formatDuration');
 
@@ -475,7 +476,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testExecuteRunIdNotFoundReturnsFailure(): void
     {
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--run-id' => 'nonexistent-id']);
         $output  = new BufferedOutput();
 
@@ -492,7 +493,7 @@ class AnonymizationHistoryCommandTest extends TestCase
      */
     public function testExecuteShowsInfoWhenNoRunsInHistory(): void
     {
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -524,7 +525,7 @@ class AnonymizationHistoryCommandTest extends TestCase
         $path  = $historyService->saveRun($stats, []);
         $runId = $this->decodeJsonFile($path)['id'] ?? '';
 
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--run-id' => $runId]);
         $output  = new BufferedOutput();
 
@@ -566,7 +567,7 @@ class AnonymizationHistoryCommandTest extends TestCase
         $id1   = $this->decodeJsonFile($path1)['id'] ?? '';
         $id2   = $this->decodeJsonFile($path2)['id'] ?? '';
 
-        $command = new AnonymizationHistoryCommand($this->createContainer());
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--compare' => $id1 . ',' . $id2]);
         $output  = new BufferedOutput();
 
@@ -598,7 +599,7 @@ class AnonymizationHistoryCommandTest extends TestCase
             $container->method('has')->with('parameter_bag')->willReturn(true);
             $container->method('get')->with('parameter_bag')->willThrowException(new RuntimeException('parameter_bag unavailable'));
 
-            $command = new AnonymizationHistoryCommand($container);
+            $command = new AnonymizationHistoryCommand($container, $this->createSafeEnvironmentProtection());
             $input   = new ArrayInput([]);
             $output  = new BufferedOutput();
 
@@ -615,5 +616,92 @@ class AnonymizationHistoryCommandTest extends TestCase
             }
             $this->removeDirectory($envDir);
         }
+    }
+
+    /**
+     * Test --compare with --json outputs comparison payload.
+     */
+    public function testExecuteCompareWithJsonOutput(): void
+    {
+        $historyService = new AnonymizationHistoryService($this->tempDir);
+        $path1          = $historyService->saveRun(['global' => ['total_processed' => 10], 'entities' => []], []);
+        $path2          = $historyService->saveRun(['global' => ['total_processed' => 20], 'entities' => []], []);
+        $id1            = $this->decodeJsonFile($path1)['id'] ?? '';
+        $id2            = $this->decodeJsonFile($path2)['id'] ?? '';
+
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
+        $input   = new ArrayInput(['--compare' => $id1 . ',' . $id2, '--json' => true]);
+        $output  = new BufferedOutput();
+
+        $result  = $command->run($input, $output);
+        $content = $output->fetch();
+
+        $this->assertSame(0, $result);
+        $decoded = json_decode($content, true);
+        $this->assertIsArray($decoded);
+        $this->assertArrayHasKey('run1', $decoded);
+        $this->assertArrayHasKey('run2', $decoded);
+    }
+
+    /**
+     * Test list runs with --json when history is non-empty.
+     */
+    public function testExecuteListRunsWithJsonOutput(): void
+    {
+        $historyService = new AnonymizationHistoryService($this->tempDir);
+        $historyService->saveRun(['global' => ['total_processed' => 5], 'entities' => []], []);
+
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $this->createSafeEnvironmentProtection());
+        $input   = new ArrayInput(['--json' => true]);
+        $output  = new BufferedOutput();
+
+        $result  = $command->run($input, $output);
+        $content = $output->fetch();
+
+        $this->assertSame(0, $result);
+        $decoded = json_decode($content, true);
+        $this->assertIsArray($decoded);
+        $this->assertNotEmpty($decoded);
+    }
+
+    /**
+     * Covers getProjectDirFromContainer parameter path (line return kernel.project_dir).
+     */
+    public function testGetProjectDirFromContainerViaReflection(): void
+    {
+        $parameterBag = new ParameterBag([
+            'nowo_anonymize.history_dir' => $this->tempDir,
+            'kernel.project_dir'         => '/tmp/project-from-param',
+        ]);
+        $container = new ContainerBuilder($parameterBag);
+        $container->set('parameter_bag', $parameterBag);
+        $container->setParameter('kernel.project_dir', '/tmp/project-from-param');
+
+        $command    = new AnonymizationHistoryCommand($container, $this->createSafeEnvironmentProtection());
+        $reflection = new ReflectionClass($command);
+        $method     = $reflection->getMethod('getProjectDirFromContainer');
+
+        $this->assertSame('/tmp/project-from-param', $method->invoke($command));
+    }
+
+    public function testExecuteFailsWhenEnvironmentProtectionBlocks(): void
+    {
+        $protection = new EnvironmentProtectionService(new ParameterBag([
+            'kernel.environment' => 'prod',
+            'kernel.project_dir' => $this->tempDir,
+        ]), []);
+        $command = new AnonymizationHistoryCommand($this->createContainer(), $protection);
+        $input   = new ArrayInput([]);
+        $output  = new BufferedOutput();
+        $this->assertSame(1, $command->run($input, $output));
+        $this->assertStringContainsString('Environment protection checks failed', $output->fetch());
+    }
+
+    private function createSafeEnvironmentProtection(): EnvironmentProtectionService
+    {
+        return new EnvironmentProtectionService(new ParameterBag([
+            'kernel.environment' => 'dev',
+            'kernel.project_dir' => $this->tempDir,
+        ]), []);
     }
 }

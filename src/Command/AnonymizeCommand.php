@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Command;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use InvalidArgumentException;
-use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use Nowo\AnonymizeBundle\Event\AfterAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
@@ -48,10 +48,16 @@ use function sprintf;
 )]
 final class AnonymizeCommand extends AbstractCommand
 {
+    use EnvironmentProtectedCommandTrait;
+
     /**
      * Creates a new AnonymizeCommand instance.
      *
+     * ContainerInterface is limited to parameter_bag, event_dispatcher, and project_dir resolution (REQ-DI-001).
+     *
      * @param ContainerInterface $container The service container
+     * @param EnvironmentProtectionService $environmentProtection Environment / DSN guard
+     * @param ManagerRegistry $doctrine Doctrine manager registry
      * @param string $locale The default locale for Faker generator (default: 'en_US')
      * @param array<string> $connections The default connections to process (empty = all)
      * @param bool $dryRun The default dry-run mode (default: false)
@@ -59,6 +65,8 @@ final class AnonymizeCommand extends AbstractCommand
      */
     public function __construct(
         private readonly ContainerInterface $container,
+        private readonly EnvironmentProtectionService $environmentProtection,
+        private readonly ManagerRegistry $doctrine,
         private readonly string $locale = 'en_US',
         private readonly array $connections = [],
         private readonly bool $dryRun = false,
@@ -102,6 +110,7 @@ final class AnonymizeCommand extends AbstractCommand
                       --verbose, -v      Increase verbosity of messages (Symfony standard option)
                       --debug            Enable debug mode (shows detailed information)
                       --interactive, -i  Enable interactive mode with step-by-step confirmations
+                      --force            Skip truncate confirmation (required for non-interactive truncate)
 
                     Examples:
                       <info>php %command.full_name%</info>
@@ -115,6 +124,7 @@ final class AnonymizeCommand extends AbstractCommand
                       <info>php %command.full_name% --verbose</info>
                       <info>php %command.full_name% --debug</info>
                       <info>php %command.full_name% --interactive</info>
+                      <info>php %command.full_name% --force</info>
                     HELP
             )
             ->addOption('connection', 'c', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Specific connections to process (default: all)')
@@ -127,7 +137,8 @@ final class AnonymizeCommand extends AbstractCommand
             ->addOption('stats-only', null, InputOption::VALUE_NONE, 'Show only statistics summary')
             ->addOption('no-progress', null, InputOption::VALUE_NONE, 'Disable progress bar display')
             ->addOption('debug', null, InputOption::VALUE_NONE, 'Enable debug mode (shows detailed information)')
-            ->addOption('interactive', 'i', InputOption::VALUE_NONE, 'Enable interactive mode with step-by-step confirmations');
+            ->addOption('interactive', 'i', InputOption::VALUE_NONE, 'Enable interactive mode with step-by-step confirmations')
+            ->addOption('force', null, InputOption::VALUE_NONE, 'Skip truncate confirmation (required for non-interactive truncate)');
     }
 
     /**
@@ -142,47 +153,8 @@ final class AnonymizeCommand extends AbstractCommand
     {
         $io = new SymfonyStyle($input, $output);
 
-        // Enhanced environment protection checks
-        // Get parameter bag - try different ways depending on Symfony version
-        $parameterBag = null;
-
-        // Try to get parameter_bag service
-        if ($this->container->has('parameter_bag')) {
-            try {
-                $parameterBag = $this->container->get('parameter_bag');
-            } catch (Exception) {
-                // parameter_bag not available
-            }
-        }
-
-        // Fallback: use kernel adapter when parameter_bag service is not available
-        if ($parameterBag === null) {
-            $parameterBag = new KernelParameterBagAdapter($this->container);
-        }
-
-        $environmentProtection = new EnvironmentProtectionService($parameterBag);
-
-        $protectionErrors = $environmentProtection->performChecks();
-        if ($protectionErrors !== []) {
-            $io->error('Environment protection checks failed:');
-            foreach ($protectionErrors as $error) {
-                $io->writeln(sprintf('  - %s', $error));
-            }
-            $io->warning('This bundle is intended for development purposes only and should not be used in production.');
-            $io->note('Please review your configuration and ensure the bundle is only enabled for "dev" and "test" environments.');
-
-            return self::FAILURE;
-        }
-
-        // Additional check for environment
-        if (!$environmentProtection->isSafeEnvironment()) {
-            $io->error(sprintf(
-                'This command can only be executed in "dev" or "test" environment. Current environment: "%s".',
-                $environmentProtection->getEnvironment(),
-            ));
-            $io->warning('This bundle is intended for development purposes only and should not be used in production.');
-
-            return self::FAILURE;
+        if (($exit = $this->failIfEnvironmentUnsafe($io, $this->environmentProtection)) !== null) {
+            return $exit;
         }
 
         // Get options (verbose may come from Application when run via bin/console, so check hasOption)
@@ -207,11 +179,8 @@ final class AnonymizeCommand extends AbstractCommand
             $io->note('VERBOSE MODE: Additional information will be displayed');
         }
 
-        // Get Doctrine registry
-        $doctrine = $this->container->get(SymfonyService::DOCTRINE);
-
         // Get all entity manager names (not connection names)
-        $allManagers       = $doctrine->getManagerNames();
+        $allManagers       = $this->doctrine->getManagerNames();
         $managersToProcess = empty($connections) ? array_keys($allManagers) : array_intersect(array_keys($allManagers), $connections);
 
         // Check if MongoDB connection is requested but not supported yet
@@ -297,7 +266,7 @@ final class AnonymizeCommand extends AbstractCommand
             }
 
             try {
-                $em = $doctrine->getManager($managerName);
+                $em = $this->doctrine->getManager($managerName);
 
                 // Perform pre-flight checks
                 $entities = $anonymizeService->getAnonymizableEntities($em);
@@ -340,7 +309,10 @@ final class AnonymizeCommand extends AbstractCommand
                     }
                 }
 
-                $this->processConnection($io, $em, $anonymizeService, $batchSize, $dryRun, (string) $managerName, $statistics, $statsOnly, $input, $output, $verbose, $debug, $interactive, $entityFilter);
+                $connectionExit = $this->processConnection($io, $em, $anonymizeService, $batchSize, $dryRun, (string) $managerName, $statistics, $statsOnly, $input, $output, $verbose, $debug, $interactive, $entityFilter);
+                if ($connectionExit !== null) {
+                    return $connectionExit;
+                }
             } catch (Exception $e) {
                 $io->error(sprintf('Error processing entity manager %s: %s', $managerName, $e->getMessage()));
 
@@ -400,6 +372,8 @@ final class AnonymizeCommand extends AbstractCommand
      * @param bool $debug If true, enable debug output
      * @param bool $interactive If true, enable interactive mode with confirmations
      * @param list<string> $entityFilter Entity class names to process
+     *
+     * @return int|null Exit code when aborted; null when processing completed
      */
     private function processConnection(
         SymfonyStyle $io,
@@ -416,7 +390,7 @@ final class AnonymizeCommand extends AbstractCommand
         bool $debug = false,
         bool $interactive = false,
         array $entityFilter = []
-    ): void {
+    ): ?int {
 
         // Get all anonymizable entities
         $entities = $anonymizeService->getAnonymizableEntities($em);
@@ -445,7 +419,7 @@ final class AnonymizeCommand extends AbstractCommand
                 }
             }
 
-            return;
+            return null;
         }
 
         // Dispatch BeforeAnonymizeEvent
@@ -486,59 +460,38 @@ final class AnonymizeCommand extends AbstractCommand
                 $io->newLine();
             }
 
-            // Interactive confirmation for truncation
-            if ($interactive && !$statsOnly) {
-                if (!$io->confirm('Do you want to truncate (empty) these tables?', true)) {
-                    $io->note('Skipping table truncation');
+            if (!$dryRun && !$statsOnly) {
+                $force = $input !== null && (bool) $input->getOption('force');
+                if (!$force && !$io->confirm('TRUNCATE will permanently empty these tables. Continue?', false)) {
+                    $io->error('Truncate aborted. Re-run with --force to confirm non-interactively, or answer yes at the prompt.');
+
+                    return self::FAILURE;
+                }
+            }
+
+            $truncateCallback = static function (string $tableName, string $message) use ($io, $verbose, $statsOnly): void {
+                if (!$statsOnly && $verbose) {
+                    $io->writeln(sprintf('  %s', $message));
+                }
+            };
+
+            $truncateResults = $anonymizeService->truncateTables($em, $entities, $dryRun, $truncateCallback);
+
+            if (!$statsOnly) {
+                if ($dryRun) {
+                    $io->note('Dry-run mode: Tables would be truncated');
+                    foreach ($truncateResults as $tableName => $count) {
+                        $io->writeln(sprintf('  - <comment>%s</comment>: <info>%d</info> record(s) would be deleted', $tableName, $count));
+                    }
                 } else {
-                    $truncateCallback = static function (string $tableName, string $message) use ($io, $verbose): void {
-                        if ($verbose) {
-                            $io->writeln(sprintf('  %s', $message));
-                        }
-                    };
-
-                    $truncateResults = $anonymizeService->truncateTables($em, $entities, $dryRun, $truncateCallback);
-                    if ($dryRun) {
-                        $io->note('Dry-run mode: Tables would be truncated');
-                        foreach ($truncateResults as $tableName => $count) {
-                            $io->writeln(sprintf('  - <comment>%s</comment>: <info>%d</info> record(s) would be deleted', $tableName, $count));
-                        }
-                    } else {
-                        $io->success(sprintf('Truncated %d table(s)', count($truncateResults)));
-                        if ($verbose) {
-                            foreach (array_keys($truncateResults) as $tableName) {
-                                $io->writeln(sprintf('  - <comment>%s</comment>: emptied', $tableName));
-                            }
+                    $io->success(sprintf('Truncated %d table(s)', count($truncateResults)));
+                    if ($verbose) {
+                        foreach (array_keys($truncateResults) as $tableName) {
+                            $io->writeln(sprintf('  - <comment>%s</comment>: emptied', $tableName));
                         }
                     }
-                    $io->newLine();
                 }
-            } else {
-                // Non-interactive: execute truncation
-                $truncateCallback = static function (string $tableName, string $message) use ($io, $verbose, $statsOnly): void {
-                    if (!$statsOnly && $verbose) {
-                        $io->writeln(sprintf('  %s', $message));
-                    }
-                };
-
-                $truncateResults = $anonymizeService->truncateTables($em, $entities, $dryRun, $truncateCallback);
-
-                if (!$statsOnly) {
-                    if ($dryRun) {
-                        $io->note('Dry-run mode: Tables would be truncated');
-                        foreach ($truncateResults as $tableName => $count) {
-                            $io->writeln(sprintf('  - <comment>%s</comment>: <info>%d</info> record(s) would be deleted', $tableName, $count));
-                        }
-                    } else {
-                        $io->success(sprintf('Truncated %d table(s)', count($truncateResults)));
-                        if ($verbose) {
-                            foreach (array_keys($truncateResults) as $tableName) {
-                                $io->writeln(sprintf('  - <comment>%s</comment>: emptied', $tableName));
-                            }
-                        }
-                    }
-                    $io->newLine();
-                }
+                $io->newLine();
             }
         }
 
@@ -723,6 +676,8 @@ final class AnonymizeCommand extends AbstractCommand
             $event         = new AfterAnonymizeEvent($em, $entityClasses, $totalProcessed, $totalUpdated, $dryRun);
             $eventDispatcher->dispatch($event);
         }
+
+        return null;
     }
 
     /**

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Command;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Exception;
-use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Internal\KernelParameterBagAdapter;
 use Nowo\AnonymizeBundle\Service\DatabaseExportService;
@@ -36,13 +36,21 @@ use function sprintf;
 )]
 final class ExportDatabaseCommand extends AbstractCommand
 {
+    use EnvironmentProtectedCommandTrait;
+
     /**
      * Creates a new ExportDatabaseCommand instance.
      *
+     * ContainerInterface is limited to parameter_bag, event_dispatcher, and project_dir resolution (REQ-DI-001).
+     *
      * @param ContainerInterface $container The service container
+     * @param EnvironmentProtectionService $environmentProtection Environment / DSN guard
+     * @param ManagerRegistry $doctrine Doctrine manager registry
      */
     public function __construct(
-        private readonly ContainerInterface $container
+        private readonly ContainerInterface $container,
+        private readonly EnvironmentProtectionService $environmentProtection,
+        private readonly ManagerRegistry $doctrine,
     ) {
         parent::__construct();
     }
@@ -74,7 +82,7 @@ final class ExportDatabaseCommand extends AbstractCommand
             ->addOption('connection', 'c', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Specific connections to export (default: all)')
             ->addOption('output-dir', 'o', InputOption::VALUE_OPTIONAL, 'Output directory for exports')
             ->addOption('filename-pattern', null, InputOption::VALUE_OPTIONAL, 'Filename pattern for exports')
-            ->addOption('compression', null, InputOption::VALUE_OPTIONAL, 'Compression format: none, gzip, bzip2, zip', 'gzip')
+            ->addOption('compression', null, InputOption::VALUE_OPTIONAL, 'Compression format: none, gzip, bzip2, zip (default: config or gzip)')
             ->addOption('no-gitignore', null, InputOption::VALUE_NONE, 'Skip updating .gitignore file');
     }
 
@@ -90,19 +98,8 @@ final class ExportDatabaseCommand extends AbstractCommand
     {
         $io = new SymfonyStyle($input, $output);
 
-        // Enhanced environment protection checks
-        $parameterBag          = $this->getParameterBag();
-        $environmentProtection = new EnvironmentProtectionService($parameterBag);
-
-        $protectionErrors = $environmentProtection->performChecks();
-        if ($protectionErrors !== []) {
-            $io->error('Environment protection checks failed:');
-            foreach ($protectionErrors as $error) {
-                $io->writeln(sprintf('  - %s', $error));
-            }
-            $io->warning('This bundle is intended for development purposes only.');
-
-            return self::FAILURE;
+        if (($exit = $this->failIfEnvironmentUnsafe($io, $this->environmentProtection)) !== null) {
+            return $exit;
         }
 
         // Get configuration
@@ -158,9 +155,7 @@ final class ExportDatabaseCommand extends AbstractCommand
             return self::FAILURE;
         }
 
-        // Get Doctrine registry
-        $doctrine    = $this->container->get(SymfonyService::DOCTRINE);
-        $allManagers = $doctrine->getManagerNames();
+        $allManagers = $this->doctrine->getManagerNames();
 
         // Check for MongoDB connection from environment ($_SERVER is reset per FrankenPHP worker request; avoid $_ENV)
         $mongodbUrl         = ($_SERVER['MONGODB_URL'] ?? getenv('MONGODB_URL')) ?: null;
@@ -233,7 +228,7 @@ final class ExportDatabaseCommand extends AbstractCommand
                     } else {
                         // Try to get from Doctrine connection if available
                         try {
-                            $em           = $doctrine->getManager($managerName);
+                            $em           = $this->doctrine->getManager($managerName);
                             $connection   = $em->getConnection();
                             $params       = $connection->getParams();
                             $host         = $params['host'] ?? 'localhost';
@@ -248,7 +243,7 @@ final class ExportDatabaseCommand extends AbstractCommand
                     }
                 } else {
                     // Handle ORM connections (MySQL, PostgreSQL, SQLite)
-                    $em         = $doctrine->getManager($managerName);
+                    $em         = $this->doctrine->getManager($managerName);
                     $connection = $em->getConnection();
                     $driver     = DbalHelper::getDriverName($connection);
                     $database   = $connection->getDatabase();

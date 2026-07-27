@@ -193,4 +193,27 @@ class ServiceFakerTest extends TestCase
 
         $serviceFaker->generate();
     }
+
+    /**
+     * Test that ServiceFaker throws when the container returns a non-object value.
+     */
+    public function testGenerateThrowsExceptionWhenServiceIsNotAnObject(): void
+    {
+        $container = $this->createMock(ContainerInterface::class);
+        $container->expects($this->once())
+            ->method('has')
+            ->with('scalar_service')
+            ->willReturn(true);
+        $container->expects($this->once())
+            ->method('get')
+            ->with('scalar_service')
+            ->willReturn('not-an-object');
+
+        $serviceFaker = new ServiceFaker($container, 'scalar_service');
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Service "scalar_service" must be an object.');
+
+        $serviceFaker->generate();
+    }
 }

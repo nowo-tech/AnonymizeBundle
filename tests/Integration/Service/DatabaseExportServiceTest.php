@@ -1969,4 +1969,112 @@ class DatabaseExportServiceTest extends TestCase
         }
         rmdir($dir);
     }
+
+    /**
+     * exportMongoDB with autoGitignore=true updates project .gitignore after archive creation.
+     */
+    public function testExportMongoDBWithAutoGitignoreUpdatesGitignore(): void
+    {
+        $projectDir = $this->tempDir . '/mongo_gitignore_project';
+        $exportDir  = $projectDir . '/var/exports';
+        mkdir($exportDir, 0o755, true);
+        $databaseDir = $exportDir . '/test_db';
+        mkdir($databaseDir, 0o755, true);
+        file_put_contents($databaseDir . '/data.bson', 'mongo dump content');
+
+        $runner = new class implements CommandRunnerInterface {
+            public function commandExists(string $command): bool
+            {
+                return $command === 'mongodump';
+            }
+
+            /** @param-out list<string> $output */
+            public function exec(string $command, ?array &$output = null): int
+            {
+                $output = [];
+
+                return 0;
+            }
+        };
+
+        $container = new class($projectDir) implements ContainerInterface {
+            public function __construct(private readonly string $projectDir)
+            {
+            }
+
+            public function get(string $id): mixed
+            {
+                return null;
+            }
+
+            public function has(string $id): bool
+            {
+                return false;
+            }
+
+            public function hasParameter(string $name): bool
+            {
+                return $name === 'kernel.project_dir';
+            }
+
+            public function getParameter(string $name): mixed
+            {
+                return $name === 'kernel.project_dir' ? $this->projectDir : null;
+            }
+        };
+
+        $service = new DatabaseExportService(
+            $container,
+            $exportDir,
+            '{connection}_{database}_{date}_{time}.{format}',
+            'zip',
+            true,
+            $runner,
+        );
+
+        $result = $service->exportMongoDB('test_connection', 'test_db', 'localhost', 27017);
+
+        $this->assertNotNull($result);
+        $this->assertFileExists($projectDir . '/.gitignore');
+        $this->assertStringContainsString('var/exports/', (string) file_get_contents($projectDir . '/.gitignore'));
+    }
+
+    /**
+     * createTarArchive returns false when tar is unavailable.
+     */
+    public function testCreateTarArchiveReturnsFalseWhenTarMissing(): void
+    {
+        $subDir  = $this->tempDir . '/tar_missing_src';
+        $tarPath = $this->tempDir . '/out_missing.tar';
+        mkdir($subDir, 0o755, true);
+        file_put_contents($subDir . '/file.txt', 'content');
+
+        $runner = new class implements CommandRunnerInterface {
+            public function commandExists(string $command): bool
+            {
+                return false;
+            }
+
+            /** @param-out list<string> $output */
+            public function exec(string $command, ?array &$output = null): int
+            {
+                $output = [];
+
+                return 1;
+            }
+        };
+
+        $ref     = new ReflectionClass(DatabaseExportService::class);
+        $method  = $ref->getMethod('createTarArchive');
+        $service = new DatabaseExportService(
+            $this->container,
+            $this->tempDir,
+            'x',
+            'none',
+            false,
+            $runner,
+        );
+
+        $this->assertFalse($method->invoke($service, $subDir, $tarPath));
+    }
 }

@@ -31,11 +31,12 @@ final readonly class FakerFactory implements FakerFactoryInterface
      * Creates a new FakerFactory instance.
      *
      * @param string $locale The locale for Faker generators (fallback when container is not available)
-     * @param ContainerInterface|null $container The service container for accessing faker services
+     * @param ContainerInterface|null $container Documented strategy/service-id registry for custom faker ids (REQ-DI-001 exception for closed plugin registries), not a general service locator
      */
     public function __construct(
         // #[Autowire('%nowo_anonymize.locale%')]
         private string $locale = 'en_US',
+        /** Documented strategy/service-id registry for custom faker ids (REQ-DI-001 exception for closed plugin registries), not a general service locator. */
         private ?ContainerInterface $container = null
     ) {
     }

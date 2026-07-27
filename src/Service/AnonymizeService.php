@@ -58,12 +58,13 @@ final class AnonymizeService
      * @param FakerFactory $fakerFactory The faker factory for creating faker instances
      * @param PatternMatcher $patternMatcher The pattern matcher for inclusion/exclusion patterns
      * @param EventDispatcherInterface|null $eventDispatcher Optional event dispatcher for extensibility
-     * @param ContainerInterface|null $container Optional container to resolve anonymizeService by id (required when using anonymizeService on entities)
+     * @param ContainerInterface|null $container Documented strategy/service-id registry for custom anonymizeService ids (REQ-DI-001 exception for closed plugin registries), not a general service locator
      */
     public function __construct(
         private readonly FakerFactory $fakerFactory,
         private readonly PatternMatcher $patternMatcher,
         private readonly ?EventDispatcherInterface $eventDispatcher = null,
+        /** Documented strategy/service-id registry for custom anonymizeService ids (REQ-DI-001 exception for closed plugin registries), not a general service locator. */
         private readonly ?ContainerInterface $container = null
     ) {
     }

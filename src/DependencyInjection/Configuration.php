@@ -93,6 +93,27 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
+                ->arrayNode('environment_protection')
+                    ->info('Extra guards so CLI cannot run against production-like DSNs even with --env=dev (REQ-SEC-004)')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode('blocked_dsn_substrings')
+                            ->info('Case-insensitive substrings matched against DATABASE_URL / MONGODB_URL and their hosts')
+                            ->prototype('scalar')->end()
+                            ->defaultValue([
+                                '://prod',
+                                '@prod.',
+                                '.prod.',
+                                'prod.',
+                                'production.',
+                                '/production',
+                                'live.',
+                                '.live.',
+                                '@live.',
+                            ])
+                        ->end()
+                    ->end()
+                ->end()
             ->end();
 
         return $treeBuilder;

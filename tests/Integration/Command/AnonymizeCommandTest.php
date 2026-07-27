@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Tests\Integration\Command;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
@@ -19,6 +20,7 @@ use Exception;
 use Nowo\AnonymizeBundle\Command\AnonymizeCommand;
 use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
 use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
+use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -26,7 +28,6 @@ use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 use function in_array;
@@ -77,7 +78,7 @@ class AnonymizeCommandTest extends TestCase
     public function testCommandNameAndDescription(): void
     {
         $container = $this->createContainerWithSafeEnvironment();
-        $command   = new AnonymizeCommand($container);
+        $command   = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class));
 
         $this->assertSame('nowo:anonymize:run', $command->getName());
         $this->assertStringContainsString('Anonymize database records', $command->getDescription());
@@ -89,7 +90,7 @@ class AnonymizeCommandTest extends TestCase
     public function testConfigureDefinesOptions(): void
     {
         $container  = $this->createContainerWithSafeEnvironment();
-        $command    = new AnonymizeCommand($container);
+        $command    = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class));
         $definition = $command->getDefinition();
 
         $this->assertTrue($definition->hasOption('connection'));
@@ -102,6 +103,7 @@ class AnonymizeCommandTest extends TestCase
         $this->assertTrue($definition->hasOption('no-progress'));
         $this->assertTrue($definition->hasOption('debug'));
         $this->assertTrue($definition->hasOption('interactive'));
+        $this->assertTrue($definition->hasOption('force'));
         $this->assertTrue($definition->hasOption('entity'));
     }
 
@@ -116,9 +118,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--entity' => ['App\Entity\SmsNotification']]);
         $output  = new BufferedOutput();
 
@@ -172,9 +173,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--entity' => ['App\Entity\NonExistentEntity']]);
         $output  = new BufferedOutput();
 
@@ -232,10 +232,9 @@ class AnonymizeCommandTest extends TestCase
         });
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
         $container->set('event_dispatcher', $eventDispatcher);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -287,9 +286,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -342,9 +340,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--debug' => true]);
         $output  = new BufferedOutput();
 
@@ -418,10 +415,9 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
         $container->set('custom_anonymizer', $anonymizer);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--debug' => true]);
         $output  = new BufferedOutput();
 
@@ -496,10 +492,9 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
         $container->set('custom_anonymizer', $anonymizer);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--no-progress' => true]);
         $output  = new BufferedOutput();
 
@@ -581,9 +576,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--no-progress' => true]);
         $output  = new BufferedOutput();
 
@@ -638,9 +632,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -657,19 +650,13 @@ class AnonymizeCommandTest extends TestCase
      */
     public function testExecuteFailsWhenEnvironmentChecksFail(): void
     {
-        $parameterBag = $this->createMock(ParameterBagInterface::class);
-        $parameterBag->method('get')->willReturnCallback(fn (string $key): string|false|null => match ($key) {
+        $container             = $this->createMock(ContainerInterface::class);
+        $environmentProtection = new EnvironmentProtectionService(new ParameterBag([
             'kernel.environment' => 'prod',
-            'kernel.debug'       => false,
             'kernel.project_dir' => $this->tempDir,
-            default              => null,
-        });
+        ]), []);
 
-        $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static fn (string $id): bool => $id === 'parameter_bag');
-        $container->method('get')->willReturnCallback(static fn (string $id): ?\PHPUnit\Framework\MockObject\MockObject => $id === 'parameter_bag' ? $parameterBag : null);
-
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $environmentProtection, $this->createMock(ManagerRegistry::class));
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -688,9 +675,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn([]);
 
         $container = $this->createContainerWithSafeEnvironment();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -711,9 +697,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -736,9 +721,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--debug' => true]);
         $output  = new BufferedOutput();
 
@@ -756,9 +740,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--connection' => ['mongodb']]);
         $output  = new BufferedOutput();
 
@@ -780,9 +763,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--dry-run' => true]);
         $output  = new BufferedOutput();
 
@@ -802,9 +784,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--stats-only' => true]);
         $output  = new BufferedOutput();
 
@@ -825,9 +806,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--connection' => ['default']]);
         $output  = new BufferedOutput();
 
@@ -849,9 +829,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willThrowException(new Exception('Connection failed'));
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -875,9 +854,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--stats-json' => $absoluteJsonPath]);
         $output  = new BufferedOutput();
 
@@ -905,9 +883,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--stats-json' => 'run_stats.json']);
         $output  = new BufferedOutput();
 
@@ -939,9 +916,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--stats-csv' => 'run_stats.csv']);
         $output  = new BufferedOutput();
 
@@ -968,9 +944,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--dry-run' => true]);
         $output  = new BufferedOutput();
 
@@ -989,9 +964,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--debug' => true]);
         $output  = new BufferedOutput();
 
@@ -1010,9 +984,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--connection' => ['default', 'mongodb']]);
         $output  = new BufferedOutput();
 
@@ -1036,9 +1009,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--batch-size' => '50']);
         $output  = new BufferedOutput();
 
@@ -1058,9 +1030,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
         $output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
@@ -1080,9 +1051,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--interactive' => true]);
         $stream  = fopen('data://text/plain,no', 'r');
         $this->assertIsResource($stream);
@@ -1107,9 +1077,8 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--interactive' => true]);
         $stream  = fopen('data://text/plain,y', 'r');
         $this->assertIsResource($stream);
@@ -1138,13 +1107,12 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $container = $this->createContainerWithSafeEnvironmentAndKernel();
-        $container->set('doctrine', $doctrine);
 
         $historyDirPath = $this->tempDir . '/history';
         file_put_contents($historyDirPath, '');
         $container->getParameterBag()->set('nowo_anonymize.history_dir', $historyDirPath);
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput(['--debug' => true]);
         $output  = new BufferedOutput();
 
@@ -1207,7 +1175,7 @@ class AnonymizeCommandTest extends TestCase
             }
         };
 
-        $command = new AnonymizeCommand($container);
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -1216,6 +1184,197 @@ class AnonymizeCommandTest extends TestCase
         $out = $output->fetch();
         $this->assertStringContainsString('No entities found with #[Anonymize]', $out);
         $this->assertStringContainsString('attribute', $out);
+    }
+
+    /**
+     * Truncate without --force in non-interactive mode returns FAILURE (confirm default is no).
+     */
+    public function testExecuteTruncateWithoutForceInNonInteractiveReturnsFailure(): void
+    {
+        eval('
+            namespace Nowo\AnonymizeBundle\Tests\Integration\Command {
+                #[\\Nowo\\AnonymizeBundle\\Attribute\\Anonymize(truncate: true)]
+                class TruncateAbortTestEntity {
+                }
+            }
+        ');
+        $className = 'Nowo\AnonymizeBundle\Tests\Integration\Command\TruncateAbortTestEntity';
+        $tableName = 'truncate_abort_test';
+
+        $metadata = $this->createMock(ClassMetadata::class);
+        $metadata->method('getTableName')->willReturn($tableName);
+
+        $metadataDriver = $this->createMock(MappingDriver::class);
+        $config         = $this->createMock(Configuration::class);
+        $em             = $this->createMock(EntityManagerInterface::class);
+
+        $connection = $this->createMock(Connection::class);
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
+
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $schemaManager->method('tablesExist')->with([$tableName])->willReturn(true);
+        $connection->method('createSchemaManager')->willReturn($schemaManager);
+
+        $em->method('getConfiguration')->willReturn($config);
+        $em->method('getConnection')->willReturn($connection);
+        $config->method('getMetadataDriverImpl')->willReturn($metadataDriver);
+        $metadataDriver->method('getAllClassNames')->willReturn([$className]);
+        $em->method('getClassMetadata')->with($className)->willReturn($metadata);
+
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
+        $doctrine->method('getManager')->with('default')->willReturn($em);
+
+        $container = $this->createContainerWithSafeEnvironmentAndKernel();
+
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
+        $input   = new ArrayInput([]);
+        $output  = new BufferedOutput();
+
+        $exitCode = $command->run($input, $output);
+        $out      = $output->fetch();
+
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('Truncating tables', $out);
+        $this->assertStringContainsString($tableName, $out);
+        $this->assertStringContainsString('Truncate aborted', $out);
+    }
+
+    /**
+     * Truncate with --force proceeds without interactive confirmation.
+     */
+    public function testExecuteTruncateWithForceProceedsWithoutConfirmation(): void
+    {
+        eval('
+            namespace Nowo\AnonymizeBundle\Tests\Integration\Command {
+                #[\\Nowo\\AnonymizeBundle\\Attribute\\Anonymize(truncate: true)]
+                class TruncateForceTestEntity {
+                }
+            }
+        ');
+        $className = 'Nowo\AnonymizeBundle\Tests\Integration\Command\TruncateForceTestEntity';
+        $tableName = 'truncate_force_test';
+
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $metadata->method('getTableName')->willReturn($tableName);
+        $metadata->inheritanceType = ClassMetadata::INHERITANCE_TYPE_NONE;
+
+        $platform = $this->createMock(AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
+
+        $connection = $this->createMock(Connection::class);
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
+        $connection->method('getDatabasePlatform')->willReturn($platform);
+        $connection->method('getParams')->willReturn(['driver' => 'pdo_mysql']);
+        $connection->method('executeStatement')->willReturn(0);
+
+        $driver = $this->createMock(Driver::class);
+        $connection->method('getDriver')->willReturn($driver);
+
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $schemaManager->method('tablesExist')->with([$tableName])->willReturn(true);
+        $connection->method('createSchemaManager')->willReturn($schemaManager);
+
+        $metadataDriver = $this->createMock(MappingDriver::class);
+        $config         = $this->createMock(Configuration::class);
+        $em             = $this->createMock(EntityManagerInterface::class);
+        $em->method('getConfiguration')->willReturn($config);
+        $em->method('getConnection')->willReturn($connection);
+        $config->method('getMetadataDriverImpl')->willReturn($metadataDriver);
+        $metadataDriver->method('getAllClassNames')->willReturn([$className]);
+        $em->method('getClassMetadata')->with($className)->willReturn($metadata);
+
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
+        $doctrine->method('getManager')->with('default')->willReturn($em);
+
+        $container = $this->createContainerWithSafeEnvironmentAndKernel();
+
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
+        $input   = new ArrayInput(['--force' => true, '--no-progress' => true]);
+        $output  = new BufferedOutput();
+
+        $exitCode = $command->run($input, $output);
+        $out      = $output->fetch();
+
+        $this->assertSame(0, $exitCode);
+        $this->assertStringContainsString('Truncating tables', $out);
+        $this->assertStringContainsString('Truncated', $out);
+        $this->assertStringNotContainsString('Truncate aborted', $out);
+    }
+
+    /**
+     * Dry-run truncate does not require --force.
+     */
+    public function testExecuteTruncateDryRunDoesNotRequireForce(): void
+    {
+        eval('
+            namespace Nowo\AnonymizeBundle\Tests\Integration\Command {
+                #[\\Nowo\\AnonymizeBundle\\Attribute\\Anonymize(truncate: true)]
+                class TruncateDryRunTestEntity {
+                }
+            }
+        ');
+        $className = 'Nowo\AnonymizeBundle\Tests\Integration\Command\TruncateDryRunTestEntity';
+        $tableName = 'truncate_dry_run_test';
+
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $metadata->method('getTableName')->willReturn($tableName);
+        $metadata->inheritanceType = ClassMetadata::INHERITANCE_TYPE_NONE;
+
+        $platform = $this->createMock(AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
+
+        $connection = $this->createMock(Connection::class);
+        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
+        $connection->method('getDatabasePlatform')->willReturn($platform);
+        $connection->method('getParams')->willReturn(['driver' => 'pdo_mysql']);
+        $connection->method('fetchOne')->willReturn('3');
+
+        $driver = $this->createMock(Driver::class);
+        $connection->method('getDriver')->willReturn($driver);
+
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $schemaManager->method('tablesExist')->with([$tableName])->willReturn(true);
+        $connection->method('createSchemaManager')->willReturn($schemaManager);
+
+        $metadataDriver = $this->createMock(MappingDriver::class);
+        $config         = $this->createMock(Configuration::class);
+        $em             = $this->createMock(EntityManagerInterface::class);
+        $em->method('getConfiguration')->willReturn($config);
+        $em->method('getConnection')->willReturn($connection);
+        $config->method('getMetadataDriverImpl')->willReturn($metadataDriver);
+        $metadataDriver->method('getAllClassNames')->willReturn([$className]);
+        $em->method('getClassMetadata')->with($className)->willReturn($metadata);
+
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
+        $doctrine->method('getManager')->with('default')->willReturn($em);
+
+        $container = $this->createContainerWithSafeEnvironmentAndKernel();
+
+        $command = new AnonymizeCommand($container, $this->createSafeEnvironmentProtection(), $doctrine);
+        $input   = new ArrayInput(['--dry-run' => true, '--no-progress' => true]);
+        $output  = new BufferedOutput();
+
+        $exitCode = $command->run($input, $output);
+        $out      = $output->fetch();
+
+        $this->assertSame(0, $exitCode);
+        $this->assertStringContainsString('would be truncated', $out);
+        $this->assertStringNotContainsString('Truncate aborted', $out);
+    }
+
+    private function createSafeEnvironmentProtection(): EnvironmentProtectionService
+    {
+        return new EnvironmentProtectionService(new ParameterBag([
+            'kernel.environment' => 'dev',
+            'kernel.project_dir' => $this->tempDir,
+        ]), []);
     }
 
     private function createContainerWithSafeEnvironment(): ContainerBuilder

@@ -65,45 +65,34 @@ services:
 
     # Other services that can be autowired (no special parameters needed)
     Nowo\AnonymizeBundle\Service\AnonymizeStatistics: ~
-    Nowo\AnonymizeBundle\Service\EnvironmentProtectionService: ~
+    Nowo\AnonymizeBundle\Service\EnvironmentProtectionService:
+        arguments:
+            $blockedDsnSubstrings: '%nowo_anonymize.environment_protection.blocked_dsn_substrings%'
     Nowo\AnonymizeBundle\Service\PatternMatcher: ~
     Nowo\AnonymizeBundle\Service\PreFlightCheckService:
         arguments:
             $fakerFactory: '@nowo_anonymize.faker_factory'
     Nowo\AnonymizeBundle\Service\SchemaService: ~
 
-    # Console Commands
-    # Only configure parameters, container is autowired via alias
+    # Console Commands — #[AsCommand] autoconfigures tags (REQ-SF-003: no duplicate console.command tags)
     Nowo\AnonymizeBundle\Command\AnonymizeCommand:
         arguments:
             $locale: '%nowo_anonymize.locale%'
             $connections: '%nowo_anonymize.connections%'
             $dryRun: '%nowo_anonymize.dry_run%'
             $batchSize: '%nowo_anonymize.batch_size%'
-        tags:
-            - { name: 'console.command' }
 
     Nowo\AnonymizeBundle\Command\GenerateAnonymizedColumnCommand:
         arguments:
             $connections: '%nowo_anonymize.connections%'
-        tags:
-            - { name: 'console.command' }
 
     Nowo\AnonymizeBundle\Command\AnonymizeInfoCommand:
         arguments:
             $locale: '%nowo_anonymize.locale%'
             $connections: '%nowo_anonymize.connections%'
-        tags:
-            - { name: 'console.command' }
 
-    Nowo\AnonymizeBundle\Command\GenerateMongoAnonymizedFieldCommand:
-        tags:
-            - { name: 'console.command' }
+    Nowo\AnonymizeBundle\Command\GenerateMongoAnonymizedFieldCommand: ~
 
-    Nowo\AnonymizeBundle\Command\ExportDatabaseCommand:
-        tags:
-            - { name: 'console.command' }
+    Nowo\AnonymizeBundle\Command\ExportDatabaseCommand: ~
 
-    Nowo\AnonymizeBundle\Command\AnonymizationHistoryCommand:
-        tags:
-            - { name: 'console.command' }
+    Nowo\AnonymizeBundle\Command\AnonymizationHistoryCommand: ~

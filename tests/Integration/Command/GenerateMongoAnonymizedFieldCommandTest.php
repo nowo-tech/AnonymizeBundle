@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Tests\Integration\Command;
 
 use Nowo\AnonymizeBundle\Command\GenerateMongoAnonymizedFieldCommand;
+use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 use function is_string;
@@ -29,7 +31,7 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
     protected function setUp(): void
     {
         $this->container = $this->createMock(ContainerInterface::class);
-        $this->command   = new GenerateMongoAnonymizedFieldCommand($this->container);
+        $this->command   = new GenerateMongoAnonymizedFieldCommand($this->container, $this->createSafeEnvironmentProtection());
     }
 
     /**
@@ -235,7 +237,7 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
             }
         };
 
-        $command = new GenerateMongoAnonymizedFieldCommand($container);
+        $command = new GenerateMongoAnonymizedFieldCommand($container, $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--scan-documents' => true, '--document-path' => $docPath]);
         $output  = new BufferedOutput();
 
@@ -329,7 +331,7 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
             }
         };
 
-        $command = new GenerateMongoAnonymizedFieldCommand($container);
+        $command = new GenerateMongoAnonymizedFieldCommand($container, $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--scan-documents' => true, '--document-path' => $docPath]);
         $output  = new BufferedOutput();
 
@@ -418,7 +420,7 @@ PHP;
             }
         };
 
-        $command = new GenerateMongoAnonymizedFieldCommand($container);
+        $command = new GenerateMongoAnonymizedFieldCommand($container, $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--scan-documents' => true, '--document-path' => $docPath]);
         $output  = new BufferedOutput();
 
@@ -468,7 +470,7 @@ PHP;
             }
         };
 
-        $command = new GenerateMongoAnonymizedFieldCommand($container);
+        $command = new GenerateMongoAnonymizedFieldCommand($container, $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--scan-documents' => true, '--document-path' => '/any/path']);
         $output  = new BufferedOutput();
 
@@ -516,7 +518,7 @@ PHP;
             }
         };
 
-        $command = new GenerateMongoAnonymizedFieldCommand($container);
+        $command = new GenerateMongoAnonymizedFieldCommand($container, $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--scan-documents' => true, '--document-path' => $notDirPath]);
         $output  = new BufferedOutput();
 
@@ -572,7 +574,7 @@ PHP;
             }
         };
 
-        $command = new GenerateMongoAnonymizedFieldCommand($container);
+        $command = new GenerateMongoAnonymizedFieldCommand($container, $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--scan-documents' => true, '--document-path' => $docPath]);
         $output  = new BufferedOutput();
 
@@ -587,5 +589,82 @@ PHP;
         unlink($unreadable);
         rmdir($docPath);
         rmdir($tmpDir);
+    }
+
+    /**
+     * Non-PHP files in the scan path are skipped.
+     */
+    public function testExecuteWithScanDocumentsSkipsNonPhpFiles(): void
+    {
+        $tmpDir  = sys_get_temp_dir() . '/mongo_scan_nonphp_' . uniqid();
+        $docPath = $tmpDir . '/Document';
+        mkdir($tmpDir, 0o755, true);
+        mkdir($docPath, 0o755, true);
+
+        file_put_contents($docPath . '/notes.txt', "#[Anonymize]\ncollection: ignored_coll\n");
+        file_put_contents($docPath . '/User.php', "<?php\n#[Anonymize]\n#[Doc(collection: 'users')]\nclass User {}");
+
+        $container = new class($tmpDir) implements ContainerInterface {
+            public function __construct(private readonly string $projectDir)
+            {
+            }
+
+            public function get(string $id): mixed
+            {
+                return null;
+            }
+
+            public function has(string $id): bool
+            {
+                return false;
+            }
+
+            public function hasParameter(string $name): bool
+            {
+                return $name === 'kernel.project_dir';
+            }
+
+            public function getParameter(string $name): mixed
+            {
+                return $name === 'kernel.project_dir' ? $this->projectDir : null;
+            }
+        };
+
+        $command = new GenerateMongoAnonymizedFieldCommand($container, $this->createSafeEnvironmentProtection());
+        $input   = new ArrayInput(['--scan-documents' => true, '--document-path' => $docPath]);
+        $output  = new BufferedOutput();
+
+        $result = $command->run($input, $output);
+
+        $outputContent = $output->fetch();
+        $this->assertStringContainsString('users', $outputContent);
+        $this->assertStringNotContainsString('ignored_coll', $outputContent);
+        $this->assertEquals(GenerateMongoAnonymizedFieldCommand::SUCCESS, $result);
+
+        unlink($docPath . '/notes.txt');
+        unlink($docPath . '/User.php');
+        rmdir($docPath);
+        rmdir($tmpDir);
+    }
+
+    public function testExecuteFailsWhenEnvironmentProtectionBlocks(): void
+    {
+        $protection = new EnvironmentProtectionService(new ParameterBag([
+            'kernel.environment' => 'prod',
+            'kernel.project_dir' => sys_get_temp_dir(),
+        ]), []);
+        $command = new GenerateMongoAnonymizedFieldCommand($this->container, $protection);
+        $input   = new ArrayInput([]);
+        $output  = new BufferedOutput();
+        $this->assertSame(1, $command->run($input, $output));
+        $this->assertStringContainsString('Environment protection checks failed', $output->fetch());
+    }
+
+    private function createSafeEnvironmentProtection(): EnvironmentProtectionService
+    {
+        return new EnvironmentProtectionService(new ParameterBag([
+            'kernel.environment' => 'dev',
+            'kernel.project_dir' => sys_get_temp_dir(),
+        ]), []);
     }
 }

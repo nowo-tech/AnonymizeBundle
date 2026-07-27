@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Command;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Exception;
-use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
+use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
@@ -36,16 +37,24 @@ use function sprintf;
 )]
 final class GenerateAnonymizedColumnCommand extends AbstractCommand
 {
+    use EnvironmentProtectedCommandTrait;
+
     /**
      * Creates a new GenerateAnonymizedColumnCommand instance.
      *
+     * ContainerInterface is limited to parameter_bag, event_dispatcher, and project_dir resolution (REQ-DI-001).
+     *
      * @param ContainerInterface $container The service container
      * @param AnonymizeService $anonymizeService The anonymize service
+     * @param EnvironmentProtectionService $environmentProtection Environment / DSN guard
+     * @param ManagerRegistry $doctrine Doctrine manager registry
      * @param array<string> $connections The Doctrine connection names to process
      */
     public function __construct(
         private readonly ContainerInterface $container,
         private readonly AnonymizeService $anonymizeService,
+        private readonly EnvironmentProtectionService $environmentProtection,
+        private readonly ManagerRegistry $doctrine,
         private readonly array $connections = []
     ) {
         parent::__construct();
@@ -102,6 +111,11 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+
+        if (($exit = $this->failIfEnvironmentUnsafe($io, $this->environmentProtection)) !== null) {
+            return $exit;
+        }
+
         $io->title('Generate Anonymized Column Migration');
 
         $connections = $input->getOption('connection');
@@ -216,22 +230,21 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
     private function getEntityManager(string $connectionName): ?EntityManagerInterface
     {
         try {
-            $doctrine    = $this->container->get(SymfonyService::DOCTRINE);
-            $allManagers = $doctrine->getManagerNames();
+            $allManagers = $this->doctrine->getManagerNames();
 
             // Try to get manager by name
             if (isset($allManagers[$connectionName])) {
-                return $doctrine->getManager($connectionName);
+                return $this->doctrine->getManager($connectionName);
             }
 
             // If connection name is 'default' or empty, try default manager
             if ($connectionName === 'default' || ($connectionName === '' || $connectionName === '0')) {
-                return $doctrine->getManager();
+                return $this->doctrine->getManager();
             }
 
             // Try to find manager by connection name
             foreach ($allManagers as $managerName => $serviceId) {
-                $manager = $doctrine->getManager($managerName);
+                $manager = $this->doctrine->getManager($managerName);
                 if (DbalHelper::getConnectionName($manager->getConnection()) === $connectionName) {
                     return $manager;
                 }

@@ -76,6 +76,8 @@ jobs:
           composer update --no-interaction --prefer-dist --no-progress
 
       - name: Run tests
+        env:
+          SYMFONY_DEPRECATIONS_HELPER: max[direct]=0
         run: |
           echo "🧪 Running tests on PHP ${{ matrix.php }} with Symfony ${{ matrix.symfony }}..."
           composer test
@@ -87,6 +89,8 @@ jobs:
 
       - name: Run tests with coverage (PHP 8.2 + Symfony 7.0 only)
         if: matrix.php == '8.2' && matrix.symfony == '7.0'
+        env:
+          SYMFONY_DEPRECATIONS_HELPER: max[direct]=0
         run: |
           echo "📊 Generating coverage report..."
           composer test-coverage

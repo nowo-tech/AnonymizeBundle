@@ -15,15 +15,16 @@ use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Exception;
 use Nowo\AnonymizeBundle\Command\GenerateAnonymizedColumnCommand;
-use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
+use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 
 /**
  * Test case for GenerateAnonymizedColumnCommand.
@@ -44,7 +45,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $fakerFactory           = new FakerFactory('en_US');
         $patternMatcher         = new PatternMatcher();
         $this->anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $this->command          = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, []);
+        $this->command          = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class), []);
     }
 
     /**
@@ -82,13 +83,6 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $doctrine = $this->createMock(ManagerRegistry::class);
         $config   = $this->createMock(Configuration::class);
 
-        $this->container->method('has')
-            ->with(SymfonyService::DOCTRINE)
-            ->willReturn(true);
-        $this->container->method('get')
-            ->with(SymfonyService::DOCTRINE)
-            ->willReturn($doctrine);
-
         $doctrine->method('getManagerNames')
             ->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')
@@ -102,6 +96,8 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
+
+        $this->command = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $result = $this->command->run($input, $output);
 
@@ -168,13 +164,10 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $this->container->method('has')->with(SymfonyService::DOCTRINE)->willReturn(true);
-        $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
-
         $fakerFactory     = new FakerFactory('en_US');
         $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
+        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
@@ -227,13 +220,10 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $this->container->method('has')->with(SymfonyService::DOCTRINE)->willReturn(true);
-        $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
-
         $fakerFactory     = new FakerFactory('en_US');
         $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
+        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
@@ -252,13 +242,6 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
     {
         $doctrine = $this->createMock(ManagerRegistry::class);
 
-        $this->container->method('has')
-            ->with(SymfonyService::DOCTRINE)
-            ->willReturn(true);
-        $this->container->method('get')
-            ->with(SymfonyService::DOCTRINE)
-            ->willReturn($doctrine);
-
         $doctrine->method('getManagerNames')
             ->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')
@@ -267,6 +250,8 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
 
         $input  = new ArrayInput(['--connection' => ['nonexistent']]);
         $output = new BufferedOutput();
+
+        $this->command = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $result = $this->command->run($input, $output);
 
@@ -314,13 +299,10 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $this->container->method('has')->with(SymfonyService::DOCTRINE)->willReturn(true);
-        $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
-
         $fakerFactory     = new FakerFactory('en_US');
         $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
+        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
@@ -353,13 +335,6 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $doctrine = $this->createMock(ManagerRegistry::class);
         $config   = $this->createMock(Configuration::class);
 
-        $this->container->method('has')
-            ->with(SymfonyService::DOCTRINE)
-            ->willReturn(true);
-        $this->container->method('get')
-            ->with(SymfonyService::DOCTRINE)
-            ->willReturn($doctrine);
-
         $doctrine->method('getManagerNames')
             ->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')
@@ -373,6 +348,8 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
 
         $input  = new ArrayInput([]);
         $output = new BufferedOutput();
+
+        $this->command = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $result = $this->command->run($input, $output);
 
@@ -388,9 +365,6 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $doctrine = $this->createMock(ManagerRegistry::class);
         $config   = $this->createMock(Configuration::class);
 
-        $this->container->method('has')->with(SymfonyService::DOCTRINE)->willReturn(true);
-        $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
-
         $doctrine->method('getManagerNames')->willReturn(['orm' => 'doctrine.orm.orm']);
         $doctrine->method('getManager')->willReturnCallback(static fn (?string $name = null): MockObject => $em);
 
@@ -399,6 +373,8 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
+
+        $this->command = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $result = $this->command->run($input, $output);
 
@@ -412,13 +388,6 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
     {
         $doctrine = $this->createMock(ManagerRegistry::class);
 
-        $this->container->method('has')
-            ->with(SymfonyService::DOCTRINE)
-            ->willReturn(true);
-        $this->container->method('get')
-            ->with(SymfonyService::DOCTRINE)
-            ->willReturn($doctrine);
-
         $doctrine->method('getManagerNames')
             ->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')
@@ -427,6 +396,8 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
+
+        $this->command = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $result = $this->command->run($input, $output);
 
@@ -481,13 +452,10 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $this->container->method('has')->with(SymfonyService::DOCTRINE)->willReturn(true);
-        $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
-
         $fakerFactory     = new FakerFactory('en_US');
         $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
+        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $outputPath = sys_get_temp_dir() . '/anonymize_col_migration_' . uniqid() . '.sql';
         $input      = new ArrayInput(['--connection' => ['default'], '--output' => $outputPath]);
@@ -556,13 +524,10 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $this->container->method('has')->with(SymfonyService::DOCTRINE)->willReturn(true);
-        $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
-
         $fakerFactory     = new FakerFactory('en_US');
         $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
+        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $outputPath = sys_get_temp_dir() . '/anonymize_col_migration_' . uniqid() . '.sql';
         $input      = new ArrayInput(['--connection' => ['default'], '--output' => $outputPath]);
@@ -625,13 +590,10 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $this->container->method('has')->with(SymfonyService::DOCTRINE)->willReturn(true);
-        $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
-
         $fakerFactory     = new FakerFactory('en_US');
         $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
+        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
@@ -703,13 +665,10 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $this->container->method('has')->with(SymfonyService::DOCTRINE)->willReturn(true);
-        $this->container->method('get')->with(SymfonyService::DOCTRINE)->willReturn($doctrine);
-
         $fakerFactory     = new FakerFactory('en_US');
         $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, []);
+        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
@@ -718,5 +677,86 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
 
         $this->assertEquals(GenerateAnonymizedColumnCommand::SUCCESS, $result);
         $this->assertStringContainsString('Generated Migration SQL:', $output->fetch());
+    }
+
+    /**
+     * Resolves entity manager by matching Doctrine connection name (not manager name).
+     */
+    public function testExecuteFindsManagerByConnectionName(): void
+    {
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getParams')->willReturn(['connectionName' => 'reporting']);
+        $em->method('getConnection')->willReturn($connection);
+
+        $config = $this->createMock(Configuration::class);
+        $config->method('getMetadataDriverImpl')->willReturn(null);
+        $em->method('getConfiguration')->willReturn($config);
+
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['orm' => 'doctrine.orm.orm']);
+        $doctrine->method('getManager')->with('orm')->willReturn($em);
+
+        $input  = new ArrayInput(['--connection' => ['reporting']]);
+        $output = new BufferedOutput();
+
+        $this->command = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+
+        $result = $this->command->run($input, $output);
+
+        $this->assertEquals(GenerateAnonymizedColumnCommand::SUCCESS, $result);
+        $this->assertStringNotContainsString('not found', $output->fetch());
+    }
+
+    /**
+     * Returns null (skip) when no manager matches the requested connection name.
+     */
+    public function testExecuteSkipsWhenNoManagerMatchesConnectionName(): void
+    {
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getParams')->willReturn(['connectionName' => 'default']);
+        $em->method('getConnection')->willReturn($connection);
+
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['orm' => 'doctrine.orm.orm']);
+        $doctrine->method('getManager')->with('orm')->willReturn($em);
+
+        $input  = new ArrayInput(['--connection' => ['unknown_conn']]);
+        $output = new BufferedOutput();
+
+        $this->command = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+
+        $result = $this->command->run($input, $output);
+
+        $this->assertEquals(GenerateAnonymizedColumnCommand::SUCCESS, $result);
+        $this->assertStringContainsString('not found', $output->fetch());
+    }
+
+    public function testExecuteFailsWhenEnvironmentProtectionBlocks(): void
+    {
+        $protection = new EnvironmentProtectionService(new ParameterBag([
+            'kernel.environment' => 'prod',
+            'kernel.project_dir' => sys_get_temp_dir(),
+        ]), []);
+        $command = new GenerateAnonymizedColumnCommand(
+            $this->container,
+            $this->anonymizeService,
+            $protection,
+            $this->createMock(ManagerRegistry::class),
+            [],
+        );
+        $input  = new ArrayInput([]);
+        $output = new BufferedOutput();
+        $this->assertSame(1, $command->run($input, $output));
+        $this->assertStringContainsString('Environment protection checks failed', $output->fetch());
+    }
+
+    private function createSafeEnvironmentProtection(): EnvironmentProtectionService
+    {
+        return new EnvironmentProtectionService(new ParameterBag([
+            'kernel.environment' => 'dev',
+            'kernel.project_dir' => sys_get_temp_dir(),
+        ]), []);
     }
 }

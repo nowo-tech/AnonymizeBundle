@@ -58,7 +58,9 @@ final class DbalHelper
             return $connection->quoteSingleIdentifier($identifier);
         }
 
-        // Fallback for older DBAL versions: use quoteIdentifier (DBAL 2.x)
+        // Fallback for older DBAL versions: use quoteIdentifier (DBAL 2.x).
+        // Unreachable on DBAL 3+/4 Connection (quoteSingleIdentifier always exists).
+        // @codeCoverageIgnoreStart
         // @phpstan-ignore function.alreadyNarrowedType (DBAL version / mock differences)
         if (method_exists($connection, 'quoteIdentifier')) {
             return $connection->quoteIdentifier($identifier);
@@ -66,6 +68,7 @@ final class DbalHelper
 
         // Last resort: driver-aware manual quoting (MySQL backticks, PostgreSQL/SQLite double quotes)
         return self::quoteIdentifierFallback($connection, $identifier);
+        // @codeCoverageIgnoreEnd
     }
 
     /**

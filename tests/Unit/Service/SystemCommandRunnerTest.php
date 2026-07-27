@@ -7,6 +7,8 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Service;
 use Nowo\AnonymizeBundle\Service\SystemCommandRunner;
 use PHPUnit\Framework\TestCase;
 
+use function is_resource;
+
 /**
  * Unit tests for SystemCommandRunner.
  */
@@ -110,5 +112,25 @@ class SystemCommandRunnerTest extends TestCase
         $this->assertSame(124, $code);
         $this->assertNotEmpty($output);
         $this->assertStringContainsString('timed out', implode(' ', $output));
+    }
+
+    /**
+     * commandExistsViaProcOpen returns false when stdout pipe is missing.
+     */
+    public function testCommandExistsReturnsFalseWhenStdoutPipeMissing(): void
+    {
+        $runner = new SystemCommandRunner(
+            static function (string $command, array $descriptors, array &$pipes) {
+                $process = proc_open('php -r "echo 1;"', $descriptors, $pipes); // @phpstan-ignore frankenphp.classic.noUnlimitedIoTimeout
+                if (is_resource($process) && isset($pipes[1])) {
+                    fclose($pipes[1]);
+                    unset($pipes[1]);
+                }
+
+                return $process;
+            },
+        );
+
+        $this->assertFalse($runner->commandExists('php'));
     }
 }

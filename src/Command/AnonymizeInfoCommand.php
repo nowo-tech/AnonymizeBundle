@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Command;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Exception;
-use Nowo\AnonymizeBundle\Enum\SymfonyService;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Helper\OrmHelper;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
+use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -41,15 +42,23 @@ use const JSON_UNESCAPED_SLASHES;
 )]
 final class AnonymizeInfoCommand extends AbstractCommand
 {
+    use EnvironmentProtectedCommandTrait;
+
     /**
      * Creates a new AnonymizeInfoCommand instance.
      *
+     * ContainerInterface is limited to parameter_bag, event_dispatcher, and project_dir resolution (REQ-DI-001).
+     *
      * @param ContainerInterface $container The service container
+     * @param EnvironmentProtectionService $environmentProtection Environment / DSN guard
+     * @param ManagerRegistry $doctrine Doctrine manager registry
      * @param string $locale The default locale for Faker generator (default: 'en_US')
      * @param array<string> $connections The default connections to process (empty = all)
      */
     public function __construct(
         private readonly ContainerInterface $container,
+        private readonly EnvironmentProtectionService $environmentProtection,
+        private readonly ManagerRegistry $doctrine,
         private readonly string $locale = 'en_US',
         private readonly array $connections = []
     ) {
@@ -94,17 +103,19 @@ final class AnonymizeInfoCommand extends AbstractCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io          = new SymfonyStyle($input, $output);
+        $io = new SymfonyStyle($input, $output);
+
+        if (($exit = $this->failIfEnvironmentUnsafe($io, $this->environmentProtection)) !== null) {
+            return $exit;
+        }
+
         $locale      = $input->getOption('locale') ?? $this->locale;
         $connections = $input->getOption('connection') ?: $this->connections;
 
         $io->title('Anonymizer Information');
 
-        // Get Doctrine registry
-        $doctrine = $this->container->get(SymfonyService::DOCTRINE);
-
         // Get all entity manager names
-        $allManagers       = $doctrine->getManagerNames();
+        $allManagers       = $this->doctrine->getManagerNames();
         $managersToProcess = empty($connections) ? array_keys($allManagers) : array_intersect(array_keys($allManagers), $connections);
 
         if ($managersToProcess === []) {
@@ -125,7 +136,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
             $io->section(sprintf('Entity Manager: <info>%s</info>', $managerName));
 
             try {
-                $em             = $doctrine->getManager($managerName);
+                $em             = $this->doctrine->getManager($managerName);
                 $connection     = $em->getConnection();
                 $connectionName = $connection->getDatabase();
 
