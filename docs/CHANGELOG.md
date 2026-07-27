@@ -24,6 +24,29 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.34] - 2026-07-27
+
+### Added
+
+- **`make check-open-prs`** / `.scripts/check-open-prs.sh`: fails when the GitHub repo has unresolved open pull requests; allows temporary `hold` / `do-not-merge` PRs with a future `review-by: YYYY-MM-DD` in the body (REQ-REL-003).
+
+### Changed
+
+- **`release-check`** (REQ-MAKE-002): order is now `ensure-up` → `check-no-cursor-coauthor` → `check-open-prs` → `composer-sync` → QA → demos.
+
+### Fixed
+
+_(none)_
+
+### Removed
+
+_(none)_
+
+### Documentation
+
+- **RELEASE.md** / **UPGRADING.md** / **README.md**: document the open-PR gate and bump status to **1.0.34**.
+
+---
 ## [1.0.33] - 2026-07-27
 
 ### Added

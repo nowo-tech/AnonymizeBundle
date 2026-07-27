@@ -5,6 +5,8 @@
 1. **Ensure everything is ready**
    - [CHANGELOG.md](CHANGELOG.md) has the target version (e.g. `[1.0.14]`) with date and full entry; `[Unreleased]` is at the top and empty or updated for the next cycle.
    - [UPGRADING.md](UPGRADING.md) has a section "Upgrading to X.Y.Z" with what's new, breaking changes (if any), and upgrade steps.
+   - Open PR queue clear: `make check-open-prs` (REQ-REL-003) — or only valid `hold` / `do-not-merge` exceptions with a future `review-by: YYYY-MM-DD` in the PR body.
+   - Prefer `make release-check` (REQ-MAKE-002) before tagging: `ensure-up` → `check-no-cursor-coauthor` → `check-open-prs` → QA → demos.
    - Tests pass: `make test` or `composer test`.
    - Code style: `make cs-check` or `composer cs-check`.
 

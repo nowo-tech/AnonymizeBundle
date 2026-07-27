@@ -24,6 +24,27 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.34
+
+**Release Date**: 2026-07-27
+
+#### What's New
+
+- **Maintainer tooling (REQ-REL-003 / REQ-MAKE-002)**: `make check-open-prs` (`.scripts/check-open-prs.sh`) fails on unresolved open GitHub PRs; wired into `release-check` after `check-no-cursor-coauthor`.
+
+#### Breaking Changes
+
+None for application consumers.
+
+#### Migration Steps
+
+1. **Update the bundle** (if you use Composer):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+No application or configuration changes are required. Maintainers: resolve open PRs (or label `hold` / `do-not-merge` with a future `review-by: YYYY-MM-DD` in the PR body) before `make release-check` / tagging.
+
 ### Upgrading to 1.0.33
 
 **Release Date**: 2026-07-27
