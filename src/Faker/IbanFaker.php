@@ -42,10 +42,11 @@ final readonly class IbanFaker implements FakerInterface
      *
      * @return string The anonymized IBAN
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $country   = $options['country'] ?? 'ES';
-        $formatted = $options['formatted'] ?? false;
+        $opts      = FakerOptions::normalize($options)->all();
+        $country   = $opts['country'] ?? 'ES';
+        $formatted = $opts['formatted'] ?? false;
 
         // Generate IBAN (Faker library generates valid IBANs by default)
         $iban = $this->faker->iban($country);

@@ -112,6 +112,7 @@ class UrlFakerTest extends TestCase
     public function testConstructor(): void
     {
         $faker = new UrlFaker('en_US');
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(UrlFaker::class, $faker);
     }
 

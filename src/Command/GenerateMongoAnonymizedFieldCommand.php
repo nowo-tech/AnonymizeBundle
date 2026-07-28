@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Command;
 
-use Exception;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
-use Psr\Container\ContainerInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -14,10 +12,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 use function count;
-use function dirname;
 use function sprintf;
 
 /**
@@ -43,11 +40,12 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
     /**
      * Creates a new GenerateMongoAnonymizedFieldCommand instance.
      *
-     * @param ContainerInterface $container The service container
+     * @param string $projectDir The kernel project directory
      * @param EnvironmentProtectionService $environmentProtection Environment / DSN guard
      */
     public function __construct(
-        private readonly ContainerInterface $container,
+        #[Autowire('%kernel.project_dir%')]
+        private readonly string $projectDir,
         private readonly EnvironmentProtectionService $environmentProtection,
     ) {
         parent::__construct();
@@ -196,13 +194,7 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
     {
         $collections = [];
 
-        // Try to determine project root
-        $projectRoot = $this->getProjectRoot();
-        if ($projectRoot === null) {
-            return $collections;
-        }
-
-        $scanPath = $documentPath ?? $projectRoot . '/src/Document';
+        $scanPath = $documentPath ?? $this->projectDir . '/src/Document';
         if (!is_dir($scanPath)) {
             return $collections;
         }
@@ -241,51 +233,6 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
         }
 
         return $collections;
-    }
-
-    /**
-     * Gets the project root directory.
-     *
-     * @return string|null The project root or null if not found
-     */
-    private function getProjectRoot(): ?string
-    {
-        // Try to get from container (parameter to avoid synthetic kernel service)
-        if (method_exists($this->container, 'hasParameter') && method_exists($this->container, 'getParameter')
-            && $this->container->hasParameter('kernel.project_dir')) {
-            return $this->container->getParameter('kernel.project_dir');
-        }
-        try {
-            if ($this->container->has('kernel')) {
-                $kernel = $this->container->get('kernel');
-                if ($kernel instanceof KernelInterface) {
-                    return $kernel->getProjectDir();
-                }
-            }
-            // @codeCoverageIgnoreStart
-        } catch (Exception) {
-            // Ignore broken kernel service; fall through to composer.json walk.
-        }
-        // @codeCoverageIgnoreEnd
-
-        // Fallback: try to find composer.json
-        $dir = __DIR__;
-        for ($i = 0; $i < 10; ++$i) {
-            if (file_exists($dir . '/composer.json')) {
-                return $dir;
-            }
-            $parent = dirname($dir);
-            // @codeCoverageIgnoreStart
-            if ($parent === $dir) {
-                break;
-            }
-            // @codeCoverageIgnoreEnd
-            $dir = $parent;
-        }
-
-        // @codeCoverageIgnoreStart
-        return null;
-        // @codeCoverageIgnoreEnd
     }
 
     /**

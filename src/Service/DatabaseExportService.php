@@ -8,7 +8,6 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
-use Psr\Container\ContainerInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ZipArchive;
@@ -31,7 +30,7 @@ final class DatabaseExportService
     /**
      * Creates a new DatabaseExportService instance.
      *
-     * @param ContainerInterface $container The service container
+     * @param string $projectDir The kernel project directory
      * @param string $outputDir The output directory for exports
      * @param string $filenamePattern The filename pattern
      * @param string $compression The compression format (none, gzip, bzip2, zip)
@@ -40,7 +39,7 @@ final class DatabaseExportService
      * @param float $timeoutSeconds Subprocess timeout for dumps/compression (REQ-RUNTIME-001)
      */
     public function __construct(
-        private readonly ContainerInterface $container,
+        private readonly string $projectDir,
         private readonly string $outputDir,
         private readonly string $filenamePattern,
         private readonly string $compression,
@@ -466,13 +465,9 @@ final class DatabaseExportService
      */
     private function updateGitignore(): void
     {
-        // Get project directory (use parameter to avoid synthetic kernel service)
-        $projectDir = null;
-        if (method_exists($this->container, 'hasParameter') && method_exists($this->container, 'getParameter')
-            && $this->container->hasParameter('kernel.project_dir')) {
-            $projectDir = $this->container->getParameter('kernel.project_dir');
-        }
-        if ($projectDir === null || $projectDir === '') {
+        $projectDir = $this->projectDir;
+
+        if ($projectDir === '') {
             return;
         }
 

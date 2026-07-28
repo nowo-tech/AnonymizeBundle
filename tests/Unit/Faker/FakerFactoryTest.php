@@ -30,6 +30,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('email');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -41,6 +42,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('name');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -52,6 +54,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('surname');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -63,6 +66,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('age');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -74,6 +78,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('phone');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -85,6 +90,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('iban');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -96,6 +102,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('credit_card');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -107,6 +114,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('address');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -118,6 +126,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('date');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -129,6 +138,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('username');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -140,6 +150,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('url');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -151,6 +162,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('company');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -162,6 +174,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('masking');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -173,6 +186,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('password');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -184,6 +198,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('ip_address');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -195,6 +210,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('mac_address');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -206,6 +222,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('uuid');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -217,6 +234,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('hash');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -228,6 +246,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('coordinate');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -239,6 +258,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('color');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -250,6 +270,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('boolean');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -261,6 +282,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('numeric');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -272,6 +294,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('file');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -283,6 +306,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('json');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -294,6 +318,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('text');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -305,6 +330,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('enum');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -316,6 +342,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('country');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -327,6 +354,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('language');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -338,6 +366,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create(FakerType::EMAIL);
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -362,6 +391,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('hash_preserve');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -373,6 +403,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('shuffle');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -384,6 +415,7 @@ class FakerFactoryTest extends TestCase
         $factory = new FakerFactory('en_US');
         $faker   = $factory->create('constant');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -396,6 +428,7 @@ class FakerFactoryTest extends TestCase
         $factory   = new FakerFactory('en_US', $container);
         $faker     = $factory->create('service', 'test_service');
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FakerInterface::class, $faker);
     }
 
@@ -484,6 +517,7 @@ class FakerFactoryTest extends TestCase
 
         foreach ($types as $type) {
             $faker = $factory->create($type);
+            // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
             $this->assertInstanceOf(FakerInterface::class, $faker);
         }
     }

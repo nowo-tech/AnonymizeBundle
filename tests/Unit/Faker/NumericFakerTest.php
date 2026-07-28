@@ -150,6 +150,7 @@ class NumericFakerTest extends TestCase
     public function testConstructor(): void
     {
         $faker = new NumericFaker('en_US');
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(NumericFaker::class, $faker);
     }
 

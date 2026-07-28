@@ -47,14 +47,15 @@ final readonly class EnumFaker implements FakerInterface
      *
      * @return mixed The selected value from the enum
      */
-    public function generate(array $options = []): mixed
+    public function generate(FakerOptions|array $options = []): mixed
     {
-        if (!isset($options['values']) || !is_array($options['values']) || empty($options['values'])) {
+        $opts = FakerOptions::normalize($options)->all();
+        if (!isset($opts['values']) || !is_array($opts['values']) || empty($opts['values'])) {
             throw new InvalidArgumentException('EnumFaker requires a "values" option with a non-empty array of possible values.');
         }
 
-        $values   = $options['values'];
-        $weighted = $options['weighted'] ?? null;
+        $values   = $opts['values'];
+        $weighted = $opts['weighted'] ?? null;
 
         // If weighted probabilities are provided, use them
         if ($weighted !== null && is_array($weighted) && $weighted !== []) {

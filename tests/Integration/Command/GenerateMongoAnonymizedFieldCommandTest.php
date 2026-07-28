@@ -6,16 +6,11 @@ namespace Nowo\AnonymizeBundle\Tests\Integration\Command;
 
 use Nowo\AnonymizeBundle\Command\GenerateMongoAnonymizedFieldCommand;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
-use Symfony\Component\HttpKernel\KernelInterface;
-
-use function is_string;
 
 /**
  * Test case for GenerateMongoAnonymizedFieldCommand.
@@ -25,13 +20,13 @@ use function is_string;
  */
 class GenerateMongoAnonymizedFieldCommandTest extends TestCase
 {
-    private MockObject $container;
+    private string $projectDir;
     private GenerateMongoAnonymizedFieldCommand $command;
 
     protected function setUp(): void
     {
-        $this->container = $this->createMock(ContainerInterface::class);
-        $this->command   = new GenerateMongoAnonymizedFieldCommand($this->container, $this->createSafeEnvironmentProtection());
+        $this->projectDir = sys_get_temp_dir();
+        $this->command    = new GenerateMongoAnonymizedFieldCommand($this->projectDir, $this->createSafeEnvironmentProtection());
     }
 
     /**
@@ -165,97 +160,21 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
     }
 
     /**
-     * Test that getProjectRoot returns null when kernel not available.
+     * Test that projectDir is used for the default document scan path.
+     * The scan defaults to <projectDir>/src/Document when no --document-path provided.
      */
-    public function testGetProjectRootReturnsNullWhenKernelNotAvailable(): void
+    public function testScanDocumentsUsesProjectDirAsDefaultRoot(): void
     {
-        $this->container->method('has')
-            ->with('kernel')
-            ->willReturn(false);
+        // Command has $projectDir = sys_get_temp_dir(); src/Document won't exist there
+        $input  = new ArrayInput(['--scan-documents' => true]);
+        $output = new BufferedOutput();
 
-        // Use reflection to test private method
-        $reflection = new ReflectionClass($this->command);
-        $method     = $reflection->getMethod('getProjectRoot');
+        $result        = $this->command->run($input, $output);
+        $outputContent = $output->fetch();
 
-        $result = $method->invoke($this->command);
-
-        // Should return null or a valid path
-        $this->assertTrue($result === null || is_string($result));
-    }
-
-    /**
-     * Test that getProjectRoot returns project dir from kernel.
-     */
-    public function testGetProjectRootReturnsFromKernel(): void
-    {
-        $kernel = $this->createMock(KernelInterface::class);
-        $kernel->method('getProjectDir')
-            ->willReturn('/test/project');
-
-        $this->container->method('has')
-            ->willReturnCallback(static fn (string $id): bool => $id === 'kernel');
-        $this->container->method('get')
-            ->willReturnCallback(static fn (string $id): mixed => $id === 'kernel' ? $kernel : null);
-
-        // Use reflection to test private method
-        $reflection = new ReflectionClass($this->command);
-        $method     = $reflection->getMethod('getProjectRoot');
-
-        $result = $method->invoke($this->command);
-
-        $this->assertEquals('/test/project', $result);
-    }
-
-    /**
-     * Test that execute with --scan-documents uses getProjectRoot via kernel when container has no hasParameter.
-     * Covers getProjectRoot() branch that uses kernel->getProjectDir() (lines 242-248).
-     */
-    public function testExecuteWithScanDocumentsUsesKernelProjectDirWhenNoParameterBag(): void
-    {
-        $tmpDir  = sys_get_temp_dir() . '/mongo_kernel_root_' . uniqid();
-        $docPath = $tmpDir . '/src/Document';
-        mkdir($tmpDir, 0o755, true);
-        mkdir($docPath, 0o755, true);
-
-        $kernel = $this->createMock(KernelInterface::class);
-        $kernel->method('getProjectDir')->willReturn($tmpDir);
-
-        // Container that only has get/has (no hasParameter) so getProjectRoot uses kernel path
-        $container = new class($kernel) implements ContainerInterface {
-            public function __construct(private readonly KernelInterface $kernel)
-            {
-            }
-
-            public function get(string $id): mixed
-            {
-                return $id === 'kernel' ? $this->kernel : null;
-            }
-
-            public function has(string $id): bool
-            {
-                return $id === 'kernel';
-            }
-        };
-
-        $command = new GenerateMongoAnonymizedFieldCommand($container, $this->createSafeEnvironmentProtection());
-        $input   = new ArrayInput(['--scan-documents' => true, '--document-path' => $docPath]);
-        $output  = new BufferedOutput();
-
-        $result = $command->run($input, $output);
-
+        // If src/Document doesn't exist in temp dir, scan returns nothing
         $this->assertSame(GenerateMongoAnonymizedFieldCommand::FAILURE, $result);
-        $this->assertStringContainsString('Scanning document classes', $output->fetch());
-
-        if (is_dir($docPath)) {
-            @array_map(unlink(...), glob($docPath . '/*') ?: []);
-            @rmdir($docPath);
-        }
-        if (is_dir($tmpDir . '/src')) {
-            @rmdir($tmpDir . '/src');
-        }
-        if (is_dir($tmpDir)) {
-            @rmdir($tmpDir);
-        }
+        $this->assertStringContainsString('Scanning document classes', $outputContent);
     }
 
     /**
@@ -274,64 +193,15 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
     }
 
     /**
-     * Test that scanDocumentClasses returns empty array when project root not found.
-     * Note: Simplified test due to final class constraint.
-     */
-    public function testScanDocumentClassesReturnsEmptyWhenProjectRootNotFound(): void
-    {
-        $this->container->method('has')
-            ->with('kernel')
-            ->willReturn(false);
-
-        // Use reflection to test private method
-        $reflection = new ReflectionClass($this->command);
-        $scanMethod = $reflection->getMethod('scanDocumentClasses');
-
-        // When project root is not found, it should return empty array
-        // This is tested indirectly through the path not existing test
-        $result = $scanMethod->invoke($this->command, '/nonexistent/path');
-
-        $this->assertIsArray($result);
-        $this->assertEmpty($result);
-    }
-
-    /**
      * Test that execute with --scan-documents and no collections found shows warning and then failure.
      */
     public function testExecuteWithScanDocumentsNoCollectionsFoundShowsWarning(): void
     {
-        $tmpDir = sys_get_temp_dir() . '/mongo_scan_test_' . uniqid();
-        mkdir($tmpDir, 0o755, true);
+        $tmpDir  = sys_get_temp_dir() . '/mongo_scan_test_' . uniqid();
         $docPath = $tmpDir . '/src/Document';
         mkdir($docPath, 0o755, true);
 
-        $container = new class($tmpDir) implements ContainerInterface {
-            public function __construct(private readonly string $projectDir)
-            {
-            }
-
-            public function get(string $id): mixed
-            {
-                return null;
-            }
-
-            public function has(string $id): bool
-            {
-                return false;
-            }
-
-            public function hasParameter(string $name): bool
-            {
-                return $name === 'kernel.project_dir';
-            }
-
-            public function getParameter(string $name): mixed
-            {
-                return $name === 'kernel.project_dir' ? $this->projectDir : null;
-            }
-        };
-
-        $command = new GenerateMongoAnonymizedFieldCommand($container, $this->createSafeEnvironmentProtection());
+        $command = new GenerateMongoAnonymizedFieldCommand($tmpDir, $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--scan-documents' => true, '--document-path' => $docPath]);
         $output  = new BufferedOutput();
 
@@ -365,7 +235,6 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
     {
         $tmpDir  = sys_get_temp_dir() . '/mongo_scan_found_' . uniqid();
         $docPath = $tmpDir . '/Document';
-        mkdir($tmpDir, 0o755, true);
         mkdir($docPath, 0o755, true);
 
         $phpContent = <<<'PHP'
@@ -394,33 +263,7 @@ class Event {}
 PHP;
         file_put_contents($docPath . '/Event.php', $phpWithCollectionEq);
 
-        $container = new class($tmpDir) implements ContainerInterface {
-            public function __construct(private readonly string $projectDir)
-            {
-            }
-
-            public function get(string $id): mixed
-            {
-                return null;
-            }
-
-            public function has(string $id): bool
-            {
-                return false;
-            }
-
-            public function hasParameter(string $name): bool
-            {
-                return $name === 'kernel.project_dir';
-            }
-
-            public function getParameter(string $name): mixed
-            {
-                return $name === 'kernel.project_dir' ? $this->projectDir : null;
-            }
-        };
-
-        $command = new GenerateMongoAnonymizedFieldCommand($container, $this->createSafeEnvironmentProtection());
+        $command = new GenerateMongoAnonymizedFieldCommand($tmpDir, $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--scan-documents' => true, '--document-path' => $docPath]);
         $output  = new BufferedOutput();
 
@@ -444,44 +287,6 @@ PHP;
     }
 
     /**
-     * Test that when getProjectRoot() returns null, scan finds no collections (early return).
-     */
-    public function testExecuteWithScanDocumentsWhenProjectRootIsNullFindsNoCollections(): void
-    {
-        $container = new class implements ContainerInterface {
-            public function get(string $id): mixed
-            {
-                return null;
-            }
-
-            public function has(string $id): bool
-            {
-                return false;
-            }
-
-            public function hasParameter(string $name): bool
-            {
-                return $name === 'kernel.project_dir';
-            }
-
-            public function getParameter(string $name): mixed
-            {
-                return $name === 'kernel.project_dir' ? null : null;
-            }
-        };
-
-        $command = new GenerateMongoAnonymizedFieldCommand($container, $this->createSafeEnvironmentProtection());
-        $input   = new ArrayInput(['--scan-documents' => true, '--document-path' => '/any/path']);
-        $output  = new BufferedOutput();
-
-        $result = $command->run($input, $output);
-
-        $outputContent = $output->fetch();
-        $this->assertStringContainsString('No collections found', $outputContent);
-        $this->assertEquals(GenerateMongoAnonymizedFieldCommand::FAILURE, $result);
-    }
-
-    /**
      * Test that when document-path is not a directory, scan returns no collections.
      */
     public function testExecuteWithScanDocumentsWhenDocumentPathIsNotDirectory(): void
@@ -492,33 +297,7 @@ PHP;
         file_put_contents($filePath, '<?php ');
         $notDirPath = $filePath;
 
-        $container = new class($tmpDir) implements ContainerInterface {
-            public function __construct(private readonly string $projectDir)
-            {
-            }
-
-            public function get(string $id): mixed
-            {
-                return null;
-            }
-
-            public function has(string $id): bool
-            {
-                return false;
-            }
-
-            public function hasParameter(string $name): bool
-            {
-                return $name === 'kernel.project_dir';
-            }
-
-            public function getParameter(string $name): mixed
-            {
-                return $name === 'kernel.project_dir' ? $this->projectDir : null;
-            }
-        };
-
-        $command = new GenerateMongoAnonymizedFieldCommand($container, $this->createSafeEnvironmentProtection());
+        $command = new GenerateMongoAnonymizedFieldCommand($tmpDir, $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--scan-documents' => true, '--document-path' => $notDirPath]);
         $output  = new BufferedOutput();
 
@@ -539,7 +318,6 @@ PHP;
     {
         $tmpDir  = sys_get_temp_dir() . '/mongo_scan_unreadable_' . uniqid();
         $docPath = $tmpDir . '/Document';
-        mkdir($tmpDir, 0o755, true);
         mkdir($docPath, 0o755, true);
 
         $readable   = $docPath . '/Readable.php';
@@ -548,33 +326,7 @@ PHP;
         file_put_contents($unreadable, "<?php\n#[Anonymize]\n#[Doc(collection: 'unreadable_coll')]\nclass U {}");
         chmod($unreadable, 0o000);
 
-        $container = new class($tmpDir) implements ContainerInterface {
-            public function __construct(private readonly string $projectDir)
-            {
-            }
-
-            public function get(string $id): mixed
-            {
-                return null;
-            }
-
-            public function has(string $id): bool
-            {
-                return false;
-            }
-
-            public function hasParameter(string $name): bool
-            {
-                return $name === 'kernel.project_dir';
-            }
-
-            public function getParameter(string $name): mixed
-            {
-                return $name === 'kernel.project_dir' ? $this->projectDir : null;
-            }
-        };
-
-        $command = new GenerateMongoAnonymizedFieldCommand($container, $this->createSafeEnvironmentProtection());
+        $command = new GenerateMongoAnonymizedFieldCommand($tmpDir, $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--scan-documents' => true, '--document-path' => $docPath]);
         $output  = new BufferedOutput();
 
@@ -598,39 +350,12 @@ PHP;
     {
         $tmpDir  = sys_get_temp_dir() . '/mongo_scan_nonphp_' . uniqid();
         $docPath = $tmpDir . '/Document';
-        mkdir($tmpDir, 0o755, true);
         mkdir($docPath, 0o755, true);
 
         file_put_contents($docPath . '/notes.txt', "#[Anonymize]\ncollection: ignored_coll\n");
         file_put_contents($docPath . '/User.php', "<?php\n#[Anonymize]\n#[Doc(collection: 'users')]\nclass User {}");
 
-        $container = new class($tmpDir) implements ContainerInterface {
-            public function __construct(private readonly string $projectDir)
-            {
-            }
-
-            public function get(string $id): mixed
-            {
-                return null;
-            }
-
-            public function has(string $id): bool
-            {
-                return false;
-            }
-
-            public function hasParameter(string $name): bool
-            {
-                return $name === 'kernel.project_dir';
-            }
-
-            public function getParameter(string $name): mixed
-            {
-                return $name === 'kernel.project_dir' ? $this->projectDir : null;
-            }
-        };
-
-        $command = new GenerateMongoAnonymizedFieldCommand($container, $this->createSafeEnvironmentProtection());
+        $command = new GenerateMongoAnonymizedFieldCommand($tmpDir, $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--scan-documents' => true, '--document-path' => $docPath]);
         $output  = new BufferedOutput();
 
@@ -653,7 +378,7 @@ PHP;
             'kernel.environment' => 'prod',
             'kernel.project_dir' => sys_get_temp_dir(),
         ]), []);
-        $command = new GenerateMongoAnonymizedFieldCommand($this->container, $protection);
+        $command = new GenerateMongoAnonymizedFieldCommand($this->projectDir, $protection);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
         $this->assertSame(1, $command->run($input, $output));

@@ -48,12 +48,13 @@ final readonly class NameFallbackFaker implements FakerInterface
      *
      * @return string The anonymized name
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $fallbackField  = $options['fallback_field'] ?? null;
-        $record         = $options['record'] ?? [];
-        $gender         = $options['gender'] ?? 'random';
-        $localeSpecific = $options['locale_specific'] ?? true;
+        $opts           = FakerOptions::normalize($options)->all();
+        $fallbackField  = $opts['fallback_field'] ?? null;
+        $record         = $opts['record'] ?? [];
+        $gender         = $opts['gender'] ?? 'random';
+        $localeSpecific = $opts['locale_specific'] ?? true;
 
         // Get the related field value from the record
         $relatedValue = null;

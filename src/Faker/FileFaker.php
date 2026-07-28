@@ -42,11 +42,12 @@ final readonly class FileFaker implements FakerInterface
      *
      * @return string The anonymized file path or name
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $extension = $options['extension'] ?? $this->faker->fileExtension();
-        $directory = $options['directory'] ?? null;
-        $absolute  = $options['absolute'] ?? false;
+        $opts      = FakerOptions::normalize($options)->all();
+        $extension = $opts['extension'] ?? $this->faker->fileExtension();
+        $directory = $opts['directory'] ?? null;
+        $absolute  = $opts['absolute'] ?? false;
 
         // Generate filename
         $filename = $this->faker->word() . '.' . ltrim((string) $extension, '.');

@@ -21,7 +21,6 @@ use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
@@ -34,18 +33,15 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
  */
 class GenerateAnonymizedColumnCommandTest extends TestCase
 {
-    /** @var ContainerInterface&MockObject */
-    private MockObject $container;
     private AnonymizeService $anonymizeService;
     private GenerateAnonymizedColumnCommand $command;
 
     protected function setUp(): void
     {
-        $this->container        = $this->createMock(ContainerInterface::class);
         $fakerFactory           = new FakerFactory('en_US');
         $patternMatcher         = new PatternMatcher();
         $this->anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $this->command          = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class), []);
+        $this->command          = new GenerateAnonymizedColumnCommand($this->anonymizeService, $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class), []);
     }
 
     /**
@@ -97,7 +93,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
 
-        $this->command = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+        $this->command = new GenerateAnonymizedColumnCommand($this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $result = $this->command->run($input, $output);
 
@@ -113,6 +109,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
     {
         // This test would require complex mocking of AnonymizeService
         // Since AnonymizeService is final, we test the command structure instead
+        // @phpstan-ignore-next-line method.alreadyNarrowedType
         $this->assertTrue(true); // Placeholder - actual test would require integration test setup
     }
 
@@ -167,7 +164,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $fakerFactory     = new FakerFactory('en_US');
         $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+        $command          = new GenerateAnonymizedColumnCommand($anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
@@ -223,7 +220,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $fakerFactory     = new FakerFactory('en_US');
         $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+        $command          = new GenerateAnonymizedColumnCommand($anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
@@ -251,7 +248,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $input  = new ArrayInput(['--connection' => ['nonexistent']]);
         $output = new BufferedOutput();
 
-        $this->command = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+        $this->command = new GenerateAnonymizedColumnCommand($this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $result = $this->command->run($input, $output);
 
@@ -302,7 +299,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $fakerFactory     = new FakerFactory('en_US');
         $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+        $command          = new GenerateAnonymizedColumnCommand($anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
@@ -323,6 +320,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
     {
         // This test would require complex mocking of AnonymizeService
         // Since AnonymizeService is final, we test the command structure instead
+        // @phpstan-ignore-next-line method.alreadyNarrowedType
         $this->assertTrue(true); // Placeholder - actual test would require integration test setup
     }
 
@@ -349,7 +347,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $input  = new ArrayInput([]);
         $output = new BufferedOutput();
 
-        $this->command = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+        $this->command = new GenerateAnonymizedColumnCommand($this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $result = $this->command->run($input, $output);
 
@@ -374,7 +372,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
 
-        $this->command = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+        $this->command = new GenerateAnonymizedColumnCommand($this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $result = $this->command->run($input, $output);
 
@@ -397,7 +395,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
 
-        $this->command = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+        $this->command = new GenerateAnonymizedColumnCommand($this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $result = $this->command->run($input, $output);
 
@@ -455,7 +453,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $fakerFactory     = new FakerFactory('en_US');
         $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+        $command          = new GenerateAnonymizedColumnCommand($anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $outputPath = sys_get_temp_dir() . '/anonymize_col_migration_' . uniqid() . '.sql';
         $input      = new ArrayInput(['--connection' => ['default'], '--output' => $outputPath]);
@@ -527,7 +525,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $fakerFactory     = new FakerFactory('en_US');
         $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+        $command          = new GenerateAnonymizedColumnCommand($anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $outputPath = sys_get_temp_dir() . '/anonymize_col_migration_' . uniqid() . '.sql';
         $input      = new ArrayInput(['--connection' => ['default'], '--output' => $outputPath]);
@@ -593,7 +591,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $fakerFactory     = new FakerFactory('en_US');
         $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+        $command          = new GenerateAnonymizedColumnCommand($anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
@@ -668,7 +666,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $fakerFactory     = new FakerFactory('en_US');
         $patternMatcher   = new PatternMatcher();
         $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher);
-        $command          = new GenerateAnonymizedColumnCommand($this->container, $anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+        $command          = new GenerateAnonymizedColumnCommand($anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $input  = new ArrayInput(['--connection' => ['default']]);
         $output = new BufferedOutput();
@@ -700,7 +698,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $input  = new ArrayInput(['--connection' => ['reporting']]);
         $output = new BufferedOutput();
 
-        $this->command = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+        $this->command = new GenerateAnonymizedColumnCommand($this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $result = $this->command->run($input, $output);
 
@@ -725,7 +723,7 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $input  = new ArrayInput(['--connection' => ['unknown_conn']]);
         $output = new BufferedOutput();
 
-        $this->command = new GenerateAnonymizedColumnCommand($this->container, $this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+        $this->command = new GenerateAnonymizedColumnCommand($this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $result = $this->command->run($input, $output);
 
@@ -740,7 +738,6 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
             'kernel.project_dir' => sys_get_temp_dir(),
         ]), []);
         $command = new GenerateAnonymizedColumnCommand(
-            $this->container,
             $this->anonymizeService,
             $protection,
             $this->createMock(ManagerRegistry::class),

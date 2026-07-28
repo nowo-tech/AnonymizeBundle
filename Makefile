@@ -5,7 +5,7 @@ COMPOSE_FILE := docker-compose.yml
 COMPOSE     := docker-compose -f $(COMPOSE_FILE)
 SERVICE_PHP := php
 
-.PHONY: help up down down-dev build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up assets release-check release-check-demos composer-sync rector rector-dry phpstan update update-deps update-deps-demos validate check-no-cursor-coauthor check-open-prs strip-cursor-coauthor-from-history
+.PHONY: help up down down-dev build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up assets release-check release-check-demos composer-sync rector rector-dry phpstan update update-deps update-deps-demos validate check-no-cursor-coauthor check-open-prs strip-cursor-coauthor-from-history demo-smoke
 
 # Default target
 help:
@@ -23,6 +23,7 @@ help:
 	@echo "  assets        No frontend assets in this bundle (no-op)"
 	@echo "  test          Run PHPUnit tests (unit tests only)"
 	@echo "  test-coverage Run tests with code coverage (unit tests only)"
+	@echo "  demo-smoke    Boot demo/symfony8 and assert HTTP 200 (REQ-TEST-011)"
 	@echo "  coverage-php-percent Print global PHP Lines % from coverage-php.txt (after test-coverage)"
 	@echo "  cs-check      Check code style"
 	@echo "  cs-fix        Fix code style"
@@ -47,6 +48,7 @@ help:
 	@echo "  setup-hooks   Install git pre-commit hooks"
 	@echo ""
 	@echo "Demos:"
+	@echo "  demo-smoke    Boot FrankenPHP demo and curl HTTP 200 (REQ-TEST-011)"
 	@echo "  (use make -C demo or make -C demo/symfonyX)"
 	@echo ""
 
@@ -177,6 +179,17 @@ qa: ensure-up
 
 # Pre-release (REQ-MAKE-002): ensure-up → git/PR gates → composer-sync → QA → demos
 release-check: ensure-up check-no-cursor-coauthor check-open-prs composer-sync cs-fix cs-check rector-dry phpstan test-coverage release-check-demos
+
+# REQ-TEST-011 — boot demo stack and assert one HTTP 200
+demo-smoke:
+	@$(MAKE) -C demo/symfony8 up
+	@PORT=$$(grep "^PORT=" demo/symfony8/.env 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
+	[ -z "$$PORT" ] && PORT=$$(grep "^PORT=" demo/symfony8/.env.example 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
+	[ -z "$$PORT" ] && PORT=8002; \
+	echo "Smoke GET http://localhost:$$PORT/"; \
+	code=$$(curl -fsS -o /dev/null -w "%{http_code}" "http://localhost:$$PORT/" || true); \
+	if [ "$$code" != "200" ]; then echo "demo-smoke failed: HTTP $$code"; exit 1; fi; \
+	echo "demo-smoke OK (HTTP 200)"
 
 release-check-demos:
 	@$(MAKE) -C demo release-check

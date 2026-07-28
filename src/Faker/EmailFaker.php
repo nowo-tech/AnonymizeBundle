@@ -50,11 +50,12 @@ final readonly class EmailFaker implements FakerInterface
      *
      * @return string The anonymized email address
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $domain          = $options['domain'] ?? null;
-        $format          = $options['format'] ?? 'random';
-        $localPartLength = $options['local_part_length'] ?? null;
+        $opts            = FakerOptions::normalize($options)->all();
+        $domain          = $opts['domain'] ?? null;
+        $format          = $opts['format'] ?? 'random';
+        $localPartLength = $opts['local_part_length'] ?? null;
 
         // Generate local part based on format
         $localPart = match ($format) {
@@ -76,8 +77,8 @@ final readonly class EmailFaker implements FakerInterface
 
         $email = $localPart . '@' . $emailDomain;
 
-        if ($options['ensure_unique'] ?? true) {
-            $email = $this->appendUniqueSuffix($email, $options);
+        if ($opts['ensure_unique'] ?? true) {
+            $email = $this->appendUniqueSuffix($email, $opts);
         }
 
         return $email;

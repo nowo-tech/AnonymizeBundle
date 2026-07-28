@@ -14,10 +14,12 @@ use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Exception;
 use Nowo\AnonymizeBundle\Command\AnonymizeInfoCommand;
+use Nowo\AnonymizeBundle\Faker\FakerFactory;
+use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
+use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
@@ -35,9 +37,9 @@ class AnonymizeInfoCommandTest extends TestCase
      */
     public function testCommandCanBeInstantiated(): void
     {
-        $container = $this->createMock(ContainerInterface::class);
-        $command   = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class), 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class), 'en_US', []);
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(AnonymizeInfoCommand::class, $command);
     }
 
@@ -46,8 +48,7 @@ class AnonymizeInfoCommandTest extends TestCase
      */
     public function testCommandConfigureRegistersOptions(): void
     {
-        $container = $this->createMock(ContainerInterface::class);
-        $command   = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class), 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class), 'en_US', []);
 
         $definition = $command->getDefinition();
 
@@ -61,13 +62,12 @@ class AnonymizeInfoCommandTest extends TestCase
      */
     public function testCommandReturnsFailureWhenNoEntityManagers(): void
     {
-        $container = $this->createMock(ContainerInterface::class);
-        $doctrine  = $this->createMock(ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
 
         $doctrine->method('getManagerNames')
             ->willReturn([]);
 
-        $command = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -82,11 +82,10 @@ class AnonymizeInfoCommandTest extends TestCase
      */
     public function testCommandReturnsFailureWhenConnectionOptionMatchesNoManager(): void
     {
-        $container = $this->createMock(ContainerInterface::class);
-        $doctrine  = $this->createMock(ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
 
-        $command = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
         $input   = new ArrayInput(['--connection' => ['other', 'mongodb']]);
         $output  = new BufferedOutput();
 
@@ -101,7 +100,6 @@ class AnonymizeInfoCommandTest extends TestCase
      */
     public function testCommandHandlesEmptyConnections(): void
     {
-        $container  = $this->createMock(ContainerInterface::class);
         $doctrine   = $this->createMock(ManagerRegistry::class);
         $em         = $this->createMock(EntityManagerInterface::class);
         $connection = $this->createMock(Connection::class);
@@ -120,7 +118,7 @@ class AnonymizeInfoCommandTest extends TestCase
             ->willReturn('test_db');
 
         // Mock AnonymizeService to return empty entities
-        $command = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -142,8 +140,7 @@ class AnonymizeInfoCommandTest extends TestCase
      */
     public function testCommandHandlesExceptionDuringProcessing(): void
     {
-        $container = $this->createMock(ContainerInterface::class);
-        $doctrine  = $this->createMock(ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
 
         $doctrine->method('getManagerNames')
             ->willReturn(['default' => 'default']);
@@ -152,7 +149,7 @@ class AnonymizeInfoCommandTest extends TestCase
             ->with('default')
             ->willThrowException(new Exception('Test exception'));
 
-        $command = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -167,9 +164,9 @@ class AnonymizeInfoCommandTest extends TestCase
      */
     public function testCommandUsesDefaultLocale(): void
     {
-        $container = $this->createMock(ContainerInterface::class);
-        $command   = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class), 'es_ES', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class), 'es_ES', []);
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(AnonymizeInfoCommand::class, $command);
     }
 
@@ -178,9 +175,9 @@ class AnonymizeInfoCommandTest extends TestCase
      */
     public function testCommandUsesProvidedConnections(): void
     {
-        $container = $this->createMock(ContainerInterface::class);
-        $command   = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class), 'en_US', ['default', 'postgres']);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class), 'en_US', ['default', 'postgres']);
 
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(AnonymizeInfoCommand::class, $command);
     }
 
@@ -189,8 +186,7 @@ class AnonymizeInfoCommandTest extends TestCase
      */
     public function testCommandConfigureSetsOptions(): void
     {
-        $container = $this->createMock(ContainerInterface::class);
-        $command   = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class), 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class), 'en_US', []);
 
         $definition = $command->getDefinition();
 
@@ -203,13 +199,12 @@ class AnonymizeInfoCommandTest extends TestCase
      */
     public function testCommandHandlesLocaleOption(): void
     {
-        $container = $this->createMock(ContainerInterface::class);
-        $doctrine  = $this->createMock(ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
 
         $doctrine->method('getManagerNames')
             ->willReturn([]);
 
-        $command = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
         $input   = new ArrayInput(['--locale' => 'es_ES']);
         $output  = new BufferedOutput();
 
@@ -224,13 +219,12 @@ class AnonymizeInfoCommandTest extends TestCase
      */
     public function testCommandHandlesConnectionOption(): void
     {
-        $container = $this->createMock(ContainerInterface::class);
-        $doctrine  = $this->createMock(ManagerRegistry::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
 
         $doctrine->method('getManagerNames')
             ->willReturn(['default' => 'default']);
 
-        $command = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
         $input   = new ArrayInput(['--connection' => ['default']]);
         $output  = new BufferedOutput();
 
@@ -292,9 +286,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $container = $this->createMock(ContainerInterface::class);
-
-        $command = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -334,9 +326,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default', 'other' => 'other']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $container = $this->createMock(ContainerInterface::class);
-
-        $command = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
         $input   = new ArrayInput(['--connection' => ['default']]);
         $output  = new BufferedOutput();
 
@@ -389,9 +379,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $container = $this->createMock(ContainerInterface::class);
-
-        $command = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -457,9 +445,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $container = $this->createMock(ContainerInterface::class);
-
-        $command = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -520,9 +506,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $container = $this->createMock(ContainerInterface::class);
-
-        $command = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -587,9 +571,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $container = $this->createMock(ContainerInterface::class);
-
-        $command = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -658,9 +640,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $container = $this->createMock(ContainerInterface::class);
-
-        $command = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
         $result  = $command->run(new ArrayInput([]), new BufferedOutput());
 
         $this->assertSame(0, $result);
@@ -716,9 +696,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $container = $this->createMock(ContainerInterface::class);
-
-        $command = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
         $output  = new BufferedOutput();
         $result  = $command->run(new ArrayInput([]), $output);
 
@@ -776,9 +754,7 @@ class AnonymizeInfoCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $container = $this->createMock(ContainerInterface::class);
-
-        $command = new AnonymizeInfoCommand($container, $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
         $output  = new BufferedOutput();
         $result  = $command->run(new ArrayInput([]), $output);
 
@@ -790,16 +766,20 @@ class AnonymizeInfoCommandTest extends TestCase
 
     public function testExecuteFailsWhenEnvironmentProtectionBlocks(): void
     {
-        $container  = $this->createMock(ContainerInterface::class);
         $protection = new EnvironmentProtectionService(new ParameterBag([
             'kernel.environment' => 'prod',
             'kernel.project_dir' => sys_get_temp_dir(),
         ]), []);
-        $command = new AnonymizeInfoCommand($container, $protection, $this->createMock(ManagerRegistry::class));
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $protection, $this->createMock(ManagerRegistry::class));
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
         $this->assertSame(1, $command->run($input, $output));
         $this->assertStringContainsString('Environment protection checks failed', $output->fetch());
+    }
+
+    private function createDefaultAnonymizeService(): AnonymizeService
+    {
+        return new AnonymizeService(new FakerFactory('en_US'), new PatternMatcher());
     }
 
     private function createSafeEnvironmentProtection(): EnvironmentProtectionService

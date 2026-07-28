@@ -43,10 +43,11 @@ final readonly class ColorFaker implements FakerInterface
      *
      * @return string The anonymized color value
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $format = $options['format'] ?? 'hex';
-        $alpha  = (float) ($options['alpha'] ?? 1.0);
+        $opts   = FakerOptions::normalize($options)->all();
+        $format = $opts['format'] ?? 'hex';
+        $alpha  = (float) ($opts['alpha'] ?? 1.0);
 
         return match ($format) {
             'rgb'   => sprintf('rgb(%d, %d, %d)', $this->faker->numberBetween(0, 255), $this->faker->numberBetween(0, 255), $this->faker->numberBetween(0, 255)),

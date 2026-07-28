@@ -36,7 +36,7 @@ final readonly class EnvironmentProtectionService
     }
 
     /**
-     * @return array<string, string> Error messages (empty if all checks pass)
+     * @return list<string> Error messages (empty if all checks pass)
      */
     public function performChecks(): array
     {
@@ -125,11 +125,13 @@ final readonly class EnvironmentProtectionService
             $haystacks = [$url];
             $parts     = parse_url($url);
             if (is_array($parts)) {
-                if (isset($parts['host']) && is_string($parts['host'])) {
-                    $haystacks[] = $parts['host'];
+                $host = $parts['host'] ?? null;
+                if (is_string($host) && $host !== '') {
+                    $haystacks[] = $host;
                 }
-                if (isset($parts['path']) && is_string($parts['path'])) {
-                    $haystacks[] = $parts['path'];
+                $path = $parts['path'] ?? null;
+                if (is_string($path) && $path !== '') {
+                    $haystacks[] = $path;
                 }
             }
 

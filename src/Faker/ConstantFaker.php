@@ -33,12 +33,13 @@ final class ConstantFaker implements FakerInterface
      *
      * @return mixed the constant value
      */
-    public function generate(array $options = []): mixed
+    public function generate(FakerOptions|array $options = []): mixed
     {
-        if (!array_key_exists('value', $options)) {
+        $opts = FakerOptions::normalize($options)->all();
+        if (!array_key_exists('value', $opts)) {
             throw new InvalidArgumentException('ConstantFaker requires a "value" option specifying the constant value to use.');
         }
 
-        return $options['value'];
+        return $opts['value'];
     }
 }

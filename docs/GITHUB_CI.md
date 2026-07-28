@@ -2,6 +2,18 @@
 
 Canonical per-repo doc for **REQ-GIT-001** (no Cursor co-author trailers). Copy this file to `docs/GITHUB_CI.md` in every nowo-tech bundle and keep it in sync with the shared template under `repositories/bundles/.scripts/templates/GITHUB_CI.md`.
 
+## Table of contents
+
+- [Scope](#scope)
+- [REQ-GIT-001 — History without Cursor co-author](#req-git-001-history-without-cursor-co-author)
+- [Mandatory artifacts (adoption checklist)](#mandatory-artifacts-adoption-checklist)
+- [Verify (local or CI)](#verify-local-or-ci)
+- [Clean already-published history](#clean-already-published-history)
+- [Prevention](#prevention)
+- [Common pitfalls](#common-pitfalls)
+- [Acceptance criteria](#acceptance-criteria)
+- [References](#references)
+
 ## Scope
 
 | Applies to | Does not apply to |

@@ -46,12 +46,13 @@ final readonly class PasswordFaker implements FakerInterface
      *
      * @return string The anonymized password
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $length           = (int) ($options['length'] ?? 12);
-        $includeSpecial   = $options['include_special'] ?? true;
-        $includeNumbers   = $options['include_numbers'] ?? true;
-        $includeUppercase = $options['include_uppercase'] ?? true;
+        $opts             = FakerOptions::normalize($options)->all();
+        $length           = (int) ($opts['length'] ?? 12);
+        $includeSpecial   = $opts['include_special'] ?? true;
+        $includeNumbers   = $opts['include_numbers'] ?? true;
+        $includeUppercase = $opts['include_uppercase'] ?? true;
 
         // Define character sets
         $lowercase = 'abcdefghijklmnopqrstuvwxyz';

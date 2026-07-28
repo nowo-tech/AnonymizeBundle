@@ -46,13 +46,14 @@ final readonly class UsernameFaker implements FakerInterface
      *
      * @return string The anonymized username
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $minLength      = (int) ($options['min_length'] ?? 5);
-        $maxLength      = (int) ($options['max_length'] ?? 20);
-        $prefix         = $options['prefix'] ?? '';
-        $suffix         = $options['suffix'] ?? '';
-        $includeNumbers = $options['include_numbers'] ?? true;
+        $opts           = FakerOptions::normalize($options)->all();
+        $minLength      = (int) ($opts['min_length'] ?? 5);
+        $maxLength      = (int) ($opts['max_length'] ?? 20);
+        $prefix         = $opts['prefix'] ?? '';
+        $suffix         = $opts['suffix'] ?? '';
+        $includeNumbers = $opts['include_numbers'] ?? true;
 
         // Calculate available length for base username (accounting for prefix and suffix)
         $prefixLength    = strlen((string) $prefix);

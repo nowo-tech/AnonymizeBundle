@@ -16,31 +16,17 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
  */
 class EnvironmentProtectionServiceTest extends TestCase
 {
-    /**
-     * @return array{0: mixed, 1: mixed}
-     */
-    private function backupEnv(string $key): array
+    private function backupEnv(string $key): mixed
     {
-        return [$_SERVER[$key] ?? null, getenv($key)];
+        return $_SERVER[$key] ?? null;
     }
 
-    /**
-     * @param array{0: mixed, 1: mixed} $backup
-     */
-    private function restoreEnv(string $key, array $backup): void
+    private function restoreEnv(string $key, mixed $backup): void
     {
-        [$server, $getenv] = $backup;
-
-        if ($server === null) {
+        if ($backup === null) {
             unset($_SERVER[$key]);
         } else {
-            $_SERVER[$key] = $server;
-        }
-
-        if ($getenv === false || $getenv === null) {
-            putenv($key);
-        } else {
-            putenv($key . '=' . $getenv);
+            $_SERVER[$key] = $backup;
         }
     }
 
@@ -57,7 +43,7 @@ class EnvironmentProtectionServiceTest extends TestCase
         $errors = $service->performChecks();
 
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Unsafe environment', array_values($errors)[0]);
+        $this->assertStringContainsString('Unsafe environment', $errors[0]);
     }
 
     /**
@@ -67,7 +53,6 @@ class EnvironmentProtectionServiceTest extends TestCase
     {
         $backup                  = $this->backupEnv('DATABASE_URL');
         $_SERVER['DATABASE_URL'] = 'mysql://user:pass@prod-db.example.com:3306/app';
-        putenv('DATABASE_URL=mysql://user:pass@prod-db.example.com:3306/app');
 
         try {
             $service = new EnvironmentProtectionService(new ParameterBag([
@@ -78,8 +63,8 @@ class EnvironmentProtectionServiceTest extends TestCase
             $errors = $service->performChecks();
 
             $this->assertNotEmpty($errors);
-            $this->assertStringContainsString('Blocked connection marker', array_values($errors)[0]);
-            $this->assertStringContainsString('DATABASE_URL', array_values($errors)[0]);
+            $this->assertStringContainsString('Blocked connection marker', $errors[0]);
+            $this->assertStringContainsString('DATABASE_URL', $errors[0]);
         } finally {
             $this->restoreEnv('DATABASE_URL', $backup);
         }
@@ -92,7 +77,6 @@ class EnvironmentProtectionServiceTest extends TestCase
     {
         $backup                  = $this->backupEnv('DATABASE_URL');
         $_SERVER['DATABASE_URL'] = 'mysql://user:pass@prod-db.example.com:3306/app';
-        putenv('DATABASE_URL=mysql://user:pass@prod-db.example.com:3306/app');
 
         try {
             $service = new EnvironmentProtectionService(new ParameterBag([
@@ -154,7 +138,7 @@ class EnvironmentProtectionServiceTest extends TestCase
             $errors = $service->performChecks();
 
             $this->assertNotEmpty($errors);
-            $this->assertStringContainsString('Production configuration file detected', array_values($errors)[0]);
+            $this->assertStringContainsString('Production configuration file detected', $errors[0]);
         } finally {
             unlink($tempDir . '/config/packages/prod/nowo_anonymize.yaml');
             rmdir($tempDir . '/config/packages/prod');
@@ -190,7 +174,7 @@ class EnvironmentProtectionServiceTest extends TestCase
             $errors = $service->performChecks();
 
             $this->assertNotEmpty($errors);
-            $this->assertStringContainsString('Bundle is registered for production', array_values($errors)[0]);
+            $this->assertStringContainsString('Bundle is registered for production', $errors[0]);
         } finally {
             unlink($tempDir . '/config/bundles.php');
             rmdir($tempDir . '/config');

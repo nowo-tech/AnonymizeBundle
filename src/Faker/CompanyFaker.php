@@ -41,12 +41,13 @@ final readonly class CompanyFaker implements FakerInterface
      *
      * @return string The anonymized company name
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
+        $opts        = FakerOptions::normalize($options)->all();
         $companyName = $this->faker->company();
 
-        $suffix = $options['suffix'] ?? null;
-        $type   = $options['type'] ?? null;
+        $suffix = $opts['suffix'] ?? null;
+        $type   = $opts['type'] ?? null;
 
         if ($suffix !== null) {
             // Remove existing suffix if any

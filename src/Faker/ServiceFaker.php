@@ -50,8 +50,9 @@ final readonly class ServiceFaker implements FakerInterface
      *
      * @return mixed The anonymized value
      */
-    public function generate(array $options = []): mixed
+    public function generate(FakerOptions|array $options = []): mixed
     {
+        $opts = FakerOptions::normalize($options)->all();
         if (!$this->container->has($this->serviceName)) {
             throw new RuntimeException(sprintf('Service "%s" not found.', $this->serviceName));
         }

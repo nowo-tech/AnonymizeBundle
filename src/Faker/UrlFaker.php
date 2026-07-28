@@ -42,11 +42,12 @@ final readonly class UrlFaker implements FakerInterface
      *
      * @return string The anonymized URL
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $scheme      = $options['scheme'] ?? 'https';
-        $domain      = $options['domain'] ?? null;
-        $includePath = $options['path'] ?? true;
+        $opts        = FakerOptions::normalize($options)->all();
+        $scheme      = $opts['scheme'] ?? 'https';
+        $domain      = $opts['domain'] ?? null;
+        $includePath = $opts['path'] ?? true;
 
         if ($domain !== null) {
             $url = $scheme . '://' . $domain;

@@ -35,15 +35,16 @@ final class ShuffleFaker implements FakerInterface
      *
      * @return mixed a randomly selected value from the pool
      */
-    public function generate(array $options = []): mixed
+    public function generate(FakerOptions|array $options = []): mixed
     {
-        if (!isset($options['values']) || !is_array($options['values']) || empty($options['values'])) {
+        $opts = FakerOptions::normalize($options)->all();
+        if (!isset($opts['values']) || !is_array($opts['values']) || empty($opts['values'])) {
             throw new InvalidArgumentException('ShuffleFaker requires a "values" option with a non-empty array of values to shuffle from.');
         }
 
-        $values  = $options['values'];
-        $seed    = $options['seed'] ?? null;
-        $exclude = $options['exclude'] ?? null;
+        $values  = $opts['values'];
+        $seed    = $opts['seed'] ?? null;
+        $exclude = $opts['exclude'] ?? null;
 
         // Filter out excluded value if specified
         if ($exclude !== null) {

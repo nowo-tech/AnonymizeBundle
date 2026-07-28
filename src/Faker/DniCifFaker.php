@@ -62,11 +62,12 @@ final readonly class DniCifFaker implements FakerInterface
      *
      * @return string The anonymized DNI/CIF/NIF
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $type          = $options['type'] ?? 'auto';
-        $formatted     = $options['formatted'] ?? false;
-        $originalValue = $options['original_value'] ?? null;
+        $opts          = FakerOptions::normalize($options)->all();
+        $type          = $opts['type'] ?? 'auto';
+        $formatted     = $opts['formatted'] ?? false;
+        $originalValue = $opts['original_value'] ?? null;
 
         // Auto-detect type from original value if available
         if ($type === 'auto' && $originalValue !== null && is_string($originalValue)) {

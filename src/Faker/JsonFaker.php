@@ -47,11 +47,12 @@ final readonly class JsonFaker implements FakerInterface
      *
      * @return string The anonymized JSON string
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $schema   = $options['schema'] ?? null;
-        $depth    = (int) ($options['depth'] ?? 2);
-        $maxItems = (int) ($options['max_items'] ?? 5);
+        $opts     = FakerOptions::normalize($options)->all();
+        $schema   = $opts['schema'] ?? null;
+        $depth    = (int) ($opts['depth'] ?? 2);
+        $maxItems = (int) ($opts['max_items'] ?? 5);
 
         if ($schema !== null && is_array($schema)) {
             $data = $this->generateFromSchema($schema, $depth);

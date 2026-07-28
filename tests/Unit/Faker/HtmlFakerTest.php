@@ -243,6 +243,7 @@ class HtmlFakerTest extends TestCase
     public function testConstructor(): void
     {
         $faker = new HtmlFaker('en_US');
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(HtmlFaker::class, $faker);
     }
 

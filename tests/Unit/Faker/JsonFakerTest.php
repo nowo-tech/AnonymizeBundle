@@ -202,6 +202,7 @@ class JsonFakerTest extends TestCase
     public function testConstructor(): void
     {
         $faker = new JsonFaker('en_US');
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(JsonFaker::class, $faker);
     }
 

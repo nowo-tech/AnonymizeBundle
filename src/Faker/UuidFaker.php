@@ -41,10 +41,11 @@ final readonly class UuidFaker implements FakerInterface
      *
      * @return string The anonymized UUID
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $version = (int) ($options['version'] ?? 4);
-        $format  = $options['format'] ?? 'with_dashes';
+        $opts    = FakerOptions::normalize($options)->all();
+        $version = (int) ($opts['version'] ?? 4);
+        $format  = $opts['format'] ?? 'with_dashes';
 
         // Generate UUID based on version
         $uuid = match ($version) {

@@ -37,16 +37,17 @@ final class MapFaker implements FakerInterface
      *
      * @return mixed the replacement value from the map, or default/original when not mapped
      */
-    public function generate(array $options = []): mixed
+    public function generate(FakerOptions|array $options = []): mixed
     {
-        if (!isset($options['map']) || !is_array($options['map']) || empty($options['map'])) {
+        $opts = FakerOptions::normalize($options)->all();
+        if (!isset($opts['map']) || !is_array($opts['map']) || empty($opts['map'])) {
             throw new InvalidArgumentException('MapFaker requires a "map" option with a non-empty associative array (original_value => replacement_value).');
         }
 
-        $map                     = $options['map'];
-        $originalValue           = $options['original_value'] ?? null;
-        $default                 = $options['default'] ?? null;
-        $useDefaultWhenNotMapped = array_key_exists('default', $options);
+        $map                     = $opts['map'];
+        $originalValue           = $opts['original_value'] ?? null;
+        $default                 = $opts['default'] ?? null;
+        $useDefaultWhenNotMapped = array_key_exists('default', $opts);
 
         if (array_key_exists($originalValue, $map)) {
             return $map[$originalValue];

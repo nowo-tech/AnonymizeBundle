@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Service;
 
+use DateTimeImmutable;
+use Psr\Clock\ClockInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\Kernel;
 
@@ -35,6 +37,11 @@ final class AnonymizationHistoryService
     private readonly string $historyDir;
 
     /**
+     * @var ClockInterface The clock used to get the current time
+     */
+    private readonly ClockInterface $clock;
+
+    /**
      * Optional provider for Symfony version (used in tests to cover 'unknown' branch).
      *
      * @var callable(): string|null
@@ -52,13 +59,20 @@ final class AnonymizationHistoryService
      * Creates a new AnonymizationHistoryService instance.
      *
      * @param string $historyDir The directory where anonymization history is stored
+     * @param ClockInterface|null $clock Clock for getting the current time; uses system clock when null
      * @param callable(): string|null $symfonyVersionProvider Optional; when set, used instead of detecting Kernel (for tests)
      * @param callable(): bool|null $kernelClassExistsProvider Optional; when set, used instead of class_exists(Kernel::class) (for tests)
      */
-    public function __construct(string $historyDir, ?callable $symfonyVersionProvider = null, ?callable $kernelClassExistsProvider = null)
+    public function __construct(string $historyDir, ?ClockInterface $clock = null, ?callable $symfonyVersionProvider = null, ?callable $kernelClassExistsProvider = null)
     {
-        $this->filesystem                = new Filesystem();
-        $this->historyDir                = rtrim($historyDir, '/');
+        $this->filesystem = new Filesystem();
+        $this->historyDir = rtrim($historyDir, '/');
+        $this->clock      = $clock ?? new class implements ClockInterface {
+            public function now(): DateTimeImmutable
+            {
+                return new DateTimeImmutable();
+            }
+        };
         $this->symfonyVersionProvider    = $symfonyVersionProvider;
         $this->kernelClassExistsProvider = $kernelClassExistsProvider;
     }
@@ -81,8 +95,8 @@ final class AnonymizationHistoryService
         // Create history entry
         $historyEntry = [
             'id'        => $this->generateRunId(),
-            'timestamp' => time(),
-            'datetime'  => date('Y-m-d H:i:s'),
+            'timestamp' => $this->clock->now()->getTimestamp(),
+            'datetime'  => date('Y-m-d H:i:s', $this->clock->now()->getTimestamp()),
             'metadata'  => array_merge([
                 'environment'     => ($_SERVER['APP_ENV'] ?? getenv('APP_ENV')) ?: 'unknown',
                 'php_version'     => PHP_VERSION,
@@ -247,7 +261,7 @@ final class AnonymizationHistoryService
      */
     public function cleanup(int $daysToKeep = 30): int
     {
-        $cutoffTime = time() - ($daysToKeep * 24 * 60 * 60);
+        $cutoffTime = $this->clock->now()->getTimestamp() - ($daysToKeep * 24 * 60 * 60);
         $runs       = $this->getRuns();
         $deleted    = 0;
 
@@ -271,7 +285,7 @@ final class AnonymizationHistoryService
      */
     private function generateRunId(): string
     {
-        return substr(md5(uniqid((string) time(), true)), 0, 12);
+        return substr(md5(uniqid((string) $this->clock->now()->getTimestamp(), true)), 0, 12);
     }
 
     /**

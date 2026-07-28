@@ -43,13 +43,14 @@ final readonly class DateFaker implements FakerInterface
      *
      * @return string The anonymized date
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $format = $options['format'] ?? 'Y-m-d';
-        $type   = $options['type'] ?? 'between';
+        $opts   = FakerOptions::normalize($options)->all();
+        $format = $opts['format'] ?? 'Y-m-d';
+        $type   = $opts['type'] ?? 'between';
 
-        $minDate = $this->parseDate($options['min_date'] ?? '-100 years');
-        $maxDate = $this->parseDate($options['max_date'] ?? 'now');
+        $minDate = $this->parseDate($opts['min_date'] ?? '-100 years');
+        $maxDate = $this->parseDate($opts['max_date'] ?? 'now');
 
         $date = match ($type) {
             'past'    => $this->faker->dateTimeBetween($minDate, 'now'),

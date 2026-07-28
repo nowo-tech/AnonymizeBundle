@@ -6,14 +6,11 @@ namespace Nowo\AnonymizeBundle\Command;
 
 use Nowo\AnonymizeBundle\Service\AnonymizationHistoryService;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
-use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Throwable;
 
 use function count;
 use function sprintf;
@@ -35,10 +32,8 @@ final class AnonymizationHistoryCommand extends AbstractCommand
 {
     use EnvironmentProtectedCommandTrait;
 
-    private const DEFAULT_HISTORY_DIR = '%kernel.project_dir%/var/anonymize_history';
-
     public function __construct(
-        private readonly ContainerInterface $container,
+        private readonly AnonymizationHistoryService $historyService,
         private readonly EnvironmentProtectionService $environmentProtection,
     ) {
         parent::__construct();
@@ -91,14 +86,10 @@ final class AnonymizationHistoryCommand extends AbstractCommand
             return $exit;
         }
 
-        // Get history directory from parameter
-        $historyDir     = $this->getHistoryDir();
-        $historyService = new AnonymizationHistoryService($historyDir);
-
         // Handle cleanup
         if ($input->getOption('cleanup')) {
             $days    = (int) ($input->getOption('days') ?? 30);
-            $deleted = $historyService->cleanup($days);
+            $deleted = $this->historyService->cleanup($days);
             $io->success(sprintf('Cleaned up %d old run(s) (kept runs from last %d days)', $deleted, $days));
 
             return self::SUCCESS;
@@ -113,7 +104,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
                 return self::FAILURE;
             }
 
-            $comparison = $historyService->compareRuns(trim($runIds[0]), trim($runIds[1]));
+            $comparison = $this->historyService->compareRuns(trim($runIds[0]), trim($runIds[1]));
             if ($comparison === null) {
                 $io->error('One or both runs not found');
 
@@ -133,7 +124,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
 
         // Handle single run view
         if ($input->getOption('run-id') !== null) {
-            $run = $historyService->getRun($input->getOption('run-id'));
+            $run = $this->historyService->getRun($input->getOption('run-id'));
             if ($run === null) {
                 $io->error(sprintf('Run with ID "%s" not found', $input->getOption('run-id')));
 
@@ -154,7 +145,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
         // List all runs
         $limit      = $input->getOption('limit') !== null ? (int) $input->getOption('limit') : null;
         $connection = $input->getOption('connection');
-        $runs       = $historyService->getRuns($limit, $connection);
+        $runs       = $this->historyService->getRuns($limit, $connection);
 
         if ($runs === []) {
             $io->info('No anonymization runs found in history.');
@@ -350,60 +341,5 @@ final class AnonymizationHistoryCommand extends AbstractCommand
         $remainingSeconds = $seconds % 60;
 
         return sprintf('%d m %.2f s', $minutes, $remainingSeconds);
-    }
-
-    /**
-     * Gets the history directory from container parameters (nowo_anonymize.history_dir),
-     * with fallback to ENV and then default.
-     *
-     * @return string The history directory path
-     */
-    private function getHistoryDir(): string
-    {
-        $historyDir = null;
-
-        if ($this->container->has('parameter_bag')) {
-            try {
-                $parameterBag = $this->container->get('parameter_bag');
-                if ($parameterBag instanceof ParameterBagInterface && $parameterBag->has('nowo_anonymize.history_dir')) {
-                    $historyDir = $parameterBag->get('nowo_anonymize.history_dir');
-                }
-            } catch (Throwable) {
-                // Ignore and fall through to ENV/default
-            }
-        }
-
-        if ($historyDir === null) {
-            $historyDir = ($_SERVER['NOWO_ANONYMIZE_HISTORY_DIR'] ?? getenv('NOWO_ANONYMIZE_HISTORY_DIR')) ?: self::DEFAULT_HISTORY_DIR;
-        }
-
-        if (str_contains((string) $historyDir, '%kernel.project_dir%')) {
-            $projectDir = $this->getProjectDirFromContainer();
-            if ($projectDir !== null) {
-                $historyDir = str_replace('%kernel.project_dir%', $projectDir, (string) $historyDir);
-            }
-            // @codeCoverageIgnoreStart
-            // Rare: getcwd() failed so projectDir was null and placeholder remains.
-            if (str_contains((string) $historyDir, '%kernel.project_dir%')) {
-                $historyDir = str_replace('%kernel.project_dir%', getcwd() ?: '.', (string) $historyDir);
-            }
-            // @codeCoverageIgnoreEnd
-        }
-
-        return (string) $historyDir;
-    }
-
-    /**
-     * Returns project directory without using the synthetic kernel service.
-     */
-    private function getProjectDirFromContainer(): ?string
-    {
-        if (method_exists($this->container, 'hasParameter') && method_exists($this->container, 'getParameter')
-            && $this->container->hasParameter('kernel.project_dir')) {
-            return $this->container->getParameter('kernel.project_dir');
-        }
-        $cwd = getcwd();
-
-        return $cwd !== false ? $cwd : null;
     }
 }

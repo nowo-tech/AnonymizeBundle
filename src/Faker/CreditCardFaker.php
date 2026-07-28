@@ -42,11 +42,12 @@ final readonly class CreditCardFaker implements FakerInterface
      *
      * @return string The anonymized credit card number
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $type      = $options['type'] ?? 'random';
-        $valid     = $options['valid'] ?? true;
-        $formatted = $options['formatted'] ?? false;
+        $opts      = FakerOptions::normalize($options)->all();
+        $type      = $opts['type'] ?? 'random';
+        $valid     = $opts['valid'] ?? true;
+        $formatted = $opts['formatted'] ?? false;
 
         // Generate card number based on type
         $cardNumber = match ($type) {

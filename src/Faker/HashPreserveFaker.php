@@ -38,18 +38,19 @@ final class HashPreserveFaker implements FakerInterface
      *
      * @return string the hashed value
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
+        $opts = FakerOptions::normalize($options)->all();
         // Support both 'original_value' (standard) and 'value' (backward compatibility)
-        $value = $options['original_value'] ?? $options['value'] ?? null;
+        $value = $opts['original_value'] ?? $opts['value'] ?? null;
 
         if ($value === null) {
             throw new InvalidArgumentException('HashPreserveFaker requires an "original_value" (or "value") option with the original value to hash.');
         }
-        $algorithm      = $options['algorithm'] ?? 'sha256';
-        $salt           = $options['salt'] ?? '';
-        $preserveFormat = $options['preserve_format'] ?? false;
-        $length         = $options['length'] ?? null;
+        $algorithm      = $opts['algorithm'] ?? 'sha256';
+        $salt           = $opts['salt'] ?? '';
+        $preserveFormat = $opts['preserve_format'] ?? false;
+        $length         = $opts['length'] ?? null;
 
         // Convert to string
         $valueToHash = (string) $value;

@@ -122,6 +122,7 @@ class PhoneFakerTest extends TestCase
     public function testConstructor(): void
     {
         $faker = new PhoneFaker('en_US');
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(PhoneFaker::class, $faker);
     }
 

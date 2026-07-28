@@ -41,9 +41,10 @@ final readonly class NameFaker implements FakerInterface
      *
      * @return string The anonymized first name
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $gender = $options['gender'] ?? 'random';
+        $opts   = FakerOptions::normalize($options)->all();
+        $gender = $opts['gender'] ?? 'random';
 
         // If locale_specific is false, we could use a different locale, but for simplicity
         // we'll use the current locale. The option is kept for API consistency.

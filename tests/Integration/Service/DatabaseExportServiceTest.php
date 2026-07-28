@@ -11,11 +11,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Nowo\AnonymizeBundle\Service\CommandRunnerInterface;
 use Nowo\AnonymizeBundle\Service\DatabaseExportService;
 use Nowo\AnonymizeBundle\Service\SystemCommandRunner;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Psr\Container\ContainerInterface;
 use ReflectionClass;
-use Symfony\Component\HttpKernel\KernelInterface;
 
 use function dirname;
 
@@ -31,15 +28,11 @@ class DatabaseExportServiceTest extends TestCase
 {
     private string $tempDir;
 
-    /** @var ContainerInterface&MockObject */
-    private MockObject $container;
-
     protected function setUp(): void
     {
         $this->tempDir = sys_get_temp_dir() . '/anonymize_export_test_' . uniqid();
         mkdir($this->tempDir, 0o755, true);
 
-        $this->container = $this->createMock(ContainerInterface::class);
     }
 
     protected function tearDown(): void
@@ -55,7 +48,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testGenerateFilename(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -101,7 +94,7 @@ class DatabaseExportServiceTest extends TestCase
         };
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $exportDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -173,7 +166,7 @@ class DatabaseExportServiceTest extends TestCase
         };
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $exportDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -214,7 +207,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportConnectionReturnsNullForUnsupportedDriver(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -244,7 +237,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportSQLiteCopiesFile(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -278,7 +271,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportSQLiteWithZipCompression(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'zip',
@@ -315,7 +308,7 @@ class DatabaseExportServiceTest extends TestCase
         $this->assertDirectoryDoesNotExist($exportDir);
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $exportDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'zip',
@@ -352,7 +345,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportSQLiteReturnsNullWhenPathMissing(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -380,7 +373,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportSQLiteReturnsNullWhenPathDoesNotExist(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -410,7 +403,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportSQLiteReturnsNullWhenCopyFails(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -448,7 +441,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportConnectionReturnsNullForMySQLWhenMysqldumpNotAvailable(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -477,7 +470,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportConnectionReturnsNullForPostgreSQLWhenPgDumpNotAvailable(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -510,7 +503,7 @@ class DatabaseExportServiceTest extends TestCase
         $this->assertDirectoryDoesNotExist($nonExistentDir);
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $nonExistentDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -545,7 +538,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportConnectionHandlesCompression(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'gzip',
@@ -574,7 +567,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportConnectionHandlesAutoGitignore(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -605,34 +598,8 @@ class DatabaseExportServiceTest extends TestCase
         $exportDir  = $this->tempDir . '/var/exports';
         $projectDir = $this->tempDir;
 
-        $container = new class($projectDir) implements ContainerInterface {
-            public function __construct(private readonly string $projectDir)
-            {
-            }
-
-            public function get(string $id): mixed
-            {
-                return null;
-            }
-
-            public function has(string $id): bool
-            {
-                return false;
-            }
-
-            public function hasParameter(string $name): bool
-            {
-                return $name === 'kernel.project_dir';
-            }
-
-            public function getParameter(string $name): mixed
-            {
-                return $name === 'kernel.project_dir' ? $this->projectDir : null;
-            }
-        };
-
         $service = new DatabaseExportService(
-            $container,
+            $projectDir,
             $exportDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -678,34 +645,8 @@ class DatabaseExportServiceTest extends TestCase
         $existingEntry = "var/exports/\n";
         file_put_contents($gitignorePath, $existingEntry);
 
-        $container = new class($projectDir) implements ContainerInterface {
-            public function __construct(private readonly string $projectDir)
-            {
-            }
-
-            public function get(string $id): mixed
-            {
-                return null;
-            }
-
-            public function has(string $id): bool
-            {
-                return false;
-            }
-
-            public function hasParameter(string $name): bool
-            {
-                return $name === 'kernel.project_dir';
-            }
-
-            public function getParameter(string $name): mixed
-            {
-                return $name === 'kernel.project_dir' ? $this->projectDir : null;
-            }
-        };
-
         $service = new DatabaseExportService(
-            $container,
+            $projectDir,
             $exportDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -741,7 +682,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportMongoDBReturnsNullWhenCommandNotAvailable(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -777,7 +718,7 @@ class DatabaseExportServiceTest extends TestCase
         };
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $outputDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'zip',
@@ -815,7 +756,7 @@ class DatabaseExportServiceTest extends TestCase
         };
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $exportDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'zip',
@@ -850,7 +791,7 @@ class DatabaseExportServiceTest extends TestCase
         };
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $exportDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'zip',
@@ -897,7 +838,7 @@ class DatabaseExportServiceTest extends TestCase
         };
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $exportDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'zip',
@@ -919,7 +860,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportMongoDBHandlesCompression(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'zip',
@@ -937,7 +878,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportConnectionHandlesDifferentCompressionFormats(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'bzip2',
@@ -966,7 +907,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportConnectionHandlesZipCompression(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'zip',
@@ -995,7 +936,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportMongoDBHandlesDifferentCompressionFormats(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'bzip2',
@@ -1013,7 +954,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportMongoDBHandlesTarCompression(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'gzip',
@@ -1072,7 +1013,7 @@ class DatabaseExportServiceTest extends TestCase
         };
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $exportDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'gzip',
@@ -1094,7 +1035,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportConnectionHandlesTrailingSlash(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir . '/',
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -1125,21 +1066,9 @@ class DatabaseExportServiceTest extends TestCase
         $projectDir = $this->tempDir . '/project';
         mkdir($projectDir, 0o755, true);
 
-        $kernel = $this->createMock(KernelInterface::class);
-        $kernel->method('getProjectDir')
-            ->willReturn($projectDir);
-
-        $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')
-            ->with('kernel')
-            ->willReturn(true);
-        $container->method('get')
-            ->with('kernel')
-            ->willReturn($kernel);
-
         $exportDir = $projectDir . '/exports';
         $service   = new DatabaseExportService(
-            $container,
+            $projectDir,
             $exportDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -1182,21 +1111,9 @@ class DatabaseExportServiceTest extends TestCase
         $gitignorePath = $projectDir . '/.gitignore';
         file_put_contents($gitignorePath, "exports/\n");
 
-        $kernel = $this->createMock(KernelInterface::class);
-        $kernel->method('getProjectDir')
-            ->willReturn($projectDir);
-
-        $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')
-            ->with('kernel')
-            ->willReturn(true);
-        $container->method('get')
-            ->with('kernel')
-            ->willReturn($kernel);
-
         $exportDir = $projectDir . '/exports';
         $service   = new DatabaseExportService(
-            $container,
+            $projectDir,
             $exportDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -1234,7 +1151,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testGenerateFilenameHandlesAllPlaceholders(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -1265,7 +1182,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testGenerateFilenameHandlesCustomPatterns(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             'backup_{database}_{date}.sql',
             'none',
@@ -1295,7 +1212,7 @@ class DatabaseExportServiceTest extends TestCase
     {
         // Test MySQL
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             'test.{format}',
             'none',
@@ -1329,7 +1246,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportSQLiteHandlesNullPath(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -1359,7 +1276,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportSQLiteHandlesNonExistentFile(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -1391,7 +1308,7 @@ class DatabaseExportServiceTest extends TestCase
         // This is tested indirectly through exportConnection
         // When compression is enabled but export fails, compressFile won't be called
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'gzip',
@@ -1422,7 +1339,7 @@ class DatabaseExportServiceTest extends TestCase
         // mongodump is not available, so this will return null early
         // But we test the structure
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -1443,31 +1360,9 @@ class DatabaseExportServiceTest extends TestCase
         $gitignorePath = $projectDir . '/.gitignore';
         file_put_contents($gitignorePath, '');
 
-        $container = new class implements ContainerInterface {
-            public function get(string $id): mixed
-            {
-                return null;
-            }
-
-            public function has(string $id): bool
-            {
-                return false;
-            }
-
-            public function hasParameter(string $name): bool
-            {
-                return $name === 'kernel.project_dir';
-            }
-
-            public function getParameter(string $name): mixed
-            {
-                return $name === 'kernel.project_dir' ? '' : null;
-            }
-        };
-
         $exportDir = $this->tempDir . '/exports_empty';
         $service   = new DatabaseExportService(
-            $container,
+            '',
             $exportDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -1502,7 +1397,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testUpdateGitignoreReturnsEarlyWhenNoKernel(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -1534,7 +1429,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportSQLiteWithGzipCompression(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'gzip',
@@ -1569,7 +1464,7 @@ class DatabaseExportServiceTest extends TestCase
     public function testExportSQLiteWithBzip2Compression(): void
     {
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'bzip2',
@@ -1609,7 +1504,7 @@ class DatabaseExportServiceTest extends TestCase
         $method  = $ref->getMethod('createZipArchive');
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             'x',
             'none',
@@ -1636,7 +1531,7 @@ class DatabaseExportServiceTest extends TestCase
         $method = $ref->getMethod('createZipArchive');
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             'x',
             'none',
@@ -1661,7 +1556,7 @@ class DatabaseExportServiceTest extends TestCase
         $method  = $ref->getMethod('createTarArchive');
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             'x',
             'none',
@@ -1687,7 +1582,7 @@ class DatabaseExportServiceTest extends TestCase
         $method = $ref->getMethod('createTarArchive');
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             'x',
             'none',
@@ -1713,7 +1608,7 @@ class DatabaseExportServiceTest extends TestCase
         $method = $ref->getMethod('createTarArchive');
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             'x',
             'none',
@@ -1734,7 +1629,7 @@ class DatabaseExportServiceTest extends TestCase
         $method = $ref->getMethod('getFileExtension');
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
@@ -1760,7 +1655,7 @@ class DatabaseExportServiceTest extends TestCase
         $method = $ref->getMethod('compressFile');
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             'x',
             'gzip',
@@ -1788,7 +1683,7 @@ class DatabaseExportServiceTest extends TestCase
         $method = $ref->getMethod('compressFile');
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             'x',
             'bzip2',
@@ -1817,7 +1712,7 @@ class DatabaseExportServiceTest extends TestCase
         $method = $ref->getMethod('createZipArchive');
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             'x',
             'none',
@@ -1843,7 +1738,7 @@ class DatabaseExportServiceTest extends TestCase
         $method = $ref->getMethod('removeDirectory');
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             'x',
             'none',
@@ -1868,7 +1763,7 @@ class DatabaseExportServiceTest extends TestCase
         $method = $ref->getMethod('removeDirectory');
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             'x',
             'none',
@@ -1889,7 +1784,7 @@ class DatabaseExportServiceTest extends TestCase
         $method = $ref->getMethod('removeDirectory');
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             'x',
             'none',
@@ -1937,7 +1832,7 @@ class DatabaseExportServiceTest extends TestCase
         $method = $ref->getMethod('createZipArchive');
 
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             'x',
             'none',
@@ -1997,34 +1892,8 @@ class DatabaseExportServiceTest extends TestCase
             }
         };
 
-        $container = new class($projectDir) implements ContainerInterface {
-            public function __construct(private readonly string $projectDir)
-            {
-            }
-
-            public function get(string $id): mixed
-            {
-                return null;
-            }
-
-            public function has(string $id): bool
-            {
-                return false;
-            }
-
-            public function hasParameter(string $name): bool
-            {
-                return $name === 'kernel.project_dir';
-            }
-
-            public function getParameter(string $name): mixed
-            {
-                return $name === 'kernel.project_dir' ? $this->projectDir : null;
-            }
-        };
-
         $service = new DatabaseExportService(
-            $container,
+            $projectDir,
             $exportDir,
             '{connection}_{database}_{date}_{time}.{format}',
             'zip',
@@ -2067,7 +1936,7 @@ class DatabaseExportServiceTest extends TestCase
         $ref     = new ReflectionClass(DatabaseExportService::class);
         $method  = $ref->getMethod('createTarArchive');
         $service = new DatabaseExportService(
-            $this->container,
+            $this->tempDir,
             $this->tempDir,
             'x',
             'none',

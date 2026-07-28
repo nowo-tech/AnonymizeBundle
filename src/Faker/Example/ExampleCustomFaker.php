@@ -7,6 +7,7 @@ namespace Nowo\AnonymizeBundle\Faker\Example;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
+use Nowo\AnonymizeBundle\Faker\FakerOptions;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 use function is_string;
@@ -127,18 +128,19 @@ final readonly class ExampleCustomFaker implements FakerInterface
      *
      * @return mixed The anonymized value (or original if preserve_original is true)
      */
-    public function generate(array $options = []): mixed
+    public function generate(FakerOptions|array $options = []): mixed
     {
+        $opts = FakerOptions::normalize($options)->all();
         // Get the original value
-        $originalValue = $options['original_value'] ?? null;
+        $originalValue = $opts['original_value'] ?? null;
 
         // Get the full record (all fields of the current entity)
-        $record = $options['record'] ?? [];
+        $record = $opts['record'] ?? [];
 
         // Get custom options
-        $preserveOriginal = $options['preserve_original'] ?? false;
+        $preserveOriginal = $opts['preserve_original'] ?? false;
         /** @var class-string<object>|null $relatedEntityClass */
-        $relatedEntityClass = $options['related_entity'] ?? null;
+        $relatedEntityClass = $opts['related_entity'] ?? null;
 
         // If preserve_original is true, return the original value unchanged
         // This is useful for testing events and seeing what data is available

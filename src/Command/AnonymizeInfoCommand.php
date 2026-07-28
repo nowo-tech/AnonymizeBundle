@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Command;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
-use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Helper\OrmHelper;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
-use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -47,16 +46,16 @@ final class AnonymizeInfoCommand extends AbstractCommand
     /**
      * Creates a new AnonymizeInfoCommand instance.
      *
-     * ContainerInterface is limited to parameter_bag, event_dispatcher, and project_dir resolution (REQ-DI-001).
-     *
-     * @param ContainerInterface $container The service container
+     * @param AnonymizeService $anonymizeService The anonymize service
+     * @param PatternMatcher $patternMatcher Pattern matcher for entity/property patterns
      * @param EnvironmentProtectionService $environmentProtection Environment / DSN guard
      * @param ManagerRegistry $doctrine Doctrine manager registry
      * @param string $locale The default locale for Faker generator (default: 'en_US')
      * @param array<string> $connections The default connections to process (empty = all)
      */
     public function __construct(
-        private readonly ContainerInterface $container,
+        private readonly AnonymizeService $anonymizeService,
+        private readonly PatternMatcher $patternMatcher,
         private readonly EnvironmentProtectionService $environmentProtection,
         private readonly ManagerRegistry $doctrine,
         private readonly string $locale = 'en_US',
@@ -109,7 +108,6 @@ final class AnonymizeInfoCommand extends AbstractCommand
             return $exit;
         }
 
-        $locale      = $input->getOption('locale') ?? $this->locale;
         $connections = $input->getOption('connection') ?: $this->connections;
 
         $io->title('Anonymizer Information');
@@ -124,11 +122,6 @@ final class AnonymizeInfoCommand extends AbstractCommand
             return self::FAILURE;
         }
 
-        // Initialize services
-        $fakerFactory     = new FakerFactory($locale, $this->container);
-        $patternMatcher   = new PatternMatcher();
-        $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher, null, $this->container);
-
         $allAnonymizers = [];
 
         // Process each entity manager
@@ -136,12 +129,16 @@ final class AnonymizeInfoCommand extends AbstractCommand
             $io->section(sprintf('Entity Manager: <info>%s</info>', $managerName));
 
             try {
-                $em             = $this->doctrine->getManager($managerName);
+                $em = $this->doctrine->getManager($managerName);
+                if (!$em instanceof EntityManagerInterface) {
+                    $io->note(sprintf('Manager "%s" is not an EntityManagerInterface, skipping.', $managerName));
+                    continue;
+                }
                 $connection     = $em->getConnection();
                 $connectionName = $connection->getDatabase();
 
                 // Get all anonymizable entities
-                $entities = $anonymizeService->getAnonymizableEntities($em);
+                $entities = $this->anonymizeService->getAnonymizableEntities($em);
 
                 if ($entities === []) {
                     $io->note('No entities found with #[Anonymize] attribute');
@@ -158,7 +155,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
                     $tableName       = $metadata->getTableName();
 
                     // Get anonymizable properties (may be empty when entity uses anonymizeService)
-                    $properties           = $anonymizeService->getAnonymizableProperties($reflection);
+                    $properties           = $this->anonymizeService->getAnonymizableProperties($reflection);
                     $usesAnonymizeService = $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '';
 
                     if ($properties === [] && !$usesAnonymizeService) {
@@ -229,7 +226,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
                         $recordsToAnonymize = 0;
                         foreach ($allRecords as $record) {
                             // Check entity-level patterns first
-                            $entityMatches = $patternMatcher->matches(
+                            $entityMatches = $this->patternMatcher->matches(
                                 $record,
                                 $entityAttribute->includePatterns,
                                 $entityAttribute->excludePatterns,
@@ -240,7 +237,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
                             }
 
                             // Check property-level patterns
-                            if ($patternMatcher->matches(
+                            if ($this->patternMatcher->matches(
                                 $record,
                                 $attribute->includePatterns,
                                 $attribute->excludePatterns,

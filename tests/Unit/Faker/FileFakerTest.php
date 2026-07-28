@@ -122,6 +122,7 @@ class FileFakerTest extends TestCase
     public function testConstructor(): void
     {
         $faker = new FileFaker('en_US');
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(FileFaker::class, $faker);
     }
 

@@ -116,6 +116,7 @@ class UuidFakerTest extends TestCase
     public function testConstructor(): void
     {
         $faker = new UuidFaker('en_US');
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(UuidFaker::class, $faker);
     }
 

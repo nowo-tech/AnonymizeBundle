@@ -53,15 +53,16 @@ final readonly class HtmlFaker implements FakerInterface
      *
      * @return string The anonymized HTML content
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $type          = $options['type'] ?? 'signature';
-        $includeLinks  = $options['include_links'] ?? true;
-        $includeStyles = $options['include_styles'] ?? false;
-        $minParagraphs = (int) ($options['min_paragraphs'] ?? 1);
-        $maxParagraphs = (int) ($options['max_paragraphs'] ?? 3);
-        $minListItems  = (int) ($options['min_list_items'] ?? 2);
-        $maxListItems  = (int) ($options['max_list_items'] ?? 5);
+        $opts          = FakerOptions::normalize($options)->all();
+        $type          = $opts['type'] ?? 'signature';
+        $includeLinks  = $opts['include_links'] ?? true;
+        $includeStyles = $opts['include_styles'] ?? false;
+        $minParagraphs = (int) ($opts['min_paragraphs'] ?? 1);
+        $maxParagraphs = (int) ($opts['max_paragraphs'] ?? 3);
+        $minListItems  = (int) ($opts['min_list_items'] ?? 2);
+        $maxListItems  = (int) ($opts['max_list_items'] ?? 5);
 
         return match ($type) {
             'signature' => $this->generateSignature($includeLinks, $includeStyles),

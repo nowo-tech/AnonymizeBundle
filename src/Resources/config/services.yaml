@@ -4,9 +4,6 @@ services:
         autoconfigure: true
         public: true
 
-    # Alias for ContainerInterface to enable autowiring (PSR-11 standard)
-    Psr\Container\ContainerInterface: '@service_container'
-
     # Fakers are auto-registered via autowiring and autoconfigure
     # All fakers with locale parameter use #[Autowire('%nowo_anonymize.locale%')] attribute
     # This requires Symfony 6.1+ (minimum version requirement)
@@ -31,12 +28,13 @@ services:
     Nowo\AnonymizeBundle\Faker\ConstantFaker: ~
     Nowo\AnonymizeBundle\Faker\MapFaker: ~
 
-    # FakerFactory is excluded from autowiring pattern but needed by services
-    # It requires locale parameter and optional ContainerInterface
+    # FakerFactory is excluded from autowiring pattern but needed by services.
+    # Uses ContainerInterface as documented plugin registry (REQ-DI-001 exception).
     nowo_anonymize.faker_factory:
         class: Nowo\AnonymizeBundle\Faker\FakerFactory
         arguments:
             $locale: '%nowo_anonymize.locale%'
+            $container: '@service_container'
 
     # Note: All faker aliases (nowo_anonymize.faker.*) are automatically created
     # from the #[AsAlias] attributes in each faker class when autoconfigure: true
@@ -44,20 +42,27 @@ services:
     # Services - auto-registered via autowiring
     # AnonymizeService: FakerFactory is injected explicitly so it works even when
     # the app excludes this bundle's namespace from autowiring (FakerFactory is excluded from our own pattern)
+    # Uses ContainerInterface as documented plugin registry (REQ-DI-001 exception).
     Nowo\AnonymizeBundle\Service\AnonymizeService:
         arguments:
             $fakerFactory: '@nowo_anonymize.faker_factory'
+            $container: '@service_container'
 
-    # AnonymizationHistoryService
+    # AnonymizationHistoryService — alias by FQCN for autowiring in commands
     nowo_anonymize.service.anonymization_history:
         class: Nowo\AnonymizeBundle\Service\AnonymizationHistoryService
         arguments:
             $historyDir: '%nowo_anonymize.history_dir%'
 
-    # DatabaseExportService - must be configured explicitly due to string/bool parameters
+    Nowo\AnonymizeBundle\Service\AnonymizationHistoryService:
+        alias: nowo_anonymize.service.anonymization_history
+        public: true
+
+    # DatabaseExportService — must be configured explicitly due to string/bool parameters
     nowo_anonymize.service.database_export:
         class: Nowo\AnonymizeBundle\Service\DatabaseExportService
         arguments:
+            $projectDir: '%kernel.project_dir%'
             $outputDir: '%nowo_anonymize.export.output_dir%'
             $filenamePattern: '%nowo_anonymize.export.filename_pattern%'
             $compression: '%nowo_anonymize.export.compression%'
@@ -77,6 +82,9 @@ services:
     # Console Commands — #[AsCommand] autoconfigures tags (REQ-SF-003: no duplicate console.command tags)
     Nowo\AnonymizeBundle\Command\AnonymizeCommand:
         arguments:
+            $anonymizeService: '@Nowo\AnonymizeBundle\Service\AnonymizeService'
+            $preFlightCheck: '@Nowo\AnonymizeBundle\Service\PreFlightCheckService'
+            $historyService: '@Nowo\AnonymizeBundle\Service\AnonymizationHistoryService'
             $locale: '%nowo_anonymize.locale%'
             $connections: '%nowo_anonymize.connections%'
             $dryRun: '%nowo_anonymize.dry_run%'
@@ -88,6 +96,7 @@ services:
 
     Nowo\AnonymizeBundle\Command\AnonymizeInfoCommand:
         arguments:
+            $anonymizeService: '@Nowo\AnonymizeBundle\Service\AnonymizeService'
             $locale: '%nowo_anonymize.locale%'
             $connections: '%nowo_anonymize.connections%'
 
@@ -95,4 +104,6 @@ services:
 
     Nowo\AnonymizeBundle\Command\ExportDatabaseCommand: ~
 
-    Nowo\AnonymizeBundle\Command\AnonymizationHistoryCommand: ~
+    Nowo\AnonymizeBundle\Command\AnonymizationHistoryCommand:
+        arguments:
+            $historyService: '@Nowo\AnonymizeBundle\Service\AnonymizationHistoryService'

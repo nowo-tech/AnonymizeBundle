@@ -33,12 +33,13 @@ final class CopyFaker implements FakerInterface
      *
      * @return mixed The copied value (same type as source field)
      */
-    public function generate(array $options = []): mixed
+    public function generate(FakerOptions|array $options = []): mixed
     {
-        $sourceField     = $options['source_field'] ?? null;
-        $record          = $options['record'] ?? [];
-        $fallbackFaker   = $options['fallback_faker'] ?? 'email';
-        $fallbackOptions = $options['fallback_options'] ?? [];
+        $opts            = FakerOptions::normalize($options)->all();
+        $sourceField     = $opts['source_field'] ?? null;
+        $record          = $opts['record'] ?? [];
+        $fallbackFaker   = $opts['fallback_faker'] ?? 'email';
+        $fallbackOptions = $opts['fallback_options'] ?? [];
 
         if ($sourceField === null) {
             throw new InvalidArgumentException('CopyFaker requires a "source_field" option.');

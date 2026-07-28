@@ -138,6 +138,7 @@ class UsernameFakerTest extends TestCase
     public function testConstructor(): void
     {
         $faker = new UsernameFaker('en_US');
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(UsernameFaker::class, $faker);
     }
 

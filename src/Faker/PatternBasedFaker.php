@@ -63,16 +63,17 @@ final readonly class PatternBasedFaker implements FakerInterface
      *
      * @return string The anonymized value
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $sourceField        = $options['source_field'] ?? null;
-        $record             = $options['record'] ?? [];
-        $originalValue      = $options['original_value'] ?? null;
-        $pattern            = $options['pattern'] ?? '/(\\(\\d+\\))$/'; // Default: extract (number) at the end
-        $patternReplacement = $options['pattern_replacement'] ?? '$1'; // Default: keep extracted pattern
-        $separator          = $options['separator'] ?? '';
-        $fallbackFaker      = $options['fallback_faker'] ?? 'username';
-        $fallbackOptions    = $options['fallback_options'] ?? [];
+        $opts               = FakerOptions::normalize($options)->all();
+        $sourceField        = $opts['source_field'] ?? null;
+        $record             = $opts['record'] ?? [];
+        $originalValue      = $opts['original_value'] ?? null;
+        $pattern            = $opts['pattern'] ?? '/(\\(\\d+\\))$/'; // Default: extract (number) at the end
+        $patternReplacement = $opts['pattern_replacement'] ?? '$1'; // Default: keep extracted pattern
+        $separator          = $opts['separator'] ?? '';
+        $fallbackFaker      = $opts['fallback_faker'] ?? 'username';
+        $fallbackOptions    = $opts['fallback_options'] ?? [];
 
         if ($sourceField === null) {
             throw new InvalidArgumentException('PatternBasedFaker requires a "source_field" option.');

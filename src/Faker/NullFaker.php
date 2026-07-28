@@ -26,8 +26,10 @@ final class NullFaker implements FakerInterface
      *
      * @return null Always returns null
      */
-    public function generate(array $options = []): null
+    public function generate(FakerOptions|array $options = []): null
     {
+        $opts = FakerOptions::normalize($options)->all();
+
         return null;
     }
 }

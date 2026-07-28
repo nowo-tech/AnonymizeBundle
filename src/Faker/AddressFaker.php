@@ -42,11 +42,12 @@ final class AddressFaker implements FakerInterface
      *
      * @return string The anonymized address
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $includePostalCode = $options['include_postal_code'] ?? false;
-        $format            = $options['format'] ?? 'full';
-        $country           = $options['country'] ?? null;
+        $opts              = FakerOptions::normalize($options)->all();
+        $includePostalCode = $opts['include_postal_code'] ?? false;
+        $format            = $opts['format'] ?? 'full';
+        $country           = $opts['country'] ?? null;
 
         if ($country !== null) {
             $this->faker = Factory::create($this->getLocaleForCountry($country));

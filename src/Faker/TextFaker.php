@@ -42,11 +42,12 @@ final readonly class TextFaker implements FakerInterface
      *
      * @return string The anonymized text content
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $type     = $options['type'] ?? 'sentence';
-        $minWords = (int) ($options['min_words'] ?? 5);
-        $maxWords = (int) ($options['max_words'] ?? 20);
+        $opts     = FakerOptions::normalize($options)->all();
+        $type     = $opts['type'] ?? 'sentence';
+        $minWords = (int) ($opts['min_words'] ?? 5);
+        $maxWords = (int) ($opts['max_words'] ?? 20);
 
         return match ($type) {
             'paragraph' => $this->faker->paragraph($this->faker->numberBetween($minWords, $maxWords)),

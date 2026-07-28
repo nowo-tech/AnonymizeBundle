@@ -113,6 +113,7 @@ class CountryFakerTest extends TestCase
     public function testConstructor(): void
     {
         $faker = new CountryFaker('en_US');
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(CountryFaker::class, $faker);
     }
 

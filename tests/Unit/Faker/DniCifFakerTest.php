@@ -127,6 +127,7 @@ class DniCifFakerTest extends TestCase
     public function testConstructor(): void
     {
         $faker = new DniCifFaker('es_ES');
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(DniCifFaker::class, $faker);
     }
 

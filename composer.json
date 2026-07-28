@@ -53,17 +53,18 @@
     ],
     "require": {
         "php": ">=8.2 <8.6",
+        "doctrine/dbal": "^2.13 || ^3.0 || ^4.0",
+        "doctrine/doctrine-bundle": "^2.8 || ^3.0",
+        "doctrine/orm": "^2.13 || ^3.0",
+        "fakerphp/faker": "^1.23",
+        "psr/clock": "^1.0",
         "symfony/config": "^6.0 || ^7.0 || ^8.0",
         "symfony/console": "^6.0 || ^7.0 || ^8.0",
         "symfony/dependency-injection": "^6.0 || ^7.0 || ^8.0",
         "symfony/framework-bundle": "^6.0 || ^7.0 || ^8.0",
         "symfony/http-kernel": "^6.0 || ^7.0 || ^8.0",
         "symfony/process": "^6.0 || ^7.0 || ^8.0",
-        "symfony/yaml": "^6.0 || ^7.0 || ^8.0",
-        "doctrine/dbal": "^2.13 || ^3.0 || ^4.0",
-        "doctrine/orm": "^2.13 || ^3.0",
-        "doctrine/doctrine-bundle": "^2.8 || ^3.0",
-        "fakerphp/faker": "^1.23"
+        "symfony/yaml": "^6.0 || ^7.0 || ^8.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.0",

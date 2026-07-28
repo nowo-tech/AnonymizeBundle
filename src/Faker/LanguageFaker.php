@@ -41,10 +41,11 @@ final class LanguageFaker implements FakerInterface
      *
      * @return string The anonymized language value
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $format = $options['format'] ?? 'code';
-        $locale = $options['locale'] ?? null;
+        $opts   = FakerOptions::normalize($options)->all();
+        $format = $opts['format'] ?? 'code';
+        $locale = $opts['locale'] ?? null;
 
         // Use custom locale if provided
         if ($locale !== null) {

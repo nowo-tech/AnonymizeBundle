@@ -107,20 +107,21 @@ final readonly class UtmFaker implements FakerInterface
      *
      * @return string The anonymized UTM parameter value
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $type   = $options['type'] ?? self::SOURCE_TYPE;
-        $format = $options['format'] ?? self::SNAKE_CASE_FORMAT;
-        $prefix = $options['prefix'] ?? '';
-        $suffix = $options['suffix'] ?? '';
+        $opts   = FakerOptions::normalize($options)->all();
+        $type   = $opts['type'] ?? self::SOURCE_TYPE;
+        $format = $opts['format'] ?? self::SNAKE_CASE_FORMAT;
+        $prefix = $opts['prefix'] ?? '';
+        $suffix = $opts['suffix'] ?? '';
 
         $value = match ($type) {
-            'source'   => $this->generateSource($options),
-            'medium'   => $this->generateMedium($options),
-            'campaign' => $this->generateCampaign($options),
-            'term'     => $this->generateTerm($options),
-            'content'  => $this->generateContent($options),
-            default    => $this->generateSource($options),
+            'source'   => $this->generateSource($opts),
+            'medium'   => $this->generateMedium($opts),
+            'campaign' => $this->generateCampaign($opts),
+            'term'     => $this->generateTerm($opts),
+            'content'  => $this->generateContent($opts),
+            default    => $this->generateSource($opts),
         };
 
         // Apply format
@@ -128,8 +129,8 @@ final readonly class UtmFaker implements FakerInterface
 
         // Re-enforce min_length/max_length after format (format can shorten the string, e.g. lowercase removes underscores)
         if (in_array($type, ['campaign', 'term', 'content'], true)) {
-            $minLength = (int) ($options['min_length'] ?? 0);
-            $maxLength = (int) ($options['max_length'] ?? PHP_INT_MAX);
+            $minLength = (int) ($opts['min_length'] ?? 0);
+            $maxLength = (int) ($opts['max_length'] ?? PHP_INT_MAX);
             if ($minLength > 0 && strlen($value) < $minLength) {
                 while (strlen($value) < $minLength) {
                     $value .= $this->faker->randomElement(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']);

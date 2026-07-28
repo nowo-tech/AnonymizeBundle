@@ -694,7 +694,7 @@ class AnonymizationHistoryServiceTest extends TestCase
      */
     public function testSaveRunStoresUnknownSymfonyVersionWhenProviderReturnsUnknown(): void
     {
-        $service = new AnonymizationHistoryService($this->tempDir, static fn (): string => 'unknown');
+        $service = new AnonymizationHistoryService($this->tempDir, null, static fn (): string => 'unknown');
 
         $filePath = $service->saveRun(['global' => []], []);
 
@@ -709,7 +709,7 @@ class AnonymizationHistoryServiceTest extends TestCase
      */
     public function testSaveRunStoresUnknownSymfonyVersionWhenKernelClassDoesNotExist(): void
     {
-        $service = new AnonymizationHistoryService($this->tempDir, null, static fn (): bool => false);
+        $service = new AnonymizationHistoryService($this->tempDir, null, null, static fn (): bool => false);
 
         $filePath = $service->saveRun(['global' => []], []);
 

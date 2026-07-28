@@ -7,11 +7,9 @@ namespace Nowo\AnonymizeBundle\Command;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
-use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Event\AfterAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
-use Nowo\AnonymizeBundle\Internal\KernelParameterBagAdapter;
 use Nowo\AnonymizeBundle\Service\AnonymizationHistoryService;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\AnonymizeStatistics;
@@ -19,17 +17,19 @@ use Nowo\AnonymizeBundle\Service\AnonymizeStatisticsDisplay;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
-use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 use function count;
 use function in_array;
+use function is_string;
 use function sprintf;
 
 /**
@@ -53,20 +53,29 @@ final class AnonymizeCommand extends AbstractCommand
     /**
      * Creates a new AnonymizeCommand instance.
      *
-     * ContainerInterface is limited to parameter_bag, event_dispatcher, and project_dir resolution (REQ-DI-001).
-     *
-     * @param ContainerInterface $container The service container
+     * @param AnonymizeService $anonymizeService Pre-wired anonymize service
+     * @param PreFlightCheckService $preFlightCheck Pre-flight checks service
+     * @param AnonymizationHistoryService $historyService History persistence service
      * @param EnvironmentProtectionService $environmentProtection Environment / DSN guard
      * @param ManagerRegistry $doctrine Doctrine manager registry
+     * @param ParameterBagInterface $parameterBag Parameter bag for reading configuration
+     * @param string $projectDir The kernel project directory
+     * @param EventDispatcherInterface|null $eventDispatcher Optional event dispatcher
      * @param string $locale The default locale for Faker generator (default: 'en_US')
      * @param array<string> $connections The default connections to process (empty = all)
      * @param bool $dryRun The default dry-run mode (default: false)
      * @param int $batchSize The default batch size for processing records (default: 100)
      */
     public function __construct(
-        private readonly ContainerInterface $container,
+        private readonly AnonymizeService $anonymizeService,
+        private readonly PreFlightCheckService $preFlightCheck,
+        private readonly AnonymizationHistoryService $historyService,
         private readonly EnvironmentProtectionService $environmentProtection,
         private readonly ManagerRegistry $doctrine,
+        private readonly ParameterBagInterface $parameterBag,
+        #[Autowire('%kernel.project_dir%')]
+        private readonly string $projectDir,
+        private readonly ?EventDispatcherInterface $eventDispatcher = null,
         private readonly string $locale = 'en_US',
         private readonly array $connections = [],
         private readonly bool $dryRun = false,
@@ -196,13 +205,16 @@ final class AnonymizeCommand extends AbstractCommand
             return self::FAILURE;
         }
 
-        // Initialize services
-        $fakerFactory     = new FakerFactory($locale, $this->container);
-        $patternMatcher   = new PatternMatcher();
-        $eventDispatcher  = $this->container->has('event_dispatcher') ? $this->container->get('event_dispatcher') : null;
-        $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher, $eventDispatcher, $this->container);
-        $preFlightCheck   = new PreFlightCheckService($fakerFactory);
-        $statistics       = new AnonymizeStatistics();
+        // Resolve anonymize service — use injected service for default locale, recreate for custom locale
+        $anonymizeService = $this->anonymizeService;
+        if ($locale !== $this->locale) {
+            $fakerFactory     = new FakerFactory($locale);
+            $patternMatcher   = new PatternMatcher();
+            $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher, $this->eventDispatcher);
+        }
+
+        $preFlightCheck = $this->preFlightCheck;
+        $statistics     = new AnonymizeStatistics();
         $statistics->start();
 
         $statsOnly = $input->getOption('stats-only');
@@ -210,14 +222,14 @@ final class AnonymizeCommand extends AbstractCommand
         $statsCsv  = $input->getOption('stats-csv');
 
         // Get stats output directory from configuration
-        $statsOutputDir = $this->getParameter('nowo_anonymize.stats_output_dir', '%kernel.project_dir%/var/stats');
+        $rawStatsDir = $this->parameterBag->has('nowo_anonymize.stats_output_dir')
+            ? $this->parameterBag->get('nowo_anonymize.stats_output_dir')
+            : null;
+        $statsOutputDir = is_string($rawStatsDir) ? $rawStatsDir : ($this->projectDir . '/var/stats');
 
-        // Resolve kernel.project_dir if present (use parameter to avoid synthetic kernel service)
-        if (str_contains((string) $statsOutputDir, '%kernel.project_dir%')) {
-            $projectDir = $this->getProjectDirFromContainer();
-            if ($projectDir !== null) {
-                $statsOutputDir = str_replace('%kernel.project_dir%', $projectDir, $statsOutputDir);
-            }
+        // Resolve %kernel.project_dir% placeholder if still present (fallback default above uses projectDir directly)
+        if (str_contains($statsOutputDir, '%kernel.project_dir%')) {
+            $statsOutputDir = str_replace('%kernel.project_dir%', $this->projectDir, $statsOutputDir);
         }
 
         // Process stats file paths - if relative, use configured output directory
@@ -226,7 +238,7 @@ final class AnonymizeCommand extends AbstractCommand
             if (!is_dir($statsOutputDir)) {
                 mkdir($statsOutputDir, 0o755, true);
             }
-            $statsJson = rtrim((string) $statsOutputDir, '/') . '/' . $statsJson;
+            $statsJson = rtrim($statsOutputDir, '/') . '/' . $statsJson;
         }
 
         if ($statsCsv !== null && !str_starts_with((string) $statsCsv, '/') && !str_contains((string) $statsCsv, '\\')) {
@@ -234,7 +246,7 @@ final class AnonymizeCommand extends AbstractCommand
             if (!is_dir($statsOutputDir)) {
                 mkdir($statsOutputDir, 0o755, true);
             }
-            $statsCsv = rtrim((string) $statsOutputDir, '/') . '/' . $statsCsv;
+            $statsCsv = rtrim($statsOutputDir, '/') . '/' . $statsCsv;
         }
 
         // Show summary if interactive mode
@@ -267,6 +279,10 @@ final class AnonymizeCommand extends AbstractCommand
 
             try {
                 $em = $this->doctrine->getManager($managerName);
+                if (!$em instanceof EntityManagerInterface) {
+                    $io->error(sprintf('Manager "%s" is not an EntityManagerInterface, skipping.', $managerName));
+                    continue;
+                }
 
                 // Perform pre-flight checks
                 $entities = $anonymizeService->getAnonymizableEntities($em);
@@ -324,16 +340,7 @@ final class AnonymizeCommand extends AbstractCommand
 
         // Save to history
         try {
-            $historyDir = $this->getParameter('nowo_anonymize.history_dir', '%kernel.project_dir%/var/anonymize_history');
-            if (str_contains((string) $historyDir, '%kernel.project_dir%')) {
-                $projectDir = $this->getProjectDirFromContainer();
-                if ($projectDir !== null) {
-                    $historyDir = str_replace('%kernel.project_dir%', $projectDir, $historyDir);
-                }
-            }
-
-            $historyService = new AnonymizationHistoryService($historyDir);
-            $metadata       = [
+            $metadata = [
                 'command'     => 'nowo:anonymize:run',
                 'connections' => $connections,
                 'batch_size'  => $batchSize,
@@ -341,7 +348,7 @@ final class AnonymizeCommand extends AbstractCommand
                 'dry_run'     => $dryRun,
                 'interactive' => $interactive,
             ];
-            $historyService->saveRun($statistics->getAll(), $metadata);
+            $this->historyService->saveRun($statistics->getAll(), $metadata);
         } catch (Exception $e) {
             // Silently fail if history cannot be saved
             if ($debug) {
@@ -423,7 +430,7 @@ final class AnonymizeCommand extends AbstractCommand
         }
 
         // Dispatch BeforeAnonymizeEvent
-        $eventDispatcher = $this->container->has('event_dispatcher') ? $this->container->get('event_dispatcher') : null;
+        $eventDispatcher = $this->eventDispatcher;
         if ($eventDispatcher !== null) {
             $entityClasses = array_keys($entities);
             $event         = new BeforeAnonymizeEvent($em, $entityClasses, $dryRun);
@@ -671,62 +678,12 @@ final class AnonymizeCommand extends AbstractCommand
         }
 
         // Dispatch AfterAnonymizeEvent
-        if ($eventDispatcher !== null) {
+        if ($this->eventDispatcher !== null) {
             $entityClasses = array_keys($entities);
             $event         = new AfterAnonymizeEvent($em, $entityClasses, $totalProcessed, $totalUpdated, $dryRun);
-            $eventDispatcher->dispatch($event);
+            $this->eventDispatcher->dispatch($event);
         }
 
         return null;
-    }
-
-    /**
-     * Resolves the parameter bag (from container or kernel adapter fallback).
-     */
-    private function getParameterBag(): ParameterBagInterface
-    {
-        if ($this->container->has('parameter_bag')) {
-            try {
-                $bag = $this->container->get('parameter_bag');
-                if ($bag instanceof ParameterBagInterface) {
-                    return $bag;
-                }
-            } catch (Exception) {
-            }
-        }
-
-        return new KernelParameterBagAdapter($this->container);
-    }
-
-    /**
-     * Gets a parameter value from the container.
-     *
-     * @param string $name The parameter name
-     * @param mixed $default The default value if parameter doesn't exist
-     *
-     * @return mixed The parameter value or default if not found
-     */
-    private function getParameter(string $name, mixed $default = null): mixed
-    {
-        try {
-            return $this->getParameterBag()->get($name);
-        } catch (InvalidArgumentException) {
-            return $default;
-        }
-    }
-
-    /**
-     * Returns project directory without using the synthetic kernel service.
-     * Uses kernel.project_dir parameter when available, otherwise getcwd().
-     */
-    private function getProjectDirFromContainer(): ?string
-    {
-        if (method_exists($this->container, 'hasParameter') && method_exists($this->container, 'getParameter')
-            && $this->container->hasParameter('kernel.project_dir')) {
-            return $this->container->getParameter('kernel.project_dir');
-        }
-        $cwd = getcwd();
-
-        return $cwd !== false ? $cwd : null;
     }
 }

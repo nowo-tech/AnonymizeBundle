@@ -661,6 +661,7 @@ class DbalHelperTest extends TestCase
         $result = DbalHelper::quoteIdentifier($connection, 'col');
         // We cannot reliably mock quoteSingleIdentifier when it is final/static in DBAL 4,
         // so we only assert that the call succeeds and returns *something* (no exception).
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertNotNull($result);
     }
 

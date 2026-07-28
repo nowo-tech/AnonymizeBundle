@@ -43,12 +43,13 @@ final readonly class NumericFaker implements FakerInterface
      *
      * @return float|int The anonymized numeric value
      */
-    public function generate(array $options = []): int|float
+    public function generate(FakerOptions|array $options = []): int|float
     {
-        $type      = $options['type'] ?? 'int';
-        $min       = $options['min'] ?? 0;
-        $max       = $options['max'] ?? 1000;
-        $precision = (int) ($options['precision'] ?? 2);
+        $opts      = FakerOptions::normalize($options)->all();
+        $type      = $opts['type'] ?? 'int';
+        $min       = $opts['min'] ?? 0;
+        $max       = $opts['max'] ?? 1000;
+        $precision = (int) ($opts['precision'] ?? 2);
 
         if ($type === 'float') {
             return $this->faker->randomFloat($precision, (float) $min, (float) $max);

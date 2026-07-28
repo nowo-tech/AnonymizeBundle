@@ -1,5 +1,16 @@
 # Security Policy
 
+## Table of contents
+
+- [Scope](#scope)
+- [Attack surface](#attack-surface)
+- [Threats and mitigations](#threats-and-mitigations)
+- [Dependencies](#dependencies)
+- [Logging](#logging)
+- [Reporting a vulnerability](#reporting-a-vulnerability)
+- [Important note](#important-note)
+- [Release security checklist (12.4.1)](#release-security-checklist-1241)
+
 ## Scope
 
 This bundle is **development-only** (see below). It anonymizes data for local/testing use and must not be enabled in production.

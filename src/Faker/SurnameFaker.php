@@ -41,8 +41,9 @@ final readonly class SurnameFaker implements FakerInterface
      *
      * @return string The anonymized surname
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
+        $opts = FakerOptions::normalize($options)->all();
         // Note: Faker library doesn't have gender-specific surnames in most locales
         // The gender option is kept for API consistency but may not have effect
         // If locale_specific is false, we could use a different locale, but for simplicity

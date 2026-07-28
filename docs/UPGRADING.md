@@ -24,6 +24,56 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.35
+
+**Release Date**: 2026-07-28
+
+#### What's New
+
+- **REQ-PHP-001 — Typed `FakerOptions` DTO**: `FakerInterface::generate()` accepts `FakerOptions|array`.
+  - New class `Nowo\AnonymizeBundle\Faker\FakerOptions` (immutable value object).
+  - Call sites that pass plain arrays continue to work (union type + `FakerOptions::normalize()`).
+  - Prefer `FakerOptions::fromArray([...])` for new code.
+- **REQ-DI-001**: console commands use explicit constructor dependencies (no `ContainerInterface` grab-bag); `AnonymizationHistoryService` uses `psr/clock` `ClockInterface`.
+- **REQ-TEST-011**: `make demo-smoke` + scheduled/tag workflow `.github/workflows/demo-smoke.yml`.
+- **REQ-CS-006 / REQ-PHP-001**: PHPStan `ignoreErrors: []` at level 8; `AnonymizeBundle` is `final`.
+- **REQ-REL-003**: `check-open-prs` passes `--repo` resolved from `origin` when needed.
+
+#### Breaking Changes
+
+- **Custom fakers** implementing `FakerInterface` **must** widen `generate()` to `FakerOptions|array` (PHP will not accept an `array`-only signature against the updated interface).
+- **Manual command construction** (rare): command constructors no longer take `ContainerInterface`; wire the explicit services (Symfony autoconfigure continues to work).
+- **`AnonymizeBundle` is `final`**: do not extend the bundle class.
+
+#### Migration Steps
+
+1. Update and clear cache:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   php bin/console cache:clear
+   ```
+2. Update custom faker signatures:
+
+```php
+// Before:
+public function generate(array $options = []): mixed
+
+// After:
+use Nowo\AnonymizeBundle\Faker\FakerOptions;
+
+public function generate(FakerOptions|array $options = []): mixed
+{
+    $opts = FakerOptions::normalize($options)->all();
+    // use $opts['key'] as before …
+}
+```
+
+Optional call-site preference (arrays still valid):
+
+```php
+$faker->generate(FakerOptions::fromArray(['min' => 18, 'max' => 65]));
+```
+
 ### Upgrading to 1.0.34
 
 **Release Date**: 2026-07-27

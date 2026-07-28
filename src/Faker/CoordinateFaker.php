@@ -49,14 +49,15 @@ final readonly class CoordinateFaker implements FakerInterface
      *
      * @return array<string, float>|string The anonymized coordinates
      */
-    public function generate(array $options = []): string|array
+    public function generate(FakerOptions|array $options = []): string|array
     {
-        $format    = $options['format'] ?? 'string';
-        $precision = (int) ($options['precision'] ?? 6);
-        $minLat    = (float) ($options['min_lat'] ?? -90.0);
-        $maxLat    = (float) ($options['max_lat'] ?? 90.0);
-        $minLng    = (float) ($options['min_lng'] ?? -180.0);
-        $maxLng    = (float) ($options['max_lng'] ?? 180.0);
+        $opts      = FakerOptions::normalize($options)->all();
+        $format    = $opts['format'] ?? 'string';
+        $precision = (int) ($opts['precision'] ?? 6);
+        $minLat    = (float) ($opts['min_lat'] ?? -90.0);
+        $maxLat    = (float) ($opts['max_lat'] ?? 90.0);
+        $minLng    = (float) ($opts['min_lng'] ?? -180.0);
+        $maxLng    = (float) ($opts['max_lng'] ?? 180.0);
 
         // Generate coordinates
         $latitude  = round($this->faker->latitude($minLat, $maxLat), $precision);

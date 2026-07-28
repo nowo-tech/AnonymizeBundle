@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Command;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
-use Nowo\AnonymizeBundle\Internal\KernelParameterBagAdapter;
 use Nowo\AnonymizeBundle\Service\DatabaseExportService;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
-use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 use function count;
@@ -41,16 +41,17 @@ final class ExportDatabaseCommand extends AbstractCommand
     /**
      * Creates a new ExportDatabaseCommand instance.
      *
-     * ContainerInterface is limited to parameter_bag, event_dispatcher, and project_dir resolution (REQ-DI-001).
-     *
-     * @param ContainerInterface $container The service container
      * @param EnvironmentProtectionService $environmentProtection Environment / DSN guard
      * @param ManagerRegistry $doctrine Doctrine manager registry
+     * @param ParameterBagInterface $parameterBag Parameter bag for reading configuration
+     * @param string $projectDir The kernel project directory
      */
     public function __construct(
-        private readonly ContainerInterface $container,
         private readonly EnvironmentProtectionService $environmentProtection,
         private readonly ManagerRegistry $doctrine,
+        private readonly ParameterBagInterface $parameterBag,
+        #[Autowire('%kernel.project_dir%')]
+        private readonly string $projectDir,
     ) {
         parent::__construct();
     }
@@ -110,42 +111,37 @@ final class ExportDatabaseCommand extends AbstractCommand
         $connections     = $input->getOption('connection');
 
         // Get default values from configuration if not provided
-        $parameterBag = $this->getParameterBag();
-
         if ($outputDir === null) {
-            $outputDir = $parameterBag->has('nowo_anonymize.export.output_dir')
-                ? $parameterBag->get('nowo_anonymize.export.output_dir')
+            $outputDir = $this->parameterBag->has('nowo_anonymize.export.output_dir')
+                ? $this->parameterBag->get('nowo_anonymize.export.output_dir')
                 : '%kernel.project_dir%/var/exports';
         }
 
         if ($filenamePattern === null) {
-            $filenamePattern = $parameterBag->has('nowo_anonymize.export.filename_pattern')
-                ? $parameterBag->get('nowo_anonymize.export.filename_pattern')
+            $filenamePattern = $this->parameterBag->has('nowo_anonymize.export.filename_pattern')
+                ? $this->parameterBag->get('nowo_anonymize.export.filename_pattern')
                 : '{connection}_{database}_{date}_{time}.{format}';
         }
 
         if ($compression === null) {
-            $compression = $parameterBag->has('nowo_anonymize.export.compression')
-                ? $parameterBag->get('nowo_anonymize.export.compression')
+            $compression = $this->parameterBag->has('nowo_anonymize.export.compression')
+                ? $this->parameterBag->get('nowo_anonymize.export.compression')
                 : 'gzip';
         }
 
         $autoGitignore = !$noGitignore && (
-            $parameterBag->has('nowo_anonymize.export.auto_gitignore')
-                ? $parameterBag->get('nowo_anonymize.export.auto_gitignore')
+            $this->parameterBag->has('nowo_anonymize.export.auto_gitignore')
+                ? $this->parameterBag->get('nowo_anonymize.export.auto_gitignore')
                 : true
         );
 
-        $timeout = $parameterBag->has('nowo_anonymize.export.timeout')
-            ? (float) $parameterBag->get('nowo_anonymize.export.timeout')
+        $timeout = $this->parameterBag->has('nowo_anonymize.export.timeout')
+            ? (float) $this->parameterBag->get('nowo_anonymize.export.timeout')
             : 180.0;
 
-        // Resolve kernel.project_dir if present (use parameter to avoid synthetic kernel service)
+        // Resolve %kernel.project_dir% placeholder in outputDir if present (parameter not yet resolved)
         if (str_contains((string) $outputDir, '%kernel.project_dir%')) {
-            $projectDir = $this->getProjectDirFromContainer();
-            if ($projectDir !== null) {
-                $outputDir = str_replace('%kernel.project_dir%', $projectDir, $outputDir);
-            }
+            $outputDir = str_replace('%kernel.project_dir%', $this->projectDir, (string) $outputDir);
         }
 
         // Validate compression format
@@ -176,13 +172,13 @@ final class ExportDatabaseCommand extends AbstractCommand
             return self::FAILURE;
         }
 
-        // Create export service
+        // Create export service with resolved project dir
         $exportService = new DatabaseExportService(
-            $this->container,
-            $outputDir,
-            $filenamePattern,
-            $compression,
-            $autoGitignore,
+            $this->projectDir,
+            (string) $outputDir,
+            (string) $filenamePattern,
+            (string) $compression,
+            (bool) $autoGitignore,
             null,
             $timeout,
         );
@@ -228,12 +224,21 @@ final class ExportDatabaseCommand extends AbstractCommand
                     } else {
                         // Try to get from Doctrine connection if available
                         try {
-                            $em           = $this->doctrine->getManager($managerName);
-                            $connection   = $em->getConnection();
-                            $params       = $connection->getParams();
-                            $host         = $params['host'] ?? 'localhost';
-                            $port         = $params['port'] ?? 27017;
-                            $database     = $connection->getDatabase();
+                            $em = $this->doctrine->getManager($managerName);
+                            if (!$em instanceof EntityManagerInterface) {
+                                $io->writeln('  ⚠️  MongoDB connection not found. Set MONGODB_URL environment variable or configure MongoDB in Doctrine.');
+                                ++$failureCount;
+                                continue;
+                            }
+                            $connection = $em->getConnection();
+                            $params     = $connection->getParams();
+                            $host       = $params['host'] ?? 'localhost';
+                            $port       = $params['port'] ?? 27017;
+                            $database   = $connection->getDatabase();
+                            if ($database === null) {
+                                ++$failureCount;
+                                continue;
+                            }
                             $exportedFile = $exportService->exportMongoDB($managerName, $database, $host, $port);
                         } catch (Exception) {
                             $io->writeln('  ⚠️  MongoDB connection not found. Set MONGODB_URL environment variable or configure MongoDB in Doctrine.');
@@ -243,10 +248,14 @@ final class ExportDatabaseCommand extends AbstractCommand
                     }
                 } else {
                     // Handle ORM connections (MySQL, PostgreSQL, SQLite)
-                    $em         = $this->doctrine->getManager($managerName);
+                    $em = $this->doctrine->getManager($managerName);
+                    if (!$em instanceof EntityManagerInterface) {
+                        $io->writeln(sprintf('  ✗ Manager "%s" is not an EntityManagerInterface, skipping.', $managerName));
+                        ++$failureCount;
+                        continue;
+                    }
                     $connection = $em->getConnection();
                     $driver     = DbalHelper::getDriverName($connection);
-                    $database   = $connection->getDatabase();
 
                     $io->writeln(sprintf('Exporting <info>%s</info> (%s)...', $managerName, $driver));
                     $exportedFile = $exportService->exportConnection($em, (string) $managerName);
@@ -295,25 +304,6 @@ final class ExportDatabaseCommand extends AbstractCommand
     }
 
     /**
-     * Gets the parameter bag.
-     *
-     * @return ParameterBagInterface The parameter bag
-     */
-    private function getParameterBag(): ParameterBagInterface
-    {
-        // Try to get parameter_bag service
-        if ($this->container->has('parameter_bag')) {
-            try {
-                return $this->container->get('parameter_bag');
-            } catch (Exception) {
-                // parameter_bag not available
-            }
-        }
-
-        return new KernelParameterBagAdapter($this->container);
-    }
-
-    /**
      * Formats bytes to human-readable format.
      *
      * @param int $bytes The number of bytes
@@ -329,19 +319,5 @@ final class ExportDatabaseCommand extends AbstractCommand
         $bytes /= (1 << (10 * $pow));
 
         return round($bytes, 2) . ' ' . $units[$pow];
-    }
-
-    /**
-     * Returns project directory without using the synthetic kernel service.
-     */
-    private function getProjectDirFromContainer(): ?string
-    {
-        if (method_exists($this->container, 'hasParameter') && method_exists($this->container, 'getParameter')
-            && $this->container->hasParameter('kernel.project_dir')) {
-            return $this->container->getParameter('kernel.project_dir');
-        }
-        $cwd = getcwd();
-
-        return $cwd !== false ? $cwd : null;
     }
 }

@@ -41,10 +41,11 @@ final readonly class HashFaker implements FakerInterface
      *
      * @return string The anonymized hash value
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $algorithm = strtolower($options['algorithm'] ?? 'sha256');
-        $length    = $options['length'] ?? null;
+        $opts      = FakerOptions::normalize($options)->all();
+        $algorithm = strtolower($opts['algorithm'] ?? 'sha256');
+        $length    = $opts['length'] ?? null;
 
         // Generate random string to hash
         $randomString = $this->faker->unique()->text(100) . $this->faker->randomNumber(9, true);

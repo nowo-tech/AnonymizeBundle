@@ -46,13 +46,14 @@ final readonly class AgeFaker implements FakerInterface
      *
      * @return int The anonymized age
      */
-    public function generate(array $options = []): int
+    public function generate(FakerOptions|array $options = []): int
     {
-        $min          = (int) ($options['min'] ?? 18);
-        $max          = (int) ($options['max'] ?? 100);
-        $distribution = $options['distribution'] ?? 'uniform';
-        $mean         = (float) ($options['mean'] ?? 40);
-        $stdDev       = (float) ($options['std_dev'] ?? 15);
+        $opts         = FakerOptions::normalize($options)->all();
+        $min          = (int) ($opts['min'] ?? 18);
+        $max          = (int) ($opts['max'] ?? 100);
+        $distribution = $opts['distribution'] ?? 'uniform';
+        $mean         = (float) ($opts['mean'] ?? 40);
+        $stdDev       = (float) ($opts['std_dev'] ?? 15);
 
         if ($distribution === 'normal') {
             // Generate age using normal distribution (Box-Muller transform)

@@ -42,11 +42,12 @@ final readonly class PhoneFaker implements FakerInterface
      *
      * @return string The anonymized phone number
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $countryCode      = $options['country_code'] ?? null;
-        $format           = $options['format'] ?? 'international';
-        $includeExtension = $options['include_extension'] ?? false;
+        $opts             = FakerOptions::normalize($options)->all();
+        $countryCode      = $opts['country_code'] ?? null;
+        $format           = $opts['format'] ?? 'international';
+        $includeExtension = $opts['include_extension'] ?? false;
 
         $phoneNumber = $this->faker->phoneNumber();
 

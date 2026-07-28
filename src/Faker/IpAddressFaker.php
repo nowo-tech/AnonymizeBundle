@@ -41,10 +41,11 @@ final readonly class IpAddressFaker implements FakerInterface
      *
      * @return string The anonymized IP address
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $version = (int) ($options['version'] ?? 4);
-        $type    = $options['type'] ?? 'public';
+        $opts    = FakerOptions::normalize($options)->all();
+        $version = (int) ($opts['version'] ?? 4);
+        $type    = $opts['type'] ?? 'public';
 
         if ($version === 6) {
             return $this->generateIpv6($type);

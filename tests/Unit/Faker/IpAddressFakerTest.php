@@ -141,6 +141,7 @@ class IpAddressFakerTest extends TestCase
     public function testConstructor(): void
     {
         $faker = new IpAddressFaker('en_US');
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(IpAddressFaker::class, $faker);
     }
 }

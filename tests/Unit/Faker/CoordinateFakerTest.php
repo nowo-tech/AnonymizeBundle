@@ -171,6 +171,7 @@ class CoordinateFakerTest extends TestCase
     public function testConstructor(): void
     {
         $faker = new CoordinateFaker('en_US');
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(CoordinateFaker::class, $faker);
     }
 

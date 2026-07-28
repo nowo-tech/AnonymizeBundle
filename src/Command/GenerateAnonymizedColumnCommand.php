@@ -11,7 +11,6 @@ use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
-use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -42,16 +41,12 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
     /**
      * Creates a new GenerateAnonymizedColumnCommand instance.
      *
-     * ContainerInterface is limited to parameter_bag, event_dispatcher, and project_dir resolution (REQ-DI-001).
-     *
-     * @param ContainerInterface $container The service container
      * @param AnonymizeService $anonymizeService The anonymize service
      * @param EnvironmentProtectionService $environmentProtection Environment / DSN guard
      * @param ManagerRegistry $doctrine Doctrine manager registry
      * @param array<string> $connections The Doctrine connection names to process
      */
     public function __construct(
-        private readonly ContainerInterface $container,
         private readonly AnonymizeService $anonymizeService,
         private readonly EnvironmentProtectionService $environmentProtection,
         private readonly ManagerRegistry $doctrine,
@@ -234,17 +229,24 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
 
             // Try to get manager by name
             if (isset($allManagers[$connectionName])) {
-                return $this->doctrine->getManager($connectionName);
+                $manager = $this->doctrine->getManager($connectionName);
+
+                return $manager instanceof EntityManagerInterface ? $manager : null;
             }
 
             // If connection name is 'default' or empty, try default manager
             if ($connectionName === 'default' || ($connectionName === '' || $connectionName === '0')) {
-                return $this->doctrine->getManager();
+                $manager = $this->doctrine->getManager();
+
+                return $manager instanceof EntityManagerInterface ? $manager : null;
             }
 
             // Try to find manager by connection name
             foreach ($allManagers as $managerName => $serviceId) {
                 $manager = $this->doctrine->getManager($managerName);
+                if (!$manager instanceof EntityManagerInterface) {
+                    continue;
+                }
                 if (DbalHelper::getConnectionName($manager->getConnection()) === $connectionName) {
                     return $manager;
                 }

@@ -125,6 +125,7 @@ class MacAddressFakerTest extends TestCase
     public function testConstructor(): void
     {
         $faker = new MacAddressFaker('en_US');
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertInstanceOf(MacAddressFaker::class, $faker);
     }
 

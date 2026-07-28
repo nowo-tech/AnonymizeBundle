@@ -18,11 +18,12 @@ interface FakerInterface
     /**
      * Generates an anonymized value.
      *
-     * @param array<string, mixed> $options Options for the faker. All fakers receive:
-     *                                      - 'original_value' (mixed): The original value from the database (always provided)
-     *                                      - Additional faker-specific options as documented in each faker class
+     * @param array<string, mixed>|FakerOptions $options Options for the faker. Prefer FakerOptions; array accepted for BC.
+     *                                                   All fakers receive:
+     *                                                   - 'original_value' (mixed): The original value from the database (always provided)
+     *                                                   - Additional faker-specific options as documented in each faker class
      *
      * @return mixed The anonymized value
      */
-    public function generate(array $options = []): mixed;
+    public function generate(FakerOptions|array $options = []): mixed;
 }

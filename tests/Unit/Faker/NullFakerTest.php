@@ -23,12 +23,15 @@ class NullFakerTest extends TestCase
         $faker = new NullFaker();
 
         $result = $faker->generate([]);
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertNull($result);
 
         $result2 = $faker->generate(['any' => 'option']);
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertNull($result2);
 
         $result3 = $faker->generate(['value' => 'ignored']);
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertNull($result3);
     }
 
@@ -39,6 +42,7 @@ class NullFakerTest extends TestCase
     {
         $faker  = new NullFaker();
         $result = $faker->generate([]);
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertNull($result);
     }
 
@@ -51,12 +55,15 @@ class NullFakerTest extends TestCase
 
         // Should return null regardless of options
         $result1 = $faker->generate(['value' => 'test']);
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertNull($result1);
 
         $result2 = $faker->generate(['bypass_entity_exclusion' => true]);
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertNull($result2);
 
         $result3 = $faker->generate(['any' => 'option', 'other' => 'value']);
+        // @phpstan-ignore-next-line method.alreadyNarrowedType, function.alreadyNarrowedType, staticMethod.alreadyNarrowedType
         $this->assertNull($result3);
     }
 }

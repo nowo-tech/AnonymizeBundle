@@ -40,9 +40,10 @@ final readonly class BooleanFaker implements FakerInterface
      *
      * @return bool The anonymized boolean value
      */
-    public function generate(array $options = []): bool
+    public function generate(FakerOptions|array $options = []): bool
     {
-        $trueProbability = (int) ($options['true_probability'] ?? 50);
+        $opts            = FakerOptions::normalize($options)->all();
+        $trueProbability = (int) ($opts['true_probability'] ?? 50);
         $trueProbability = max(0, min(100, $trueProbability)); // Clamp between 0 and 100
 
         return $this->faker->boolean($trueProbability);

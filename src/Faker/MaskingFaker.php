@@ -39,18 +39,19 @@ final class MaskingFaker implements FakerInterface
      *
      * @return string The masked value
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
+        $opts = FakerOptions::normalize($options)->all();
         // Support both 'original_value' (standard) and 'value' (backward compatibility)
-        $value = $options['original_value'] ?? $options['value'] ?? null;
+        $value = $opts['original_value'] ?? $opts['value'] ?? null;
 
         if ($value === null || !is_string($value)) {
             throw new InvalidArgumentException('MaskingFaker requires an "original_value" (or "value") option with the original value to mask.');
         }
-        $preserveStart = (int) ($options['preserve_start'] ?? 1);
-        $preserveEnd   = (int) ($options['preserve_end'] ?? 0);
-        $maskChar      = $options['mask_char'] ?? '*';
-        $maskLength    = $options['mask_length'] ?? null;
+        $preserveStart = (int) ($opts['preserve_start'] ?? 1);
+        $preserveEnd   = (int) ($opts['preserve_end'] ?? 0);
+        $maskChar      = $opts['mask_char'] ?? '*';
+        $maskLength    = $opts['mask_length'] ?? null;
 
         $valueLength = strlen($value);
 

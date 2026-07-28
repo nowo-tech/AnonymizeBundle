@@ -30,7 +30,7 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
-class AnonymizeBundle extends Bundle
+final class AnonymizeBundle extends Bundle
 {
     /**
      * Overridden to allow for the custom extension alias.

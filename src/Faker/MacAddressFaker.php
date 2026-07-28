@@ -43,10 +43,11 @@ final readonly class MacAddressFaker implements FakerInterface
      *
      * @return string The anonymized MAC address
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $separator = $options['separator'] ?? 'colon';
-        $uppercase = $options['uppercase'] ?? true;
+        $opts      = FakerOptions::normalize($options)->all();
+        $separator = $opts['separator'] ?? 'colon';
+        $uppercase = $opts['uppercase'] ?? true;
 
         // Generate 6 octets (2 hex digits each)
         $octets = [];
