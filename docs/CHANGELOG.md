@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.0.38] - 2026-07-29](#1038-2026-07-29)
 - [[1.0.37] - 2026-07-29](#1037-2026-07-29)
 - [[1.0.36] - 2026-07-29](#1036-2026-07-29)
 - [[1.0.35] - 2026-07-28](#1035-2026-07-28)
@@ -93,6 +94,29 @@ _(none)_
 ### Documentation
 
 _(none)_
+
+---
+## [1.0.38] - 2026-07-29
+
+### Added
+
+_(none)_
+
+### Changed
+
+- **Makefiles (REQ-MAKE-010)**: root and `demo/` prefer Compose V2 (`docker compose`) via `$(COMPOSE)` / `COMPOSE_BIN`, with fallback to `docker-compose` V1 (same pattern as `demo/symfony8`).
+
+### Fixed
+
+_(none)_
+
+### Removed
+
+_(none)_
+
+### Documentation
+
+- **UPGRADING.md** / **README.md**: status **1.0.38**.
 
 ---
 ## [1.0.37] - 2026-07-29

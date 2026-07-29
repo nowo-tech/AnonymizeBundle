@@ -2,7 +2,9 @@
 # Simplifies Docker commands for development
 
 COMPOSE_FILE := docker-compose.yml
-COMPOSE     := docker-compose -f $(COMPOSE_FILE)
+# Prefer Compose V2 plugin (GitHub Actions / modern Docker Desktop); fall back to docker-compose V1 (REQ-MAKE-010).
+COMPOSE_BIN := $(shell docker compose version >/dev/null 2>&1 && echo "docker compose" || echo "docker-compose")
+COMPOSE     := $(COMPOSE_BIN) -f $(COMPOSE_FILE)
 SERVICE_PHP := php
 
 .PHONY: help up down down-dev build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up assets release-check release-check-demos composer-sync rector rector-dry phpstan update update-deps update-deps-demos validate check-no-cursor-coauthor check-open-prs strip-cursor-coauthor-from-history demo-smoke
@@ -54,54 +56,54 @@ help:
 
 # Rebuild Docker image (no cache)
 build:
-	docker-compose -f docker-compose.yml build --no-cache
+	$(COMPOSE) build --no-cache
 
 # Build and start containers (php + mysql + postgres)
 up:
 	@echo "Building Docker image..."
-	docker-compose -f docker-compose.yml build
+	$(COMPOSE) build
 	@echo "Starting containers (PHP, MySQL, PostgreSQL)..."
-	docker-compose -f docker-compose.yml up -d
+	$(COMPOSE) up -d
 	@echo "Waiting for databases to be ready..."
 	@sleep 10
 	@echo "Installing dependencies..."
-	docker-compose -f docker-compose.yml exec -T php composer install --no-interaction
+	$(COMPOSE) exec -T php composer install --no-interaction
 	@echo "✅ Containers ready!"
 
-# Stop container (root docker-compose)
+# Stop container (root $(COMPOSE))
 down:
-	docker-compose -f docker-compose.yml down
+	$(COMPOSE) down
 
 # Stop containers without removing volumes (REQ-MAKE-007)
 down-dev:
-	docker-compose -f docker-compose.yml down --remove-orphans
+	$(COMPOSE) down --remove-orphans
 
 # Ensure root container is running (start if not). Used by cs-fix, cs-check, qa, install, test, test-coverage.
 ensure-up:
-	@if ! docker-compose -f docker-compose.yml exec -T php true 2>/dev/null; then \
-		echo "Starting container (docker-compose: php + mysql + postgres)..."; \
-		docker-compose -f docker-compose.yml up -d; \
+	@if ! $(COMPOSE) exec -T php true 2>/dev/null; then \
+		echo "Starting container ($(COMPOSE): php + mysql + postgres)..."; \
+		$(COMPOSE) up -d; \
 		sleep 10; \
-		docker-compose -f docker-compose.yml exec -T php composer install --no-interaction; \
+		$(COMPOSE) exec -T php composer install --no-interaction; \
 	fi
 
-# Open shell in container (root docker-compose)
+# Open shell in container (root $(COMPOSE))
 shell:
-	docker-compose -f docker-compose.yml exec php sh
+	$(COMPOSE) exec php sh
 
-# Install dependencies (runs inside root docker-compose php container)
+# Install dependencies (runs inside root $(COMPOSE) php container)
 install: ensure-up
-	docker-compose -f docker-compose.yml exec -T php composer install
+	$(COMPOSE) exec -T php composer install
 
-# Run tests (runs inside root docker-compose php container)
+# Run tests (runs inside root $(COMPOSE) php container)
 # Run tests (no -T so TTY is allocated and PHPUnit can show colors in console)
 test: ensure-up
-	docker-compose -f docker-compose.yml exec php composer test
+	$(COMPOSE) exec php composer test
 
-# Run tests with coverage (runs inside root docker-compose php container)
+# Run tests with coverage (runs inside root $(COMPOSE) php container)
 # Run tests with coverage (no -T so coverage is shown in console with colors)
 test-coverage: ensure-up
-	docker-compose -f docker-compose.yml exec php composer test-coverage | tee coverage-php.txt
+	$(COMPOSE) exec php composer test-coverage | tee coverage-php.txt
 	/bin/sh "$(CURDIR)/.scripts/php-coverage-percent.sh" coverage-php.txt
 
 # Print global PHP line coverage % from coverage-php.txt (run test-coverage first to regenerate the file)
@@ -110,11 +112,11 @@ coverage-php-percent:
 
 # Run tests with databases (integration tests; same compose: php + mysql + postgres)
 test-with-db: ensure-up
-	docker-compose -f docker-compose.yml exec -T php composer test
+	$(COMPOSE) exec -T php composer test
 
 # Run tests with coverage and databases
 test-coverage-with-db: ensure-up
-	docker-compose -f docker-compose.yml exec php composer test-coverage
+	$(COMPOSE) exec php composer test-coverage
 
 # No frontend assets in this bundle
 assets:
@@ -123,59 +125,59 @@ assets:
 # Start containers (php + mysql + postgres)
 test-up:
 	@echo "Building Docker image..."
-	docker-compose -f docker-compose.yml build
+	$(COMPOSE) build
 	@echo "Starting containers (PHP, MySQL, PostgreSQL)..."
-	docker-compose -f docker-compose.yml up -d
+	$(COMPOSE) up -d
 	@echo "Waiting for databases to be ready..."
 	@sleep 10
 	@echo "Installing dependencies..."
-	docker-compose -f docker-compose.yml exec -T php composer install --no-interaction
+	$(COMPOSE) exec -T php composer install --no-interaction
 	@echo "✅ Containers ready!"
 
 # Stop containers
 test-down:
-	docker-compose -f docker-compose.yml down
+	$(COMPOSE) down
 
 # Open shell in php container
 test-shell:
-	docker-compose -f docker-compose.yml exec php sh
+	$(COMPOSE) exec php sh
 
-# Check code style (runs inside root docker-compose php container)
+# Check code style (runs inside root $(COMPOSE) php container)
 cs-check: ensure-up
-	docker-compose -f docker-compose.yml exec -T php composer cs-check
+	$(COMPOSE) exec -T php composer cs-check
 
-# Fix code style (runs inside root docker-compose php container)
+# Fix code style (runs inside root $(COMPOSE) php container)
 cs-fix: ensure-up
-	docker-compose -f docker-compose.yml exec -T php composer cs-fix
+	$(COMPOSE) exec -T php composer cs-fix
 
 # Run Rector (apply refactoring)
 rector: ensure-up
-	docker-compose -f docker-compose.yml exec -T php composer rector
+	$(COMPOSE) exec -T php composer rector
 
 # Run Rector in dry-run mode
 rector-dry: ensure-up
-	docker-compose -f docker-compose.yml exec -T php composer rector-dry
+	$(COMPOSE) exec -T php composer rector-dry
 
 # Run PHPStan static analysis
 phpstan: ensure-up
-	docker-compose -f docker-compose.yml exec -T php composer phpstan
+	$(COMPOSE) exec -T php composer phpstan
 
 # Validate composer.json and align composer.lock (generate/update lock without install)
 composer-sync: ensure-up
-	docker-compose -f docker-compose.yml exec -T php composer validate --strict
-	docker-compose -f docker-compose.yml exec -T php composer update --no-install
+	$(COMPOSE) exec -T php composer validate --strict
+	$(COMPOSE) exec -T php composer update --no-install
 
 # Update composer.lock
 update: ensure-up
-	docker-compose -f docker-compose.yml exec -T php composer update --no-interaction
+	$(COMPOSE) exec -T php composer update --no-interaction
 
 # Validate composer.json
 validate: ensure-up
-	docker-compose -f docker-compose.yml exec -T php composer validate --strict
+	$(COMPOSE) exec -T php composer validate --strict
 
-# Run all QA (runs inside root docker-compose php container)
+# Run all QA (runs inside root $(COMPOSE) php container)
 qa: ensure-up
-	docker-compose -f docker-compose.yml exec -T php composer qa
+	$(COMPOSE) exec -T php composer qa
 
 # Pre-release (REQ-MAKE-002): ensure-up → git/PR gates → composer-sync → QA → demos
 release-check: ensure-up check-no-cursor-coauthor check-open-prs composer-sync cs-fix cs-check rector-dry phpstan test-coverage release-check-demos

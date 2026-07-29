@@ -1,6 +1,9 @@
 # Makefile for Anonymize Bundle Demos
 # Manages Symfony 8 demo
 
+# Prefer Compose V2 plugin (GitHub Actions / modern Docker Desktop); fall back to docker-compose V1 (REQ-MAKE-010).
+COMPOSE ?= $(shell docker compose version >/dev/null 2>&1 && echo "docker compose" || echo "docker-compose")
+
 DEMOS := symfony8
 
 .PHONY: help all up down install setup clean logs status update-bundle-symfony8 update-bundle-all update-deps-all release-check release-verify
@@ -45,7 +48,7 @@ all:
 # Start all demos (FrankenPHP: one container per demo, no nginx)
 up:
 	@echo "🚀 Starting all demo containers (FrankenPHP)..."
-	@cd symfony8 && docker-compose up -d --build
+	@cd symfony8 && $(COMPOSE) up -d --build
 	@echo "✅ All demos started. Waiting for services to be ready..."
 	@sleep 15
 	@echo "Access:"
@@ -59,16 +62,16 @@ up:
 # Stop all demos
 down:
 	@echo "🛑 Stopping all demo containers..."
-	@cd symfony8 && docker-compose down
+	@cd symfony8 && $(COMPOSE) down
 	@echo "✅ All demos stopped."
 
 down-symfony8:
-	@cd symfony8 && docker-compose down
+	@cd symfony8 && $(COMPOSE) down
 
 # Install dependencies for all demos
 install:
 	@echo "📦 Installing Composer dependencies for all demos..."
-	@cd symfony8 && docker-compose exec -T php composer install --no-interaction
+	@cd symfony8 && $(COMPOSE) exec -T php composer install --no-interaction
 	@echo "✅ Dependencies installed."
 
 # Setup databases and load fixtures for all demos
@@ -80,25 +83,25 @@ setup:
 # Setup Symfony 8 demo
 setup-symfony8:
 	@echo "📊 Setting up Symfony 8 demo..."
-	@cd symfony8 && docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --connection=default 2>&1 | grep -v "already exists" || true
-	@cd symfony8 && docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --connection=postgres 2>&1 | grep -v "already exists" || true
-	@cd symfony8 && docker-compose exec -T php php bin/console doctrine:schema:update --force --em=default 2>&1 | tail -2
-	@cd symfony8 && docker-compose exec -T php php bin/console doctrine:schema:update --force --em=postgres 2>&1 | tail -2
-	@cd symfony8 && docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=default 2>&1 | tail -3
-	@cd symfony8 && docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=postgres 2>&1 | tail -3
+	@cd symfony8 && $(COMPOSE) exec -T php php bin/console doctrine:database:create --if-not-exists --connection=default 2>&1 | grep -v "already exists" || true
+	@cd symfony8 && $(COMPOSE) exec -T php php bin/console doctrine:database:create --if-not-exists --connection=postgres 2>&1 | grep -v "already exists" || true
+	@cd symfony8 && $(COMPOSE) exec -T php php bin/console doctrine:schema:update --force --em=default 2>&1 | tail -2
+	@cd symfony8 && $(COMPOSE) exec -T php php bin/console doctrine:schema:update --force --em=postgres 2>&1 | tail -2
+	@cd symfony8 && $(COMPOSE) exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=default 2>&1 | tail -3
+	@cd symfony8 && $(COMPOSE) exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=postgres 2>&1 | tail -3
 	@echo "✅ Symfony 8 setup complete."
 
 # Start individual demos
 up-symfony8:
 	@echo "🚀 Starting Symfony 8 demo..."
-	@cd symfony8 && docker-compose up -d --build
+	@cd symfony8 && $(COMPOSE) up -d --build
 	@sleep 10
 
 restart-symfony8:
-	@cd symfony8 && docker-compose restart
+	@cd symfony8 && $(COMPOSE) restart
 
 build-symfony8:
-	@cd symfony8 && docker-compose build --no-cache
+	@cd symfony8 && $(COMPOSE) build --no-cache
 
 update-bundle-symfony8:
 	@$(MAKE) -C symfony8 update-bundle
@@ -115,7 +118,7 @@ clean:
 # Show logs
 logs:
 	@echo "📋 Showing logs for all demos..."
-	@docker-compose -f symfony8/docker-compose.yml logs --tail=50
+	@$(COMPOSE) -f symfony8/docker-compose.yml logs --tail=50
 
 # release-check: update-bundle in each demo, then test-coverage-all, then release-verify
 test-coverage-all:
