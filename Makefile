@@ -187,9 +187,14 @@ demo-smoke:
 	[ -z "$$PORT" ] && PORT=$$(grep "^PORT=" demo/symfony8/.env.example 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
 	[ -z "$$PORT" ] && PORT=8002; \
 	echo "Smoke GET http://localhost:$$PORT/"; \
-	code=$$(curl -fsS -o /dev/null -w "%{http_code}" "http://localhost:$$PORT/" || true); \
-	if [ "$$code" != "200" ]; then echo "demo-smoke failed: HTTP $$code"; exit 1; fi; \
-	echo "demo-smoke OK (HTTP 200)"
+	ok=0; \
+	for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do \
+		code=$$(curl -fsS -o /dev/null -w "%{http_code}" "http://localhost:$$PORT/" 2>/dev/null || true); \
+		if [ "$$code" = "200" ]; then echo "demo-smoke OK (HTTP 200)"; ok=1; break; fi; \
+		echo "  attempt $$i: HTTP $${code:-000}, retrying..."; \
+		sleep 2; \
+	done; \
+	if [ "$$ok" != "1" ]; then echo "demo-smoke failed: no HTTP 200 after retries"; exit 1; fi
 
 release-check-demos:
 	@$(MAKE) -C demo release-check

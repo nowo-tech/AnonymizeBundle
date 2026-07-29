@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.0.37] - 2026-07-29](#1037-2026-07-29)
 - [[1.0.36] - 2026-07-29](#1036-2026-07-29)
 - [[1.0.35] - 2026-07-28](#1035-2026-07-28)
 - [[1.0.34] - 2026-07-27](#1034-2026-07-27)
@@ -92,6 +93,30 @@ _(none)_
 ### Documentation
 
 _(none)_
+
+---
+## [1.0.37] - 2026-07-29
+
+### Added
+
+_(none)_
+
+### Changed
+
+_(none)_
+
+### Fixed
+
+- **`demo-smoke` / CI (REQ-TEST-011)**: `demo/symfony8` Makefile uses `$(COMPOSE)` with Compose V2 (`docker compose`) fallback so GitHub Actions no longer fails with `docker-compose: No such file or directory`.
+- **`make demo-smoke`**: retry HTTP 200 for up to ~60s after boot (FrankenPHP readiness).
+
+### Removed
+
+_(none)_
+
+### Documentation
+
+- **UPGRADING.md** / **README.md**: status **1.0.37**.
 
 ---
 ## [1.0.36] - 2026-07-29

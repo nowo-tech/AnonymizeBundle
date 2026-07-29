@@ -24,6 +24,27 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.37
+
+**Release Date**: 2026-07-29
+
+#### What's New
+
+- **CI / demo tooling**: `demo/symfony8` prefers `docker compose` (V2) over the legacy `docker-compose` binary so `make demo-smoke` works on GitHub Actions.
+
+#### Breaking Changes
+
+None.
+
+#### Migration Steps
+
+1. **Update the bundle** (if you use Composer):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+No application or configuration changes are required.
+
 ### Upgrading to 1.0.36
 
 **Release Date**: 2026-07-29

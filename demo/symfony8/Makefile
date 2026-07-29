@@ -1,6 +1,10 @@
 # Makefile for Anonymize Bundle Demo - Symfony 8
 # Simplifies Docker commands for the demo
 
+# Prefer Compose V2 plugin (GitHub Actions); fall back to docker-compose V1.
+COMPOSE ?= $(shell docker compose version >/dev/null 2>&1 && echo "docker compose" || echo "docker-compose")
+SERVICE_PHP ?= php
+
 .PHONY: help up down restart build shell install clean cache-clear setup update-bundle ensure-up test test-coverage
 
 # Default target
@@ -44,13 +48,13 @@ help:
 up:
 	@echo "🚀 Starting demo containers..."
 	@[ -f .env ] || cp .env.example .env
-	docker-compose up -d --build
+	$(COMPOSE) up -d --build
 	@echo "⏳ Waiting for MySQL and PostgreSQL to be ready..."
 	@echo "Waiting for container to be ready..."
 	@sleep 5
 	@echo "Installing dependencies..."
-	@docker-compose run --rm -e COMPOSER_MEMORY_LIMIT=-1 php composer install --no-interaction
-	@docker-compose up -d php
+	@$(COMPOSE) run --rm -e COMPOSER_MEMORY_LIMIT=-1 php composer install --no-interaction
+	@$(COMPOSE) up -d php
 	@echo "Creating databases, schema and loading fixtures..."
 	@$(MAKE) setup
 	@PORT=$$(grep "^PORT=" .env 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
@@ -62,38 +66,38 @@ up:
 # Stop containers
 down:
 	@echo "🛑 Stopping containers..."
-	docker-compose down
+	$(COMPOSE) down
 	@echo "✅ Containers stopped!"
 
 # Restart containers (no down/up)
 restart: ensure-up
 	@echo "🔄 Restarting containers..."
-	docker-compose restart
+	$(COMPOSE) restart
 	@echo "✅ Containers restarted!"
 
 # Rebuild image without cache
 build:
 	@echo "🔨 Rebuilding image (no cache)..."
-	docker-compose build --no-cache
+	$(COMPOSE) build --no-cache
 	@echo "✅ Image rebuilt!"
 
 # Ensure container is running (start if not). Used by install, shell, setup, update-bundle, etc.
 ensure-up:
-	@if ! docker-compose exec -T php true 2>/dev/null; then \
+	@if ! $(COMPOSE) exec -T php true 2>/dev/null; then \
 		echo "Starting container..."; \
-		docker-compose up -d; \
+		$(COMPOSE) up -d; \
 		sleep 5; \
 	fi
 
 # Open shell in PHP container
 shell: ensure-up
-	docker-compose exec php sh
+	$(COMPOSE) exec php sh
 
 # Install dependencies (use 'run' so it works even when php container exited due to missing vendor)
 install: ensure-up
 	@echo "📦 Installing dependencies..."
-	docker-compose run --rm -e COMPOSER_MEMORY_LIMIT=-1 php composer install --no-interaction
-	@docker-compose up -d php
+	$(COMPOSE) run --rm -e COMPOSER_MEMORY_LIMIT=-1 php composer install --no-interaction
+	@$(COMPOSE) up -d php
 	@echo "✅ Dependencies installed!"
 	@echo ""
 	@echo "You can now run:"
@@ -103,16 +107,16 @@ install: ensure-up
 # Update the bundle from the path repo (use if you get "Unknown named parameter $truncate")
 update-bundle: ensure-up
 	@echo "📦 Updating nowo-tech/anonymize-bundle from repo..."
-	@docker-compose exec -T php git config --global --add safe.directory /bundles 2>/dev/null || true
-	docker-compose exec -T php composer update nowo-tech/anonymize-bundle --with-all-dependencies --no-interaction
-	docker-compose exec -T php php bin/console cache:clear
+	@$(COMPOSE) exec -T php git config --global --add safe.directory /bundles 2>/dev/null || true
+	$(COMPOSE) exec -T php composer update nowo-tech/anonymize-bundle --with-all-dependencies --no-interaction
+	$(COMPOSE) exec -T php php bin/console cache:clear
 	@echo "✅ Bundle updated! Run: make anonymize-dry-run"
 
 test: ensure-up
-	docker-compose exec -T php composer test 2>/dev/null || docker-compose exec -T php php bin/console list
+	$(COMPOSE) exec -T php composer test 2>/dev/null || $(COMPOSE) exec -T php php bin/console list
 
 test-coverage: ensure-up
-	docker-compose exec -T php composer test-coverage 2>/dev/null || docker-compose exec -T php composer test 2>/dev/null || docker-compose exec -T php php bin/console list
+	$(COMPOSE) exec -T php composer test-coverage 2>/dev/null || $(COMPOSE) exec -T php composer test 2>/dev/null || $(COMPOSE) exec -T php php bin/console list
 
 # Complete setup
 setup: ensure-up
@@ -120,22 +124,22 @@ setup: ensure-up
 	@echo "Waiting for MySQL and PostgreSQL to be ready..."
 	@sleep 3
 	@echo "Installing base dependencies (without bundle)..."
-	-docker-compose exec -T -e COMPOSER_MEMORY_LIMIT=-1 php composer install --no-interaction --ignore-platform-reqs 2>/dev/null || docker-compose exec -T -e COMPOSER_MEMORY_LIMIT=-1 php composer install --no-interaction
+	-$(COMPOSE) exec -T -e COMPOSER_MEMORY_LIMIT=-1 php composer install --no-interaction --ignore-platform-reqs 2>/dev/null || $(COMPOSE) exec -T -e COMPOSER_MEMORY_LIMIT=-1 php composer install --no-interaction
 	@echo "Creating databases..."
 	@echo "  - MySQL (default connection)..."
-	-docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --no-interaction --connection=default
+	-$(COMPOSE) exec -T php php bin/console doctrine:database:create --if-not-exists --no-interaction --connection=default
 	@echo "  - PostgreSQL (postgres connection)..."
-	-docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --no-interaction --connection=postgres
+	-$(COMPOSE) exec -T php php bin/console doctrine:database:create --if-not-exists --no-interaction --connection=postgres
 	@echo "Creating schemas..."
 	@echo "  - MySQL schema..."
-	-docker-compose exec -T php php bin/console doctrine:schema:create --no-interaction --em=default
+	-$(COMPOSE) exec -T php php bin/console doctrine:schema:create --no-interaction --em=default
 	@echo "  - PostgreSQL schema..."
-	-docker-compose exec -T php php bin/console doctrine:schema:create --no-interaction --em=postgres
+	-$(COMPOSE) exec -T php php bin/console doctrine:schema:create --no-interaction --em=postgres
 	@echo "Loading fixtures..."
 	@echo "  - MySQL fixtures..."
-	-docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=default
+	-$(COMPOSE) exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=default
 	@echo "  - PostgreSQL fixtures..."
-	-docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=postgres
+	-$(COMPOSE) exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=postgres
 	@echo "✅ Demo setup complete!"
 	@echo ""
 	@echo "Then you can run:"
@@ -146,48 +150,48 @@ setup: ensure-up
 # Anonymization commands
 anonymize-dry-run:
 	@echo "🔍 Running anonymization in dry-run mode..."
-	docker-compose exec -T php php bin/console nowo:anonymize:run --dry-run
+	$(COMPOSE) exec -T php php bin/console nowo:anonymize:run --dry-run
 
 anonymize:
 	@echo "🔄 Running anonymization..."
-	docker-compose exec -T php php bin/console nowo:anonymize:run
+	$(COMPOSE) exec -T php php bin/console nowo:anonymize:run
 
 anonymize-stats:
 	@echo "📊 Running anonymization with statistics..."
-	docker-compose exec -T php php bin/console nowo:anonymize:run --stats-json stats.json
+	$(COMPOSE) exec -T php php bin/console nowo:anonymize:run --stats-json stats.json
 
 # Database commands
 db-create:
 	@echo "📦 Creating databases..."
 	@echo "  - MySQL..."
-	-docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --no-interaction --connection=default
+	-$(COMPOSE) exec -T php php bin/console doctrine:database:create --if-not-exists --no-interaction --connection=default
 	@echo "  - PostgreSQL..."
-	-docker-compose exec -T php php bin/console doctrine:database:create --if-not-exists --no-interaction --connection=postgres
+	-$(COMPOSE) exec -T php php bin/console doctrine:database:create --if-not-exists --no-interaction --connection=postgres
 
 db-drop:
 	@echo "🗑️  Dropping databases..."
-	-docker-compose exec -T php php bin/console doctrine:database:drop --force --if-exists --no-interaction --connection=default
-	-docker-compose exec -T php php bin/console doctrine:database:drop --force --if-exists --no-interaction --connection=postgres
+	-$(COMPOSE) exec -T php php bin/console doctrine:database:drop --force --if-exists --no-interaction --connection=default
+	-$(COMPOSE) exec -T php php bin/console doctrine:database:drop --force --if-exists --no-interaction --connection=postgres
 
 db-reset: db-drop db-create
 	@echo "🔄 Resetting database schemas..."
 	@echo "  - MySQL..."
-	-docker-compose exec -T php php bin/console doctrine:schema:create --no-interaction --em=default
+	-$(COMPOSE) exec -T php php bin/console doctrine:schema:create --no-interaction --em=default
 	@echo "  - PostgreSQL..."
-	-docker-compose exec -T php php bin/console doctrine:schema:create --no-interaction --em=postgres
+	-$(COMPOSE) exec -T php php bin/console doctrine:schema:create --no-interaction --em=postgres
 	@echo "📥 Loading fixtures..."
 	@echo "  - MySQL fixtures..."
-	-docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=default
+	-$(COMPOSE) exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=default
 	@echo "  - PostgreSQL fixtures..."
-	-docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=postgres
+	-$(COMPOSE) exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=postgres
 	@echo "✅ Database reset complete!"
 
 db-fixtures:
 	@echo "📥 Loading fixtures..."
 	@echo "  - MySQL fixtures..."
-	-docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=default
+	-$(COMPOSE) exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=default
 	@echo "  - PostgreSQL fixtures..."
-	-docker-compose exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=postgres
+	-$(COMPOSE) exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=postgres
 	@echo "✅ Fixtures loaded!"
 
 db-view:
@@ -195,23 +199,23 @@ db-view:
 	@echo ""
 	@echo "=== MySQL (default connection) ==="
 	@echo "Users:"
-	docker-compose exec -T php php bin/console dbal:run-sql "SELECT * FROM users" --connection=default 2>/dev/null || echo "No users table or connection error"
+	$(COMPOSE) exec -T php php bin/console dbal:run-sql "SELECT * FROM users" --connection=default 2>/dev/null || echo "No users table or connection error"
 	@echo ""
 	@echo "Customers:"
-	docker-compose exec -T php php bin/console dbal:run-sql "SELECT * FROM customers" --connection=default 2>/dev/null || echo "No customers table or connection error"
+	$(COMPOSE) exec -T php php bin/console dbal:run-sql "SELECT * FROM customers" --connection=default 2>/dev/null || echo "No customers table or connection error"
 	@echo ""
 	@echo "=== PostgreSQL (postgres connection) ==="
 	@echo "Users:"
-	docker-compose exec -T php php bin/console dbal:run-sql "SELECT * FROM users" --connection=postgres 2>/dev/null || echo "No users table or connection error"
+	$(COMPOSE) exec -T php php bin/console dbal:run-sql "SELECT * FROM users" --connection=postgres 2>/dev/null || echo "No users table or connection error"
 	@echo ""
 	@echo "Customers:"
-	docker-compose exec -T php php bin/console dbal:run-sql "SELECT * FROM customers" --connection=postgres 2>/dev/null || echo "No customers table or connection error"
+	$(COMPOSE) exec -T php php bin/console dbal:run-sql "SELECT * FROM customers" --connection=postgres 2>/dev/null || echo "No customers table or connection error"
 
 # Show logs
 logs:
-	docker-compose logs -f
+	$(COMPOSE) logs -f
 
-# Start web server (nginx is already running in docker-compose)
+# Start web server (nginx is already running in $(COMPOSE))
 server:
 	@echo "🌐 Web server (nginx) is already running!"
 	@echo "Access the application at: http://localhost:8000"
@@ -219,8 +223,8 @@ server:
 # Full cache clear (regenerates container; use if you see "Failed to open stream ... get*Service.php")
 cache-clear:
 	@echo "🗑️  Clearing cache..."
-	docker-compose exec -T php rm -rf var/cache/*
-	docker-compose exec -T php php bin/console cache:clear
+	$(COMPOSE) exec -T php rm -rf var/cache/*
+	$(COMPOSE) exec -T php php bin/console cache:clear
 	@echo "✅ Cache cleared!"
 
 # Clean vendor and cache
@@ -232,7 +236,5 @@ clean:
 	@echo "✅ Cleaned!"
 
 # REQ-MAKE-008: update-deps
-COMPOSE := docker-compose
-SERVICE_PHP := php
 # Optional: monorepo helper absent on standalone GitHub Actions checkout (REQ-MAKE-009).
 -include $(abspath $(CURDIR)/../../../.scripts/Makefile.demo-update-deps.mk)
