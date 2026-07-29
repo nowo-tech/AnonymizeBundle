@@ -25,6 +25,7 @@ This bundle is **FrankenPHP worker mode friendly**.
 - [Faker Types](#faker-types)
 - [Documentation](#documentation)
 - [Testing](#testing)
+- [Tests and coverage](#tests-and-coverage)
 - [License](#license)
 - [Contributing](#contributing)
 - [Roadmap](#roadmap)
