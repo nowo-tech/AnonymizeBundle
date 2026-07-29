@@ -23,7 +23,7 @@ final class CustomReferenceFaker implements FakerInterface
     /**
      * Generates an anonymized reference code.
      *
-     * @param FakerOptions|array<string, mixed> $options Options:
+     * @param array<string, mixed>|FakerOptions $options Options:
      *                                                   - 'prefix' (string): Prefix for the reference (default: 'REF')
      *                                                   - 'length' (int): Length of the numeric part (default: 8)
      *                                                   - 'separator' (string): Separator between prefix and number (default: '-')
