@@ -234,4 +234,5 @@ clean:
 # REQ-MAKE-008: update-deps
 COMPOSE := docker-compose
 SERVICE_PHP := php
-include $(abspath $(CURDIR)/../../../.scripts/Makefile.demo-update-deps.mk)
+# Optional: monorepo helper absent on standalone GitHub Actions checkout (REQ-MAKE-009).
+-include $(abspath $(CURDIR)/../../../.scripts/Makefile.demo-update-deps.mk)

@@ -24,6 +24,27 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.36
+
+**Release Date**: 2026-07-29
+
+#### What's New
+
+- **Maintainer tooling (REQ-MAKE-009)**: Makefiles optionally include monorepo `.scripts` helpers (`-include`) so CI / standalone clones do not error when those files are missing.
+
+#### Breaking Changes
+
+None.
+
+#### Migration Steps
+
+1. **Update the bundle** (if you use Composer):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+No application or configuration changes are required.
+
 ### Upgrading to 1.0.35
 
 **Release Date**: 2026-07-28

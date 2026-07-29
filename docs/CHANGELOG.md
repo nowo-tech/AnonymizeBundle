@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.0.36] - 2026-07-29](#1036-2026-07-29)
 - [[1.0.35] - 2026-07-28](#1035-2026-07-28)
 - [[1.0.34] - 2026-07-27](#1034-2026-07-27)
 - [[1.0.33] - 2026-07-27](#1033-2026-07-27)
@@ -91,6 +92,29 @@ _(none)_
 ### Documentation
 
 _(none)_
+
+---
+## [1.0.36] - 2026-07-29
+
+### Added
+
+_(none)_
+
+### Changed
+
+- **Makefiles (REQ-MAKE-009)**: root, `demo/`, and `demo/symfony8/` use `-include` for optional monorepo `../.scripts/Makefile*.mk` helpers so standalone GitHub Actions checkouts do not fail when those files are absent.
+
+### Fixed
+
+_(none)_
+
+### Removed
+
+_(none)_
+
+### Documentation
+
+- **UPGRADING.md** / **README.md**: status **1.0.36**.
 
 ---
 ## [1.0.35] - 2026-07-28

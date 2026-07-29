@@ -159,4 +159,5 @@ status:
 
 # REQ-MAKE-008: update-deps-all
 BUNDLE_ROOT := $(abspath $(CURDIR)/..)
-include $(abspath $(CURDIR)/../../.scripts/Makefile.demo-aggregate-update-deps.mk)
+# Optional: monorepo helper absent on standalone GitHub Actions checkout (REQ-MAKE-009).
+-include $(abspath $(CURDIR)/../../.scripts/Makefile.demo-aggregate-update-deps.mk)
