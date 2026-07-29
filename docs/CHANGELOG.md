@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.0.39] - 2026-07-29](#1039-2026-07-29)
 - [[1.0.38] - 2026-07-29](#1038-2026-07-29)
 - [[1.0.37] - 2026-07-29](#1037-2026-07-29)
 - [[1.0.36] - 2026-07-29](#1036-2026-07-29)
@@ -94,6 +95,30 @@ _(none)_
 ### Documentation
 
 _(none)_
+
+---
+## [1.0.39] - 2026-07-29
+
+### Added
+
+_(none)_
+
+### Changed
+
+_(none)_
+
+### Fixed
+
+- **Demo Symfony 8**: `CustomReferenceFaker::generate()` accepts `FakerOptions|array` (aligned with `FakerInterface` since 1.0.35) so cache warm / `bin/console` no longer fatals after `make update-deps`.
+- **Demo**: regenerate `config/reference.php` to include `environment_protection` (REQ-SEC-004).
+
+### Removed
+
+_(none)_
+
+### Documentation
+
+- **UPGRADING.md** / **README.md**: status **1.0.39**.
 
 ---
 ## [1.0.38] - 2026-07-29

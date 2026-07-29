@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
+use Nowo\AnonymizeBundle\Faker\FakerOptions;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 /**
@@ -22,18 +23,19 @@ final class CustomReferenceFaker implements FakerInterface
     /**
      * Generates an anonymized reference code.
      *
-     * @param array<string, mixed> $options Options:
-     *                                      - 'prefix' (string): Prefix for the reference (default: 'REF')
-     *                                      - 'length' (int): Length of the numeric part (default: 8)
-     *                                      - 'separator' (string): Separator between prefix and number (default: '-')
+     * @param FakerOptions|array<string, mixed> $options Options:
+     *                                                   - 'prefix' (string): Prefix for the reference (default: 'REF')
+     *                                                   - 'length' (int): Length of the numeric part (default: 8)
+     *                                                   - 'separator' (string): Separator between prefix and number (default: '-')
      *
      * @return string The anonymized reference code
      */
-    public function generate(array $options = []): string
+    public function generate(FakerOptions|array $options = []): string
     {
-        $prefix    = $options['prefix'] ?? 'REF';
-        $length    = (int) ($options['length'] ?? 8);
-        $separator = $options['separator'] ?? '-';
+        $opts      = FakerOptions::normalize($options)->all();
+        $prefix    = $opts['prefix'] ?? 'REF';
+        $length    = (int) ($opts['length'] ?? 8);
+        $separator = $opts['separator'] ?? '-';
 
         // Generate random numeric part
         $min = (int) str_pad('1', $length, '0');

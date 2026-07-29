@@ -24,6 +24,27 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.39
+
+**Release Date**: 2026-07-29
+
+#### What's New
+
+- **Demo**: `CustomReferenceFaker` updated for `FakerOptions|array` (see [Upgrading to 1.0.35](#upgrading-to-1035) if you maintain a similar custom faker).
+
+#### Breaking Changes
+
+None for application consumers of the published package. Demo-only signature fix.
+
+#### Migration Steps
+
+1. **Update the bundle** (if you use Composer):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+If you copied the demo `CustomReferenceFaker`, widen `generate()` to `FakerOptions|array` and normalize with `FakerOptions::normalize($options)`.
+
 ### Upgrading to 1.0.38
 
 **Release Date**: 2026-07-29
