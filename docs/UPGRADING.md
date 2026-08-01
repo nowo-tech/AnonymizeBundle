@@ -24,6 +24,27 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.40
+
+**Release Date**: 2026-08-01
+
+#### What's New
+
+- **Maintenance**: lockfile refreshes (bundle + demo) and README TOC link for Tests and coverage. No runtime API changes.
+
+#### Breaking Changes
+
+None.
+
+#### Migration Steps
+
+1. **Update the bundle** (if you use Composer):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+No application or configuration changes are required.
+
 ### Upgrading to 1.0.39
 
 **Release Date**: 2026-07-29

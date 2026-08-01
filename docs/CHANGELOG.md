@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.0.40] - 2026-08-01](#1040-2026-08-01)
 - [[1.0.39] - 2026-07-29](#1039-2026-07-29)
 - [[1.0.38] - 2026-07-29](#1038-2026-07-29)
 - [[1.0.37] - 2026-07-29](#1037-2026-07-29)
@@ -95,6 +96,31 @@ _(none)_
 ### Documentation
 
 _(none)_
+
+---
+## [1.0.40] - 2026-08-01
+
+### Added
+
+_(none)_
+
+### Changed
+
+- **Dependencies**: refresh root `composer.lock` (dev Symfony components → 7.4.15 and related minors).
+- **Demo Symfony 8**: `composer.lock` path reference updated to the current bundle HEAD.
+
+### Fixed
+
+_(none)_
+
+### Removed
+
+_(none)_
+
+### Documentation
+
+- **README.md**: TOC entry for [Tests and coverage](#tests-and-coverage); roadmap status **1.0.40**.
+- **UPGRADING.md**: section for 1.0.40.
 
 ---
 ## [1.0.39] - 2026-07-29
