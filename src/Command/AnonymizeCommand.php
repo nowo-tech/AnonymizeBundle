@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Command;
 
 use Doctrine\ORM\EntityManagerInterface;
-use InvalidArgumentException;
-use RuntimeException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
+use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Event\AfterAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
@@ -19,6 +18,7 @@ use Nowo\AnonymizeBundle\Service\AnonymizeStatisticsDisplay;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
+use RuntimeException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -714,11 +714,7 @@ final class AnonymizeCommand extends AbstractCommand
         $basePrefix = rtrim($baseReal, '/') . '/';
 
         if ($canonical !== $baseReal && !str_starts_with($canonical, $basePrefix)) {
-            throw new InvalidArgumentException(sprintf(
-                'Stats output path "%s" resolves outside the configured stats_output_dir (%s). Absolute paths and ".." segments that escape the directory are rejected.',
-                $userPath,
-                $baseReal,
-            ));
+            throw new InvalidArgumentException(sprintf('Stats output path "%s" resolves outside the configured stats_output_dir (%s). Absolute paths and ".." segments that escape the directory are rejected.', $userPath, $baseReal));
         }
 
         return $canonical;
@@ -757,5 +753,4 @@ final class AnonymizeCommand extends AbstractCommand
 
         return $normalized;
     }
-
 }

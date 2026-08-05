@@ -307,7 +307,7 @@ class HashPreserveFakerTest extends TestCase
 
     public function testExplicitSaltOverridesDefaultSalt(): void
     {
-        $faker = new HashPreserveFaker('default-salt');
+        $faker        = new HashPreserveFaker('default-salt');
         $withExplicit = $faker->generate(['value' => 'x', 'salt' => 'explicit']);
         $withDefault  = $faker->generate(['value' => 'x']);
 
