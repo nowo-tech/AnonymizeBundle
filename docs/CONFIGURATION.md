@@ -194,7 +194,22 @@ filename_pattern: 'backup_{database}_{date}.{format}'
 
 The export command will automatically detect available compression tools and fall back gracefully if a tool is not available.
 
+### hash_preserve
+
+Defaults for deterministic `HashPreserveFaker` hashing:
+
+```yaml
+nowo_anonymize:
+    hash_preserve:
+        default_salt: null   # null → %kernel.secret%; set an explicit string to override
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `hash_preserve.default_salt` | `null` (`%kernel.secret%`) | Salt used when faker options omit `salt` or pass an empty string. |
+
 ### environment_protection
+
 
 **Type**: `array`  
 **Default**: denylist enabled with common production markers  

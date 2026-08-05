@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Unit\Service;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\Persistence\ManagerRegistry;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
@@ -257,5 +259,51 @@ class EnvironmentProtectionServiceTest extends TestCase
 
         $this->assertSame('', $service->getEnvironment());
         $this->assertFalse($service->isSafeEnvironment());
+    }
+
+    /**
+     * Blocked markers also match Doctrine connection url/host/dbname when registry is injected.
+     */
+    public function testBlockedDsnMatchesDoctrineConnectionParams(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getParams')->willReturn([
+            'url'    => 'mysql://user:pass@localhost:3306/app',
+            'host'   => 'prod-db.internal',
+            'dbname' => 'app',
+        ]);
+
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getConnections')->willReturn(['default' => $connection]);
+
+        $service = new EnvironmentProtectionService(new ParameterBag([
+            'kernel.environment' => 'dev',
+            'kernel.project_dir' => sys_get_temp_dir(),
+        ]), ['prod-db.internal'], $doctrine);
+
+        $errors = $service->performChecks();
+
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('Blocked connection marker', $errors[0]);
+        $this->assertStringContainsString('Doctrine connection', $errors[0]);
+    }
+
+    public function testDoctrineAbsentKeepsEnvOnlyBehaviour(): void
+    {
+        $backup = $_SERVER['DATABASE_URL'] ?? null;
+        unset($_SERVER['DATABASE_URL']);
+
+        try {
+            $service = new EnvironmentProtectionService(new ParameterBag([
+                'kernel.environment' => 'dev',
+                'kernel.project_dir' => sys_get_temp_dir(),
+            ]), ['prod-db.internal'], null);
+
+            $this->assertEmpty($service->performChecks());
+        } finally {
+            if ($backup !== null) {
+                $_SERVER['DATABASE_URL'] = $backup;
+            }
+        }
     }
 }

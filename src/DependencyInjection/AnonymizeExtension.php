@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\DependencyInjection;
 
+use function is_string;
+
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -56,6 +58,13 @@ final class AnonymizeExtension extends Extension
         $container->setParameter(
             'nowo_anonymize.environment_protection.blocked_dsn_substrings',
             $protectionConfig['blocked_dsn_substrings'] ?? [],
+        );
+
+        $hashPreserveConfig = $config['hash_preserve'] ?? [];
+        $defaultSalt        = $hashPreserveConfig['default_salt'] ?? null;
+        $container->setParameter(
+            'nowo_anonymize.hash_preserve_default_salt',
+            is_string($defaultSalt) && $defaultSalt !== '' ? $defaultSalt : '%kernel.secret%',
         );
     }
 

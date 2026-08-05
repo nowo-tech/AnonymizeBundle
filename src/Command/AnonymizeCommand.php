@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Command;
 
 use Doctrine\ORM\EntityManagerInterface;
+use InvalidArgumentException;
+use RuntimeException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Nowo\AnonymizeBundle\Event\AfterAnonymizeEvent;
@@ -232,21 +234,17 @@ final class AnonymizeCommand extends AbstractCommand
             $statsOutputDir = str_replace('%kernel.project_dir%', $this->projectDir, $statsOutputDir);
         }
 
-        // Process stats file paths - if relative, use configured output directory
-        if ($statsJson !== null && !str_starts_with((string) $statsJson, '/') && !str_contains((string) $statsJson, '\\')) {
-            // Relative path - prepend output directory
-            if (!is_dir($statsOutputDir)) {
-                mkdir($statsOutputDir, 0o755, true);
+        try {
+            if ($statsJson !== null) {
+                $statsJson = $this->resolveStatsOutputPath((string) $statsJson, $statsOutputDir);
             }
-            $statsJson = rtrim($statsOutputDir, '/') . '/' . $statsJson;
-        }
+            if ($statsCsv !== null) {
+                $statsCsv = $this->resolveStatsOutputPath((string) $statsCsv, $statsOutputDir);
+            }
+        } catch (InvalidArgumentException|RuntimeException $exception) {
+            $io->error($exception->getMessage());
 
-        if ($statsCsv !== null && !str_starts_with((string) $statsCsv, '/') && !str_contains((string) $statsCsv, '\\')) {
-            // Relative path - prepend output directory
-            if (!is_dir($statsOutputDir)) {
-                mkdir($statsOutputDir, 0o755, true);
-            }
-            $statsCsv = rtrim($statsOutputDir, '/') . '/' . $statsCsv;
+            return self::INVALID;
         }
 
         // Show summary if interactive mode
@@ -686,4 +684,78 @@ final class AnonymizeCommand extends AbstractCommand
 
         return null;
     }
+
+    /**
+     * Resolves --stats-json/--stats-csv under stats_output_dir and rejects path traversal / absolute escape.
+     *
+     * Relative paths are joined to the configured stats directory. Absolute paths are accepted only when
+     * their canonical location stays inside that directory.
+     *
+     * @throws InvalidArgumentException when the path escapes the stats base directory
+     * @throws RuntimeException when the stats base directory cannot be created or resolved
+     */
+    private function resolveStatsOutputPath(string $userPath, string $statsOutputDir): string
+    {
+        $statsOutputDir = rtrim(str_replace('\\', '/', $statsOutputDir), '/');
+        if (!is_dir($statsOutputDir) && !mkdir($statsOutputDir, 0o755, true) && !is_dir($statsOutputDir)) {
+            throw new RuntimeException(sprintf('Unable to create stats output directory: %s', $statsOutputDir));
+        }
+
+        $baseReal = realpath($statsOutputDir);
+        if ($baseReal === false) {
+            throw new RuntimeException(sprintf('Unable to resolve stats output directory: %s', $statsOutputDir));
+        }
+        $baseReal = str_replace('\\', '/', $baseReal);
+
+        $isAbsolute = str_starts_with($userPath, '/') || str_contains($userPath, '\\');
+        $candidate  = $isAbsolute ? $userPath : ($baseReal . '/' . ltrim(str_replace('\\', '/', $userPath), '/'));
+
+        $canonical  = $this->canonicalizeFilesystemPath($candidate);
+        $basePrefix = rtrim($baseReal, '/') . '/';
+
+        if ($canonical !== $baseReal && !str_starts_with($canonical, $basePrefix)) {
+            throw new InvalidArgumentException(sprintf(
+                'Stats output path "%s" resolves outside the configured stats_output_dir (%s). Absolute paths and ".." segments that escape the directory are rejected.',
+                $userPath,
+                $baseReal,
+            ));
+        }
+
+        return $canonical;
+    }
+
+    /**
+     * Lexically resolves ".", ".." and duplicate separators without requiring the final file to exist.
+     */
+    private function canonicalizeFilesystemPath(string $path): string
+    {
+        $path       = str_replace('\\', '/', $path);
+        $isAbsolute = str_starts_with($path, '/');
+        $parts      = [];
+
+        foreach (explode('/', $path) as $segment) {
+            if ($segment === '' || $segment === '.') {
+                continue;
+            }
+            if ($segment === '..') {
+                if ($parts !== []) {
+                    array_pop($parts);
+                } elseif (!$isAbsolute) {
+                    $parts[] = '..';
+                }
+
+                continue;
+            }
+            $parts[] = $segment;
+        }
+
+        $normalized = implode('/', $parts);
+
+        if ($isAbsolute) {
+            return '/' . $normalized;
+        }
+
+        return $normalized;
+    }
+
 }

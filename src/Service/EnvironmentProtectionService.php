@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Service;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\Persistence\ManagerRegistry;
 use Nowo\AnonymizeBundle\AnonymizeBundle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
@@ -32,6 +34,7 @@ final readonly class EnvironmentProtectionService
     public function __construct(
         private ParameterBagInterface $parameterBag,
         private array $blockedDsnSubstrings = [],
+        private ?ManagerRegistry $doctrine = null,
     ) {
     }
 
@@ -101,7 +104,7 @@ final readonly class EnvironmentProtectionService
     }
 
     /**
-     * Rejects DATABASE_URL / MONGODB_URL (and similar) that look like production DSNs.
+     * Rejects DATABASE_URL / MONGODB_URL (and similar) and Doctrine connection params that look like production DSNs.
      *
      * @return list<string>
      */
@@ -122,34 +125,100 @@ final readonly class EnvironmentProtectionService
         }
 
         foreach ($candidates as $envKey => $url) {
-            $haystacks = [$url];
-            $parts     = parse_url($url);
-            if (is_array($parts)) {
-                $host = $parts['host'] ?? null;
-                if (is_string($host) && $host !== '') {
-                    $haystacks[] = $host;
-                }
-                $path = $parts['path'] ?? null;
-                if (is_string($path) && $path !== '') {
-                    $haystacks[] = $path;
-                }
-            }
+            $errors = array_merge($errors, $this->matchBlockedMarkers($envKey, $this->haystacksFromUrl($url)));
+        }
 
-            foreach ($this->blockedDsnSubstrings as $needle) {
-                if ($needle === '') {
+        if ($this->doctrine !== null) {
+            foreach ($this->doctrine->getConnections() as $name => $connection) {
+                if (!$connection instanceof Connection) {
                     continue;
                 }
-                $needleLower = strtolower($needle);
-                foreach ($haystacks as $haystack) {
-                    if (str_contains(strtolower($haystack), $needleLower)) {
-                        $errors[] = sprintf(
-                            'Blocked connection marker "%s" found in %s. Refusing to run against a denylisted DSN/host (configure nowo_anonymize.environment_protection.blocked_dsn_substrings or clear production URLs).',
-                            $needle,
-                            $envKey,
-                        );
 
-                        break 2;
-                    }
+                /** @var array<string, mixed> $params */
+                $params    = $connection->getParams();
+                $haystacks = $this->haystacksFromDoctrineParams($params);
+                if ($haystacks === []) {
+                    continue;
+                }
+
+                $label  = sprintf('Doctrine connection "%s"', is_string($name) ? $name : (string) $name);
+                $errors = array_merge($errors, $this->matchBlockedMarkers($label, $haystacks));
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     *
+     * @return list<string>
+     */
+    private function haystacksFromDoctrineParams(array $params): array
+    {
+        $haystacks = [];
+
+        foreach (['url', 'host', 'dbname', 'path', 'user'] as $key) {
+            $value = $params[$key] ?? null;
+            if (is_string($value) && $value !== '') {
+                $haystacks[] = $value;
+            }
+        }
+
+        $primary = $params['primary'] ?? null;
+        if (is_array($primary)) {
+            $haystacks = array_merge($haystacks, $this->haystacksFromDoctrineParams($primary));
+        }
+
+        return $haystacks;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function haystacksFromUrl(string $url): array
+    {
+        $haystacks = [$url];
+        $parts     = parse_url($url);
+        if (!is_array($parts)) {
+            return $haystacks;
+        }
+
+        $host = $parts['host'] ?? null;
+        if (is_string($host) && $host !== '') {
+            $haystacks[] = $host;
+        }
+        $path = $parts['path'] ?? null;
+        if (is_string($path) && $path !== '') {
+            $haystacks[] = $path;
+        }
+
+        return $haystacks;
+    }
+
+    /**
+     * @param list<string> $haystacks
+     *
+     * @return list<string>
+     */
+    private function matchBlockedMarkers(string $label, array $haystacks): array
+    {
+        $errors = [];
+
+        foreach ($this->blockedDsnSubstrings as $needle) {
+            if ($needle === '') {
+                continue;
+            }
+            $needleLower = strtolower($needle);
+            foreach ($haystacks as $haystack) {
+                if (str_contains(strtolower($haystack), $needleLower)) {
+                    $errors[] = sprintf(
+                        'Blocked connection marker "%s" found in %s. Refusing to run against a denylisted DSN/host (configure nowo_anonymize.environment_protection.blocked_dsn_substrings or clear production URLs).',
+                        $needle,
+                        $label,
+                    );
+
+                    return $errors;
                 }
             }
         }

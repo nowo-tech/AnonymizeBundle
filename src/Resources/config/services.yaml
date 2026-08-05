@@ -23,7 +23,9 @@ services:
     # They use #[Autoconfigure(public: true)] in their classes to be public
     # Their aliases are created automatically from the #[AsAlias] attributes
     Nowo\AnonymizeBundle\Faker\MaskingFaker: ~
-    Nowo\AnonymizeBundle\Faker\HashPreserveFaker: ~
+    Nowo\AnonymizeBundle\Faker\HashPreserveFaker:
+        arguments:
+            $defaultSalt: '%nowo_anonymize.hash_preserve_default_salt%'
     Nowo\AnonymizeBundle\Faker\ShuffleFaker: ~
     Nowo\AnonymizeBundle\Faker\ConstantFaker: ~
     Nowo\AnonymizeBundle\Faker\MapFaker: ~
@@ -73,6 +75,7 @@ services:
     Nowo\AnonymizeBundle\Service\EnvironmentProtectionService:
         arguments:
             $blockedDsnSubstrings: '%nowo_anonymize.environment_protection.blocked_dsn_substrings%'
+            $doctrine: '@?Doctrine\Persistence\ManagerRegistry'
     Nowo\AnonymizeBundle\Service\PatternMatcher: ~
     Nowo\AnonymizeBundle\Service\PreFlightCheckService:
         arguments:

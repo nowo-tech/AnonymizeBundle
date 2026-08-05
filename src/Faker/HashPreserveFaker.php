@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
+use function is_string;
 use function strlen;
 
 /**
@@ -24,13 +25,21 @@ use function strlen;
 final class HashPreserveFaker implements FakerInterface
 {
     /**
+     * @param string $defaultSalt Applied when the per-call "salt" option is empty (from nowo_anonymize.hash_preserve.default_salt / kernel.secret)
+     */
+    public function __construct(
+        private readonly string $defaultSalt = '',
+    ) {
+    }
+
+    /**
      * Generates a deterministic hash from the original value.
      *
      * @param array<string, mixed> $options Options:
      *                                      - 'original_value' (mixed): The original value to hash (standard, always provided).
      *                                      - 'value' (mixed): Alias for 'original_value' (backward compatibility).
      *                                      - 'algorithm' (string): Hash algorithm ('md5', 'sha1', 'sha256', 'sha512', default: 'sha256').
-     *                                      - 'salt' (string): Optional salt to add before hashing (default: '').
+     *                                      - 'salt' (string): Optional salt to add before hashing (empty falls back to configured default salt).
      *                                      - 'preserve_format' (bool): If true, attempts to preserve the format of the original value (default: false).
      *                                      - 'length' (int|null): Maximum length of the output (truncates hash if specified).
      *
@@ -48,14 +57,15 @@ final class HashPreserveFaker implements FakerInterface
             throw new InvalidArgumentException('HashPreserveFaker requires an "original_value" (or "value") option with the original value to hash.');
         }
         $algorithm      = $opts['algorithm'] ?? 'sha256';
-        $salt           = $opts['salt'] ?? '';
+        $saltOption     = $opts['salt'] ?? '';
+        $salt           = is_string($saltOption) && $saltOption !== '' ? $saltOption : $this->defaultSalt;
         $preserveFormat = $opts['preserve_format'] ?? false;
         $length         = $opts['length'] ?? null;
 
         // Convert to string
         $valueToHash = (string) $value;
 
-        // Add salt if provided
+        // Add salt if provided (per-call option or configured default)
         if ($salt !== '') {
             $valueToHash .= $salt;
         }

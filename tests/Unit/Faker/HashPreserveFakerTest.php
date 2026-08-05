@@ -291,4 +291,26 @@ class HashPreserveFakerTest extends TestCase
         $this->assertMatchesRegularExpression('/^\d+$/', $hash);
         $this->assertLessThanOrEqual(20, strlen($hash));
     }
+
+    public function testDefaultSaltUsedWhenSaltOptionEmpty(): void
+    {
+        $withDefault = new HashPreserveFaker('configured-salt');
+        $plain       = new HashPreserveFaker('');
+
+        $a = $withDefault->generate(['value' => 'same-input']);
+        $b = $plain->generate(['value' => 'same-input', 'salt' => 'configured-salt']);
+        $c = $plain->generate(['value' => 'same-input']);
+
+        $this->assertSame($b, $a);
+        $this->assertNotEquals($c, $a);
+    }
+
+    public function testExplicitSaltOverridesDefaultSalt(): void
+    {
+        $faker = new HashPreserveFaker('default-salt');
+        $withExplicit = $faker->generate(['value' => 'x', 'salt' => 'explicit']);
+        $withDefault  = $faker->generate(['value' => 'x']);
+
+        $this->assertNotEquals($withExplicit, $withDefault);
+    }
 }

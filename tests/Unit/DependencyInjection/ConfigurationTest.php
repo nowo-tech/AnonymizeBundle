@@ -58,6 +58,7 @@ class ConfigurationTest extends TestCase
         $this->assertSame(100, $config['batch_size']);
         $this->assertSame('%kernel.project_dir%/var/stats', $config['stats_output_dir']);
         $this->assertSame('%kernel.project_dir%/var/anonymize_history', $config['history_dir']);
+        $this->assertNull($config['hash_preserve']['default_salt']);
         $this->assertIsArray($config['export']);
         $this->assertArrayHasKey('enabled', $config['export']);
         $this->assertArrayHasKey('output_dir', $config['export']);
@@ -175,5 +176,14 @@ class ConfigurationTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
 
         $this->processConfiguration([['export' => ['compression' => 'invalid']]]);
+    }
+
+    public function testHashPreserveCustomDefaultSalt(): void
+    {
+        $config = $this->processConfiguration([
+            ['hash_preserve' => ['default_salt' => 'custom-salt']],
+        ]);
+
+        $this->assertSame('custom-salt', $config['hash_preserve']['default_salt']);
     }
 }
