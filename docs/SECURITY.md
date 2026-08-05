@@ -26,7 +26,9 @@ This bundle is **development-only** (see below). It anonymizes data for local/te
 |--------|------------|
 | Misuse in production | Documented as dev-only; install with `--dev` and do not register bundle in `prod`. |
 | Commands in prod console | **All** `nowo:anonymize:*` commands run `EnvironmentProtectionService` (kernel env must be `dev`/`test`; prod config/bundles registration blocked). |
-| `--env=dev` against production DSN | Configurable DSN/host **denylist** (`nowo_anonymize.environment_protection.blocked_dsn_substrings`) matched against `DATABASE_URL` / `MONGODB_URL` (and hosts). |
+| `--env=dev` against production DSN | Configurable DSN/host **denylist** (`nowo_anonymize.environment_protection.blocked_dsn_substrings`) matched against `DATABASE_URL` / `MONGODB_URL` (and hosts) **and** Doctrine connection `url` / `host` / `dbname` params when ManagerRegistry is available. |
+| Stats path traversal (`--stats-json` / `--stats-csv`) | Paths are resolved under `stats_output_dir`, canonicalized, and **rejected** if they escape that directory (including absolute paths outside the base). |
+| Empty `hash_preserve` salt | `HashPreserveFaker` applies `nowo_anonymize.hash_preserve.default_salt` (defaults to `%kernel.secret%`) when the per-call `salt` option is empty, avoiding unsalted dictionary-friendly hashes. |
 | Destructive TRUNCATE | Tables with `truncate=true` require interactive confirmation or `--force`; non-interactive runs abort truncate without `--force`. |
 | Data leakage in logs | Avoid verbose logging of raw PII in anonymization pipelines. |
 | Hung export subprocesses (FrankenPHP/FPM) | `export.timeout` (default 180s) on Symfony Process; demo Caddy/PHP deadlines sit above it (REQ-RUNTIME-001). |
@@ -52,6 +54,14 @@ If you discover a security issue in this bundle, please report it responsibly:
 This bundle is **development-only** and must not be used in production. It is intended for anonymizing data in development and test environments. Do not install or enable it in production.
 
 Thank you for helping keep this project and its users safe.
+
+## Remediations addressed
+
+Previously accepted residuals that are now mitigated:
+
+1. **DSN denylist only on env vars** — also inspects Doctrine DBAL connection parameters.
+2. **Unsalted `hash_preserve`** — configurable default salt (`hash_preserve.default_salt` → `%kernel.secret%`).
+3. **Stats export path escape** — `--stats-json` / `--stats-csv` cannot write outside `stats_output_dir`.
 
 ## Release security checklist (12.4.1)
 

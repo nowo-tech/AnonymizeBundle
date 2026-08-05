@@ -814,11 +814,13 @@ class AnonymizeCommandTest extends TestCase
     }
 
     /**
-     * Test that --stats-json with absolute path exports to that path without prepending stats_output_dir (covers branch when path starts with / or contains \).
+     * Absolute --stats-json under stats_output_dir is accepted.
      */
-    public function testExecuteWithStatsJsonAbsolutePathExportsToGivenPath(): void
+    public function testExecuteWithStatsJsonAbsolutePathInsideStatsDirExports(): void
     {
-        $absoluteJsonPath = $this->tempDir . '/absolute_run_stats.json';
+        $statsDir = $this->tempDir . '/stats';
+        mkdir($statsDir, 0o755, true);
+        $absoluteJsonPath = $statsDir . '/absolute_run_stats.json';
 
         $em       = $this->createMock(EntityManagerInterface::class);
         $doctrine = $this->createMock(ManagerRegistry::class);
@@ -840,6 +842,28 @@ class AnonymizeCommandTest extends TestCase
         $data = json_decode($json, true);
         $this->assertIsArray($data);
         $this->assertArrayHasKey('global', $data);
+    }
+
+    /**
+     * Absolute --stats-json outside stats_output_dir is rejected (path escape guard).
+     */
+    public function testExecuteWithStatsJsonAbsolutePathOutsideStatsDirIsRejected(): void
+    {
+        $absoluteJsonPath = $this->tempDir . '/absolute_run_stats.json';
+
+        $em       = $this->createMock(EntityManagerInterface::class);
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
+        $doctrine->method('getManager')->with('default')->willReturn($em);
+
+        $command = $this->createDefaultAnonymizeCommand($doctrine);
+        $input   = new ArrayInput(['--stats-json' => $absoluteJsonPath]);
+        $output  = new BufferedOutput();
+
+        $exitCode = $command->run($input, $output);
+
+        $this->assertSame(2, $exitCode);
+        $this->assertFileDoesNotExist($absoluteJsonPath);
     }
 
     /**
