@@ -35,59 +35,56 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
           echo "Found tags: $TAGS"
 
-      - name: Check existing releases
-        id: check-releases
-        uses: actions/github-script@v9
-        with:
-          script: |
-            const { data: releases } = await github.rest.repos.listReleases({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              per_page: 100
-            });
-            
-            const existingReleaseTags = releases.map(r => r.tag_name);
-            const releasesMap = {};
-            releases.forEach(r => {
-              releasesMap[r.tag_name] = {
-                id: r.id,
-                body: r.body || '',
-                hasChangelog: (r.body || '').includes('## Changelog')
-              };
-            });
-            
-            console.log('Existing releases:', existingReleaseTags);
-            
-            core.setOutput('tags', JSON.stringify(existingReleaseTags));
-            core.setOutput('releases_map', JSON.stringify(releasesMap));
-
+      # Keep check + diff in one step so we never pass full release bodies
+      # through GITHUB_OUTPUT / env (hits ARG_MAX / "Argument list too long").
       - name: Find missing and outdated releases
         id: missing
         uses: actions/github-script@v9
         env:
           TAGS: ${{ steps.tags.outputs.TAGS }}
-          EXISTING_RELEASES: ${{ steps.check-releases.outputs.tags }}
-          RELEASES_MAP: ${{ steps.check-releases.outputs.releases_map }}
         with:
           script: |
             const tags = (process.env.TAGS || '').trim().split('\n').filter(t => t);
-            const existingReleases = JSON.parse(process.env.EXISTING_RELEASES || '[]');
-            const releasesMap = JSON.parse(process.env.RELEASES_MAP || '{}');
-            
-            const missingTags = tags.filter(tag => !existingReleases.includes(tag));
+
+            const releases = await github.paginate(github.rest.repos.listReleases, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+
+            // Slim map only — never store release bodies in outputs/env
+            const releasesMap = {};
+            for (const r of releases) {
+              releasesMap[r.tag_name] = {
+                id: r.id,
+                hasChangelog: (r.body || '').includes('## Changelog')
+              };
+            }
+
+            const existingReleaseTags = Object.keys(releasesMap);
+            console.log('Existing releases:', existingReleaseTags.length);
+
+            const missingTags = tags.filter(tag => !releasesMap[tag]);
             const outdatedTags = tags.filter(tag => {
               const release = releasesMap[tag];
               return release && !release.hasChangelog;
             });
-            
+
             const allTagsToProcess = [...new Set([...missingTags, ...outdatedTags])];
-            
+
+            // Only IDs for tags we will update (small JSON for the next step)
+            const outdatedReleasesMap = {};
+            for (const tag of outdatedTags) {
+              outdatedReleasesMap[tag] = { id: releasesMap[tag].id };
+            }
+
             if (allTagsToProcess.length > 0) {
               console.log('Missing releases for tags:', missingTags);
               console.log('Outdated releases (missing changelog) for tags:', outdatedTags);
               core.setOutput('missing_tags', missingTags.join('\n'));
               core.setOutput('outdated_tags', outdatedTags.join('\n'));
               core.setOutput('all_tags', allTagsToProcess.join('\n'));
+              core.setOutput('outdated_releases_map', JSON.stringify(outdatedReleasesMap));
               core.setOutput('found_missing', 'true');
             } else {
               console.log('All tags have releases with changelog ✅');
@@ -101,24 +98,24 @@ jobs:
           ALL_TAGS: ${{ steps.missing.outputs.all_tags }}
           MISSING_TAGS: ${{ steps.missing.outputs.missing_tags }}
           OUTDATED_TAGS: ${{ steps.missing.outputs.outdated_tags }}
-          RELEASES_MAP: ${{ steps.check-releases.outputs.releases_map }}
+          OUTDATED_RELEASES_MAP: ${{ steps.missing.outputs.outdated_releases_map }}
         with:
           script: |
             const allTags = (process.env.ALL_TAGS || '').trim().split('\n').filter(t => t);
             const missingTags = (process.env.MISSING_TAGS || '').trim().split('\n').filter(t => t);
             const outdatedTags = (process.env.OUTDATED_TAGS || '').trim().split('\n').filter(t => t);
-            const releasesMap = JSON.parse(process.env.RELEASES_MAP || '{}');
-            
+            const outdatedReleasesMap = JSON.parse(process.env.OUTDATED_RELEASES_MAP || '{}');
+
             const fs = require('fs');
             const { execSync } = require('child_process');
-            
+
             for (const tag of allTags) {
               const isMissing = missingTags.includes(tag);
               const isOutdated = outdatedTags.includes(tag);
-              
+
               // Extract version from tag (remove 'v' prefix)
               const version = tag.replace(/^v/, '');
-              
+
               // Get tag message using git
               let tagMessage = '';
               try {
@@ -127,11 +124,11 @@ jobs:
               } catch (e) {
                 tagMessage = 'Release ' + tag;
               }
-              
+
               if (!tagMessage) {
                 tagMessage = 'Release ' + tag;
               }
-              
+
               // Get changelog entry
               let changelogEntry = '';
               if (fs.existsSync('docs/CHANGELOG.md')) {
@@ -147,16 +144,16 @@ jobs:
                   console.log('⚠️  No changelog entry found for version ' + version);
                 }
               }
-              
+
               // Build release body - always include changelog if available
               let releaseBody = tagMessage;
               if (changelogEntry) {
                 releaseBody = tagMessage + '\n\n## Changelog\n\n' + changelogEntry;
               }
-              
+
               // Determine if prerelease
               const isPrerelease = tag.includes('-alpha') || tag.includes('-beta') || tag.includes('-rc');
-              
+
               if (isMissing) {
                 // Create new release (check if it exists first to avoid errors)
                 try {
@@ -172,7 +169,7 @@ jobs:
                     generate_release_notes: false  // Don't generate auto notes, we have our own changelog
                   });
                   console.log('✅ Created release for ' + tag);
-                  
+
                   // Verify if this is the latest release
                   if (!isPrerelease) {
                     try {
@@ -181,10 +178,10 @@ jobs:
                         repo: context.repo.repo,
                         per_page: 10
                       });
-                      
+
                       const nonPrereleases = allReleases.filter(r => !r.prerelease);
                       const newestRelease = nonPrereleases[0];
-                      
+
                       if (newestRelease && newestRelease.id === release.id) {
                         console.log('✅ Release ' + tag + ' is marked as latest (newest non-prerelease)');
                       }
@@ -201,9 +198,13 @@ jobs:
                 }
               } else if (isOutdated) {
                 // Update existing release
-                const release = releasesMap[tag];
+                const release = outdatedReleasesMap[tag];
+                if (!release?.id) {
+                  console.log('⚠️ No release id for outdated tag ' + tag + ', skipping');
+                  continue;
+                }
                 console.log('Updating release for tag: ' + tag + ' (release ID: ' + release.id + ')');
-                
+
                 // Determine if this should be latest (newest non-prerelease)
                 let shouldBeLatest = false;
                 if (!isPrerelease) {
@@ -213,11 +214,11 @@ jobs:
                       repo: context.repo.repo,
                       per_page: 10
                     });
-                    
+
                     const nonPrereleases = allReleases.filter(r => !r.prerelease);
                     // Compare version numbers to determine if this is the newest
                     const version = tag.replace(/^v/, '');
-                    shouldBeLatest = nonPrereleases.length === 0 || 
+                    shouldBeLatest = nonPrereleases.length === 0 ||
                       nonPrereleases.every(r => {
                         const otherVersion = r.tag_name.replace(/^v/, '');
                         return version.localeCompare(otherVersion, undefined, { numeric: true, sensitivity: 'base' }) > 0;
@@ -228,7 +229,7 @@ jobs:
                     shouldBeLatest = true;
                   }
                 }
-                
+
                 await github.rest.repos.updateRelease({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -253,7 +254,7 @@ jobs:
             const foundMissing = process.env.FOUND_MISSING === 'true';
             const missingTags = foundMissing ? (process.env.MISSING_TAGS || '').trim().split('\n').filter(t => t) : [];
             const outdatedTags = foundMissing ? (process.env.OUTDATED_TAGS || '').trim().split('\n').filter(t => t) : [];
-            
+
             let summary = '';
             if (foundMissing) {
               let parts = [];
@@ -267,7 +268,7 @@ jobs:
             } else {
               summary = '## ✅ All tags have releases with changelog\n\nNo missing or outdated releases found. Everything is in sync! 🎉';
             }
-            
+
             core.summary.addRaw(summary);
             await core.summary.write();
 

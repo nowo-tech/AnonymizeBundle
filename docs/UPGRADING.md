@@ -24,6 +24,41 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.42
+
+**Release Date**: 2026-08-10
+
+#### What's New
+
+- **Security (#13)**:
+  - DSN denylist also matches Doctrine connection params (`url` / `host` / `dbname`).
+  - `--stats-json` / `--stats-csv` cannot write outside `stats_output_dir`.
+  - `hash_preserve.default_salt` (default `null` → `%kernel.secret%`) when faker `salt` is empty.
+- **CI**: stale action bump; sync-releases workflow hardened against ARG_MAX.
+
+#### Breaking Changes / behavioural notes
+
+- **`hash_preserve` without an explicit `salt`**: outputs change because hashing now uses `%kernel.secret%` (or your configured `hash_preserve.default_salt`) instead of an empty salt. Set `hash_preserve.default_salt: ''` only if you intentionally need the previous unsalted behaviour (not recommended).
+- **Stats flags**: absolute or `../` paths outside `stats_output_dir` now fail; write under the configured directory (or adjust `stats_output_dir`).
+- **Environment protection**: local Doctrine hosts/DB names containing denylist markers (e.g. `prod`) will be blocked even if env URLs are clean — tune `blocked_dsn_substrings` if needed.
+
+#### Migration Steps
+
+1. Update and clear cache:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   php bin/console cache:clear
+   ```
+2. If you rely on stable `hash_preserve` values across environments, set an explicit salt in faker options or configure:
+   ```yaml
+   nowo_anonymize:
+       hash_preserve:
+           default_salt: 'your-stable-dev-salt'
+   ```
+3. Point `--stats-json` / `--stats-csv` at paths under `stats_output_dir`.
+
+See [SECURITY.md](SECURITY.md) and [CONFIGURATION.md](CONFIGURATION.md#hash_preserve).
+
 ### Upgrading to 1.0.41
 
 **Release Date**: 2026-08-01

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.0.42] - 2026-08-10](#1042-2026-08-10)
 - [[1.0.41] - 2026-08-01](#1041-2026-08-01)
 - [[1.0.40] - 2026-08-01](#1040-2026-08-01)
 - [[1.0.39] - 2026-07-29](#1039-2026-07-29)
@@ -97,6 +98,32 @@ _(none)_
 ### Documentation
 
 _(none)_
+
+---
+## [1.0.42] - 2026-08-10
+
+### Added
+
+- **`hash_preserve.default_salt`**: when unset (`null`), `HashPreserveFaker` uses `%kernel.secret%` if the per-call `salt` option is empty (#13).
+
+### Changed
+
+- **Security (REQ-SEC-004)**: `EnvironmentProtectionService` also inspects Doctrine connection `url` / `host` / `dbname` (not only `DATABASE_URL` / `MONGODB_URL`) (#13).
+- **CI**: `actions/stale` 10 → 11; `sync-releases.yml` avoids passing full release bodies through `GITHUB_OUTPUT` / env (fixes ARG_MAX / “Argument list too long”).
+
+### Fixed
+
+- **Stats export paths**: `--stats-json` / `--stats-csv` must stay under `stats_output_dir`; paths that escape the base (including absolute paths outside it) are rejected (#13).
+- **`hash_preserve`**: empty salt no longer produces unsalted hashes by default (#13).
+
+### Removed
+
+_(none)_
+
+### Documentation
+
+- **SECURITY.md** / **CONFIGURATION.md**: DSN Doctrine checks, stats path guard, `hash_preserve.default_salt`.
+- **UPGRADING.md** / **README.md**: status **1.0.42**.
 
 ---
 ## [1.0.41] - 2026-08-01
