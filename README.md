@@ -255,16 +255,11 @@ We have an extensive roadmap for future enhancements. See [ROADMAP.md](docs/ROAD
 - **Relationship Patterns**: Support for patterns referencing related entities using dot notation with automatic SQL JOIN construction
 - **Recent Improvements**: Enhanced test coverage, improved boolean/null handling in SQL queries, better error messages
 
-### Planned Phases
+### Planned (adoption, not the old 0.x phase numbers)
 
-- **Phase 1 (v0.1.0)**: Enhanced fakers (100% complete - all fakers implemented)
-- **Phase 2 (v0.2.0)**: Advanced anonymization strategies (Hash Preserve, Shuffle, Relationship Preservation)
-- **Phase 3 (v0.3.0)**: MongoDB and SQLite support
-- **Phase 4 (v0.4.0)**: Enhanced developer experience (CLI improvements, reporting, testing tools)
-- **Phase 5 (v0.5.0)**: Enterprise features (GDPR compliance, audit logging, API integration)
-- **Phase 6 (v0.6.0)**: Performance and scalability improvements
-- **Phase 7 (v0.7.0)**: Security and compliance enhancements
-- **Phase 8 (v0.8.0)**: Advanced features (ML integration, workflow automation)
+- **Near term:** Flex recipe on recipes-contrib, CI/pipeline docs, optional Messenger/Lock.
+- **Still open:** MongoDB ODM (SQL + SQLite already ship), relationship-preserving fakers, optional YAML entity rules, resume/checkpoint.
+- Historical 0.x phase lists (fakers, enterprise, ML) live in [ROADMAP.md](docs/ROADMAP.md) as archive; they are not a delivery schedule.
 
 Check out the [full roadmap](docs/ROADMAP.md) for detailed information about upcoming features, priorities, and timelines.
 
