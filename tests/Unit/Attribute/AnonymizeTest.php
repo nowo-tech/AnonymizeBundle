@@ -103,7 +103,7 @@ class AnonymizeTest extends TestCase
         $excludePatterns = [
             ['role' => 'admin', 'email' => '%@nowo.tech'],
             ['status' => 'deleted'],
-            ['id'     => '<=100'],
+            ['id' => '<=100'],
         ];
         $attribute = new Anonymize(excludePatterns: $excludePatterns);
 

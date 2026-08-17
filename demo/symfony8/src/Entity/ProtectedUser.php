@@ -25,8 +25,8 @@ use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 #[Anonymize(
     excludePatterns: [
         ['email' => '%@visitor.com'],           // Config 1: exclude emails ending in @visitor.com
-        ['role'   => 'admin'],                    // Config 2: exclude admin users
-        ['id'     => '<=100'],                      // Config 3: exclude first 100 records
+        ['role' => 'admin'],                    // Config 2: exclude admin users
+        ['id' => '<=100'],                      // Config 3: exclude first 100 records
         ['status' => 'archived|deleted'],       // Config 4: exclude archived or deleted (| = OR within field)
     ],
 )]
