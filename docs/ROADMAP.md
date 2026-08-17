@@ -12,7 +12,7 @@ This document outlines the vision, adoption strategy, and planned features for t
   - [Phase A: Visibility and first-run experience](#phase-a-visibility-and-first-run-experience-next-36-months)
   - [Phase B: Integrations and ecosystem](#phase-b-integrations-and-ecosystem-612-months)
   - [Phase C: Scale and optional enterprise](#phase-c-scale-and-optional-enterprise-1224-months)
-- [Current Status (1.0.12 - Released)](#current-status-1012---released)
+- [Current Status (1.0.42 - Released)](#current-status-1042---released)
 - [Phase 1: Enhanced Fakers (v0.1.0)](#phase-1-enhanced-fakers-v010)
 - [Phase 2: Advanced Anonymization Features (v0.2.0)](#phase-2-advanced-anonymization-features-v020)
 - [Phase 3: Database and Platform Support (v0.3.0)](#phase-3-database-and-platform-support-v030)
@@ -118,17 +118,20 @@ Nothing in Phases A–C changes the rule: **dev/test only, production execution 
 
 ---
 
-## Current Status (1.0.22 - Released)
+## Current Status (1.0.42 - Released)
+
+> Refreshed **2026-08-17**. Tag **v1.0.42**. The 0.x phase sections below are a **historical backlog** (many items already shipped). For what to build next, use **Adoption roadmap (Phases A–C)** above.
 
 ### ✅ Implemented Features
 
 - **Fakers**: email, name, surname, age, phone, IBAN, credit_card, service, address, date, username, url, company, masking, password, ip_address, mac_address, uuid, hash, coordinate, color, boolean, numeric, file, json, text, enum, country, language, hash_preserve, shuffle, constant, dni_cif, name_fallback, html, pattern_based, copy, null, utm, map (40 total)
-- **Core Features**: Attribute-based configuration, multiple connections, batch processing, dry-run mode, pre-flight checks, progress bars, enhanced environment protection, debug/verbose modes
+- **Core Features**: Attribute-based configuration, multiple connections, batch processing, dry-run mode, pre-flight checks, progress bars, enhanced environment protection, debug/verbose modes, anonymization history, export DB, interactive confirmations
 - **Tracking**: AnonymizableTrait with `anonymized` column
 - **Patterns**: Inclusion/exclusion pattern matching with `|` (OR) operator support and relationship patterns (e.g., `'type.name' => '%HR'`)
-- **Databases**: MySQL, PostgreSQL, SQLite support
-- **MongoDB Tools**: Command to generate scripts for adding `anonymized` field to MongoDB documents
+- **Databases**: MySQL, PostgreSQL, **SQLite** (ORM)
+- **MongoDB Tools**: Command to generate scripts for adding `anonymized` field to MongoDB documents (ODM anonymization still pending)
 - **Services**: SchemaService for column detection
+- **v1.0.42**: `hash_preserve.default_salt` falls back to `%kernel.secret%`; stats JSON/CSV paths constrained under `stats_output_dir`
 - **Demos**: 9 entities (User, Customer, Product, Order, Invoice, Employee, SystemLog, EmailSubscription, Type) with comprehensive fixtures and complete CRUD interfaces
 - **Demos Coverage**: 100% faker coverage (all 40 fakers demonstrated)
 - **Demos Databases**: MySQL, PostgreSQL, SQLite, MongoDB (infrastructure ready)
@@ -1009,6 +1012,6 @@ Areas where help is especially appreciated:
 
 ---
 
-**Last Updated**: 2026-02-17  
+**Last Updated**: 2026-08-17  
 **Maintainer**: Héctor Franco Aceituno (@HecFranco)  
 **Organization**: nowo-tech (https://github.com/nowo-tech)
