@@ -1,14 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle;
+use Nowo\AnonymizeBundle\AnonymizeBundle;
+use Nowo\HotReloadBundle\NowoHotReloadBundle;
+use Nowo\TwigInspectorBundle\NowoTwigInspectorBundle;
+use Symfony\Bundle\DebugBundle\DebugBundle;
+use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
+use Symfony\Bundle\TwigBundle\TwigBundle;
+use Symfony\Bundle\WebProfilerBundle\WebProfilerBundle;
+use Twig\Extra\TwigExtraBundle\TwigExtraBundle;
+
 return [
-    Symfony\Bundle\FrameworkBundle\FrameworkBundle::class => ['all' => true],
-    Doctrine\Bundle\DoctrineBundle\DoctrineBundle::class => ['all' => true],
-    Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle::class => ['dev' => true, 'test' => true],
-    Symfony\Bundle\TwigBundle\TwigBundle::class => ['all' => true],
-    Symfony\Bundle\DebugBundle\DebugBundle::class => ['dev' => true, 'test' => true],
-    Symfony\Bundle\WebProfilerBundle\WebProfilerBundle::class => ['dev' => true, 'test' => true],
-    Nowo\AnonymizeBundle\AnonymizeBundle::class => ['dev' => true, 'test' => true],
-    Nowo\HotReloadBundle\NowoHotReloadBundle::class => ['dev' => true, 'test' => true],
-    Nowo\TwigInspectorBundle\NowoTwigInspectorBundle::class => ['dev' => true, 'test' => true],
-    Twig\Extra\TwigExtraBundle\TwigExtraBundle::class => ['all' => true],
+    FrameworkBundle::class         => ['all' => true],
+    DoctrineBundle::class          => ['all' => true],
+    DoctrineFixturesBundle::class  => ['dev' => true, 'test' => true],
+    TwigBundle::class              => ['all' => true],
+    DebugBundle::class             => ['dev' => true, 'test' => true],
+    WebProfilerBundle::class       => ['dev' => true, 'test' => true],
+    AnonymizeBundle::class         => ['dev' => true, 'test' => true],
+    NowoHotReloadBundle::class     => ['dev' => true, 'test' => true],
+    NowoTwigInspectorBundle::class => ['dev' => true, 'test' => true],
+    TwigExtraBundle::class         => ['all' => true],
 ];
