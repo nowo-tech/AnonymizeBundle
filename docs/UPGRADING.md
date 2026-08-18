@@ -24,6 +24,29 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Upgrade Instructions by Version
 
+### Upgrading to 1.0.43
+
+**Release Date**: 2026-08-18
+
+#### What's New
+
+- **Demo only**: FrankenPHP Symfony 8 demo enables **Nowo Hot Reload** (with Twig Inspector) in `dev`/`test`. Not part of the published bundle API.
+- **Docs**: README/roadmap aligned with shipped functionality (#16).
+- **Dev tooling**: rector 2.6.2, phpstan-frankenphp 1.1.0.
+
+#### Breaking Changes
+
+None for application consumers of `nowo-tech/anonymize-bundle`.
+
+#### Migration Steps
+
+1. **Update the bundle** (if you use Composer):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
+
+No application or configuration changes are required. If you run the demo: `composer update` in `demo/symfony8` and keep Hot Reload out of production.
+
 ### Upgrading to 1.0.42
 
 **Release Date**: 2026-08-10

@@ -12,7 +12,7 @@ This document outlines the vision, adoption strategy, and planned features for t
   - [Phase A: Visibility and first-run experience](#phase-a-visibility-and-first-run-experience-next-36-months)
   - [Phase B: Integrations and ecosystem](#phase-b-integrations-and-ecosystem-612-months)
   - [Phase C: Scale and optional enterprise](#phase-c-scale-and-optional-enterprise-1224-months)
-- [Current Status (1.0.42 - Released)](#current-status-1042---released)
+- [Current Status (1.0.43 - Released)](#current-status-1043---released)
 - [Phase 1: Enhanced Fakers (v0.1.0)](#phase-1-enhanced-fakers-v010)
 - [Phase 2: Advanced Anonymization Features (v0.2.0)](#phase-2-advanced-anonymization-features-v020)
 - [Phase 3: Database and Platform Support (v0.3.0)](#phase-3-database-and-platform-support-v030)
@@ -118,9 +118,9 @@ Nothing in Phases A–C changes the rule: **dev/test only, production execution 
 
 ---
 
-## Current Status (1.0.42 - Released)
+## Current Status (1.0.43 - Released)
 
-> Refreshed **2026-08-17**. Tag **v1.0.42**. The 0.x phase sections below are a **historical backlog** (many items already shipped). For what to build next, use **Adoption roadmap (Phases A–C)** above.
+> Refreshed **2026-08-18**. Tag **v1.0.43**. The 0.x phase sections below are a **historical backlog** (many items already shipped). For what to build next, use **Adoption roadmap (Phases A–C)** above.
 
 ### ✅ Implemented Features
 
@@ -132,6 +132,7 @@ Nothing in Phases A–C changes the rule: **dev/test only, production execution 
 - **MongoDB Tools**: Command to generate scripts for adding `anonymized` field to MongoDB documents (ODM anonymization still pending)
 - **Services**: SchemaService for column detection
 - **v1.0.42**: `hash_preserve.default_salt` falls back to `%kernel.secret%`; stats JSON/CSV paths constrained under `stats_output_dir`
+- **v1.0.43**: FrankenPHP demo Hot Reload (dev/test); docs/roadmap aligned with shipped features
 - **Demos**: 9 entities (User, Customer, Product, Order, Invoice, Employee, SystemLog, EmailSubscription, Type) with comprehensive fixtures and complete CRUD interfaces
 - **Demos Coverage**: 100% faker coverage (all 40 fakers demonstrated)
 - **Demos Databases**: MySQL, PostgreSQL, SQLite, MongoDB (infrastructure ready)
@@ -1012,6 +1013,6 @@ Areas where help is especially appreciated:
 
 ---
 
-**Last Updated**: 2026-08-17  
+**Last Updated**: 2026-08-18  
 **Maintainer**: Héctor Franco Aceituno (@HecFranco)  
 **Organization**: nowo-tech (https://github.com/nowo-tech)

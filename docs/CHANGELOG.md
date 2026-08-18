@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.0.43] - 2026-08-18](#1043-2026-08-18)
 - [[1.0.42] - 2026-08-10](#1042-2026-08-10)
 - [[1.0.41] - 2026-08-01](#1041-2026-08-01)
 - [[1.0.40] - 2026-08-01](#1040-2026-08-01)
@@ -98,6 +99,32 @@ _(none)_
 ### Documentation
 
 _(none)_
+
+---
+## [1.0.43] - 2026-08-18
+
+### Added
+
+- **Demo Symfony 8**: `nowo-tech/hot-reload-bundle` (dev) with Caddyfile Mercure / `worker { watch }` and `config/packages/dev/nowo_hot_reload.yaml`; `twig/extra-bundle` + `twig/string-extra`.
+
+### Changed
+
+- **Dependencies (dev)**: `rector/rector` 2.6.1 → **2.6.2** (#15); `nowo-tech/phpstan-frankenphp` 1.0.3 → **1.1.0** (#14).
+- **Demo**: lock refresh (`doctrine/orm` 3.6.8, Symfony cache 8.1.4, etc.).
+
+### Fixed
+
+_(none)_
+
+### Removed
+
+_(none)_
+
+### Documentation
+
+- **README.md** / **ROADMAP.md**: shipped features vs archived 0.x phases (#16); status **1.0.43**.
+- **DEMO-FRANKENPHP.md**: Twig Inspector + Hot Reload required together on FrankenPHP demos (dev/test only).
+- **UPGRADING.md**: section for 1.0.43.
 
 ---
 ## [1.0.42] - 2026-08-10
