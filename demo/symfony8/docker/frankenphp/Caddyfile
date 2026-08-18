@@ -1,4 +1,5 @@
 {
+	order mercure after encode
 	skip_install_trust
 	# Timeout hierarchy (REQ-RUNTIME-001): export.timeout (180s) < PHP (240s) < Caddy write (250s).
 	servers {
@@ -19,7 +20,15 @@
 :80 {
 	root * /app/public
 	encode zstd br gzip
+	mercure {
+		anonymous
+	}
+
 	php_server {
-		worker /app/public/index.php
+		hot_reload
+		worker {
+			file /app/public/index.php
+			watch
+		}
 	}
 }
