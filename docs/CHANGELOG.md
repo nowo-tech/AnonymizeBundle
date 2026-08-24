@@ -86,23 +86,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
 
-_(none yet)_
+## [1.0.46] - 2026-08-24
 
 ### Changed
 
-_(none)_
+- **Demos:** MySQL env policy in FrankenPHP stack (REQ-DEMO-011).
+- **Docs:** PHP-FIG PSR evaluation (REQ-CS-007).
+- **Style:** PHP CS Fixer alignment.
 
-### Removed
+### Notes
 
-_(none)_
+- **No API or configuration changes** for integrators unless noted above.
 
-### Documentation
+### Changed
 
-_(none)_
+- **Demos:** MySQL env policy in FrankenPHP stack (REQ-DEMO-011).
+- **Docs:** PHP-FIG PSR evaluation (REQ-CS-007).
+- **Style:** PHP CS Fixer alignment.
 
----
+### Notes
+
+- **No API or configuration changes** for integrators unless noted above.
+[1.0.46]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.0.46
+
+
 ## [1.0.45] - 2026-08-19
 
 ### Security

@@ -4,6 +4,8 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 
 ## Table of contents
 
+
+- [From 1.0.45 to 1.0.46](#from-1045-to-1046)
 - [General Upgrade Process](#general-upgrade-process)
 - [Upgrade Instructions by Version](#upgrade-instructions-by-version)
 - [Troubleshooting Upgrades](#troubleshooting-upgrades)
