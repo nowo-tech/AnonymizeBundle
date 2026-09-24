@@ -47,17 +47,15 @@ final class CountryFaker implements FakerInterface
         $format = $opts['format'] ?? 'code';
         $locale = $opts['locale'] ?? null;
 
-        // Use custom locale if provided
-        if ($locale !== null) {
-            $this->faker = Factory::create($locale);
-        }
+        // Local override only — never reassign $this->faker (FrankenPHP worker / shared service).
+        $faker = $locale !== null ? Factory::create($locale) : $this->faker;
 
         return match ($format) {
-            'name'  => $this->faker->country(),
-            'iso2'  => $this->faker->countryCode(),
-            'iso3'  => $this->faker->countryISOAlpha3(),
-            'code'  => $this->faker->countryCode(),
-            default => $this->faker->countryCode(),
+            'name'  => $faker->country(),
+            'iso2'  => $faker->countryCode(),
+            'iso3'  => $faker->countryISOAlpha3(),
+            'code'  => $faker->countryCode(),
+            default => $faker->countryCode(),
         };
     }
 }

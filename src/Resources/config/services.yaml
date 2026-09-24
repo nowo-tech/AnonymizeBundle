@@ -71,6 +71,7 @@ services:
             $autoGitignore: '%nowo_anonymize.export.auto_gitignore%'
 
     # Other services that can be autowired (no special parameters needed)
+    # ResetInterface → kernel.reset (autoconfigure) for FrankenPHP / long-lived workers
     Nowo\AnonymizeBundle\Service\AnonymizeStatistics: ~
     Nowo\AnonymizeBundle\Service\EnvironmentProtectionService:
         arguments:

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Service;
 
+use Symfony\Contracts\Service\ResetInterface;
+
 use function sprintf;
 
 use const JSON_PRETTY_PRINT;
@@ -12,10 +14,14 @@ use const JSON_UNESCAPED_SLASHES;
 /**
  * Statistics collector for anonymization process.
  *
+ * Implements ResetInterface so Symfony's services_resetter clears accumulators
+ * between requests when the container service is used in a long-lived process
+ * (FrankenPHP worker / kernel.reset).
+ *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
-final class AnonymizeStatistics
+final class AnonymizeStatistics implements ResetInterface
 {
     /**
      * @var array<string, array{entity: string, connection: string, processed: int, updated: int, skipped: int, properties: array<string, int>}> Entity-level statistics

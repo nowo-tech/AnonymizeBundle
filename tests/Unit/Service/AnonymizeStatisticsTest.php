@@ -110,11 +110,13 @@ class AnonymizeStatisticsTest extends TestCase
     }
 
     /**
-     * Test that statistics can be reset.
+     * Test that statistics can be reset (ResetInterface / kernel.reset).
      */
     public function testReset(): void
     {
         $stats = new AnonymizeStatistics();
+        $this->assertInstanceOf(\Symfony\Contracts\Service\ResetInterface::class, $stats);
+
         $stats->start();
         $stats->recordEntity('App\Entity\User', 'default', 10, 8);
         $stats->stop();

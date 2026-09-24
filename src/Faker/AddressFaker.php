@@ -49,21 +49,22 @@ final class AddressFaker implements FakerInterface
         $format            = $opts['format'] ?? 'full';
         $country           = $opts['country'] ?? null;
 
-        if ($country !== null) {
-            $this->faker = Factory::create($this->getLocaleForCountry($country));
-        }
+        // Local override only — never reassign $this->faker (FrankenPHP worker / shared service).
+        $faker = $country !== null
+            ? Factory::create($this->getLocaleForCountry($country))
+            : $this->faker;
 
         if ($format === 'short') {
-            return $this->faker->streetAddress();
+            return $faker->streetAddress();
         }
 
-        $address = $this->faker->streetAddress();
+        $address = $faker->streetAddress();
 
         if ($includePostalCode) {
-            $address .= ', ' . $this->faker->postcode();
+            $address .= ', ' . $faker->postcode();
         }
 
-        return $address . (', ' . $this->faker->city());
+        return $address . (', ' . $faker->city());
     }
 
     /**

@@ -145,4 +145,18 @@ class CountryFakerTest extends TestCase
         $uniqueCountries = array_unique($countries);
         $this->assertGreaterThan(1, count($uniqueCountries));
     }
+
+    /**
+     * Locale override must not stick on the shared generator (FrankenPHP worker W-01).
+     */
+    public function testLocaleOptionDoesNotMutateSharedGenerator(): void
+    {
+        $faker  = new CountryFaker('en_US');
+        $prop   = new \ReflectionProperty(CountryFaker::class, 'faker');
+        $before = $prop->getValue($faker);
+
+        $faker->generate(['locale' => 'es_ES', 'format' => 'name']);
+
+        $this->assertSame($before, $prop->getValue($faker));
+    }
 }

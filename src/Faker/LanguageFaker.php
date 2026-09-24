@@ -47,15 +47,13 @@ final class LanguageFaker implements FakerInterface
         $format = $opts['format'] ?? 'code';
         $locale = $opts['locale'] ?? null;
 
-        // Use custom locale if provided
-        if ($locale !== null) {
-            $this->faker = Factory::create($locale);
-        }
+        // Local override only — never reassign $this->faker (FrankenPHP worker / shared service).
+        $faker = $locale !== null ? Factory::create($locale) : $this->faker;
 
         return match ($format) {
-            'name'  => $this->faker->languageCode() . ' (name)',
-            'code'  => $this->faker->languageCode(),
-            default => $this->faker->languageCode(),
+            'name'  => $faker->languageCode() . ' (name)',
+            'code'  => $faker->languageCode(),
+            default => $faker->languageCode(),
         };
     }
 }

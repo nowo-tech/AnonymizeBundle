@@ -5,6 +5,7 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 ## Table of contents
 
 
+- [From 1.0.46 to 1.0.47](#from-1046-to-1047)
 - [From 1.0.45 to 1.0.46](#from-1045-to-1046)
 - [General Upgrade Process](#general-upgrade-process)
 - [Upgrade Instructions by Version](#upgrade-instructions-by-version)
@@ -25,6 +26,52 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 6. **Test your application**: Verify that anonymization functionality works as expected
 
 ## Upgrade Instructions by Version
+
+### From 1.0.46 to 1.0.47
+
+**Release Date**: 2026-09-24
+
+#### What's New
+
+- **FrankenPHP / long-lived processes**: close worker-audit findings W-01–W-03 (locale overrides no longer mutate shared faker generators; `HashFaker` drops Faker `unique()`; `AnonymizeStatistics` implements `ResetInterface`).
+- **Docs**: `docs/FRANKENPHP-WORKER-AUDIT.md`.
+
+#### Breaking Changes
+
+None for typical CLI consumers. Behavioural notes if you call fakers from a shared container:
+
+- Locale/`country` overrides on Address/Country/Language fakers no longer permanently change the service’s default locale (correct for workers; same as constructor locale for later calls).
+- `HashFaker` output entropy no longer depends on Faker’s unique map (still random via `text` + `randomNumber`).
+
+#### Migration Steps
+
+1. Update and clear cache:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   php bin/console cache:clear
+   ```
+
+No configuration changes required. See [FRANKENPHP-WORKER-AUDIT.md](FRANKENPHP-WORKER-AUDIT.md).
+
+### From 1.0.45 to 1.0.46
+
+**Release Date**: 2026-08-24
+
+#### What's New
+
+- **Demos:** MySQL env policy in FrankenPHP stack (REQ-DEMO-011).
+- **Docs:** PHP-FIG PSR evaluation (REQ-CS-007).
+
+#### Breaking Changes
+
+None.
+
+#### Migration Steps
+
+1. **Update the bundle** (if you use Composer):
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   ```
 
 ### Upgrading to 1.0.45
 

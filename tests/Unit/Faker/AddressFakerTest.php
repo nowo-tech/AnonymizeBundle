@@ -160,4 +160,18 @@ class AddressFakerTest extends TestCase
         $this->assertIsString($address);
         $this->assertNotEmpty($address);
     }
+
+    /**
+     * Country override must not stick on the shared generator (FrankenPHP worker W-01).
+     */
+    public function testCountryOptionDoesNotMutateSharedGenerator(): void
+    {
+        $faker = new AddressFaker('en_US');
+        $prop  = new \ReflectionProperty(AddressFaker::class, 'faker');
+        $before = $prop->getValue($faker);
+
+        $faker->generate(['country' => 'ES']);
+
+        $this->assertSame($before, $prop->getValue($faker));
+    }
 }

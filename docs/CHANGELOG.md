@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.0.47] - 2026-09-24](#1047-2026-09-24)
+- [[1.0.46] - 2026-08-24](#1046-2026-08-24)
 - [[1.0.45] - 2026-08-19](#1045-2026-08-19)
 - [[1.0.44] - 2026-08-18](#1044-2026-08-18)
 - [[1.0.43] - 2026-08-18](#1043-2026-08-18)
@@ -86,7 +88,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
 
+_(none yet)_
+
+### Changed
+
+_(none)_
+
+### Fixed
+
+_(none)_
+
+### Removed
+
+_(none)_
+
+### Documentation
+
+_(none)_
+
+---
+## [1.0.47] - 2026-09-24
+
+### Added
+
+_(none)_
+
+### Changed
+
+_(none)_
+
+### Fixed
+
+- **FrankenPHP worker (W-01)**: `AddressFaker`, `CountryFaker`, and `LanguageFaker` use a local generator for `country` / `locale` overrides instead of reassigning the shared `$this->faker`.
+- **FrankenPHP worker (W-02)**: `HashFaker` no longer uses Faker `unique()` (unbounded memory on shared services).
+- **FrankenPHP worker (W-03)**: `AnonymizeStatistics` implements `ResetInterface` for `kernel.reset` / `services_resetter`.
+
+### Removed
+
+_(none)_
+
+### Documentation
+
+- **FRANKENPHP-WORKER-AUDIT.md**: worker audit; W-01–W-03 closed (residuals Low: W-04 / W-05).
+- **UPGRADING.md** / **README.md**: status **1.0.47**; README link to the worker audit.
+
+---
 ## [1.0.46] - 2026-08-24
 
 ### Changed

@@ -47,8 +47,8 @@ final readonly class HashFaker implements FakerInterface
         $algorithm = strtolower($opts['algorithm'] ?? 'sha256');
         $length    = $opts['length'] ?? null;
 
-        // Generate random string to hash
-        $randomString = $this->faker->unique()->text(100) . $this->faker->randomNumber(9, true);
+        // Random input for hashing (no Faker unique() — its seen-values map grows unboundedly on shared services).
+        $randomString = $this->faker->text(100) . $this->faker->randomNumber(9, true);
 
         // Generate hash based on algorithm
         $hash = match ($algorithm) {

@@ -87,4 +87,18 @@ class LanguageFakerTest extends TestCase
         $this->assertIsString($language);
         $this->assertNotEmpty($language);
     }
+
+    /**
+     * Locale override must not stick on the shared generator (FrankenPHP worker W-01).
+     */
+    public function testLocaleOptionDoesNotMutateSharedGenerator(): void
+    {
+        $faker  = new LanguageFaker('en_US');
+        $prop   = new \ReflectionProperty(LanguageFaker::class, 'faker');
+        $before = $prop->getValue($faker);
+
+        $faker->generate(['locale' => 'es_ES']);
+
+        $this->assertSame($before, $prop->getValue($faker));
+    }
 }
