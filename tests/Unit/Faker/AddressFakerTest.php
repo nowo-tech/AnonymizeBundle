@@ -6,6 +6,7 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Faker;
 
 use Nowo\AnonymizeBundle\Faker\AddressFaker;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 
 /**
  * Test case for AddressFaker.
@@ -166,8 +167,8 @@ class AddressFakerTest extends TestCase
      */
     public function testCountryOptionDoesNotMutateSharedGenerator(): void
     {
-        $faker = new AddressFaker('en_US');
-        $prop  = new \ReflectionProperty(AddressFaker::class, 'faker');
+        $faker  = new AddressFaker('en_US');
+        $prop   = new ReflectionProperty(AddressFaker::class, 'faker');
         $before = $prop->getValue($faker);
 
         $faker->generate(['country' => 'ES']);

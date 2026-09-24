@@ -7,6 +7,7 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Service;
 use Nowo\AnonymizeBundle\Service\AnonymizeStatistics;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use Symfony\Contracts\Service\ResetInterface;
 
 use function count;
 
@@ -115,7 +116,7 @@ class AnonymizeStatisticsTest extends TestCase
     public function testReset(): void
     {
         $stats = new AnonymizeStatistics();
-        $this->assertInstanceOf(\Symfony\Contracts\Service\ResetInterface::class, $stats);
+        $this->assertInstanceOf(ResetInterface::class, $stats);
 
         $stats->start();
         $stats->recordEntity('App\Entity\User', 'default', 10, 8);

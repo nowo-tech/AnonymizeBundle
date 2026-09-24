@@ -6,6 +6,7 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Faker;
 
 use Nowo\AnonymizeBundle\Faker\LanguageFaker;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 
 /**
  * Test case for LanguageFaker.
@@ -94,7 +95,7 @@ class LanguageFakerTest extends TestCase
     public function testLocaleOptionDoesNotMutateSharedGenerator(): void
     {
         $faker  = new LanguageFaker('en_US');
-        $prop   = new \ReflectionProperty(LanguageFaker::class, 'faker');
+        $prop   = new ReflectionProperty(LanguageFaker::class, 'faker');
         $before = $prop->getValue($faker);
 
         $faker->generate(['locale' => 'es_ES']);

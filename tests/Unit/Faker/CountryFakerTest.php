@@ -6,6 +6,7 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Faker;
 
 use Nowo\AnonymizeBundle\Faker\CountryFaker;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 
 use function count;
 use function strlen;
@@ -152,7 +153,7 @@ class CountryFakerTest extends TestCase
     public function testLocaleOptionDoesNotMutateSharedGenerator(): void
     {
         $faker  = new CountryFaker('en_US');
-        $prop   = new \ReflectionProperty(CountryFaker::class, 'faker');
+        $prop   = new ReflectionProperty(CountryFaker::class, 'faker');
         $before = $prop->getValue($faker);
 
         $faker->generate(['locale' => 'es_ES', 'format' => 'name']);
