@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.0.48] - 2026-09-25](#1048-2026-09-25)
 - [[1.0.47] - 2026-09-24](#1047-2026-09-24)
 - [[1.0.46] - 2026-08-24](#1046-2026-08-24)
 - [[1.0.45] - 2026-08-19](#1045-2026-08-19)
@@ -109,6 +110,30 @@ _(none)_
 _(none)_
 
 ---
+## [1.0.48] - 2026-09-25
+
+### Added
+
+- **Doctrine embeds**: `#[AnonymizeProperty]` on `#[ORM\Embeddable]` fields is discovered via host `#[ORM\Embedded]` properties (Doctrine paths like `phoneNumber.number`). Implemented in `AnonymizePropertyDiscovery`; used by `AnonymizeService`, pre-flight checks, `nowo:anonymize:run`, and `nowo:anonymize:info`.
+
+### Changed
+
+- Property discovery results now include `fieldName` (Doctrine field path). Callers that only used `property->getName()` for column resolution should prefer `fieldName` (commands updated).
+
+### Fixed
+
+_(none)_
+
+### Removed
+
+_(none)_
+
+### Documentation
+
+- **USAGE.md**: section “Doctrine embeds (`#[ORM\Embedded]`)”.
+- **UPGRADING.md** / **README.md**: status **1.0.48**.
+
+---
 ## [1.0.47] - 2026-09-24
 
 ### Added
@@ -156,6 +181,8 @@ _(none)_
 ### Notes
 
 - **No API or configuration changes** for integrators unless noted above.
+[1.0.48]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.0.48
+[1.0.47]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.0.47
 [1.0.46]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.0.46
 
 

@@ -5,6 +5,7 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 ## Table of contents
 
 
+- [From 1.0.47 to 1.0.48](#from-1047-to-1048)
 - [From 1.0.46 to 1.0.47](#from-1046-to-1047)
 - [From 1.0.45 to 1.0.46](#from-1045-to-1046)
 - [General Upgrade Process](#general-upgrade-process)
@@ -26,6 +27,28 @@ This guide provides step-by-step instructions for upgrading the Anonymize Bundle
 6. **Test your application**: Verify that anonymization functionality works as expected
 
 ## Upgrade Instructions by Version
+
+### From 1.0.47 to 1.0.48
+
+**Release Date**: 2026-09-25
+
+#### What's New
+
+- **Doctrine embeddables**: place `#[AnonymizeProperty]` on fields inside `#[ORM\Embeddable]` classes. The host entity still needs `#[Anonymize]` and `#[ORM\Embedded]`. Nested fields are anonymized using Doctrine paths (`phoneNumber.number` → column with embed `columnPrefix`).
+- See [USAGE.md](USAGE.md#doctrine-embeds-ormembedded).
+
+#### Breaking Changes
+
+None for typical attribute usage. If you call `AnonymizeService::getAnonymizableProperties()` directly, each item now includes `fieldName` (use it instead of `$property->getName()` when resolving columns for embeds).
+
+#### Migration Steps
+
+1. Update and clear cache:
+   ```bash
+   composer update nowo-tech/anonymize-bundle
+   php bin/console cache:clear
+   ```
+2. (Optional) Move embed PII anonymization from custom subscribers/SQL onto `#[AnonymizeProperty]` on the embeddable fields.
 
 ### From 1.0.46 to 1.0.47
 

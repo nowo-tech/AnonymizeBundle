@@ -214,7 +214,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
                         $property     = $propertyData['property'];
                         $attribute    = $propertyData['attribute'];
                         $weight       = $propertyData['weight'];
-                        $propertyName = $property->getName();
+                        $propertyName = $propertyData['fieldName'] ?? $property->getName();
 
                         // Get column name
                         $columnName = $propertyName;

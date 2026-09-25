@@ -185,6 +185,9 @@ class AnonymizeServiceTest extends TestCase
         $this->assertArrayHasKey('property', $result[0]);
         $this->assertArrayHasKey('attribute', $result[0]);
         $this->assertArrayHasKey('weight', $result[0]);
+        $this->assertArrayHasKey('fieldName', $result[0]);
+        $this->assertContains('email', array_column($result, 'fieldName'));
+        $this->assertContains('name', array_column($result, 'fieldName'));
     }
 
     /**

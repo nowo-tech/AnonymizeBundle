@@ -522,9 +522,10 @@ final class AnonymizeCommand extends AbstractCommand
                 }
                 if ($verbose && $properties !== []) {
                     $io->writeln('  Properties to anonymize:');
-                    foreach ($properties as $propName => $propData) {
+                    foreach ($properties as $propData) {
                         $fakerType = $propData['attribute']->type ?? 'unknown';
-                        $io->writeln(sprintf('    - <info>%s</info> (<comment>%s</comment>)', $propName, $fakerType));
+                        $fieldName = $propData['fieldName'] ?? $propData['property']->getName();
+                        $io->writeln(sprintf('    - <info>%s</info> (<comment>%s</comment>)', $fieldName, $fakerType));
                     }
                 }
                 $io->newLine();
@@ -572,7 +573,8 @@ final class AnonymizeCommand extends AbstractCommand
                     $property  = $propertyData['property'];
                     $attribute = $propertyData['attribute'];
                     $weight    = $propertyData['weight'];
-                    $io->writeln(sprintf('    - %s (type: %s, weight: %s)', $property->getName(), $attribute->type, $weight));
+                    $fieldName = $propertyData['fieldName'] ?? $property->getName();
+                    $io->writeln(sprintf('    - %s (type: %s, weight: %s)', $fieldName, $attribute->type, $weight));
                     if ($debug) {
                         if ($attribute->includePatterns !== []) {
                             $io->writeln(sprintf('      Include patterns: %s', json_encode($attribute->includePatterns)));

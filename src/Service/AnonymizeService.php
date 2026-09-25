@@ -16,6 +16,7 @@ use Nowo\AnonymizeBundle\Event\AfterEntityAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
+use Nowo\AnonymizeBundle\Helper\AnonymizePropertyDiscovery;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Helper\OrmHelper;
 use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
@@ -115,45 +116,16 @@ final class AnonymizeService
     /**
      * Gets all properties from an entity that have the AnonymizeProperty attribute.
      *
+     * Also discovers #[AnonymizeProperty] on Doctrine #[ORM\Embedded] value objects.
+     * Embedded fields use Doctrine paths (e.g. `phoneNumber.number`).
+     *
      * @param ReflectionClass<object> $reflection The entity reflection class
      *
-     * @return list<array{property: ReflectionProperty, attribute: AnonymizeProperty, weight: int}> Array of properties with their attributes and weights
+     * @return list<array{property: ReflectionProperty, attribute: AnonymizeProperty, weight: int, fieldName: string}>
      */
     public function getAnonymizableProperties(ReflectionClass $reflection): array
     {
-        $properties              = [];
-        $propertiesWithoutWeight = [];
-
-        foreach ($reflection->getProperties() as $property) {
-            $attributes = $property->getAttributes(AnonymizeProperty::class);
-            if (empty($attributes)) {
-                continue;
-            }
-
-            $attribute = $attributes[0]->newInstance();
-            $weight    = $attribute->weight ?? PHP_INT_MAX;
-
-            $propertyData = [
-                'property'  => $property,
-                'attribute' => $attribute,
-                'weight'    => $weight,
-            ];
-
-            if ($weight === PHP_INT_MAX) {
-                $propertiesWithoutWeight[] = $propertyData;
-            } else {
-                $properties[] = $propertyData;
-            }
-        }
-
-        // Sort by weight
-        usort($properties, static fn (array $a, array $b): int => $a['weight'] <=> $b['weight']);
-
-        // Sort properties without weight alphabetically
-        usort($propertiesWithoutWeight, static fn (array $a, array $b): int => $a['property']->getName() <=> $b['property']->getName());
-
-        // Append properties without weight at the end
-        return array_merge($properties, $propertiesWithoutWeight);
+        return AnonymizePropertyDiscovery::discover($reflection);
     }
 
     /**
@@ -330,7 +302,7 @@ final class AnonymizeService
      * @param EntityManagerInterface $em The entity manager
      * @param ClassMetadata<object> $metadata The entity metadata
      * @param ReflectionClass<object> $reflection The entity reflection class
-     * @param list<array{property: ReflectionProperty, attribute: AnonymizeProperty, weight: int}> $properties The properties to anonymize
+     * @param list<array{property: ReflectionProperty, attribute: AnonymizeProperty, weight: int, fieldName?: string}> $properties The properties to anonymize
      * @param int $batchSize Chunk size for reading (LIMIT per query) and for committing updates (one transaction per chunk)
      * @param bool $dryRun If true, only show what would be anonymized
      * @param AnonymizeStatistics|null $statistics Optional statistics collector
@@ -475,7 +447,12 @@ final class AnonymizeService
                         foreach ($properties as $propertyData) {
                             $property     = $propertyData['property'];
                             $attribute    = $propertyData['attribute'];
-                            $propertyName = $property->getName();
+                            $propertyName = $propertyData['fieldName'] ?? $property->getName();
+
+                            // Skip bare embed associations (e.g. phoneNumber); only scalar / nested fields
+                            if (isset($metadata->embeddedClasses[$propertyName])) {
+                                continue;
+                            }
 
                             // Check if property exists in metadata
                             if (!$metadata->hasField($propertyName) && !$metadata->hasAssociation($propertyName)) {

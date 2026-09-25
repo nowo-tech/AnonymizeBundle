@@ -11,10 +11,10 @@ use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
 use Nowo\AnonymizeBundle\Enum\FakerType;
 use Nowo\AnonymizeBundle\Faker\FakerFactoryInterface;
+use Nowo\AnonymizeBundle\Helper\AnonymizePropertyDiscovery;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Helper\OrmHelper;
 use ReflectionClass;
-use ReflectionProperty;
 use ValueError;
 
 use function array_slice;
@@ -74,10 +74,10 @@ final readonly class PreFlightCheckService
             // Check entity existence
             $errors = array_merge($errors, $this->checkEntityExistence($em, $className, $metadata));
 
-            // Check properties
-            $properties = $this->getAnonymizableProperties($reflection);
-            foreach ($properties as $propertyName => $propertyData) {
-                $property          = $propertyData['property'];
+            // Check properties (includes Doctrine embedded paths like phoneNumber.number)
+            $properties = AnonymizePropertyDiscovery::discover($reflection);
+            foreach ($properties as $propertyData) {
+                $propertyName      = $propertyData['fieldName'];
                 $propertyAttribute = $propertyData['attribute'];
 
                 // Check column existence
@@ -370,30 +370,5 @@ final readonly class PreFlightCheckService
         }
 
         return null;
-    }
-
-    /**
-     * Gets anonymizable properties from reflection class.
-     *
-     * @param ReflectionClass<object> $reflection The reflection class
-     *
-     * @return array<string, array{property: ReflectionProperty, attribute: AnonymizeProperty}>
-     */
-    private function getAnonymizableProperties(ReflectionClass $reflection): array
-    {
-        $properties = [];
-
-        foreach ($reflection->getProperties() as $property) {
-            $attributes = $property->getAttributes(AnonymizeProperty::class);
-            if (!empty($attributes)) {
-                $attribute                        = $attributes[0]->newInstance();
-                $properties[$property->getName()] = [
-                    'property'  => $property,
-                    'attribute' => $attribute,
-                ];
-            }
-        }
-
-        return $properties;
     }
 }

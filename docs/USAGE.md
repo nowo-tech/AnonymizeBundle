@@ -97,6 +97,41 @@ class User
 
 **Backward compatibility:** Strings still work, so existing code doesn't need to change.
 
+### Doctrine embeds (`#[ORM\Embedded]`)
+
+Put `#[AnonymizeProperty]` on the **embeddable** fields (not on the host embed property). The bundle discovers them and maps Doctrine paths such as `phoneNumber.number` to the flattened column (`phone_number` when `columnPrefix: 'phone_'`).
+
+```php
+use Doctrine\ORM\Mapping as ORM;
+use Nowo\AnonymizeBundle\Attribute\{Anonymize, AnonymizeProperty};
+use Nowo\AnonymizeBundle\Enum\FakerType;
+
+#[ORM\Embeddable]
+class PhoneNumber
+{
+    #[ORM\Column(name: 'number', length: 255, nullable: true)]
+    #[AnonymizeProperty(type: FakerType::PHONE, weight: 1, options: ['preserve_null' => true])]
+    private ?string $number = null;
+
+    #[ORM\Column(name: 'verification_code', length: 6, nullable: true)]
+    #[AnonymizeProperty(type: FakerType::NULL, weight: 2)]
+    private ?string $verificationCode = null;
+}
+
+#[ORM\Entity]
+#[Anonymize] // still required on the host entity
+class User
+{
+    #[ORM\Embedded(class: PhoneNumber::class, columnPrefix: 'phone_')]
+    private PhoneNumber $phoneNumber;
+}
+```
+
+Notes:
+- The host entity still needs `#[Anonymize]`.
+- `#[AnonymizeProperty]` on the embed **association** itself (`$phoneNumber`) is ignored; only nested scalar fields are processed.
+- `nowo:anonymize:info` / stats show the Doctrine path (`phoneNumber.number`).
+
 ### Using Strings (Still Supported)
 
 You can still use strings if you prefer:
