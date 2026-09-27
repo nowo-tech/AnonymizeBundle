@@ -59,6 +59,7 @@ final class BeforeAnonymizeEvent extends Event
      */
     public function setEntityClasses(array $entityClasses): void
     {
+        // @igor-ignore - Request-scoped Event DTO; not a shared worker service.
         $this->entityClasses = $entityClasses;
     }
 

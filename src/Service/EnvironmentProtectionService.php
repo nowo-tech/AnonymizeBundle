@@ -118,6 +118,7 @@ final readonly class EnvironmentProtectionService
         $candidates = [];
 
         foreach (['DATABASE_URL', 'DATABASE_URL_DEFAULT', 'MONGODB_URL', 'MONGODB_URI'] as $envKey) {
+            // @igor-ignore - $_SERVER is request-scoped in FrankenPHP; preferred over $_ENV for worker safety.
             $value = $_SERVER[$envKey] ?? getenv($envKey);
             if (is_string($value) && $value !== '') {
                 $candidates[$envKey] = $value;

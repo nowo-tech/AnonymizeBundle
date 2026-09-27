@@ -25,6 +25,7 @@ use ReflectionClass;
 use ReflectionProperty;
 use RuntimeException;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use Symfony\Contracts\Service\ResetInterface;
 use Throwable;
 
 use function count;
@@ -46,7 +47,7 @@ use const PHP_INT_MAX;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
-final class AnonymizeService
+final class AnonymizeService implements ResetInterface
 {
     /**
      * @var array<string, FakerInterface> Cache of faker instances
@@ -68,6 +69,14 @@ final class AnonymizeService
         /** Documented strategy/service-id registry for custom anonymizeService ids (REQ-DI-001 exception for closed plugin registries), not a general service locator. */
         private readonly ?ContainerInterface $container = null
     ) {
+    }
+
+    /**
+     * Clear cached faker instances between FrankenPHP worker requests.
+     */
+    public function reset(): void
+    {
+        $this->fakerCache = [];
     }
 
     /**

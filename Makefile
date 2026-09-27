@@ -7,7 +7,7 @@ COMPOSE_BIN := $(shell docker compose version >/dev/null 2>&1 && echo "docker co
 COMPOSE     := $(COMPOSE_BIN) -f $(COMPOSE_FILE)
 SERVICE_PHP := php
 
-.PHONY: help up down down-dev build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up assets release-check release-check-demos composer-sync rector rector-dry phpstan update update-deps update-deps-demos validate check-no-cursor-coauthor check-open-prs strip-cursor-coauthor-from-history demo-smoke
+.PHONY: help up down down-dev build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean setup-hooks test-up test-down test-shell ensure-up assets release-check release-check-demos composer-sync rector rector-dry phpstan igor update update-deps update-deps-demos validate check-no-cursor-coauthor check-open-prs strip-cursor-coauthor-from-history demo-smoke
 
 # Default target
 help:
@@ -32,8 +32,9 @@ help:
 	@echo "  rector        Apply Rector refactoring"
 	@echo "  rector-dry    Run Rector in dry-run mode"
 	@echo "  phpstan       Run PHPStan static analysis"
+	@echo "  igor          Run Igor worker-state audit (REQ-CS-008)"
 	@echo "  qa            Run all QA checks (cs-check + test)"
-	@echo "  release-check Pre-release: ensure-up, git/PR gates, cs-fix, cs-check, rector-dry, phpstan, test-coverage, demo healthchecks"
+	@echo "  release-check Pre-release: ensure-up, git/PR gates, cs-fix, cs-check, rector-dry, phpstan, igor, test-coverage, demo healthchecks"
 	@echo "  check-open-prs Fail if unresolved open GitHub PRs remain (REQ-REL-003)"
 	@echo "  composer-sync Validate composer.json and align composer.lock (no install)"
 	@echo "  clean         Remove vendor and cache"
@@ -162,6 +163,10 @@ rector-dry: ensure-up
 phpstan: ensure-up
 	$(COMPOSE) exec -T php composer phpstan
 
+# Run Igor worker-state audit (REQ-CS-008)
+igor: ensure-up
+	$(COMPOSE) exec -T php composer igor
+
 # Validate composer.json and align composer.lock (generate/update lock without install)
 composer-sync: ensure-up
 	$(COMPOSE) exec -T php composer validate --strict
@@ -180,7 +185,7 @@ qa: ensure-up
 	$(COMPOSE) exec -T php composer qa
 
 # Pre-release (REQ-MAKE-002): ensure-up → git/PR gates → composer-sync → QA → demos
-release-check: ensure-up check-no-cursor-coauthor check-open-prs composer-sync cs-fix cs-check rector-dry phpstan test-coverage release-check-demos
+release-check: ensure-up check-no-cursor-coauthor check-open-prs composer-sync cs-fix cs-check rector-dry phpstan igor test-coverage release-check-demos
 
 # REQ-TEST-011 — boot demo stack and assert one HTTP 200
 demo-smoke:

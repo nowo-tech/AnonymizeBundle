@@ -120,6 +120,7 @@ final class AnonymizePropertyEvent extends Event
      */
     public function setAnonymizedValue(mixed $anonymizedValue): void
     {
+        // @igor-ignore - Request-scoped Event DTO; not a shared worker service.
         $this->anonymizedValue = $anonymizedValue;
     }
 
@@ -150,6 +151,7 @@ final class AnonymizePropertyEvent extends Event
      */
     public function setSkipAnonymization(bool $skip): void
     {
+        // @igor-ignore - Request-scoped Event DTO; not a shared worker service.
         $this->skipAnonymization = $skip;
     }
 

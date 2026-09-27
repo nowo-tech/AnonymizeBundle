@@ -1,5 +1,19 @@
 # Upgrade Guide
 
+
+## Unreleased
+
+## To 1.0.49
+
+From **1.0.48** — REQ-CS-008 Igor FrankenPHP worker audit (igor-php require-dev, igor.json, make igor).
+
+```bash
+composer update nowo-tech/anonymize-bundle
+php bin/console cache:clear
+```
+
+- No application upgrade steps for require-dev Igor tooling (REQ-CS-008). Consumers do not pull `igor-php/igor-php` transitively.
+
 This guide provides step-by-step instructions for upgrading the Anonymize Bundle between versions.
 
 ## Table of contents

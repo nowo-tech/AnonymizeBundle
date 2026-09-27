@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.0.49] - 2026-09-27](#1049-2026-09-27)
 - [[1.0.48] - 2026-09-25](#1048-2026-09-25)
 - [[1.0.47] - 2026-09-24](#1047-2026-09-24)
 - [[1.0.46] - 2026-08-24](#1046-2026-08-24)
@@ -89,13 +90,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.49] - 2026-09-27
+
 ### Added
 
-_(none yet)_
+- **REQ-CS-008:** `igor-php/igor-php` (require-dev only), root `igor.json`, Composer/`Makefile` `igor` target, and `release-check` wiring for FrankenPHP worker-state audit.
+
 
 ### Changed
 
-_(none)_
+
+- **Worker safety (Igor):** justified `// @igor-ignore` annotations and/or `ResetInterface` / request-scoped fixes so `make igor` passes on package `src/`.
 
 ### Fixed
 
@@ -110,6 +115,9 @@ _(none)_
 _(none)_
 
 ---
+
+[1.0.49]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.0.49
+
 ## [1.0.48] - 2026-09-25
 
 ### Added

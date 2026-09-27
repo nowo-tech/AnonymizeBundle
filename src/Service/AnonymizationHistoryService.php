@@ -98,6 +98,7 @@ final class AnonymizationHistoryService
             'timestamp' => $this->clock->now()->getTimestamp(),
             'datetime'  => date('Y-m-d H:i:s', $this->clock->now()->getTimestamp()),
             'metadata'  => array_merge([
+                // @igor-ignore - $_SERVER is request-scoped in FrankenPHP; preferred over $_ENV for worker safety.
                 'environment'     => ($_SERVER['APP_ENV'] ?? getenv('APP_ENV')) ?: 'unknown',
                 'php_version'     => PHP_VERSION,
                 'symfony_version' => $this->getSymfonyVersion(),
@@ -267,6 +268,7 @@ final class AnonymizationHistoryService
 
         foreach ($runs as $run) {
             if (isset($run['timestamp']) && $run['timestamp'] < $cutoffTime && (isset($run['file']) && file_exists($run['file']))) {
+                // @igor-ignore - Filesystem I/O on disk files; not in-process shared state mutation.
                 $this->filesystem->remove($run['file']);
                 ++$deleted;
             }

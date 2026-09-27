@@ -210,3 +210,7 @@ make check-no-cursor-coauthor
 `make setup-hooks` sets `core.hooksPath` to `.githooks` (includes `pre-commit` for a light REQ-GIT-001 check and `commit-msg` to strip Cursor co-author trailers). Run it once per clone before your first commit.
 
 If CI fails because trailers are already on the remote, see [GITHUB_CI.md](GITHUB_CI.md) (REQ-GIT-001) and run `make strip-cursor-coauthor-from-history` before `git push --force-with-lease`.
+
+## Igor worker audit (REQ-CS-008)
+
+Run `make igor` (or `composer igor`) before release. Igor audits package `src/` for FrankenPHP worker-state issues. It is require-dev only.

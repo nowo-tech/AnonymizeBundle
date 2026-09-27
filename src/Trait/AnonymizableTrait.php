@@ -42,6 +42,7 @@ trait AnonymizableTrait
      */
     public function setAnonymized(bool $anonymized): self
     {
+        // @igor-ignore - Doctrine entity trait field; instance-scoped, not a shared service.
         $this->anonymized = $anonymized;
 
         return $this;
