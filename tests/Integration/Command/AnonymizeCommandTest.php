@@ -120,7 +120,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput(['--entity' => ['App\Entity\SmsNotification']]);
+        $input   = new ArrayInput(['--entity' => ['App\Entity\SmsNotification'], '--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -173,7 +173,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput(['--entity' => ['App\Entity\NonExistentEntity']]);
+        $input   = new ArrayInput(['--entity' => ['App\Entity\NonExistentEntity'], '--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -230,7 +230,7 @@ class AnonymizeCommandTest extends TestCase
         });
 
         $command = $this->createDefaultAnonymizeCommand($doctrine, null, null, $eventDispatcher);
-        $input   = new ArrayInput([]);
+        $input   = new ArrayInput(['--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -281,7 +281,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput([]);
+        $input   = new ArrayInput(['--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -333,7 +333,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput(['--debug' => true]);
+        $input   = new ArrayInput(['--debug' => true, '--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -410,7 +410,7 @@ class AnonymizeCommandTest extends TestCase
         $anonymizerRegistry->method('get')->willReturnCallback(static fn (string $id): mixed => $id === 'custom_anonymizer' ? $anonymizer : null);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine, null, null, null, $anonymizerRegistry);
-        $input   = new ArrayInput(['--debug' => true]);
+        $input   = new ArrayInput(['--debug' => true, '--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -488,7 +488,7 @@ class AnonymizeCommandTest extends TestCase
         $anonymizerRegistry->method('get')->willReturnCallback(static fn (string $id): mixed => $id === 'custom_anonymizer' ? $anonymizer : null);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine, null, null, null, $anonymizerRegistry);
-        $input   = new ArrayInput(['--no-progress' => true]);
+        $input   = new ArrayInput(['--no-progress' => true, '--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -569,7 +569,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput(['--no-progress' => true]);
+        $input   = new ArrayInput(['--no-progress' => true, '--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -623,7 +623,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput([]);
+        $input   = new ArrayInput(['--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -645,7 +645,7 @@ class AnonymizeCommandTest extends TestCase
         ]), []);
 
         $command = $this->createDefaultAnonymizeCommand($this->createMock(ManagerRegistry::class), null, null, null, null, $environmentProtection);
-        $input   = new ArrayInput([]);
+        $input   = new ArrayInput(['--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -663,7 +663,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn([]);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput([]);
+        $input   = new ArrayInput(['--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -683,7 +683,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput([]);
+        $input   = new ArrayInput(['--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -705,7 +705,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput(['--debug' => true]);
+        $input   = new ArrayInput(['--debug' => true, '--force' => true]);
         $output  = new BufferedOutput();
 
         $command->run($input, $output);
@@ -722,7 +722,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput(['--connection' => ['mongodb']]);
+        $input   = new ArrayInput(['--connection' => ['mongodb'], '--force' => true]);
         $output  = new BufferedOutput();
 
         $command->run($input, $output);
@@ -782,7 +782,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput(['--connection' => ['default']]);
+        $input   = new ArrayInput(['--connection' => ['default'], '--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -803,7 +803,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willThrowException(new Exception('Connection failed'));
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput([]);
+        $input   = new ArrayInput(['--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -828,7 +828,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput(['--stats-json' => $absoluteJsonPath]);
+        $input   = new ArrayInput(['--stats-json' => $absoluteJsonPath, '--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -857,7 +857,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput(['--stats-json' => $absoluteJsonPath]);
+        $input   = new ArrayInput(['--stats-json' => $absoluteJsonPath, '--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -877,7 +877,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput(['--stats-json' => 'run_stats.json']);
+        $input   = new ArrayInput(['--stats-json' => 'run_stats.json', '--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -908,7 +908,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput(['--stats-csv' => 'run_stats.csv']);
+        $input   = new ArrayInput(['--stats-csv' => 'run_stats.csv', '--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -952,7 +952,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput(['--debug' => true]);
+        $input   = new ArrayInput(['--debug' => true, '--force' => true]);
         $output  = new BufferedOutput();
 
         $command->run($input, $output);
@@ -970,7 +970,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput(['--connection' => ['default', 'mongodb']]);
+        $input   = new ArrayInput(['--connection' => ['default', 'mongodb'], '--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -993,7 +993,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput(['--batch-size' => '50']);
+        $input   = new ArrayInput(['--batch-size' => '50', '--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -1012,7 +1012,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput([]);
+        $input   = new ArrayInput(['--force' => true]);
         $output  = new BufferedOutput();
         $output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
 
@@ -1087,7 +1087,7 @@ class AnonymizeCommandTest extends TestCase
         $historyService = new AnonymizationHistoryService($historyDirPath);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine, null, $historyService);
-        $input   = new ArrayInput(['--debug' => true]);
+        $input   = new ArrayInput(['--debug' => true, '--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -1109,7 +1109,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput([]);
+        $input   = new ArrayInput(['--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -1120,55 +1120,23 @@ class AnonymizeCommandTest extends TestCase
     }
 
     /**
-     * Truncate without --force in non-interactive mode returns FAILURE (confirm default is no).
+     * Non-interactive write without --force / --dry-run is refused (safety gate).
      */
     public function testExecuteTruncateWithoutForceInNonInteractiveReturnsFailure(): void
     {
-        eval('
-            namespace Nowo\AnonymizeBundle\Tests\Integration\Command {
-                #[\\Nowo\\AnonymizeBundle\\Attribute\\Anonymize(truncate: true)]
-                class TruncateAbortTestEntity {
-                }
-            }
-        ');
-        $className = 'Nowo\AnonymizeBundle\Tests\Integration\Command\TruncateAbortTestEntity';
-        $tableName = 'truncate_abort_test';
-
-        $metadata = $this->createMock(ClassMetadata::class);
-        $metadata->method('getTableName')->willReturn($tableName);
-
-        $metadataDriver = $this->createMock(MappingDriver::class);
-        $config         = $this->createMock(Configuration::class);
-        $em             = $this->createMock(EntityManagerInterface::class);
-
-        $connection = $this->createMock(Connection::class);
-        $connection->method('executeQuery')->with('SELECT 1')->willReturn($this->createMock(Result::class));
-
-        $schemaManager = $this->createMock(AbstractSchemaManager::class);
-        $schemaManager->method('tablesExist')->with([$tableName])->willReturn(true);
-        $connection->method('createSchemaManager')->willReturn($schemaManager);
-
-        $em->method('getConfiguration')->willReturn($config);
-        $em->method('getConnection')->willReturn($connection);
-        $config->method('getMetadataDriverImpl')->willReturn($metadataDriver);
-        $metadataDriver->method('getAllClassNames')->willReturn([$className]);
-        $em->method('getClassMetadata')->with($className)->willReturn($metadata);
-
         $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
-        $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
         $input   = new ArrayInput([]);
+        $input->setInteractive(false);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
         $out      = $output->fetch();
 
         $this->assertSame(1, $exitCode);
-        $this->assertStringContainsString('Truncating tables', $out);
-        $this->assertStringContainsString($tableName, $out);
-        $this->assertStringContainsString('Truncate aborted', $out);
+        $this->assertStringContainsString('Refusing destructive anonymization', $out);
     }
 
     /**

@@ -29,6 +29,7 @@ This bundle is **development-only** (see below). It anonymizes data for local/te
 | `--env=dev` against production DSN | Configurable DSN/host **denylist** (`nowo_anonymize.environment_protection.blocked_dsn_substrings`) matched against `DATABASE_URL` / `MONGODB_URL` (and hosts) **and** Doctrine connection `url` / `host` / `dbname` params when ManagerRegistry is available. |
 | Stats path traversal (`--stats-json` / `--stats-csv`) | Paths are resolved under `stats_output_dir`, canonicalized, and **rejected** if they escape that directory (including absolute paths outside the base). |
 | Empty `hash_preserve` salt | `HashPreserveFaker` applies `nowo_anonymize.hash_preserve.default_salt` (defaults to `%kernel.secret%`) when the per-call `salt` option is empty, avoiding unsalted dictionary-friendly hashes. |
+| Destructive anonymization (CLI) | Non-interactive writes require `--force`, `--dry-run`, or `--interactive`; otherwise the command refuses with exit code 1. |
 | Destructive TRUNCATE | Tables with `truncate=true` require interactive confirmation or `--force`; non-interactive runs abort truncate without `--force`. |
 | Data leakage in logs | Avoid verbose logging of raw PII in anonymization pipelines. |
 | Hung export subprocesses (FrankenPHP/FPM) | `export.timeout` (default 180s) on Symfony Process; demo Caddy/PHP deadlines sit above it (REQ-RUNTIME-001). |

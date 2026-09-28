@@ -121,7 +121,7 @@ final class AnonymizeCommand extends AbstractCommand
                       --verbose, -v      Increase verbosity of messages (Symfony standard option)
                       --debug            Enable debug mode (shows detailed information)
                       --interactive, -i  Enable interactive mode with step-by-step confirmations
-                      --force            Skip truncate confirmation (required for non-interactive truncate)
+                      --force            Skip confirmations; required for non-interactive destructive runs (and truncate)
 
                     Examples:
                       <info>php %command.full_name%</info>
@@ -149,7 +149,7 @@ final class AnonymizeCommand extends AbstractCommand
             ->addOption('no-progress', null, InputOption::VALUE_NONE, 'Disable progress bar display')
             ->addOption('debug', null, InputOption::VALUE_NONE, 'Enable debug mode (shows detailed information)')
             ->addOption('interactive', 'i', InputOption::VALUE_NONE, 'Enable interactive mode with step-by-step confirmations')
-            ->addOption('force', null, InputOption::VALUE_NONE, 'Skip truncate confirmation (required for non-interactive truncate)');
+            ->addOption('force', null, InputOption::VALUE_NONE, 'Skip confirmations; required for non-interactive destructive runs (and truncate)');
     }
 
     /**
@@ -177,6 +177,15 @@ final class AnonymizeCommand extends AbstractCommand
         $verbose      = ($input->hasOption('verbose') && $input->getOption('verbose')) || $output->isVerbose();
         $debug        = $input->getOption('debug') || $output->isDebug();
         $interactive  = $input->getOption('interactive');
+        $force        = (bool) $input->getOption('force');
+        $statsOnly    = (bool) $input->getOption('stats-only');
+
+        // Fail closed: non-interactive destructive runs need an explicit opt-in.
+        if (!$dryRun && !$statsOnly && !$force && !$interactive && !$input->isInteractive()) {
+            $io->error('Refusing destructive anonymization without --force, --dry-run, or --interactive in non-interactive mode.');
+
+            return self::FAILURE;
+        }
 
         if ($dryRun) {
             $io->warning('DRY RUN MODE: No changes will be made to the database');
@@ -219,7 +228,6 @@ final class AnonymizeCommand extends AbstractCommand
         $statistics     = new AnonymizeStatistics();
         $statistics->start();
 
-        $statsOnly = $input->getOption('stats-only');
         $statsJson = $input->getOption('stats-json');
         $statsCsv  = $input->getOption('stats-csv');
 

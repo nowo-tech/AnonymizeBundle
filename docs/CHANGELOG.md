@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.1.0] - 2026-09-28](#110-2026-09-28)
 - [[1.0.49] - 2026-09-27](#1049-2026-09-27)
 - [[1.0.48] - 2026-09-25](#1048-2026-09-25)
 - [[1.0.47] - 2026-09-24](#1047-2026-09-24)
@@ -90,6 +91,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-28
+
+### Security
+
+- Non-interactive anonymization without `--dry-run` now requires `--force` (or `--interactive`). Prevents accidental destructive CLI runs.
+
 ## [1.0.49] - 2026-09-27
 
 ### Added
@@ -116,6 +123,7 @@ _(none)_
 
 ---
 
+[1.1.0]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.1.0
 [1.0.49]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.0.49
 
 ## [1.0.48] - 2026-09-25

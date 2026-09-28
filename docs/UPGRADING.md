@@ -3,6 +3,17 @@
 
 ## Unreleased
 
+## To 1.1.0
+
+From **1.0.49** — non-interactive anonymization CLI gate.
+
+```bash
+composer update nowo-tech/anonymize-bundle
+php bin/console cache:clear
+```
+
+- Non-interactive runs that would write (no `--dry-run`) now require `--force` or `--interactive`. Update cron/CI scripts accordingly.
+
 ## To 1.0.49
 
 From **1.0.48** — REQ-CS-008 Igor FrankenPHP worker audit (igor-php require-dev, igor.json, make igor).
