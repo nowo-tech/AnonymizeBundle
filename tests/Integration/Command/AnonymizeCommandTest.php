@@ -1130,7 +1130,7 @@ class AnonymizeCommandTest extends TestCase
         $command = $this->createDefaultAnonymizeCommand($doctrine);
         $input   = new ArrayInput([]);
         $input->setInteractive(false);
-        $output  = new BufferedOutput();
+        $output = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
         $out      = $output->fetch();
