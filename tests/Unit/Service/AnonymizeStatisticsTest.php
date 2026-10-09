@@ -116,7 +116,7 @@ class AnonymizeStatisticsTest extends TestCase
     public function testReset(): void
     {
         $stats = new AnonymizeStatistics();
-        $this->assertInstanceOf(ResetInterface::class, $stats);
+        self::assertTrue((new ReflectionClass($stats))->implementsInterface(ResetInterface::class));
 
         $stats->start();
         $stats->recordEntity('App\Entity\User', 'default', 10, 8);

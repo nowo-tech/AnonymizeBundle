@@ -578,10 +578,9 @@ final class AnonymizeCommand extends AbstractCommand
                     $io->writeln('  Properties to anonymize:');
                 }
                 foreach ($properties as $propertyData) {
-                    $property  = $propertyData['property'];
                     $attribute = $propertyData['attribute'];
                     $weight    = $propertyData['weight'];
-                    $fieldName = $propertyData['fieldName'] ?? $property->getName();
+                    $fieldName = $propertyData['fieldName'];
                     $io->writeln(sprintf('    - %s (type: %s, weight: %s)', $fieldName, $attribute->type, $weight));
                     if ($debug) {
                         if ($attribute->includePatterns !== []) {
