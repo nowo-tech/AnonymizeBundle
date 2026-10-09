@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.1.1] - 2026-10-09](#111-2026-10-09)
 - [[1.1.0] - 2026-09-28](#110-2026-09-28)
 - [[1.0.49] - 2026-09-27](#1049-2026-09-27)
 - [[1.0.48] - 2026-09-25](#1048-2026-09-25)
@@ -91,6 +92,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-10-09
+
+### Fixed
+
+- **PHPStan 2.3.1:** removed a redundant null-coalesce on the always-present `fieldName` offset in `AnonymizeCommand` (debug listing) and an always-true `assertInstanceOf` in `AnonymizeStatisticsTest`.
+
+### Dependencies
+
+- `igor-php/igor-php` require-dev constraint bumped to `^0.10.0` (Dependabot).
+- Bundle lock (dev tooling): `phpstan/phpstan` 2.3.1, `phpstan/phpstan-phpunit` 2.1.1, `rector/rector` 2.7.0, `nowo-tech/phpstan-frankenphp` 1.2.3, `doctrine/orm` 3.7.4, Symfony 7.4.20.
+- Demo `symfony8`: Symfony 8.1.8, `doctrine/orm` 3.7.4, `doctrine/dbal` 4.5.0, `twig/twig` 3.30.0; regenerated `config/reference.php`.
+
 ## [1.1.0] - 2026-09-28
 
 ### Security
@@ -123,6 +136,7 @@ _(none)_
 
 ---
 
+[1.1.1]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.1.1
 [1.1.0]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.1.0
 [1.0.49]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.0.49
 

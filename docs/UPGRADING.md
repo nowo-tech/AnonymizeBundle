@@ -3,6 +3,16 @@
 
 ## Unreleased
 
+## To 1.1.1
+
+From **1.1.0** — dependency refresh and PHPStan 2.3.1 fixes.
+
+```bash
+composer update nowo-tech/anonymize-bundle
+```
+
+- No breaking changes. No application upgrade steps.
+
 ## To 1.1.0
 
 From **1.0.49** — non-interactive anonymization CLI gate.
