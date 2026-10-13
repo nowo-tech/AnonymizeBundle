@@ -21,13 +21,13 @@
         <a href="{{ path('contact_new', {connection: connection}) }}" class="btn btn-primary">Create New Contact</a>
     </div>
     <div class="card-body">
-        {% if contact_list|length > 0 %}
+        {% if contacts|length > 0 %}
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
-                            {% for field in contact_list[0]|keys %}
+                            {% for field in contacts[0]|keys %}
                                 {% if field != 'id' and field != 'anonymized' %}
                                 <th>{{ field|replace({'_': ' '})|title }}</th>
                                 {% endif %}
@@ -39,10 +39,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for contact in contact_list %}
+                        {% for contact in contacts %}
                             <tr>
                                 <td>{{ contact.id ?? contact.id }}</td>
-                                {% for field in contact_list[0]|keys %}
+                                {% for field in contacts[0]|keys %}
                                     {% if field != 'id' and field != 'anonymized' %}
                                     <td>{{ contact[field] ?? '-' }}</td>
                                     {% endif %}

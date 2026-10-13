@@ -3,12 +3,21 @@ services:
         autowire: true
         autoconfigure: true
 
-    # Public so the anonymize bundle can resolve it by class name (container->get())
-    App\Service\SmsNotificationAnonymizerService:
-        public: true
-
     App\:
         resource: '../src/'
         exclude:
             - '../src/Entity/'
             - '../src/Kernel.php'
+
+
+# The anonymize bundle (and its nowo_anonymize.faker_factory service) is loaded in dev/test only.
+# Public so the bundle can resolve the custom anonymizer by class name (container->get()).
+when@dev: &anonymizer_services
+    services:
+        App\Service\SmsNotificationAnonymizerService:
+            autowire: true
+            public: true
+            arguments:
+                $fakerFactory: '@nowo_anonymize.faker_factory'
+
+when@test: *anonymizer_services
