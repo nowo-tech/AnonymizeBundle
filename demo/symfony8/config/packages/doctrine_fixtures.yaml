@@ -1,8 +1,13 @@
-doctrine_fixtures:
-    orm:
-        default_connection: default
-        connections:
-            default:
-                entity_manager: default
-            postgres:
-                entity_manager: postgres
+# DoctrineFixturesBundle is a dev/test-only bundle (see config/bundles.php): keep its
+# configuration out of prod, where the extension is not registered.
+when@dev: &doctrine_fixtures
+    doctrine_fixtures:
+        orm:
+            default_connection: default
+            connections:
+                default:
+                    entity_manager: default
+                postgres:
+                    entity_manager: postgres
+
+when@test: *doctrine_fixtures

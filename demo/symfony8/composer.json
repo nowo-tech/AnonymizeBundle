@@ -5,7 +5,8 @@
     "license": "MIT",
     "require": {
         "doctrine/orm": "^2.13 || ^3.0",
-        "mongodb/mongodb": "^2.1",
+        "ext-mongodb": "^2.5",
+        "mongodb/mongodb": "^2.5",
         "php": ">=8.4,<8.6",
         "symfony/asset": "^8.0",
         "symfony/console": "^8.0",

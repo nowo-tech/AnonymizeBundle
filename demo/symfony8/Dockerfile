@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		pdo_sqlite \
 		opcache \
 		intl \
-	&& pecl install mongodb \
+	&& pecl install mongodb-2.5.4 \
 	&& docker-php-ext-enable mongodb
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

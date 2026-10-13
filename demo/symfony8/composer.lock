@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9186a8f87c9e5f8fe6ed6f596331ec59",
+    "content-hash": "fd3f0d2e3fef50196901a84c89718d68",
     "packages": [
         {
             "name": "doctrine/collections",
@@ -757,23 +757,24 @@
         },
         {
             "name": "mongodb/mongodb",
-            "version": "2.3.0",
+            "version": "2.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mongodb/mongo-php-library",
-                "reference": "12e56461166d915e3dd8e4969ad0940ed5207d88"
+                "reference": "d70875dbb897a1cc7de15b6d21ceed43706f1937"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mongodb/mongo-php-library/zipball/12e56461166d915e3dd8e4969ad0940ed5207d88",
-                "reference": "12e56461166d915e3dd8e4969ad0940ed5207d88",
+                "url": "https://api.github.com/repos/mongodb/mongo-php-library/zipball/d70875dbb897a1cc7de15b6d21ceed43706f1937",
+                "reference": "d70875dbb897a1cc7de15b6d21ceed43706f1937",
                 "shasum": ""
             },
             "require": {
                 "composer-runtime-api": "^2.0",
-                "ext-mongodb": "^2.3",
+                "ext-mongodb": "^2.5",
                 "php": "^8.1",
                 "psr/log": "^1.1.4|^2|^3",
+                "symfony/polyfill-php84": "^1.38",
                 "symfony/polyfill-php85": "^1.33"
             },
             "replace": {
@@ -782,7 +783,7 @@
             "require-dev": {
                 "doctrine/coding-standard": "^12.0",
                 "phpunit/phpunit": "^10.5.35",
-                "rector/rector": "^2.3.4",
+                "rector/rector": "~2.6.4",
                 "squizlabs/php_codesniffer": "^3.7",
                 "vimeo/psalm": "~6.14.2"
             },
@@ -826,7 +827,7 @@
                 "mongodb",
                 "persistence"
             ],
-            "time": "2026-04-28T12:50:06+00:00"
+            "time": "2026-09-29T12:27:47+00:00"
         },
         {
             "name": "psr/cache",
@@ -3145,6 +3146,86 @@
             "time": "2026-09-24T15:19:04+00:00"
         },
         {
+            "name": "symfony/polyfill-php84",
+            "version": "v1.43.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-php84.git",
+                "reference": "22c6548499cbe5c5bb072fc0c42312dff062a015"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-php84/zipball/22c6548499cbe5c5bb072fc0c42312dff062a015",
+                "reference": "22c6548499cbe5c5bb072fc0c42312dff062a015",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Php84\\": ""
+                },
+                "classmap": [
+                    "Resources/stubs"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill backporting some PHP 8.4+ features to lower PHP versions",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-php84/tree/v1.43.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-09-23T22:01:09+00:00"
+        },
+        {
             "name": "symfony/polyfill-php85",
             "version": "v1.43.0",
             "source": {
@@ -5302,7 +5383,7 @@
             "dist": {
                 "type": "path",
                 "url": "/var/anonymize-bundle",
-                "reference": "8a334e0663fd10a1633e8ef06e2b89e94ecb9a42"
+                "reference": "3298dc1c2fb7d58f076af31bfb1b2a09874461df"
             },
             "require": {
                 "doctrine/dbal": "^2.13 || ^3.0 || ^4.0",
@@ -6026,6 +6107,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
+        "ext-mongodb": "^2.5",
         "php": ">=8.4,<8.6"
     },
     "platform-dev": {},

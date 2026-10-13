@@ -96,6 +96,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **Demo (Symfony 8)**: `mongodb/mongodb` raised to `^2.5` (2.5.0; fixes CVE-2026-81525 and CVE-2026-88023, both affecting `<2.4.2`) and `ext-mongodb ^2.5` declared; the demo image pins `pecl install mongodb-2.5.4`. Rebuild the demo image (`make -C demo build-symfony8`). Bundle root: `composer audit` clean (the bundle does not depend on `mongodb/mongodb`).
+
+### Fixed
+
+- **Demo (Symfony 8)**: `doctrine_fixtures` configuration moved under `when@dev` / `when@test`, so `APP_ENV=prod` no longer fails on the dev-only DoctrineFixturesBundle config.
+
 ## [1.2.2] - 2026-10-13
 
 ### Fixed
