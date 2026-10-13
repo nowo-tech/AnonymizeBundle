@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 1.2.1](#to-121)
 - [To 1.2.0](#to-120)
 - [To 1.1.2](#to-112)
 - [To 1.1.1](#to-111)
@@ -91,6 +92,16 @@
 - [Notes](#notes-17)
 
 ## Unreleased
+
+## To 1.2.1
+
+From **1.2.0** — security - mysqldump option-file password quoting fixed.
+
+```bash
+composer update nowo-tech/anonymize-bundle
+```
+
+- No application upgrade steps. Passwords containing quotes and `#` are now passed correctly to mysqldump.
 
 ## To 1.2.0
 

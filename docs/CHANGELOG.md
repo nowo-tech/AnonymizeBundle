@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.2.1] - 2026-10-13](#121---2026-10-13)
 - [[1.2.0] - 2026-10-13](#120---2026-10-13)
 - [[1.1.2] - 2026-10-13](#112---2026-10-13)
 - [[1.1.1] - 2026-10-09](#111---2026-10-09)
@@ -94,6 +95,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-10-13
+
 ### Fixed
 
 - `nowo:anonymize:export-db` (MySQL): quotes in the database password are now escaped in the temporary `--defaults-extra-file`; a password containing `"` followed by `#` was truncated by MySQL's option-file parser.
@@ -169,6 +172,7 @@ _(none)_
 
 ---
 
+[1.2.1]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.2.1
 [1.2.0]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.2.0
 [1.1.2]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.1.2
 [1.1.1]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.1.1
