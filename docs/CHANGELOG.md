@@ -95,6 +95,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **FakerFactory autowiring**: `Nowo\AnonymizeBundle\Faker\FakerFactory` and `FakerFactoryInterface` are now aliased to `nowo_anonymize.faker_factory`, so app services (custom anonymizers, helpers) can autowire the factory by type instead of injecting `@nowo_anonymize.faker_factory` explicitly. The docs already claimed the class was a service id; it was not.
+
 ## [1.2.1] - 2026-10-13
 
 ### Fixed

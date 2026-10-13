@@ -38,6 +38,15 @@ services:
             $locale: '%nowo_anonymize.locale%'
             $container: '@service_container'
 
+    # Autowiring aliases so app services can type-hint FakerFactory / FakerFactoryInterface
+    Nowo\AnonymizeBundle\Faker\FakerFactory:
+        alias: nowo_anonymize.faker_factory
+        public: true
+
+    Nowo\AnonymizeBundle\Faker\FakerFactoryInterface:
+        alias: nowo_anonymize.faker_factory
+        public: true
+
     # Note: All faker aliases (nowo_anonymize.faker.*) are automatically created
     # from the #[AsAlias] attributes in each faker class when autoconfigure: true
 

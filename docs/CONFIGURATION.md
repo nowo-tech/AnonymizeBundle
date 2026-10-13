@@ -278,7 +278,18 @@ Command-line options take precedence over configuration file values.
 
 ## Using FakerFactory in your own services
 
-The bundle registers `Nowo\AnonymizeBundle\Faker\FakerFactory` as a service so you can inject it into your own services (e.g. custom anonymizers or helpers that need to generate fake data).
+The bundle registers the faker factory as service `nowo_anonymize.faker_factory` and aliases both `Nowo\AnonymizeBundle\Faker\FakerFactory` and `Nowo\AnonymizeBundle\Faker\FakerFactoryInterface` to it, so you can autowire it by type in your own services (e.g. custom anonymizers or helpers that need to generate fake data). Prefer type-hinting `FakerFactoryInterface`.
+
+```php
+use Nowo\AnonymizeBundle\Faker\FakerFactoryInterface;
+
+final class FileService
+{
+    public function __construct(private FakerFactoryInterface $fakerFactory)
+    {
+    }
+}
+```
 
 **Important:** The bundle is loaded only in `dev` and `test`. Any service that depends on `FakerFactory` must be registered only in those environments; otherwise you get *"no such service exists"* when the container is built (e.g. in prod the bundle is not loaded, so `FakerFactory` is not in the container).
 
@@ -290,22 +301,21 @@ Register the service that needs `FakerFactory` in a file that is loaded only in 
 # config/services/dev/services.yaml
 services:
     App\Service\Anonymize\FileService:
-        # FakerFactory is autowired by type
+        autowire: true
+        # FakerFactory / FakerFactoryInterface are autowired by type
 ```
 
 That way the service is only compiled when the bundle is loaded (dev/test), and the "no such service exists" error is avoided.
 
 **Option 2 – Explicit service id**
 
-If autowiring still doesn't find `FakerFactory`, inject it explicitly:
+Before the autowiring aliases were added, the factory had to be injected explicitly. This still works:
 
 ```yaml
 App\Service\Anonymize\FileService:
     arguments:
         $fakerFactory: '@nowo_anonymize.faker_factory'
 ```
-
-The bundle also exposes the class as service id `Nowo\AnonymizeBundle\Faker\FakerFactory`, so you can use that instead of the alias if you prefer.
 
 ## Available Commands
 
