@@ -1,7 +1,16 @@
 # Upgrade Guide
 
-
 ## Unreleased
+
+## To 1.1.2
+
+From **1.1.1** — dependency refresh and repository maintenance.
+
+```bash
+composer update nowo-tech/anonymize-bundle
+```
+
+- No breaking changes. No application upgrade steps.
 
 ## To 1.1.1
 
@@ -38,7 +47,6 @@ php bin/console cache:clear
 This guide provides step-by-step instructions for upgrading the Anonymize Bundle between versions.
 
 ## Table of contents
-
 
 - [From 1.0.47 to 1.0.48](#from-1047-to-1048)
 - [From 1.0.46 to 1.0.47](#from-1046-to-1047)

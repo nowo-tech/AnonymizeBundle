@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.1.2] - 2026-10-13](#112-2026-10-13)
 - [[1.1.1] - 2026-10-09](#111-2026-10-09)
 - [[1.1.0] - 2026-09-28](#110-2026-09-28)
 - [[1.0.49] - 2026-09-27](#1049-2026-09-27)
@@ -92,9 +93,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-10-13
+
 ### Changed
 
 - Development: `composer.json` pins `config.platform.php` to 8.2.0 so the committed lock stays installable on the minimum PHP; CI overrides the platform per matrix cell.
+- CI: GitHub Actions aligned with the org baseline (`actions/checkout` v7, `codecov/codecov-action` v7, `actions/cache` v6).
+
+### Dependencies
+
+- `doctrine/orm` 3.7.4 → 3.7.5 (development lock; #28).
 
 ## [1.1.1] - 2026-10-09
 
@@ -120,9 +128,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **REQ-CS-008:** `igor-php/igor-php` (require-dev only), root `igor.json`, Composer/`Makefile` `igor` target, and `release-check` wiring for FrankenPHP worker-state audit.
 
-
 ### Changed
-
 
 - **Worker safety (Igor):** justified `// @igor-ignore` annotations and/or `ResetInterface` / request-scoped fixes so `make igor` passes on package `src/`.
 
@@ -140,6 +146,7 @@ _(none)_
 
 ---
 
+[1.1.2]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.1.2
 [1.1.1]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.1.1
 [1.1.0]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.1.0
 [1.0.49]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.0.49
@@ -218,7 +225,6 @@ _(none)_
 [1.0.48]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.0.48
 [1.0.47]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.0.47
 [1.0.46]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.0.46
-
 
 ## [1.0.45] - 2026-08-19
 
