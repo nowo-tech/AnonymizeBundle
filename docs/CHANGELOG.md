@@ -94,6 +94,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `nowo:anonymize:export-db` (MySQL): quotes in the database password are now escaped in the temporary `--defaults-extra-file`; a password containing `"` followed by `#` was truncated by MySQL's option-file parser.
+
 ## [1.2.0] - 2026-10-13
 
 ### Security
