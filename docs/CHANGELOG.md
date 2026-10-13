@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.2.0] - 2026-10-13](#120-2026-10-13)
 - [[1.1.2] - 2026-10-13](#112-2026-10-13)
 - [[1.1.1] - 2026-10-09](#111-2026-10-09)
 - [[1.1.0] - 2026-09-28](#110-2026-09-28)
@@ -93,6 +94,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-13
+
 ### Security
 
 - `nowo:anonymize:export-db`: database passwords are no longer visible in the process list. `mysqldump` gets them from a temporary `0600` `--defaults-extra-file` (was `--password=`), `pg_dump` from a `0600` `PGPASSFILE` (was an inline `PGPASSWORD=` in the shell command) and `mongodump` from a `0600` `--config` file; the files are removed after the run.
@@ -162,6 +165,7 @@ _(none)_
 
 ---
 
+[1.2.0]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.2.0
 [1.1.2]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.1.2
 [1.1.1]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.1.1
 [1.1.0]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.1.0

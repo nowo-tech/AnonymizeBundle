@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## To 1.2.0
+
+From **1.1.2** — security - dump passwords off argv, export config enforced, Symfony >=6.4.
+
+```bash
+composer update nowo-tech/anonymize-bundle
+```
+
+- `nowo:anonymize:export-db` now fails unless `nowo_anonymize.export.enabled: true` is set; without `--connection` it exports only `export.connections` when that list is non-empty.
+- Database passwords are passed via temporary 0600 credential files (no longer on the command line); dumps no longer contain mysqldump stderr.
+- Symfony 6.0–6.3 are no longer supported. Exporting MongoDB via `MONGODB_URL` needs mongodump ≥ 100.3.0.
+
 ## To 1.1.2
 
 From **1.1.1** — dependency refresh and repository maintenance.
