@@ -254,7 +254,9 @@ class DatabaseExportServiceTest extends TestCase
         $this->assertCount(1, $runner->credentialFiles);
         $file = (string) array_key_first($runner->credentialFiles);
         $this->assertSame(0o600, $runner->credentialFiles[$file]['mode']);
-        $this->assertSame("[client]\npassword=\"p'a\"ss\\\\w:rd #1\"\n", $runner->credentialFiles[$file]['content']);
+        // Quotes are escaped: an unescaped '"' ends the quoted value for MySQL's comment scanner, which then
+        // truncates the password at " #1" (verified with my_print_defaults).
+        $this->assertSame("[client]\npassword=\"p\\'a\\\"ss\\\\w:rd #1\"\n", $runner->credentialFiles[$file]['content']);
         $this->assertFileDoesNotExist($file, 'Credentials file must be removed after the dump');
         $this->assertSame('dump', file_get_contents($result));
     }

@@ -535,10 +535,13 @@ final class DatabaseExportService
 
     /**
      * Escapes a value for a double-quoted MySQL option file entry (backslash escape sequences).
+     *
+     * Quotes are escaped too: the option-file parser tracks unescaped quotes to find "#" comments, so a
+     * bare quote inside the value would end the quoted string and truncate the password at a later "#".
      */
     private function escapeMysqlOptionValue(string $value): string
     {
-        return strtr($value, ['\\' => '\\\\', "\n" => '\\n', "\r" => '\\r', "\t" => '\\t']);
+        return strtr($value, ['\\' => '\\\\', '"' => '\\"', "'" => "\\'", "\n" => '\\n', "\r" => '\\r', "\t" => '\\t']);
     }
 
     /**
