@@ -1054,6 +1054,100 @@ class AnonymizeServiceTest extends TestCase
     }
 
     /**
+     * Regression: the schema is introspected once per table, not once per anonymized row.
+     */
+    public function testAnonymizeEntityIntrospectsAnonymizedColumnOncePerTable(): void
+    {
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $metadata      = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $testEntity = new class {
+            use AnonymizableTrait;
+
+            #[AnonymizeProperty(type: 'email')]
+            public string $email = 'test@example.com';
+        };
+        $reflection = new ReflectionClass($testEntity);
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+        $metadata->method('hasField')
+            ->with('email')
+            ->willReturn(true);
+        $metadata->method('hasAssociation')
+            ->willReturn(false);
+        $fieldMapping = new FieldMapping('email', 'string', 'email');
+        $metadata->method('getFieldMapping')
+            ->with('email')
+            ->willReturn($fieldMapping);
+        $metadata->method('getFieldNames')
+            ->willReturn(['email']);
+        $metadata->method('getIdentifierColumnNames')
+            ->willReturn(['id']);
+
+        $connection->method('fetchAllAssociative')
+            ->willReturn([
+                ['id' => 1, 'email' => 'a@example.com'],
+                ['id' => 2, 'email' => 'b@example.com'],
+                ['id' => 3, 'email' => 'c@example.com'],
+            ]);
+        $connection->expects($this->once())->method('createSchemaManager')
+            ->willReturn($schemaManager);
+        $schemaManager->method('tablesExist')
+            ->with(['test_table'])
+            ->willReturn(true);
+
+        $column = $this->createMock(Column::class);
+        $column->method('getName')
+            ->willReturn('anonymized');
+        $schemaManager->expects($this->once())->method('listTableColumns')
+            ->with('test_table')
+            ->willReturn(['anonymized' => $column]);
+
+        $platform = $this->createMock(AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
+        $connection->method('quote')
+            ->willReturnCallback(static fn ($val): string => "'" . $val . "'");
+        $updateSql = [];
+        $connection->method('executeStatement')
+            ->willReturnCallback(static function (string $sql) use (&$updateSql): int {
+                $updateSql[] = $sql;
+
+                return 1;
+            });
+
+        $property   = $reflection->getProperty('email');
+        $properties = [
+            [
+                'property'  => $property,
+                'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
+                'weight'    => 1,
+            ],
+        ];
+
+        $progressCallback = static function ($current, $total, $message): void {
+            // Empty callback
+        };
+        $result = $this->service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, false, null, $progressCallback);
+
+        $this->assertIsArray($result);
+        $this->assertEquals(3, $result['processed']);
+        $this->assertEquals(3, $result['updated']);
+        $this->assertCount(3, $updateSql);
+        foreach ($updateSql as $sql) {
+            $this->assertStringContainsString('anonymized', $sql);
+        }
+    }
+
+    /**
      * Test that anonymizeEntity handles AnonymizableTrait without anonymized column.
      */
     public function testAnonymizeEntityHandlesAnonymizableTraitWithoutColumn(): void

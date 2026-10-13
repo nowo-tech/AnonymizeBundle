@@ -79,8 +79,8 @@ class DatabaseExportServiceTest extends TestCase
             public function exec(string $command, ?array &$output = null): int
             {
                 $this->executed[] = $command;
-                // Extract output path: command ends with "> '/path/to/file.sql' 2>&1" (escapeshellarg)
-                if (preg_match("/>\s*'([^']*)'\s*2>&1\s*$/", $command, $m) === 1) {
+                // Extract output path from --result-file='/path/to/file.sql' (escapeshellarg)
+                if (preg_match("/--result-file='([^']*)'/", $command, $m) === 1) {
                     $path = $m[1];
                     if ($path !== '') {
                         @mkdir(dirname($path), 0o755, true);
@@ -199,6 +199,145 @@ class DatabaseExportServiceTest extends TestCase
         $content = file_get_contents($result);
         $this->assertIsString($content);
         $this->assertStringContainsString('pg_dump content', $content);
+    }
+
+    /**
+     * Runner that records each command and, at exec time, the credential files it references.
+     */
+    private function createRecordingRunner(string $binary, int $exitCode = 0, string $dumpContent = 'dump'): RecordingCommandRunner
+    {
+        return new RecordingCommandRunner($binary, $exitCode, $dumpContent);
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function createEntityManagerForParams(array $params): EntityManagerInterface
+    {
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $em->method('getConnection')->willReturn($connection);
+        $connection->method('getDatabase')->willReturn('test_db');
+        $connection->method('getDriver')->willReturn($this->getMockBuilder(Driver::class)->getMock());
+        $connection->method('getDatabasePlatform')->willReturn($this->createMock(AbstractPlatform::class));
+        $connection->method('getParams')->willReturn($params);
+
+        return $em;
+    }
+
+    private function createServiceWithRunner(CommandRunnerInterface $runner): DatabaseExportService
+    {
+        return new DatabaseExportService($this->tempDir, $this->tempDir . '/out', '{connection}_{database}.{format}', 'none', false, $runner);
+    }
+
+    /**
+     * mysqldump: password never on the command line (ps), dump written with --result-file so stderr cannot end up in it.
+     */
+    public function testExportMySQLKeepsPasswordOffCommandLineAndStderrOutOfDump(): void
+    {
+        $password = "p'a\"ss\\w:rd #1";
+        $runner   = $this->createRecordingRunner('mysqldump');
+        $result   = $this->createServiceWithRunner($runner)->exportConnection($this->createEntityManagerForParams([
+            'driver' => 'pdo_mysql', 'host' => 'db', 'port' => 3306, 'user' => 'app', 'password' => $password,
+        ]), 'default');
+
+        $this->assertNotNull($result);
+        $this->assertCount(1, $runner->executed);
+        $command = $runner->executed[0];
+        $this->assertStringNotContainsString('--password', $command);
+        $this->assertStringNotContainsString('p\'a', $command);
+        $this->assertStringNotContainsString('2>&1', $command);
+        $this->assertStringNotContainsString(' > ', $command);
+        $this->assertStringContainsString('--result-file=', $command);
+        $this->assertStringStartsWith('mysqldump --defaults-extra-file=', $command, '--defaults-extra-file must be the first option');
+
+        $this->assertCount(1, $runner->credentialFiles);
+        $file = (string) array_key_first($runner->credentialFiles);
+        $this->assertSame(0o600, $runner->credentialFiles[$file]['mode']);
+        $this->assertSame("[client]\npassword=\"p'a\"ss\\\\w:rd #1\"\n", $runner->credentialFiles[$file]['content']);
+        $this->assertFileDoesNotExist($file, 'Credentials file must be removed after the dump');
+        $this->assertSame('dump', file_get_contents($result));
+    }
+
+    public function testExportMySQLWithoutPasswordDoesNotWriteCredentialsFile(): void
+    {
+        $runner = $this->createRecordingRunner('mysqldump');
+        $this->createServiceWithRunner($runner)->exportConnection($this->createEntityManagerForParams([
+            'driver' => 'pdo_mysql', 'host' => 'db', 'user' => 'app',
+        ]), 'default');
+
+        $this->assertSame([], $runner->credentialFiles);
+        $this->assertStringStartsWith('mysqldump --host=', $runner->executed[0]);
+    }
+
+    /**
+     * A failing mysqldump must not leave a (partial) dump behind and the credentials file is still removed.
+     */
+    public function testExportMySQLFailureRemovesPartialDumpAndCredentialsFile(): void
+    {
+        $runner = $this->createRecordingRunner('mysqldump', 2, 'partial');
+        $result = $this->createServiceWithRunner($runner)->exportConnection($this->createEntityManagerForParams([
+            'driver' => 'pdo_mysql', 'host' => 'db', 'user' => 'app', 'password' => 'secret',
+        ]), 'default');
+
+        $this->assertNull($result);
+        $this->assertFileDoesNotExist($this->tempDir . '/out/default_test_db.sql');
+        $this->assertFileDoesNotExist((string) array_key_first($runner->credentialFiles));
+    }
+
+    /**
+     * pg_dump: no inline PGPASSWORD=... on the shell command line; a 0600 PGPASSFILE is used instead.
+     */
+    public function testExportPostgreSQLUsesPasswordFileInsteadOfInlinePassword(): void
+    {
+        $runner = $this->createRecordingRunner('pg_dump');
+        $result = $this->createServiceWithRunner($runner)->exportConnection($this->createEntityManagerForParams([
+            'driver' => 'pdo_pgsql', 'host' => 'db', 'port' => 5432, 'user' => 'app', 'password' => 'se:cr\\et',
+        ]), 'default');
+
+        $this->assertNotNull($result);
+        $command = $runner->executed[0];
+        $this->assertStringNotContainsString('PGPASSWORD', $command);
+        $this->assertStringNotContainsString('se:cr', $command);
+        $this->assertStringNotContainsString('2>&1', $command);
+        $this->assertStringStartsWith('PGPASSFILE=', $command);
+
+        $file = (string) array_key_first($runner->credentialFiles);
+        $this->assertSame(0o600, $runner->credentialFiles[$file]['mode']);
+        $this->assertSame("*:*:*:*:se\\:cr\\\\et\n", $runner->credentialFiles[$file]['content']);
+        $this->assertFileDoesNotExist($file);
+    }
+
+    /**
+     * mongodump: the connection string (with credentials) is honoured through a 0600 --config file.
+     */
+    public function testExportMongoDBPassesUriThroughConfigFile(): void
+    {
+        $runner = $this->createRecordingRunner('mongodump', 1);
+        $uri    = 'mongodb://user:p%40ss@mongo1:27017,mongo2:27017/mydb?authSource=admin&replicaSet=rs0';
+
+        $result = $this->createServiceWithRunner($runner)->exportMongoDB('mongodb', 'mydb', 'mongo1', 27017, $uri);
+
+        $this->assertNull($result);
+        $command = $runner->executed[0];
+        $this->assertStringNotContainsString('p%40ss', $command);
+        $this->assertStringNotContainsString('--host', $command);
+        $this->assertStringContainsString("--db 'mydb'", $command);
+
+        $file = (string) array_key_first($runner->credentialFiles);
+        $this->assertSame(0o600, $runner->credentialFiles[$file]['mode']);
+        $this->assertSame('uri: "' . $uri . "\"\n", $runner->credentialFiles[$file]['content']);
+        $this->assertFileDoesNotExist($file);
+    }
+
+    public function testExportMongoDBWithoutUriUsesHostAndPort(): void
+    {
+        $runner = $this->createRecordingRunner('mongodump', 1);
+
+        $this->createServiceWithRunner($runner)->exportMongoDB('mongodb', 'mydb', 'mongo1', 27018);
+
+        $this->assertSame("mongodump --host 'mongo1' --port 27018 --db 'mydb' --out '" . $this->tempDir . "/out'", $runner->executed[0]);
+        $this->assertSame([], $runner->credentialFiles);
     }
 
     /**

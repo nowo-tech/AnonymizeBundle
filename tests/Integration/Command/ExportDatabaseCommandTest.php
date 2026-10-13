@@ -12,6 +12,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Nowo\AnonymizeBundle\Command\ExportDatabaseCommand;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -35,8 +36,9 @@ class ExportDatabaseCommandTest extends TestCase
     protected function setUp(): void
     {
         $this->parameterBag = new ParameterBag([
-            'kernel.environment' => 'dev',
-            'kernel.project_dir' => sys_get_temp_dir(),
+            'nowo_anonymize.export.enabled' => true,
+            'kernel.environment'            => 'dev',
+            'kernel.project_dir'            => sys_get_temp_dir(),
         ]);
         $this->command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class), $this->parameterBag, sys_get_temp_dir());
     }
@@ -92,9 +94,10 @@ class ExportDatabaseCommandTest extends TestCase
     public function testExecuteReturnsFailureWhenNoManagersFound(): void
     {
         $parameterBag = new ParameterBag([
-            'kernel.environment' => 'dev',
-            'kernel.debug'       => true,
-            'kernel.project_dir' => sys_get_temp_dir(),
+            'nowo_anonymize.export.enabled' => true,
+            'kernel.environment'            => 'dev',
+            'kernel.debug'                  => true,
+            'kernel.project_dir'            => sys_get_temp_dir(),
         ]);
         $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn([]);
@@ -115,9 +118,10 @@ class ExportDatabaseCommandTest extends TestCase
     public function testExecuteReturnsFailureWhenCompressionInvalid(): void
     {
         $parameterBag = new ParameterBag([
-            'kernel.environment' => 'dev',
-            'kernel.debug'       => true,
-            'kernel.project_dir' => sys_get_temp_dir(),
+            'nowo_anonymize.export.enabled' => true,
+            'kernel.environment'            => 'dev',
+            'kernel.debug'                  => true,
+            'kernel.project_dir'            => sys_get_temp_dir(),
         ]);
         $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
@@ -189,6 +193,7 @@ class ExportDatabaseCommandTest extends TestCase
     {
         $customExportDir = sys_get_temp_dir() . '/custom_export_dir_' . uniqid();
         $parameterBag    = new ParameterBag([
+            'nowo_anonymize.export.enabled'    => true,
             'kernel.environment'               => 'dev',
             'kernel.debug'                     => true,
             'kernel.project_dir'               => sys_get_temp_dir(),
@@ -226,6 +231,7 @@ class ExportDatabaseCommandTest extends TestCase
         $customExportDir   = sys_get_temp_dir() . '/export_cfg_' . uniqid();
         $customFilenamePat = 'backup_{connection}_{date}.sql';
         $parameterBag      = new ParameterBag([
+            'nowo_anonymize.export.enabled'          => true,
             'kernel.environment'                     => 'dev',
             'kernel.debug'                           => true,
             'kernel.project_dir'                     => sys_get_temp_dir(),
@@ -267,6 +273,7 @@ class ExportDatabaseCommandTest extends TestCase
     {
         $customExportDir = sys_get_temp_dir() . '/export_defaults_' . uniqid();
         $parameterBag    = new ParameterBag([
+            'nowo_anonymize.export.enabled'    => true,
             'kernel.environment'               => 'dev',
             'kernel.debug'                     => true,
             'kernel.project_dir'               => sys_get_temp_dir(),
@@ -303,6 +310,7 @@ class ExportDatabaseCommandTest extends TestCase
     {
         $customExportDir = sys_get_temp_dir() . '/export_timeout_' . uniqid();
         $parameterBag    = new ParameterBag([
+            'nowo_anonymize.export.enabled'     => true,
             'kernel.environment'                => 'dev',
             'kernel.debug'                      => true,
             'kernel.project_dir'                => sys_get_temp_dir(),
@@ -340,9 +348,10 @@ class ExportDatabaseCommandTest extends TestCase
     {
         $projectDir   = sys_get_temp_dir() . '/export_test_' . uniqid();
         $parameterBag = new ParameterBag([
-            'kernel.environment' => 'dev',
-            'kernel.debug'       => true,
-            'kernel.project_dir' => $projectDir,
+            'nowo_anonymize.export.enabled' => true,
+            'kernel.environment'            => 'dev',
+            'kernel.debug'                  => true,
+            'kernel.project_dir'            => $projectDir,
         ]);
         $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
@@ -383,9 +392,10 @@ class ExportDatabaseCommandTest extends TestCase
 
         try {
             $parameterBag = new ParameterBag([
-                'kernel.environment' => 'dev',
-                'kernel.debug'       => true,
-                'kernel.project_dir' => sys_get_temp_dir(),
+                'nowo_anonymize.export.enabled' => true,
+                'kernel.environment'            => 'dev',
+                'kernel.debug'                  => true,
+                'kernel.project_dir'            => sys_get_temp_dir(),
             ]);
             $doctrine = $this->createMock(ManagerRegistry::class);
             $doctrine->method('getManagerNames')->willReturn([]);
@@ -424,9 +434,10 @@ class ExportDatabaseCommandTest extends TestCase
 
         try {
             $parameterBag = new ParameterBag([
-                'kernel.environment' => 'dev',
-                'kernel.debug'       => true,
-                'kernel.project_dir' => sys_get_temp_dir(),
+                'nowo_anonymize.export.enabled' => true,
+                'kernel.environment'            => 'dev',
+                'kernel.debug'                  => true,
+                'kernel.project_dir'            => sys_get_temp_dir(),
             ]);
 
             $connection = $this->createMock(Connection::class);
@@ -473,9 +484,10 @@ class ExportDatabaseCommandTest extends TestCase
 
         try {
             $parameterBag = new ParameterBag([
-                'kernel.environment' => 'dev',
-                'kernel.debug'       => true,
-                'kernel.project_dir' => sys_get_temp_dir(),
+                'nowo_anonymize.export.enabled' => true,
+                'kernel.environment'            => 'dev',
+                'kernel.debug'                  => true,
+                'kernel.project_dir'            => sys_get_temp_dir(),
             ]);
             $doctrine = $this->createMock(ManagerRegistry::class);
             $doctrine->method('getManagerNames')->willReturn([]);
@@ -504,9 +516,10 @@ class ExportDatabaseCommandTest extends TestCase
     public function testExecuteShowsErrorExportingWhenGetManagerThrows(): void
     {
         $parameterBag = new ParameterBag([
-            'kernel.environment' => 'dev',
-            'kernel.debug'       => true,
-            'kernel.project_dir' => sys_get_temp_dir(),
+            'nowo_anonymize.export.enabled' => true,
+            'kernel.environment'            => 'dev',
+            'kernel.debug'                  => true,
+            'kernel.project_dir'            => sys_get_temp_dir(),
         ]);
 
         $doctrine = $this->createMock(ManagerRegistry::class);
@@ -527,14 +540,98 @@ class ExportDatabaseCommandTest extends TestCase
     }
 
     /**
+     * export.enabled: false (the default) must refuse to dump anything.
+     *
+     * @return iterable<string, array{array<string, mixed>}>
+     */
+    public static function exportDisabledParametersProvider(): iterable
+    {
+        yield 'enabled false' => [['nowo_anonymize.export.enabled' => false]];
+        yield 'parameter missing' => [[]];
+    }
+
+    /**
+     * @param array<string, mixed> $exportParameters
+     */
+    #[DataProvider('exportDisabledParametersProvider')]
+    public function testExecuteRefusesWhenExportIsDisabled(array $exportParameters): void
+    {
+        $parameterBag = new ParameterBag($exportParameters + [
+            'kernel.environment' => 'dev',
+            'kernel.project_dir' => sys_get_temp_dir(),
+        ]);
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->expects($this->never())->method('getManagerNames');
+        $doctrine->expects($this->never())->method('getManager');
+
+        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, sys_get_temp_dir());
+        $output  = new BufferedOutput();
+
+        $exitCode = $command->run(new ArrayInput(['--connection' => ['default'], '--no-gitignore' => true]), $output);
+
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('Database export is disabled', $output->fetch());
+    }
+
+    /**
+     * Without --connection, only the connections configured in export.connections are exported.
+     */
+    public function testExecuteUsesConfiguredExportConnectionsWhenOptionIsEmpty(): void
+    {
+        $parameterBag = new ParameterBag([
+            'nowo_anonymize.export.enabled'     => true,
+            'nowo_anonymize.export.connections' => ['reporting'],
+            'kernel.environment'                => 'dev',
+            'kernel.project_dir'                => sys_get_temp_dir(),
+        ]);
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'default', 'reporting' => 'reporting']);
+        $doctrine->expects($this->once())->method('getManager')->with('reporting')->willThrowException(new Exception('reporting reached'));
+
+        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, sys_get_temp_dir());
+        $output  = new BufferedOutput();
+
+        $command->run(new ArrayInput(['--no-gitignore' => true]), $output);
+        $content = $output->fetch();
+
+        $this->assertStringContainsString('Error exporting reporting: reporting reached', $content);
+        $this->assertStringNotContainsString('Exporting default', $content);
+        $this->assertStringNotContainsString('Error exporting default', $content);
+    }
+
+    /**
+     * An explicit --connection wins over export.connections.
+     */
+    public function testExecuteConnectionOptionOverridesConfiguredExportConnections(): void
+    {
+        $parameterBag = new ParameterBag([
+            'nowo_anonymize.export.enabled'     => true,
+            'nowo_anonymize.export.connections' => ['reporting'],
+            'kernel.environment'                => 'dev',
+            'kernel.project_dir'                => sys_get_temp_dir(),
+        ]);
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'default', 'reporting' => 'reporting']);
+        $doctrine->expects($this->once())->method('getManager')->with('default')->willThrowException(new Exception('default reached'));
+
+        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, sys_get_temp_dir());
+        $output  = new BufferedOutput();
+
+        $command->run(new ArrayInput(['--connection' => ['default'], '--no-gitignore' => true]), $output);
+
+        $this->assertStringContainsString('Error exporting default: default reached', $output->fetch());
+    }
+
+    /**
      * Test that when export returns null (e.g. unsupported driver), command shows "Failed to export" and returns failure.
      */
     public function testExecuteShowsFailedToExportWhenExportReturnsNull(): void
     {
         $parameterBag = new ParameterBag([
-            'kernel.environment' => 'dev',
-            'kernel.debug'       => true,
-            'kernel.project_dir' => sys_get_temp_dir(),
+            'nowo_anonymize.export.enabled' => true,
+            'kernel.environment'            => 'dev',
+            'kernel.debug'                  => true,
+            'kernel.project_dir'            => sys_get_temp_dir(),
         ]);
 
         $connection = $this->createMock(Connection::class);
@@ -572,9 +669,11 @@ class ExportDatabaseCommandTest extends TestCase
         file_put_contents($testDbPath, 'SQLite content for export command test');
 
         $parameterBag = new ParameterBag([
-            'kernel.environment' => 'dev',
-            'kernel.debug'       => true,
-            'kernel.project_dir' => sys_get_temp_dir(),
+
+            'nowo_anonymize.export.enabled' => true,
+            'kernel.environment'            => 'dev',
+            'kernel.debug'                  => true,
+            'kernel.project_dir'            => sys_get_temp_dir(),
         ]);
 
         $connection = $this->createMock(Connection::class);
@@ -627,9 +726,11 @@ class ExportDatabaseCommandTest extends TestCase
         file_put_contents($testDbPath, 'SQLite for gitignore note test');
 
         $parameterBag = new ParameterBag([
-            'kernel.environment' => 'dev',
-            'kernel.debug'       => true,
-            'kernel.project_dir' => $projectDir,
+
+            'nowo_anonymize.export.enabled' => true,
+            'kernel.environment'            => 'dev',
+            'kernel.debug'                  => true,
+            'kernel.project_dir'            => $projectDir,
         ]);
 
         $connection = $this->createMock(Connection::class);

@@ -10,11 +10,15 @@ use LogicException;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use RuntimeException;
 use ZipArchive;
 
 use function sprintf;
 use function strlen;
 
+use const JSON_THROW_ON_ERROR;
+use const JSON_UNESCAPED_SLASHES;
+use const JSON_UNESCAPED_UNICODE;
 use const PATHINFO_FILENAME;
 
 /**
@@ -110,12 +114,14 @@ final class DatabaseExportService
      *
      * @param string $connectionName The connection name
      * @param string $database The database name
-     * @param string $host The MongoDB host
-     * @param int $port The MongoDB port
+     * @param string $host The MongoDB host (ignored when $uri is given)
+     * @param int $port The MongoDB port (ignored when $uri is given)
+     * @param string|null $uri Full connection string (e.g. MONGODB_URL, with credentials / replica set / options).
+     *                         Passed to mongodump through a 0600 --config file, never on the command line.
      *
      * @return string|null The path to the exported file, or null on failure
      */
-    public function exportMongoDB(string $connectionName, string $database, string $host = 'localhost', int $port = 27017): ?string
+    public function exportMongoDB(string $connectionName, string $database, string $host = 'localhost', int $port = 27017, ?string $uri = null): ?string
     {
         // Check if mongodump is available
         if (!$this->getCommandRunner()->commandExists('mongodump')) {
@@ -130,16 +136,32 @@ final class DatabaseExportService
             mkdir($this->outputDir, 0o755, true);
         }
 
-        // Export MongoDB
-        $command = sprintf(
-            'mongodump --host %s --port %d --db %s --out %s 2>&1',
-            escapeshellarg($host),
-            $port,
-            escapeshellarg($database),
-            escapeshellarg($this->outputDir),
-        );
+        // Export MongoDB. With a connection string, credentials go through a 0600 --config file
+        // (mongodump >= 100.3.0) so they are not visible in the process list.
+        $configFile = null;
+        if ($uri !== null && $uri !== '') {
+            $configFile = $this->writeSecretFile('mongodump_', 'uri: ' . $this->yamlString($uri) . "\n");
+            $command    = sprintf(
+                'mongodump --config=%s --db %s --out %s',
+                escapeshellarg($configFile),
+                escapeshellarg($database),
+                escapeshellarg($this->outputDir),
+            );
+        } else {
+            $command = sprintf(
+                'mongodump --host %s --port %d --db %s --out %s',
+                escapeshellarg($host),
+                $port,
+                escapeshellarg($database),
+                escapeshellarg($this->outputDir),
+            );
+        }
 
-        $returnCode = $this->getCommandRunner()->exec($command, $output);
+        try {
+            $returnCode = $this->getCommandRunner()->exec($command, $output);
+        } finally {
+            $this->removeSecretFile($configFile);
+        }
 
         if ($returnCode !== 0) {
             return null;
@@ -192,22 +214,42 @@ final class DatabaseExportService
         $host     = $params['host'] ?? 'localhost';
         $port     = $params['port'] ?? 3306;
         $user     = $params['user'] ?? 'root';
-        $password = $params['password'] ?? '';
+        $password = (string) ($params['password'] ?? '');
         $database = $connection->getDatabase();
 
+        // The password goes through a 0600 option file (never on the command line, where `ps` shows it).
+        // --result-file writes only the dump; mysqldump warnings/errors stay on stderr (runner output).
+        $optionsFile = null;
+        if ($password !== '') {
+            $optionsFile = $this->writeSecretFile('mysqldump_', "[client]\npassword=\"" . $this->escapeMysqlOptionValue($password) . "\"\n");
+        }
+
         $command = sprintf(
-            'mysqldump --host=%s --port=%d --user=%s %s %s > %s 2>&1',
-            escapeshellarg($host),
+            'mysqldump %s--host=%s --port=%d --user=%s --result-file=%s %s',
+            $optionsFile !== null ? '--defaults-extra-file=' . escapeshellarg($optionsFile) . ' ' : '',
+            escapeshellarg((string) $host),
             $port,
-            escapeshellarg($user),
-            $password ? '--password=' . escapeshellarg($password) : '',
-            escapeshellarg((string) $database),
+            escapeshellarg((string) $user),
             escapeshellarg($outputPath),
+            escapeshellarg((string) $database),
         );
 
-        $returnCode = $this->getCommandRunner()->exec($command, $output);
+        try {
+            $returnCode = $this->getCommandRunner()->exec($command, $output);
+        } finally {
+            $this->removeSecretFile($optionsFile);
+        }
 
-        return $returnCode === 0 && file_exists($outputPath) ? $outputPath : null;
+        if ($returnCode !== 0) {
+            // Never keep a partial dump around.
+            if (is_file($outputPath)) {
+                unlink($outputPath);
+            }
+
+            return null;
+        }
+
+        return file_exists($outputPath) ? $outputPath : null;
     }
 
     /**
@@ -228,23 +270,31 @@ final class DatabaseExportService
         $host     = $params['host'] ?? 'localhost';
         $port     = $params['port'] ?? 5432;
         $user     = $params['user'] ?? 'postgres';
-        $password = $params['password'] ?? '';
+        $password = (string) ($params['password'] ?? '');
         $database = $connection->getDatabase();
 
-        // Set PGPASSWORD environment variable
-        $env = $password ? 'PGPASSWORD=' . escapeshellarg($password) . ' ' : '';
+        // The password goes through a 0600 password file (PGPASSFILE): an inline PGPASSWORD=... would be
+        // part of the shell command line and visible in the process list.
+        $passFile = null;
+        if ($password !== '') {
+            $passFile = $this->writeSecretFile('pgpass_', '*:*:*:*:' . $this->escapePgpassValue($password) . "\n");
+        }
 
         $command = sprintf(
-            '%spg_dump --host=%s --port=%d --username=%s --dbname=%s --file=%s --no-password 2>&1',
-            $env,
-            escapeshellarg($host),
+            '%spg_dump --host=%s --port=%d --username=%s --dbname=%s --file=%s --no-password',
+            $passFile !== null ? 'PGPASSFILE=' . escapeshellarg($passFile) . ' ' : '',
+            escapeshellarg((string) $host),
             $port,
-            escapeshellarg($user),
+            escapeshellarg((string) $user),
             escapeshellarg((string) $database),
             escapeshellarg($outputPath),
         );
 
-        $returnCode = $this->getCommandRunner()->exec($command, $output);
+        try {
+            $returnCode = $this->getCommandRunner()->exec($command, $output);
+        } finally {
+            $this->removeSecretFile($passFile);
+        }
 
         return $returnCode === 0 && file_exists($outputPath) ? $outputPath : null;
     }
@@ -453,6 +503,58 @@ final class DatabaseExportService
         }
 
         return rmdir($directory);
+    }
+
+    /**
+     * Writes credentials to a new owner-only (0600) temporary file and returns its path.
+     *
+     * @throws RuntimeException when the file cannot be created
+     */
+    private function writeSecretFile(string $prefix, string $content): string
+    {
+        $path = tempnam(sys_get_temp_dir(), 'nowo_anonymize_' . $prefix);
+        // @codeCoverageIgnoreStart
+        if ($path === false) {
+            throw new RuntimeException('Unable to create a temporary credentials file.');
+        }
+        // @codeCoverageIgnoreEnd
+
+        // tempnam() creates the file 0600; enforce it before writing the secret.
+        chmod($path, 0o600);
+        file_put_contents($path, $content);
+
+        return $path;
+    }
+
+    private function removeSecretFile(?string $path): void
+    {
+        if ($path !== null && is_file($path)) {
+            unlink($path);
+        }
+    }
+
+    /**
+     * Escapes a value for a double-quoted MySQL option file entry (backslash escape sequences).
+     */
+    private function escapeMysqlOptionValue(string $value): string
+    {
+        return strtr($value, ['\\' => '\\\\', "\n" => '\\n', "\r" => '\\r', "\t" => '\\t']);
+    }
+
+    /**
+     * Escapes a field of a libpq password file (":" and "\" must be backslash-escaped).
+     */
+    private function escapePgpassValue(string $value): string
+    {
+        return strtr($value, ['\\' => '\\\\', ':' => '\\:']);
+    }
+
+    /**
+     * Encodes a string as a YAML double-quoted scalar (a JSON string is valid YAML).
+     */
+    private function yamlString(string $value): string
+    {
+        return json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
     private function getCommandRunner(): CommandRunnerInterface

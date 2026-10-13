@@ -1,6 +1,6 @@
 # Commands
 
-> 📋 **Requirements**: This bundle requires **Symfony 6.1 or higher** (Symfony 6.0 is not supported). See [INSTALLATION.md](INSTALLATION.md) for complete requirements.
+> 📋 **Requirements**: This bundle requires **Symfony 6.4 or higher** (Symfony 6.0–6.3 are not supported). See [INSTALLATION.md](INSTALLATION.md) for complete requirements.
 
 The bundle provides six console commands for managing anonymization, database exports, and history.
 
@@ -384,11 +384,13 @@ Command to export databases to files with optional compression.
 php bin/console nowo:anonymize:export-db [options]
 ```
 
-> **Note**: Supports MySQL, PostgreSQL, SQLite, and MongoDB. Requires appropriate command-line tools (mysqldump, pg_dump, mongodump) to be installed.
+> **Note**: Supports MySQL, PostgreSQL, SQLite, and MongoDB. Requires appropriate command-line tools (mysqldump, pg_dump, mongodump ≥ 100.3.0) to be installed.
+
+> **Enable it first**: the command refuses to run (exit code 1) unless `nowo_anonymize.export.enabled: true` is set. Database passwords are passed to the dump tools through temporary `0600` credential files (`--defaults-extra-file`, `PGPASSFILE`, `mongodump --config`), never on the command line. For MongoDB, the full `MONGODB_URL` (credentials, replica set, options) is honoured.
 
 ### Options
 
-- `--connection, -c`: Specific connections to export (can be used multiple times, default: all)
+- `--connection, -c`: Specific connections to export (can be used multiple times; default: `export.connections` from config, or all when that list is empty)
 - `--output-dir, -o`: Output directory for exports (default: configured in bundle config or `%kernel.project_dir%/var/exports`)
 - `--filename-pattern`: Filename pattern for exports. Available placeholders: `{connection}`, `{database}`, `{date}`, `{time}`, `{format}` (default: configured in bundle config)
 - `--compression`: Compression format: `none`, `gzip`, `bzip2`, `zip` (default: `gzip`)

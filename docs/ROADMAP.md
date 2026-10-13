@@ -48,7 +48,7 @@ Bundles that become community standards (DoctrineBundle, MakerBundle, SecurityBu
 | Pillar | What we do | Why it drives adoption |
 |--------|------------|-------------------------|
 | **Developer experience** | Quick start in &lt;1 min, sensible defaults, `--dry-run` and pre-flight checks, progress and stats | Low friction → more teams try it; fewer “it broke my DB” stories → trust. |
-| **Ecosystem fit** | Symfony Flex recipe, compatibility with 6.1/7/8, events and services for extensibility | Standard install path; works in real Symfony projects and CI. |
+| **Ecosystem fit** | Symfony Flex recipe, compatibility with 6.4/7/8, events and services for extensibility | Standard install path; works in real Symfony projects and CI. |
 | **Trust** | Dev/test only, no prod, clear docs, semver, upgrade guide | Security and compliance teams accept it; maintainers can recommend it. |
 | **Reach** | Docs, “Anonymize in 60 seconds”, Symfony blog/community, optional integrations (Messenger, Lock, Fixtures) | Visibility and “it works with my stack” → word of mouth and stars. |
 

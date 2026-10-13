@@ -1,12 +1,12 @@
 # Anonymize Bundle
 
-[![CI](https://github.com/nowo-tech/AnonymizeBundle/actions/workflows/ci.yml/badge.svg)](https://github.com/nowo-tech/AnonymizeBundle/actions/workflows/ci.yml) [![Packagist Version](https://img.shields.io/packagist/v/nowo-tech/anonymize-bundle.svg?style=flat)](https://packagist.org/packages/nowo-tech/anonymize-bundle) [![Packagist Downloads](https://img.shields.io/packagist/dt/nowo-tech/anonymize-bundle.svg)](https://packagist.org/packages/nowo-tech/anonymize-bundle) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php)](https://php.net) [![Symfony](https://img.shields.io/badge/Symfony-6.0%2B%20%7C%207.4%2B%20%7C%208.0%20%7C%208.1%2B-000000?logo=symfony)](https://symfony.com) [![GitHub stars](https://img.shields.io/github/stars/nowo-tech/anonymize-bundle.svg?style=social&label=Star)](https://github.com/nowo-tech/AnonymizeBundle) [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen)](#tests-and-coverage) [![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/nowo-tech/AnonymizeBundle?utm_source=oss&utm_medium=github&utm_campaign=nowo-tech%2FAnonymizeBundle&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)](https://coderabbit.ai)
+[![CI](https://github.com/nowo-tech/AnonymizeBundle/actions/workflows/ci.yml/badge.svg)](https://github.com/nowo-tech/AnonymizeBundle/actions/workflows/ci.yml) [![Packagist Version](https://img.shields.io/packagist/v/nowo-tech/anonymize-bundle.svg?style=flat)](https://packagist.org/packages/nowo-tech/anonymize-bundle) [![Packagist Downloads](https://img.shields.io/packagist/dt/nowo-tech/anonymize-bundle.svg)](https://packagist.org/packages/nowo-tech/anonymize-bundle) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php)](https://php.net) [![Symfony](https://img.shields.io/badge/Symfony-6.4%2B%20%7C%207.4%2B%20%7C%208.0%20%7C%208.1%2B-000000?logo=symfony)](https://symfony.com) [![GitHub stars](https://img.shields.io/github/stars/nowo-tech/anonymize-bundle.svg?style=social&label=Star)](https://github.com/nowo-tech/AnonymizeBundle) [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen)](#tests-and-coverage) [![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/nowo-tech/AnonymizeBundle?utm_source=oss&utm_medium=github&utm_campaign=nowo-tech%2FAnonymizeBundle&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)](https://coderabbit.ai)
 
 > ⭐ **Found this useful?** [Install from Packagist](https://packagist.org/packages/nowo-tech/anonymize-bundle) · Give it a **star** on [GitHub](https://github.com/nowo-tech/AnonymizeBundle) so more developers can find it.
 
 **Symfony bundle for database anonymization, test data generation, and GDPR compliance.** Anonymize database records using Doctrine attributes and Faker generators. Perfect for development environments, testing, data masking, and privacy compliance.
 
-> 📋 **Compatible with Symfony 6.1+, 7.x, and 8.x** - This bundle requires Symfony 6.1 or higher (Symfony 6.0 is not supported).
+> 📋 **Compatible with Symfony 6.4+, 7.x, and 8.x** - This bundle requires Symfony 6.4 or higher (Symfony 6.0–6.3 are not supported).
 
 ![FrankenPHP Friendly Worker Mode](docs/images/frankenphp-friendly.png)
 
@@ -125,11 +125,11 @@ For detailed usage examples, see [USAGE.md](docs/USAGE.md).
 ## Requirements
 
 - PHP >= 8.2, < 8.6
-- **Symfony >= 6.1** || >= 7.0 || >= 8.0
+- **Symfony >= 6.4** || >= 7.0 || >= 8.0
 - Doctrine ORM >= 2.13 || >= 3.0
 - Doctrine Bundle >= 2.8 || >= 3.0 (3.0 required for Symfony 8)
 
-> **Note**: This bundle requires **Symfony 6.1 or higher**. Symfony 6.0 is not supported because the bundle uses the `#[Autowire]` attribute for dependency injection, which is only available from Symfony 6.1 onwards.
+> **Note**: This bundle requires **Symfony 6.4 or higher** (6.4 LTS is the lowest version tested in CI). Older 6.x releases are not supported: the bundle relies on `#[Autowire]` (6.1) and `#[AsAlias]` (6.3).
 
 ## Configuration
 

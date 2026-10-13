@@ -93,6 +93,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- `nowo:anonymize:export-db`: database passwords are no longer visible in the process list. `mysqldump` gets them from a temporary `0600` `--defaults-extra-file` (was `--password=`), `pg_dump` from a `0600` `PGPASSFILE` (was an inline `PGPASSWORD=` in the shell command) and `mongodump` from a `0600` `--config` file; the files are removed after the run.
+- `mysqldump` now writes with `--result-file` instead of `> file 2>&1`: warnings/errors can no longer be written into the dump, and a failed dump is deleted.
+
+### Fixed
+
+- `export.enabled` is now enforced: `nowo:anonymize:export-db` refuses to run (exit code 1) when export is not enabled.
+- `export.connections` is now used when `--connection` is not given (empty list = all connections).
+- MongoDB export honours the full `MONGODB_URL` (credentials, replica set, options) instead of only host and port. Requires mongodump ≥ 100.3.0 (`--config`).
+- `AnonymizeService` introspects the `anonymized` column (AnonymizableTrait) once per table instead of once per updated row.
+
+### Changed
+
+- Minimum Symfony version raised to **6.4** (`^6.4 || ^7.0 || ^8.0`): the bundle uses `#[AsAlias]` (Symfony 6.3+) and CI only tests 6.4+.
+
 ## [1.1.2] - 2026-10-13
 
 ### Changed

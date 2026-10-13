@@ -32,6 +32,7 @@ This bundle is **development-only** (see below). It anonymizes data for local/te
 | Destructive anonymization (CLI) | Non-interactive writes require `--force`, `--dry-run`, or `--interactive`; otherwise the command refuses with exit code 1. |
 | Destructive TRUNCATE | Tables with `truncate=true` require interactive confirmation or `--force`; non-interactive runs abort truncate without `--force`. |
 | Data leakage in logs | Avoid verbose logging of raw PII in anonymization pipelines. |
+| Database export | `nowo:anonymize:export-db` only runs with `export.enabled: true`. Passwords reach `mysqldump` / `pg_dump` / `mongodump` through temporary `0600` credential files (removed after the run), never via argv (`ps`). `mysqldump` writes with `--result-file`, so its stderr cannot end up in the dump; a failed dump is deleted. |
 | Hung export subprocesses (FrankenPHP/FPM) | `export.timeout` (default 180s) on Symfony Process; demo Caddy/PHP deadlines sit above it (REQ-RUNTIME-001). |
 
 ## Dependencies

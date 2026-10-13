@@ -20,6 +20,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 use function count;
 use function in_array;
+use function is_array;
 use function sprintf;
 
 /**
@@ -103,12 +104,26 @@ final class ExportDatabaseCommand extends AbstractCommand
             return $exit;
         }
 
+        $exportEnabled = $this->parameterBag->has('nowo_anonymize.export.enabled')
+            && (bool) $this->parameterBag->get('nowo_anonymize.export.enabled');
+        if (!$exportEnabled) {
+            $io->error('Database export is disabled. Set nowo_anonymize.export.enabled: true in your configuration to use this command.');
+
+            return self::FAILURE;
+        }
+
         // Get configuration
         $outputDir       = $input->getOption('output-dir');
         $filenamePattern = $input->getOption('filename-pattern');
         $compression     = $input->getOption('compression');
         $noGitignore     = $input->getOption('no-gitignore');
         $connections     = $input->getOption('connection');
+
+        // No --connection given: fall back to the configured export.connections (empty = all)
+        if (empty($connections) && $this->parameterBag->has('nowo_anonymize.export.connections')) {
+            $configuredConnections = $this->parameterBag->get('nowo_anonymize.export.connections');
+            $connections           = is_array($configuredConnections) ? array_values(array_map(strval(...), $configuredConnections)) : [];
+        }
 
         // Get default values from configuration if not provided
         if ($outputDir === null) {
@@ -222,7 +237,8 @@ final class ExportDatabaseCommand extends AbstractCommand
                         $databaseName = trim($parsedUrl['path'] ?? 'anonymize_demo', '/');
                         $databaseName = explode('?', $databaseName)[0]; // Remove query params
 
-                        $exportedFile = $exportService->exportMongoDB($managerName, $databaseName, $host, $port);
+                        // Pass the full URL so credentials / options are honoured (via a 0600 mongodump --config file)
+                        $exportedFile = $exportService->exportMongoDB($managerName, $databaseName, $host, $port, $mongodbUrl);
                     } else {
                         // Try to get from Doctrine connection if available
                         try {

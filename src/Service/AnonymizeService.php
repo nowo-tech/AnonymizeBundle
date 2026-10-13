@@ -278,6 +278,25 @@ final class AnonymizeService implements ResetInterface
     }
 
     /**
+     * Whether the table exists and has an "anonymized" column (AnonymizableTrait).
+     */
+    private function tableHasAnonymizedColumn(Connection $connection, string $tableName): bool
+    {
+        $schemaManager = $connection->createSchemaManager();
+        if (!$schemaManager->tablesExist([$tableName])) {
+            return false;
+        }
+
+        foreach ($schemaManager->listTableColumns($tableName) as $column) {
+            if (DbalHelper::getSchemaObjectName($column) === 'anonymized') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Detects if the entity is polymorphic (Doctrine inheritance with discriminator) and returns column + value.
      * Used to truncate only this entity's rows when truncate=true on a child/root of STI/CTI.
      * Uses public metadata properties for compatibility with Doctrine ORM 2.x and 3.x.
@@ -336,6 +355,8 @@ final class AnonymizeService implements ResetInterface
         $propertyStats = [];
         $tableName     = $metadata->getTableName();
         $connection    = $em->getConnection();
+        /** @var bool|null $hasAnonymizedColumn Resolved lazily, once per table */
+        $hasAnonymizedColumn = null;
 
         // Detect relationships in patterns and build query with JOINs
         $allPatterns = [];
@@ -585,20 +606,10 @@ final class AnonymizeService implements ResetInterface
                         if ($shouldAnonymize && !$dryRun) {
                             // Check if entity uses AnonymizableTrait and add anonymized flag
                             if ($this->usesAnonymizableTrait($reflection)) {
-                                $schemaManager = $connection->createSchemaManager();
-                                if ($schemaManager->tablesExist([$tableName])) {
-                                    $columns             = $schemaManager->listTableColumns($tableName);
-                                    $hasAnonymizedColumn = false;
-                                    foreach ($columns as $column) {
-                                        if (DbalHelper::getSchemaObjectName($column) === 'anonymized') {
-                                            $hasAnonymizedColumn = true;
-                                            break;
-                                        }
-                                    }
-
-                                    if ($hasAnonymizedColumn) {
-                                        $updates['anonymized'] = true;
-                                    }
+                                // Introspect the schema once per table (not once per row)
+                                $hasAnonymizedColumn ??= $this->tableHasAnonymizedColumn($connection, $tableName);
+                                if ($hasAnonymizedColumn) {
+                                    $updates['anonymized'] = true;
                                 }
                             }
 

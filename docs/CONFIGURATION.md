@@ -2,7 +2,7 @@
 
 > ⚠️ **Important**: This bundle is **development-only** and should **never** be installed or used in production environments. The command includes built-in protection that prevents execution outside of dev/test environments.
 
-> 📋 **Requirements**: This bundle requires **Symfony 6.1 or higher** (Symfony 6.0 is not supported). See [INSTALLATION.md](INSTALLATION.md) for complete requirements.
+> 📋 **Requirements**: This bundle requires **Symfony 6.4 or higher** (Symfony 6.0–6.3 are not supported). See [INSTALLATION.md](INSTALLATION.md) for complete requirements.
 
 ## Table of contents
 
@@ -148,7 +148,7 @@ nowo_anonymize:
 
 **Sub-options**:
 
-- **`enabled`** (boolean, default: `false`): Enable export functionality
+- **`enabled`** (boolean, default: `false`): Enable export functionality. `nowo:anonymize:export-db` refuses to run while this is `false`
 - **`output_dir`** (string, default: `'%kernel.project_dir%/var/exports'`): Directory where exports will be saved
 - **`filename_pattern`** (string, default: `'{connection}_{database}_{date}_{time}.{format}'`): Filename pattern with placeholders:
   - `{connection}` - Connection name
@@ -157,7 +157,7 @@ nowo_anonymize:
   - `{time}` - Current time (H-i-s format)
   - `{format}` - File extension (sql, sqlite, bson)
 - **`compression`** (string, default: `'gzip'`): Compression format. Options: `none`, `gzip`, `bzip2`, `zip`
-- **`connections`** (array, default: `[]`): Specific connections to export. Empty array means all connections
+- **`connections`** (array, default: `[]`): Connections exported when `--connection` is not given. Empty array means all connections; `--connection` always takes precedence
 - **`auto_gitignore`** (boolean, default: `true`): Automatically create/update `.gitignore` to exclude export directory
 - **`timeout`** (integer, default: `180`): Hard timeout in **seconds** for `mysqldump` / `pg_dump` / `mongodump` / compression subprocesses (**REQ-RUNTIME-001**). Applied as Symfony Process wall-clock **and** idle timeout; on expiry the process is stopped. Keep this value **below** PHP `max_execution_time` and the HTTP server write timeout (see [DEMO-FRANKENPHP.md](DEMO-FRANKENPHP.md#timeouts-req-runtime-001)).
 
