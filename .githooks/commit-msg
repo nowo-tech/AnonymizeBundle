@@ -7,6 +7,8 @@ tmp="$(mktemp)"
 
 sed -e '/^Co-authored-by: Cursor <cursoragent@cursor.com>$/d' \
     -e '/^Co-authored-by:.*cursoragent@cursor\.com/d' \
+    -e '/^[Cc]o-[Aa]uthored-[Bb]y:.*[Cc]laude/d' \
+    -e '/^[Cc]o-[Aa]uthored-[Bb]y:.*anthropic\.com/d' \
     "$MSG_FILE" > "$tmp"
 
 mv "$tmp" "$MSG_FILE"
