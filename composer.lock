@@ -4502,16 +4502,16 @@
         },
         {
             "name": "nowo-tech/phpstan-frankenphp",
-            "version": "v1.2.3",
+            "version": "v1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nowo-tech/PhpStanFrankenPhp.git",
-                "reference": "cf8648f0b6990c56e522415b3b42e0763f6d0aea"
+                "reference": "8ad8c62f3c5decfd92332f70d599b6dad1e68820"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nowo-tech/PhpStanFrankenPhp/zipball/cf8648f0b6990c56e522415b3b42e0763f6d0aea",
-                "reference": "cf8648f0b6990c56e522415b3b42e0763f6d0aea",
+                "url": "https://api.github.com/repos/nowo-tech/PhpStanFrankenPhp/zipball/8ad8c62f3c5decfd92332f70d599b6dad1e68820",
+                "reference": "8ad8c62f3c5decfd92332f70d599b6dad1e68820",
                 "shasum": ""
             },
             "require": {
@@ -4585,7 +4585,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-07T19:41:20+00:00"
+            "time": "2026-10-13T10:11:25+00:00"
         },
         {
             "name": "phar-io/manifest",
