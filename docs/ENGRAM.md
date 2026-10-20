@@ -12,6 +12,7 @@ This repository is **prepared to use Engram** with Cursor (and other MCP-compati
   - [Verify](#verify)
 - [How to use](#how-to-use)
 - [Clearing or resetting the vault](#clearing-or-resetting-the-vault)
+- [Relationship to spec-driven development](#relationship-to-spec-driven-development)
 - [References](#references)
 
 ## What is Engram?
@@ -102,6 +103,10 @@ No extra steps are required in this repo: open the project in Cursor, ensure `en
   rm -rf ~/.engram
   ```
   After that, the next time you use Engram a new vault will be created. You can run `engram init` again if you want to reconfigure the Gemini key or editor.
+
+## Relationship to spec-driven development
+
+Engram covers the org-wide checklist plane (documentation hygiene, MCP, agent memory). Product behavior and local `REQ-*` traceability live in [SPEC-DRIVEN-DEVELOPMENT.md](SPEC-DRIVEN-DEVELOPMENT.md) (user stories, scope, validation commands, requirement identifiers) and in the GitHub Spec Kit baseline (`specs/001-baseline/`). Use Engram for cross-session context; use the spec-driven doc as the functional contract.
 
 ## References
 

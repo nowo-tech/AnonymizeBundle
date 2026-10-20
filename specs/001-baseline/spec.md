@@ -103,7 +103,7 @@ Doctrine entity anonymization for **dev/test** environments: PHP attributes mark
 
 ## Success Criteria
 
-- **SC-001**: **80/80** production files mapped in [`code-inventory.md`](code-inventory.md).
+- **SC-001**: **83/83** production files mapped in [`code-inventory.md`](code-inventory.md).
 - **SC-002**: Config keys match [`docs/CONFIGURATION.md`](../../docs/CONFIGURATION.md).
 - **SC-003**: `composer qa` and demo `make release-check` pass (includes `check-no-cursor-coauthor`).
 - **SC-004**: PHPUnit covers Faker edge cases, environment guard, and batch iteration; orchestration classes excluded per [`phpunit.xml.dist`](../../phpunit.xml.dist) are covered by integration tests (see [`docs/TEST_COVERAGE_PROPOSAL.md`](../../docs/TEST_COVERAGE_PROPOSAL.md)).

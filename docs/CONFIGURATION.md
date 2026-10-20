@@ -14,6 +14,7 @@
   - [batch_size](#batch_size)
   - [history_dir](#history_dir)
   - [export](#export)
+  - [hash_preserve](#hash_preserve)
   - [environment_protection](#environment_protection)
 - [Environment-Specific Configuration](#environment-specific-configuration)
 - [Command-Line Overrides](#command-line-overrides)

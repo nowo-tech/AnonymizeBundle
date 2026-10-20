@@ -18,6 +18,10 @@ This demo shows how to use the AnonymizeBundle with Symfony 8.0, including multi
 - **Example fixtures** with test data
 - **Ready-to-use configuration** with multiple connections
 
+## FrankenPHP
+
+This demo runs on FrankenPHP (worker mode by default, `FRANKENPHP_MODE=classic` for request mode). See [docs/DEMO-FRANKENPHP.md](../../docs/DEMO-FRANKENPHP.md) for development and production startup and troubleshooting.
+
 ## Requirements
 
 - Docker and Docker Compose

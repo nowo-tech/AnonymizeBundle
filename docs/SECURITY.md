@@ -9,6 +9,7 @@
 - [Logging](#logging)
 - [Reporting a vulnerability](#reporting-a-vulnerability)
 - [Important note](#important-note)
+- [Remediations addressed](#remediations-addressed)
 - [Release security checklist (12.4.1)](#release-security-checklist-1241)
 
 ## Scope

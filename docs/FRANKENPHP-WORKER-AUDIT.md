@@ -8,6 +8,22 @@
 | Method | Manual review of `src/` + remediation of W-01 / W-02 / W-03 |
 | **Verdict** | — **Not applicable** for normal use (CLI / `dev`–`test` only). If an integrator calls services from HTTP / a long-lived process with **kernel not reset**: residual risk is **Low** (W-04 timeout wiring, W-05 `mt_srand` hygiene only). W-01–W-03 **closed**. |
 
+## Table of contents
+
+- [Execution model assumed](#execution-model-assumed)
+  - [Why the bundle does not run in the worker](#why-the-bundle-does-not-run-in-the-worker)
+- [Summary](#summary)
+- [Services reviewed (edge case: HTTP / long-lived)](#services-reviewed-edge-case-http--long-lived)
+- [Closed findings (2026-09-24)](#closed-findings-2026-09-24)
+  - [W-01 — Locale-switching fakers (closed)](#w-01--locale-switching-fakers-closed)
+  - [W-02 — `HashFaker` + `unique()` growth (closed)](#w-02--hashfaker--unique-growth-closed)
+  - [W-03 — `AnonymizeStatistics` without reset (closed)](#w-03--anonymizestatistics-without-reset-closed)
+- [Open residuals (Low)](#open-residuals-low)
+  - [W-04 — Container `DatabaseExportService` ignores `export.timeout`](#w-04--container-databaseexportservice-ignores-exporttimeout)
+  - [W-05 — `ShuffleFaker` reseeds global `mt_rand`](#w-05--shufflefaker-reseeds-global-mt_rand)
+- [Usage recommendations in worker mode](#usage-recommendations-in-worker-mode)
+- [Re-audit triggers](#re-audit-triggers)
+
 ## Execution model assumed
 
 FrankenPHP worker mode boots the Symfony kernel once per worker and serves many requests with the same container. This audit assumes the **strict** variant: the kernel is **not** rebooted between requests, so every shared service, static property and PHP global survives from one request to the next. Two scenarios are evaluated:

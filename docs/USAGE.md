@@ -8,6 +8,7 @@ This guide covers how to use the Anonymize Bundle in your Symfony application.
 
 - [Basic Setup](#basic-setup)
   - [Using FakerType Enum (Recommended)](#using-fakertype-enum-recommended)
+  - [Doctrine embeds (`#[ORM\Embedded]`)](#doctrine-embeds-ormembedded)
   - [Using Strings (Still Supported)](#using-strings-still-supported)
 - [Advanced Usage](#advanced-usage)
   - [Pattern-based Filtering](#pattern-based-filtering)

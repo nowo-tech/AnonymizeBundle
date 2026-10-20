@@ -12,6 +12,8 @@ This project follows the [Contributor Covenant Code of Conduct](../CODE_OF_CONDU
 
 ## Table of contents
 
+- [Documentation language](#documentation-language)
+- [Code of Conduct](#code-of-conduct)
 - [Maintainer](#maintainer)
 - [Development Setup](#development-setup)
   - [Using Docker (Recommended)](#using-docker-recommended)
@@ -25,6 +27,9 @@ This project follows the [Contributor Covenant Code of Conduct](../CODE_OF_CONDU
 - [Available Make Commands](#available-make-commands)
 - [Reporting Issues](#reporting-issues)
 - [Contact](#contact)
+- [Cursor Agent](#cursor-agent)
+- [Git hooks (REQ-GIT-001)](#git-hooks-req-git-001)
+- [Igor worker audit (REQ-CS-008)](#igor-worker-audit-req-cs-008)
 
 ## Maintainer
 
@@ -198,6 +203,22 @@ When reporting issues, please include:
 For questions or suggestions, you can reach out to:
 - GitHub: [@HecFranco](https://github.com/HecFranco)
 - Organization: [nowo-tech](https://github.com/nowo-tech)
+
+## Cursor Agent
+
+Contributors using Cursor Agent on this repository should enable these user-level settings (REQ-IDE-006):
+
+1. **Submit with Ctrl + Enter** (macOS: **⌘ + Enter**) — Cursor Settings → Agents / Chat. Enter inserts a newline; Ctrl/⌘+Enter submits.
+2. **Queue follow-ups** in user `settings.json` (Linux `~/.config/Cursor/User/settings.json`, Windows `%APPDATA%\Cursor\User\settings.json`, macOS `~/Library/Application Support/Cursor/User/settings.json`):
+
+```json
+{
+  "cursor.composer.queueMessageDefaultBehavior": "queue"
+}
+```
+
+Do not use `"steer"` as the default: it interrupts a running agent turn.
+
 ## Git hooks (REQ-GIT-001)
 
 Do **not** add `Co-authored-by: Cursor` or `cursoragent@cursor.com` trailers, nor `Co-Authored-By: Claude …` / `noreply@anthropic.com` ones, to commit messages.

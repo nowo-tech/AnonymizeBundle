@@ -2,9 +2,11 @@
 
 **Baseline spec**: [`spec.md`](spec.md)  
 **Package**: `nowo-tech/anonymize-bundle`  
-**Last audited**: 2026-07-15
+**Last audited**: 2026-10-20
 
-Tests under `tests/` are out of Packagist scope.
+Paths in the tables are relative to `src/`. Tests under `tests/` are out of Packagist scope.
+
+Audit command: `git ls-files src | wc -l` (83 production files).
 
 ## Symfony config (`src/Resources/config/`)
 
@@ -33,6 +35,7 @@ Tests under `tests/` are out of Packagist scope.
 | Source file | Spec section | Requirement IDs |
 | --- | --- | --- |
 | `Command/AbstractCommand.php` | Shared CLI base | FR-CLI-001 |
+| `Command/EnvironmentProtectedCommandTrait.php` | Shared environment / DSN guard for CLI commands | FR-CLI-001, FR-SVC-004 |
 | `Command/AnonymizeCommand.php` | Main anonymize runner | FR-CLI-001 |
 | `Command/AnonymizeInfoCommand.php` | Discovery / dry info | FR-CLI-001 |
 | `Command/AnonymizationHistoryCommand.php` | History viewer | FR-CLI-001 |
@@ -64,6 +67,7 @@ Tests under `tests/` are out of Packagist scope.
 | `Faker/FakerInterface.php` | Faker contract | FR-FAKER-001 |
 | `Faker/FakerFactoryInterface.php` | Factory contract | FR-FAKER-001 |
 | `Faker/FakerFactory.php` | Type → implementation resolver | FR-FAKER-001 |
+| `Faker/FakerOptions.php` | Typed options bag for faker generators | FR-FAKER-001 |
 | `Faker/Example/ExampleCustomFaker.php` | Integrator example | FR-FAKER-002 |
 
 ## Faker implementations
@@ -134,6 +138,7 @@ Tests under `tests/` are out of Packagist scope.
 | --- | --- | --- |
 | `Helper/DbalHelper.php` | DBAL utilities | FR-HELPER-001 |
 | `Helper/OrmHelper.php` | ORM metadata helpers | FR-HELPER-001 |
+| `Helper/AnonymizePropertyDiscovery.php` | `#[AnonymizeProperty]` discovery on fields and Doctrine embeddables | FR-HELPER-001, FR-ATTR-001 |
 | `Internal/KernelParameterBagAdapter.php` | Kernel param adapter | FR-INT-001 |
 
 ## Coverage summary
@@ -143,13 +148,13 @@ Tests under `tests/` are out of Packagist scope.
 | Symfony config | 1 | 1 |
 | Bundle & DI | 3 | 3 |
 | Attributes & trait | 3 | 3 |
-| CLI | 7 | 7 |
+| CLI | 8 | 8 |
 | Events | 5 | 5 |
 | Enums | 2 | 2 |
-| Faker (factory + impls) | 40 | 40 |
+| Faker (factory + impls) | 41 | 41 |
 | Services | 12 | 12 |
-| Helpers & internal | 3 | 3 |
-| **Total production sources** | **80** | **80** |
+| Helpers & internal | 4 | 4 |
+| **Total production sources** | **83** | **83** |
 
 ## Maintainer tooling (out of `src/`, REQ-GIT-001)
 

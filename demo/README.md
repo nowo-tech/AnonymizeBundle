@@ -38,6 +38,8 @@ See [complete README](symfony8/README.md) for more details.
 
 The demo runs the Symfony app with **[FrankenPHP](https://frankenphp.dev/)** (Caddy + PHP in worker mode) instead of nginx + PHP-FPM. A single container serves HTTP on port 80 (mapped to 8002) with `public/index.php` as the worker. No separate web server container is required.
 
+Development vs production startup, the classic/worker switch (`FRANKENPHP_MODE`) and troubleshooting are documented in [docs/DEMO-FRANKENPHP.md](../docs/DEMO-FRANKENPHP.md).
+
 ### Multiple Database Connections
 
 The demo includes four database systems:
