@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 1.2.4](#to-124)
 - [To 1.2.3](#to-123)
 - [To 1.2.2](#to-122)
 - [To 1.2.1](#to-121)
@@ -94,6 +95,14 @@
 - [Notes](#notes-17)
 
 ## Unreleased
+
+## To 1.2.4
+
+From **1.2.3**:
+
+```bash
+composer update nowo-tech/anonymize-bundle
+```
 
 ## To 1.2.3
 
