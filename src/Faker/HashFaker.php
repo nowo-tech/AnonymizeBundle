@@ -61,7 +61,7 @@ final readonly class HashFaker implements FakerInterface
 
         // Apply length if specified
         if ($length !== null && $length > 0) {
-            $hash = substr($hash, 0, (int) $length);
+            return substr($hash, 0, (int) $length);
         }
 
         return $hash;

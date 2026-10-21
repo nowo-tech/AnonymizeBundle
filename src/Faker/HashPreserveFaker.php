@@ -22,13 +22,13 @@ use function strlen;
  */
 #[AsAlias(id: 'nowo_anonymize.faker.hash_preserve')]
 #[Autoconfigure(public: true)]
-final class HashPreserveFaker implements FakerInterface
+final readonly class HashPreserveFaker implements FakerInterface
 {
     /**
      * @param string $defaultSalt Applied when the per-call "salt" option is empty (from nowo_anonymize.hash_preserve.default_salt / kernel.secret)
      */
     public function __construct(
-        private readonly string $defaultSalt = '',
+        private string $defaultSalt = '',
     ) {
     }
 

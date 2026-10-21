@@ -32,6 +32,7 @@ final class AnonymizationHistoryCommand extends AbstractCommand
 {
     use EnvironmentProtectedCommandTrait;
 
+    /** Wires the history service and the environment guard. */
     public function __construct(
         private readonly AnonymizationHistoryService $historyService,
         private readonly EnvironmentProtectionService $environmentProtection,

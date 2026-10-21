@@ -24,6 +24,7 @@ use function sprintf;
  */
 final readonly class KernelParameterBagAdapter implements ParameterBagInterface
 {
+    /** Reads kernel parameters through the service container. */
     public function __construct(
         private ContainerInterface $container
     ) {

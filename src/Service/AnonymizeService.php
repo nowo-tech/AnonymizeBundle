@@ -530,9 +530,7 @@ final class AnonymizeService implements ResetInterface
                             }
 
                             // Set original_value (standard key for all fakers)
-                            if (!isset($fakerOptions['original_value'])) {
-                                $fakerOptions['original_value'] = $originalValue;
-                            }
+                            $fakerOptions['original_value'] ??= $originalValue;
 
                             // For backward compatibility with hash_preserve and masking (they use 'value' key)
                             if (in_array($attribute->type, ['hash_preserve', 'masking']) && !isset($fakerOptions['value'])) {
@@ -597,9 +595,7 @@ final class AnonymizeService implements ResetInterface
                             $shouldAnonymize      = true;
 
                             // Track property statistics
-                            if (!isset($propertyStats[$propertyName])) {
-                                $propertyStats[$propertyName] = 0;
-                            }
+                            $propertyStats[$propertyName] ??= 0;
                             ++$propertyStats[$propertyName];
                         }
 
@@ -669,9 +665,7 @@ final class AnonymizeService implements ResetInterface
     {
         $key = $type . ($serviceName ? ':' . $serviceName : '');
 
-        if (!isset($this->fakerCache[$key])) {
-            $this->fakerCache[$key] = $this->fakerFactory->create($type, $serviceName);
-        }
+        $this->fakerCache[$key] ??= $this->fakerFactory->create($type, $serviceName);
 
         return $this->fakerCache[$key];
     }

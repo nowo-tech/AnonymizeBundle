@@ -44,6 +44,17 @@ Run `composer audit` in consuming projects; keep the bundle updated.
 
 Do not log full production-like datasets or secrets during anonymization runs.
 
+`nowo:anonymize:run` and `nowo:anonymize:export-db` log through the injected PSR-3 logger (Monolog `app` channel by default; nothing when no logger is registered):
+
+| Event | Level | Context |
+| --- | --- | --- |
+| Command started | `info` | `bundle: anonymize`, `action` (`anonymize` / `export_database`), `command`, `connections`, `dry_run` (anonymize only) |
+| Command finished | `info` | same |
+| Command did not complete (non-zero exit) | `warning` | same + `exit_code` |
+| Command threw | `error` | same + `exception` (class name only) |
+
+**Never logged:** DSNs, credentials, row values (original or anonymized), exception messages (they may contain DSNs) and file contents of exports.
+
 ## Reporting a vulnerability
 
 If you discover a security issue in this bundle, please report it responsibly:
@@ -82,6 +93,7 @@ Before tagging a release, confirm:
 | **Cryptography** | If used: keys from secure config; never hardcoded. |
 | **Permissions / exposure** | Routes and admin features documented; roles configured for production. |
 | **Limits / DoS** | `export.timeout` + PHP/Caddy hierarchy documented (REQ-RUNTIME-001). |
+| **AI security audit (REQ-SEC-004)** | Latest AI security review grade is current for this release (re-audit when commands, environment protection or export change); record the grade in the maintainers' security catalogue. |
 
 Record confirmation in the release PR or tag notes.
 

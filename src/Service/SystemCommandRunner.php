@@ -47,6 +47,7 @@ final class SystemCommandRunner implements CommandRunnerInterface
         $this->idleTimeoutSeconds = $idleTimeoutSeconds ?? $timeoutSeconds;
     }
 
+    /** Whether the given executable is available on the PATH (which / where, 10 s timeout). */
     public function commandExists(string $command): bool
     {
         if ($this->procOpen !== null) {
@@ -74,6 +75,7 @@ final class SystemCommandRunner implements CommandRunnerInterface
         return $process->isSuccessful() && !in_array($stdout, ['', '0'], true);
     }
 
+    /** Runs a shell command with the configured timeouts; fills $output (when given) with its lines and returns the exit code (124 on timeout). */
     public function exec(string $command, ?array &$output = null): int
     {
         $process = Process::fromShellCommandline($command);

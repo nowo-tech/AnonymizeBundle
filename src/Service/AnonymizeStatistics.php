@@ -119,20 +119,16 @@ final class AnonymizeStatistics implements ResetInterface
     ): void {
         $key = $entityClass . '@' . $connection;
 
-        if (!isset($this->entityStats[$key])) {
-            $this->entityStats[$key] = [
-                'entity'     => $entityClass,
-                'connection' => $connection,
-                'processed'  => 0,
-                'updated'    => 0,
-                'skipped'    => 0,
-                'properties' => [],
-            ];
-        }
+        $this->entityStats[$key] ??= [
+            'entity'     => $entityClass,
+            'connection' => $connection,
+            'processed'  => 0,
+            'updated'    => 0,
+            'skipped'    => 0,
+            'properties' => [],
+        ];
 
-        if (!isset($this->entityStats[$key]['properties'][$propertyName])) {
-            $this->entityStats[$key]['properties'][$propertyName] = 0;
-        }
+        $this->entityStats[$key]['properties'][$propertyName] ??= 0;
 
         $this->entityStats[$key]['properties'][$propertyName] += $count;
     }

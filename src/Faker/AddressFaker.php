@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  * @copyright 2025 Nowo.tech
  */
 #[AsAlias(id: 'nowo_anonymize.faker.address')]
-final class AddressFaker implements FakerInterface
+final readonly class AddressFaker implements FakerInterface
 {
     private FakerGenerator $faker;
 

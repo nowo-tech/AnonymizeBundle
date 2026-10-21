@@ -18,6 +18,7 @@ use Nowo\AnonymizeBundle\Service\AnonymizeStatisticsDisplay;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -67,6 +68,7 @@ final class AnonymizeCommand extends AbstractCommand
      * @param array<string> $connections The default connections to process (empty = all)
      * @param bool $dryRun The default dry-run mode (default: false)
      * @param int $batchSize The default batch size for processing records (default: 100)
+     * @param LoggerInterface|null $logger Optional logger for start / success / failure records (REQ-OBS-001)
      */
     public function __construct(
         private readonly AnonymizeService $anonymizeService,
@@ -81,7 +83,8 @@ final class AnonymizeCommand extends AbstractCommand
         private readonly string $locale = 'en_US',
         private readonly array $connections = [],
         private readonly bool $dryRun = false,
-        private readonly int $batchSize = 100
+        private readonly int $batchSize = 100,
+        private readonly ?LoggerInterface $logger = null,
     ) {
         parent::__construct();
     }
@@ -161,6 +164,14 @@ final class AnonymizeCommand extends AbstractCommand
      * @return int The exit code
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        return $this->runLogged($this->logger, 'anonymize', ['connections' => $input->getOption('connection'), 'dry_run' => (bool) $input->getOption('dry-run')], fn (): int => $this->doExecute($input, $output));
+    }
+
+    /**
+     * Command body; {@see execute()} wraps it with start / success / failure logging.
+     */
+    private function doExecute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 
@@ -437,7 +448,7 @@ final class AnonymizeCommand extends AbstractCommand
 
         // Dispatch BeforeAnonymizeEvent
         $eventDispatcher = $this->eventDispatcher;
-        if ($eventDispatcher !== null) {
+        if ($eventDispatcher instanceof EventDispatcherInterface) {
             $entityClasses = array_keys($entities);
             $event         = new BeforeAnonymizeEvent($em, $entityClasses, $dryRun);
             $eventDispatcher->dispatch($event);
@@ -474,7 +485,7 @@ final class AnonymizeCommand extends AbstractCommand
             }
 
             if (!$dryRun && !$statsOnly) {
-                $force = $input !== null && (bool) $input->getOption('force');
+                $force = $input instanceof InputInterface && (bool) $input->getOption('force');
                 if (!$force && !$io->confirm('TRUNCATE will permanently empty these tables. Continue?', false)) {
                     $io->error('Truncate aborted. Re-run with --force to confirm non-interactively, or answer yes at the prompt.');
 
@@ -685,7 +696,7 @@ final class AnonymizeCommand extends AbstractCommand
         }
 
         // Dispatch AfterAnonymizeEvent
-        if ($this->eventDispatcher !== null) {
+        if ($this->eventDispatcher instanceof EventDispatcherInterface) {
             $entityClasses = array_keys($entities);
             $event         = new AfterAnonymizeEvent($em, $entityClasses, $totalProcessed, $totalUpdated, $dryRun);
             $this->eventDispatcher->dispatch($event);

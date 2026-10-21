@@ -101,6 +101,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Dependencies refreshed (Composer and pnpm/npm lock files of the bundle and its demos, campaign 2026-10-19).
 - `.php-cs-fixer.dist.php`: `new ParallelConfig(2)` (REQ-CS-001).
+- `nowo:anonymize:run` and `nowo:anonymize:export-db` log start / finish / failure through the PSR-3 logger (optional constructor argument, autowired): command, action, connections and dry-run only, never DSNs or row data (REQ-OBS-001); documented in `docs/SECURITY.md` (Logging), whose release checklist gains the AI security audit item (REQ-SEC-002).
+- PHPDoc on every public method (REQ-CS-001); Rector's `ClosureToArrowFunctionRector` applied; README publishes the measured coverage (REQ-TEST-007); the co-author check accepts git worktrees.
 - Documentation: wave-1 REQ compliance — README documentation list order, CONTRIBUTING Cursor Agent queue settings, TOCs for long docs, Engram ↔ spec-driven cross-reference, demo READMEs link DEMO-FRANKENPHP, Spec Kit inventory refresh (83/83).
 
 ## [1.2.3] - 2026-10-13

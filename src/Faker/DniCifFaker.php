@@ -87,7 +87,7 @@ final readonly class DniCifFaker implements FakerInterface
 
         // Format with separator if requested
         if ($formatted) {
-            $result = $this->format($result, $type);
+            return $this->format($result, $type);
         }
 
         return $result;

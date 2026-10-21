@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  * @copyright 2025 Nowo.tech
  */
 #[AsAlias(id: 'nowo_anonymize.faker.language')]
-final class LanguageFaker implements FakerInterface
+final readonly class LanguageFaker implements FakerInterface
 {
     private FakerGenerator $faker;
 

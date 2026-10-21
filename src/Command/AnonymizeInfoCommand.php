@@ -306,16 +306,14 @@ final class AnonymizeInfoCommand extends AbstractCommand
             $byEntity = [];
             foreach ($allAnonymizers as $anonymizer) {
                 $key = $anonymizer['connection'] . '::' . $anonymizer['entity'];
-                if (!isset($byEntity[$key])) {
-                    $byEntity[$key] = [
-                        'connection'         => $anonymizer['connection'],
-                        'entity'             => $anonymizer['entity'],
-                        'table'              => $anonymizer['table'],
-                        'total_records'      => $anonymizer['total_records'],
-                        'properties'         => 0,
-                        'total_to_anonymize' => 0,
-                    ];
-                }
+                $byEntity[$key] ??= [
+                    'connection'         => $anonymizer['connection'],
+                    'entity'             => $anonymizer['entity'],
+                    'table'              => $anonymizer['table'],
+                    'total_records'      => $anonymizer['total_records'],
+                    'properties'         => 0,
+                    'total_to_anonymize' => 0,
+                ];
                 ++$byEntity[$key]['properties'];
                 $byEntity[$key]['total_to_anonymize'] += $anonymizer['records_to_anonymize'];
             }

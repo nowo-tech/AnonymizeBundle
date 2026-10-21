@@ -34,11 +34,13 @@ final readonly class FakerOptions
         return $options instanceof self ? $options : self::fromArray($options);
     }
 
+    /** Returns the option value, or the default when it is not set. */
     public function get(string $key, mixed $default = null): mixed
     {
         return $this->values[$key] ?? $default;
     }
 
+    /** Whether the option is set (even to null). */
     public function has(string $key): bool
     {
         return array_key_exists($key, $this->values);
@@ -50,6 +52,7 @@ final readonly class FakerOptions
         return $this->values;
     }
 
+    /** Returns a copy with the option set (the instance is immutable). */
     public function with(string $key, mixed $value): self
     {
         $values       = $this->values;

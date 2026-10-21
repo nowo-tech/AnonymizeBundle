@@ -102,7 +102,7 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn([]);
 
-        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static function (mixed $v): string { return is_string($v) ? $v : sys_get_temp_dir(); })($parameterBag->get('kernel.project_dir')));
+        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static fn (mixed $v): string => is_string($v) ? $v : sys_get_temp_dir())($parameterBag->get('kernel.project_dir')));
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -126,7 +126,7 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
 
-        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static function (mixed $v): string { return is_string($v) ? $v : sys_get_temp_dir(); })($parameterBag->get('kernel.project_dir')));
+        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static fn (mixed $v): string => is_string($v) ? $v : sys_get_temp_dir())($parameterBag->get('kernel.project_dir')));
         $input   = new ArrayInput(['--compression' => 'invalid']);
         $output  = new BufferedOutput();
 
@@ -212,7 +212,7 @@ class ExportDatabaseCommandTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static function (mixed $v): string { return is_string($v) ? $v : sys_get_temp_dir(); })($parameterBag->get('kernel.project_dir')));
+        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static fn (mixed $v): string => is_string($v) ? $v : sys_get_temp_dir())($parameterBag->get('kernel.project_dir')));
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -253,7 +253,7 @@ class ExportDatabaseCommandTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static function (mixed $v): string { return is_string($v) ? $v : sys_get_temp_dir(); })($parameterBag->get('kernel.project_dir')));
+        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static fn (mixed $v): string => is_string($v) ? $v : sys_get_temp_dir())($parameterBag->get('kernel.project_dir')));
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -292,7 +292,7 @@ class ExportDatabaseCommandTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static function (mixed $v): string { return is_string($v) ? $v : sys_get_temp_dir(); })($parameterBag->get('kernel.project_dir')));
+        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static fn (mixed $v): string => is_string($v) ? $v : sys_get_temp_dir())($parameterBag->get('kernel.project_dir')));
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -331,7 +331,7 @@ class ExportDatabaseCommandTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static function (mixed $v): string { return is_string($v) ? $v : sys_get_temp_dir(); })($parameterBag->get('kernel.project_dir')));
+        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static fn (mixed $v): string => is_string($v) ? $v : sys_get_temp_dir())($parameterBag->get('kernel.project_dir')));
         $input   = new ArrayInput([]);
         $output  = new BufferedOutput();
 
@@ -365,7 +365,7 @@ class ExportDatabaseCommandTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static function (mixed $v): string { return is_string($v) ? $v : sys_get_temp_dir(); })($parameterBag->get('kernel.project_dir')));
+        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static fn (mixed $v): string => is_string($v) ? $v : sys_get_temp_dir())($parameterBag->get('kernel.project_dir')));
         $input   = new ArrayInput(['--output-dir' => '%kernel.project_dir%/my_exports']);
         $output  = new BufferedOutput();
 
@@ -400,7 +400,7 @@ class ExportDatabaseCommandTest extends TestCase
             $doctrine = $this->createMock(ManagerRegistry::class);
             $doctrine->method('getManagerNames')->willReturn([]);
 
-            $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static function (mixed $v): string { return is_string($v) ? $v : sys_get_temp_dir(); })($parameterBag->get('kernel.project_dir')));
+            $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static fn (mixed $v): string => is_string($v) ? $v : sys_get_temp_dir())($parameterBag->get('kernel.project_dir')));
             $input   = new ArrayInput(['--connection' => ['mongodb'], '--no-gitignore' => true]);
             $output  = new BufferedOutput();
 
@@ -451,7 +451,7 @@ class ExportDatabaseCommandTest extends TestCase
             $doctrine->method('getManagerNames')->willReturn(['mongodb' => 'doctrine_mongodb.odm.mongodb_document_manager']);
             $doctrine->method('getManager')->with('mongodb')->willReturn($em);
 
-            $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static function (mixed $v): string { return is_string($v) ? $v : sys_get_temp_dir(); })($parameterBag->get('kernel.project_dir')));
+            $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static fn (mixed $v): string => is_string($v) ? $v : sys_get_temp_dir())($parameterBag->get('kernel.project_dir')));
             $input   = new ArrayInput(['--connection' => ['mongodb'], '--no-gitignore' => true]);
             $output  = new BufferedOutput();
 
@@ -493,7 +493,7 @@ class ExportDatabaseCommandTest extends TestCase
             $doctrine->method('getManagerNames')->willReturn([]);
             $doctrine->method('getManager')->with('mongodb')->willThrowException(new Exception('No manager for mongodb'));
 
-            $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static function (mixed $v): string { return is_string($v) ? $v : sys_get_temp_dir(); })($parameterBag->get('kernel.project_dir')));
+            $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static fn (mixed $v): string => is_string($v) ? $v : sys_get_temp_dir())($parameterBag->get('kernel.project_dir')));
             $input   = new ArrayInput(['--connection' => ['mongodb']]);
             $output  = new BufferedOutput();
 
@@ -526,7 +526,7 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willThrowException(new Exception('Manager failed'));
 
-        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static function (mixed $v): string { return is_string($v) ? $v : sys_get_temp_dir(); })($parameterBag->get('kernel.project_dir')));
+        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static fn (mixed $v): string => is_string($v) ? $v : sys_get_temp_dir())($parameterBag->get('kernel.project_dir')));
         $input   = new ArrayInput(['--no-gitignore' => true]);
         $output  = new BufferedOutput();
 
@@ -647,7 +647,7 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static function (mixed $v): string { return is_string($v) ? $v : sys_get_temp_dir(); })($parameterBag->get('kernel.project_dir')));
+        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static fn (mixed $v): string => is_string($v) ? $v : sys_get_temp_dir())($parameterBag->get('kernel.project_dir')));
         $input   = new ArrayInput(['--no-gitignore' => true]);
         $output  = new BufferedOutput();
 
@@ -689,7 +689,7 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static function (mixed $v): string { return is_string($v) ? $v : sys_get_temp_dir(); })($parameterBag->get('kernel.project_dir')));
+        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static fn (mixed $v): string => is_string($v) ? $v : sys_get_temp_dir())($parameterBag->get('kernel.project_dir')));
         $input   = new ArrayInput([
             '--output-dir'   => $outputDir,
             '--compression'  => 'none',
@@ -746,7 +746,7 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
-        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static function (mixed $v): string { return is_string($v) ? $v : sys_get_temp_dir(); })($parameterBag->get('kernel.project_dir')));
+        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static fn (mixed $v): string => is_string($v) ? $v : sys_get_temp_dir())($parameterBag->get('kernel.project_dir')));
         $input   = new ArrayInput([
             '--output-dir'  => $outputDir,
             '--compression' => 'none',

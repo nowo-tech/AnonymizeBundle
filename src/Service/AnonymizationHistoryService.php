@@ -175,7 +175,7 @@ final class AnonymizationHistoryService
 
         // Apply limit
         if ($limit !== null && $limit > 0) {
-            $runs = array_slice($runs, 0, $limit);
+            return array_slice($runs, 0, $limit);
         }
 
         return $runs;

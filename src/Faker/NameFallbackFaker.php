@@ -63,12 +63,8 @@ final readonly class NameFallbackFaker implements FakerInterface
             $relatedValue = $record[$fallbackField] ?? null;
 
             // If not found, try common column name variations
-            if ($relatedValue === null) {
-                $relatedValue = $record[strtolower((string) $fallbackField)] ?? null;
-            }
-            if ($relatedValue === null) {
-                $relatedValue = $record[ucfirst((string) $fallbackField)] ?? null;
-            }
+            $relatedValue ??= $record[strtolower((string) $fallbackField)] ?? null;
+            $relatedValue ??= $record[ucfirst((string) $fallbackField)] ?? null;
         }
 
         // If both are null, generate a random name

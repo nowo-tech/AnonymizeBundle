@@ -55,7 +55,6 @@ final class AnonymizeStatsPathTest extends TestCase
     {
         $command = (new ReflectionClass(AnonymizeCommand::class))->newInstanceWithoutConstructor();
         $method  = new ReflectionMethod(AnonymizeCommand::class, 'resolveStatsOutputPath');
-        $method->setAccessible(true);
 
         return $method->invoke($command, $userPath, $base);
     }

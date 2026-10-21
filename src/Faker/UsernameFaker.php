@@ -93,7 +93,7 @@ final readonly class UsernameFaker implements FakerInterface
 
         // Ensure minimum length (pad if necessary)
         if (strlen($username) < $minLength) {
-            $username = str_pad($username, $minLength, $this->faker->randomLetter());
+            return str_pad($username, $minLength, $this->faker->randomLetter());
         }
 
         return $username;

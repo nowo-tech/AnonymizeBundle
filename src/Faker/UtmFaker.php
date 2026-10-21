@@ -264,7 +264,7 @@ final readonly class UtmFaker implements FakerInterface
             $value .= '_' . $this->faker->word();
         }
         if (strlen($value) > $maxLength) {
-            $value = substr($value, 0, $maxLength);
+            return substr($value, 0, $maxLength);
         }
 
         return $value;
@@ -299,7 +299,7 @@ final readonly class UtmFaker implements FakerInterface
             $value .= '_' . $this->faker->word();
         }
         if (strlen((string) $value) > $maxLength) {
-            $value = substr((string) $value, 0, $maxLength);
+            return substr((string) $value, 0, $maxLength);
         }
 
         return $value;

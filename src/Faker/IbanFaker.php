@@ -60,12 +60,11 @@ final readonly class IbanFaker implements FakerInterface
             // IBAN format: 4 chars, then groups of 4
             $iban = strtoupper($iban);
             $iban = chunk_split($iban, 4, ' ');
-            $iban = trim($iban);
-        } else {
-            // Remove spaces if any
-            $iban = str_replace(' ', '', $iban);
+
+            return trim($iban);
         }
 
-        return $iban;
+        // Remove spaces if any
+        return str_replace(' ', '', $iban);
     }
 }

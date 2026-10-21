@@ -46,9 +46,8 @@ final readonly class EnvironmentProtectionService
         $errors = [];
         $errors = array_merge($errors, $this->checkEnvironment());
         $errors = array_merge($errors, $this->checkConfigurationFiles());
-        $errors = array_merge($errors, $this->checkDatabaseUrls());
 
-        return $errors;
+        return array_merge($errors, $this->checkDatabaseUrls());
     }
 
     /**
@@ -129,7 +128,7 @@ final readonly class EnvironmentProtectionService
             $errors = array_merge($errors, $this->matchBlockedMarkers($envKey, $this->haystacksFromUrl($url)));
         }
 
-        if ($this->doctrine !== null) {
+        if ($this->doctrine instanceof ManagerRegistry) {
             foreach ($this->doctrine->getConnections() as $name => $connection) {
                 if (!$connection instanceof Connection) {
                     continue;
@@ -168,7 +167,7 @@ final readonly class EnvironmentProtectionService
 
         $primary = $params['primary'] ?? null;
         if (is_array($primary)) {
-            $haystacks = array_merge($haystacks, $this->haystacksFromDoctrineParams($primary));
+            return array_merge($haystacks, $this->haystacksFromDoctrineParams($primary));
         }
 
         return $haystacks;
@@ -227,11 +226,13 @@ final readonly class EnvironmentProtectionService
         return $errors;
     }
 
+    /** Returns the kernel environment (empty string when unknown). */
     public function getEnvironment(): string
     {
         return $this->getStringParameter('kernel.environment');
     }
 
+    /** Whether the kernel environment is dev or test. */
     public function isSafeEnvironment(): bool
     {
         return in_array($this->getEnvironment(), ['dev', 'test'], true);

@@ -58,7 +58,7 @@ final readonly class FileFaker implements FakerInterface
 
             // Make absolute if requested
             if ($absolute && !str_starts_with($path, '/')) {
-                $path = '/' . $path;
+                return '/' . $path;
             }
 
             return $path;

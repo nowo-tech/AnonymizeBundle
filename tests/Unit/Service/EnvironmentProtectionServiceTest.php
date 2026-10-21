@@ -297,7 +297,7 @@ class EnvironmentProtectionServiceTest extends TestCase
             $service = new EnvironmentProtectionService(new ParameterBag([
                 'kernel.environment' => 'dev',
                 'kernel.project_dir' => sys_get_temp_dir(),
-            ]), ['prod-db.internal'], null);
+            ]), ['prod-db.internal']);
 
             $this->assertEmpty($service->performChecks());
         } finally {

@@ -55,7 +55,7 @@ final readonly class UuidFaker implements FakerInterface
 
         // Apply format
         if ($format === 'without_dashes') {
-            $uuid = str_replace('-', '', $uuid);
+            return str_replace('-', '', $uuid);
         }
 
         return $uuid;

@@ -10,6 +10,7 @@ use Exception;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Service\DatabaseExportService;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -46,6 +47,7 @@ final class ExportDatabaseCommand extends AbstractCommand
      * @param ManagerRegistry $doctrine Doctrine manager registry
      * @param ParameterBagInterface $parameterBag Parameter bag for reading configuration
      * @param string $projectDir The kernel project directory
+     * @param LoggerInterface|null $logger Optional logger for start / success / failure records (REQ-OBS-001)
      */
     public function __construct(
         private readonly EnvironmentProtectionService $environmentProtection,
@@ -53,6 +55,7 @@ final class ExportDatabaseCommand extends AbstractCommand
         private readonly ParameterBagInterface $parameterBag,
         #[Autowire('%kernel.project_dir%')]
         private readonly string $projectDir,
+        private readonly ?LoggerInterface $logger = null,
     ) {
         parent::__construct();
     }
@@ -98,6 +101,14 @@ final class ExportDatabaseCommand extends AbstractCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        return $this->runLogged($this->logger, 'export_database', ['connections' => $input->getOption('connection')], fn (): int => $this->doExecute($input, $output));
+    }
+
+    /**
+     * Command body; {@see execute()} wraps it with start / success / failure logging.
+     */
+    private function doExecute(InputInterface $input, OutputInterface $output): int
+    {
         $io = new SymfonyStyle($input, $output);
 
         if (($exit = $this->failIfEnvironmentUnsafe($io, $this->environmentProtection)) !== null) {
@@ -126,23 +137,17 @@ final class ExportDatabaseCommand extends AbstractCommand
         }
 
         // Get default values from configuration if not provided
-        if ($outputDir === null) {
-            $outputDir = $this->parameterBag->has('nowo_anonymize.export.output_dir')
-                ? $this->parameterBag->get('nowo_anonymize.export.output_dir')
-                : '%kernel.project_dir%/var/exports';
-        }
+        $outputDir ??= $this->parameterBag->has('nowo_anonymize.export.output_dir')
+            ? $this->parameterBag->get('nowo_anonymize.export.output_dir')
+            : '%kernel.project_dir%/var/exports';
 
-        if ($filenamePattern === null) {
-            $filenamePattern = $this->parameterBag->has('nowo_anonymize.export.filename_pattern')
-                ? $this->parameterBag->get('nowo_anonymize.export.filename_pattern')
-                : '{connection}_{database}_{date}_{time}.{format}';
-        }
+        $filenamePattern ??= $this->parameterBag->has('nowo_anonymize.export.filename_pattern')
+            ? $this->parameterBag->get('nowo_anonymize.export.filename_pattern')
+            : '{connection}_{database}_{date}_{time}.{format}';
 
-        if ($compression === null) {
-            $compression = $this->parameterBag->has('nowo_anonymize.export.compression')
-                ? $this->parameterBag->get('nowo_anonymize.export.compression')
-                : 'gzip';
-        }
+        $compression ??= $this->parameterBag->has('nowo_anonymize.export.compression')
+            ? $this->parameterBag->get('nowo_anonymize.export.compression')
+            : 'gzip';
 
         $autoGitignore = !$noGitignore && (
             $this->parameterBag->has('nowo_anonymize.export.auto_gitignore')
@@ -194,7 +199,7 @@ final class ExportDatabaseCommand extends AbstractCommand
             (string) $outputDir,
             (string) $filenamePattern,
             (string) $compression,
-            (bool) $autoGitignore,
+            $autoGitignore,
             null,
             $timeout,
         );

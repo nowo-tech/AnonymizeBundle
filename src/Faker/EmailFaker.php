@@ -78,7 +78,7 @@ final readonly class EmailFaker implements FakerInterface
         $email = $localPart . '@' . $emailDomain;
 
         if ($opts['ensure_unique'] ?? true) {
-            $email = $this->appendUniqueSuffix($email, $opts);
+            return $this->appendUniqueSuffix($email, $opts);
         }
 
         return $email;
