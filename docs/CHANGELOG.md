@@ -99,6 +99,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Dependencies refreshed (Composer and pnpm/npm lock files of the bundle and its demos, campaign 2026-10-19).
+- `.php-cs-fixer.dist.php`: `new ParallelConfig(2)` (REQ-CS-001).
 - Documentation: wave-1 REQ compliance — README documentation list order, CONTRIBUTING Cursor Agent queue settings, TOCs for long docs, Engram ↔ spec-driven cross-reference, demo READMEs link DEMO-FRANKENPHP, Spec Kit inventory refresh (83/83).
 
 ## [1.2.3] - 2026-10-13
