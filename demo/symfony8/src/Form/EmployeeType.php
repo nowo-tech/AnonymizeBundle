@@ -40,13 +40,18 @@ class EmployeeType extends AbstractType
                 'required' => false,
                 'attr'     => ['class' => 'form-control'],
             ])
+            ->add('age', IntegerType::class, [
+                'required' => true,
+                'attr'     => ['class' => 'form-control'],
+            ])
             ->add('birthDate', DateType::class, [
                 'required' => false,
                 'widget'   => 'single_text',
                 'attr'     => ['class' => 'form-control'],
             ])
-            ->add('age', IntegerType::class, [
+            ->add('hireDate', DateTimeType::class, [
                 'required' => true,
+                'widget'   => 'single_text',
                 'attr'     => ['class' => 'form-control'],
             ])
             ->add('department', ChoiceType::class, [
@@ -63,11 +68,6 @@ class EmployeeType extends AbstractType
             ])
             ->add('previousCompany', TextType::class, [
                 'required' => false,
-                'attr'     => ['class' => 'form-control'],
-            ])
-            ->add('hireDate', DateTimeType::class, [
-                'required' => true,
-                'widget'   => 'single_text',
                 'attr'     => ['class' => 'form-control'],
             ]);
     }

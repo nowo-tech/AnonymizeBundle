@@ -18,41 +18,16 @@
     </div>
     <div class="card-body">
         {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': true}}) }}
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.invoiceNumber, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.companyName, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
-            <div class="mb-3">
-                {{ form_row(form.companyAddress, {'attr': {'class': 'form-control'}}) }}
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.bankAccount, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.creditCard, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.amount, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.status, {'attr': {'class': 'form-select'}}) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.issueDate, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.dueDate, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
+            {{ include('_form_fields.html.twig', {form: form, columns: {
+                invoiceNumber: 'col-md-6',
+                companyName: 'col-md-6',
+                bankAccount: 'col-md-6',
+                creditCard: 'col-md-6',
+                amount: 'col-md-6',
+                status: 'col-md-6',
+                issueDate: 'col-md-6',
+                dueDate: 'col-md-6',
+            }}) }}
 
             <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">Update Invoice</button>

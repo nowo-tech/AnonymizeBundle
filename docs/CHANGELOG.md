@@ -98,6 +98,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Demo (REQ-TWIG-003):** the `new` / `edit` pages of every demo entity render the form through the child loop instead of one `form_row(form.x)` (or `form_widget(form)`) per page: field-list pages share `templates/_form_fields.html.twig` (one Bootstrap grid, column class per field from a name-keyed map), the others loop directly. Field order, `attr` classes (`form-control` / `form-select`, textarea rows) and the cache-value hint moved into the demo FormTypes.
+
 ## [1.2.4] - 2026-10-21
 
 Dependency refresh, logged destructive commands, PHPDoc on public API, measured coverage in README. See [UPGRADING](UPGRADING.md#to-124).

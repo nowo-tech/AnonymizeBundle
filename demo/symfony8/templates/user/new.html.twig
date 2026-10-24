@@ -19,38 +19,16 @@
     </div>
     <div class="card-body">
         {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': true}}) }}
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.email, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.firstName, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.lastName, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.age, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.phone, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.iban, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.creditCard, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.status, {'attr': {'class': 'form-select'}}) }}
-                </div>
-            </div>
+            {{ include('_form_fields.html.twig', {form: form, columns: {
+                email: 'col-md-6',
+                firstName: 'col-md-6',
+                lastName: 'col-md-6',
+                age: 'col-md-6',
+                phone: 'col-md-6',
+                iban: 'col-md-6',
+                creditCard: 'col-md-6',
+                status: 'col-md-6',
+            }}) }}
 
             <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">Create User</button>

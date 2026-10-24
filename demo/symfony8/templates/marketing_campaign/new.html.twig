@@ -19,7 +19,11 @@
     </div>
     <div class="card-body">
         {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': true}}) }}
-            {{ form_widget(form) }}
+            {% for child in form %}
+                {% if not child.rendered %}
+                    {{ form_row(child) }}
+                {% endif %}
+            {% endfor %}
             <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">Create Marketing Campaign</button>
                 <a href="{{ path('marketing_campaign_index', {connection: connection}) }}" class="btn btn-secondary">Cancel</a>

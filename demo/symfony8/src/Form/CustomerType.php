@@ -31,7 +31,7 @@ class CustomerType extends AbstractType
                     'Inactive' => 'inactive',
                 ],
                 'required' => true,
-                'attr'     => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-select'],
             ]);
     }
 

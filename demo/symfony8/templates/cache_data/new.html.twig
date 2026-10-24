@@ -19,22 +19,7 @@
     </div>
     <div class="card-body">
         {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': true}}) }}
-            <div class="row">
-                <div class="col-md-12 mb-3">
-                    {{ form_row(form.cacheKey, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12 mb-3">
-                    {{ form_row(form.cacheValue, {'attr': {'class': 'form-control', 'rows': 10}}) }}
-                    <small class="form-text text-muted">Enter JSON data as a string (e.g., {"key": "value"})</small>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12 mb-3">
-                    {{ form_row(form.expiresAt, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
+            {{ include('_form_fields.html.twig', {form: form}) }}
 
             <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">Create Cache Data</button>

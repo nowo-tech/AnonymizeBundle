@@ -23,6 +23,10 @@ class OrderType extends AbstractType
                 'required' => false,
                 'attr'     => ['class' => 'form-control'],
             ])
+            ->add('customerEmail', EmailType::class, [
+                'required' => false,
+                'attr'     => ['class' => 'form-control'],
+            ])
             ->add('shippingAddress', TextType::class, [
                 'required' => true,
                 'attr'     => ['class' => 'form-control'],
@@ -36,11 +40,6 @@ class OrderType extends AbstractType
                 'currency' => 'USD',
                 'attr'     => ['class' => 'form-control'],
             ])
-            ->add('orderDate', DateTimeType::class, [
-                'required' => true,
-                'widget'   => 'single_text',
-                'attr'     => ['class' => 'form-control'],
-            ])
             ->add('status', ChoiceType::class, [
                 'choices' => [
                     'Pending'    => 'pending',
@@ -50,10 +49,11 @@ class OrderType extends AbstractType
                     'Cancelled'  => 'cancelled',
                 ],
                 'required' => true,
-                'attr'     => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-select'],
             ])
-            ->add('customerEmail', EmailType::class, [
-                'required' => false,
+            ->add('orderDate', DateTimeType::class, [
+                'required' => true,
+                'widget'   => 'single_text',
                 'attr'     => ['class' => 'form-control'],
             ]);
     }

@@ -18,15 +18,19 @@ class TempDataType extends AbstractType
     {
         $builder
             ->add('email', EmailType::class, [
+                'attr'     => ['class' => 'form-control'],
                 'required' => true,
             ])
             ->add('name', TextType::class, [
+                'attr'     => ['class' => 'form-control'],
                 'required' => true,
             ])
             ->add('phone', TextType::class, [
+                'attr'     => ['class' => 'form-control'],
                 'required' => false,
             ])
             ->add('createdAt', DateTimeType::class, [
+                'attr'     => ['class' => 'form-control'],
                 'required' => true,
                 'widget'   => 'single_text',
             ]);

@@ -18,36 +18,14 @@
     </div>
     <div class="card-body">
         {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': true}}) }}
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.email, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.name, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.status, {'attr': {'class': 'form-select'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.source, {'attr': {'class': 'form-select'}}) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.backupEmail, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.subscribedAt, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
-            <div class="mb-3">
-                {{ form_row(form.unsubscribedAt, {'attr': {'class': 'form-control'}}) }}
-            </div>
-            <div class="mb-3">
-                {{ form_row(form.notes, {'attr': {'class': 'form-control'}}) }}
-            </div>
+            {{ include('_form_fields.html.twig', {form: form, columns: {
+                email: 'col-md-6',
+                name: 'col-md-6',
+                status: 'col-md-6',
+                source: 'col-md-6',
+                backupEmail: 'col-md-6',
+                subscribedAt: 'col-md-6',
+            }}) }}
 
             <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">Update</button>

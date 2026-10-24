@@ -43,16 +43,6 @@ class InvoiceType extends AbstractType
                 'currency' => 'USD',
                 'attr'     => ['class' => 'form-control'],
             ])
-            ->add('issueDate', DateTimeType::class, [
-                'required' => true,
-                'widget'   => 'single_text',
-                'attr'     => ['class' => 'form-control'],
-            ])
-            ->add('dueDate', DateTimeType::class, [
-                'required' => false,
-                'widget'   => 'single_text',
-                'attr'     => ['class' => 'form-control'],
-            ])
             ->add('status', ChoiceType::class, [
                 'choices' => [
                     'Draft'     => 'draft',
@@ -62,6 +52,16 @@ class InvoiceType extends AbstractType
                     'Cancelled' => 'cancelled',
                 ],
                 'required' => true,
+                'attr'     => ['class' => 'form-select'],
+            ])
+            ->add('issueDate', DateTimeType::class, [
+                'required' => true,
+                'widget'   => 'single_text',
+                'attr'     => ['class' => 'form-control'],
+            ])
+            ->add('dueDate', DateTimeType::class, [
+                'required' => false,
+                'widget'   => 'single_text',
                 'attr'     => ['class' => 'form-control'],
             ]);
     }

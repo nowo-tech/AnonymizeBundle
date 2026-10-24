@@ -65,13 +65,13 @@ class SystemLogType extends AbstractType
                 'required' => false,
                 'attr'     => ['class' => 'form-control'],
             ])
-            ->add('isActive', CheckboxType::class, [
-                'required' => false,
-                'attr'     => ['class' => 'form-check-input'],
-            ])
             ->add('score', TextType::class, [
                 'required' => false,
                 'attr'     => ['class' => 'form-control'],
+            ])
+            ->add('isActive', CheckboxType::class, [
+                'required' => false,
+                'attr'     => ['class' => 'form-check-input'],
             ])
             ->add('logFile', TextType::class, [
                 'required' => false,
@@ -84,11 +84,6 @@ class SystemLogType extends AbstractType
             ->add('description', TextareaType::class, [
                 'required' => false,
                 'attr'     => ['class' => 'form-control', 'rows' => 3],
-            ])
-            ->add('createdAt', DateTimeType::class, [
-                'required' => false,
-                'widget'   => 'single_text',
-                'attr'     => ['class' => 'form-control'],
             ])
             ->add('userIdHash', TextType::class, [
                 'required' => false,
@@ -107,6 +102,11 @@ class SystemLogType extends AbstractType
             ])
             ->add('dataClassification', TextType::class, [
                 'required' => false,
+                'attr'     => ['class' => 'form-control'],
+            ])
+            ->add('createdAt', DateTimeType::class, [
+                'required' => false,
+                'widget'   => 'single_text',
                 'attr'     => ['class' => 'form-control'],
             ]);
     }

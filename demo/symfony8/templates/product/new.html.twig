@@ -18,24 +18,7 @@
     </div>
     <div class="card-body">
         {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': true}}) }}
-            <div class="mb-3">
-                {{ form_row(form.name, {'attr': {'class': 'form-control'}}) }}
-            </div>
-            <div class="mb-3">
-                {{ form_row(form.description, {'attr': {'class': 'form-control'}}) }}
-            </div>
-            <div class="mb-3">
-                {{ form_row(form.price, {'attr': {'class': 'form-control'}}) }}
-            </div>
-            <div class="mb-3">
-                {{ form_row(form.imageUrl, {'attr': {'class': 'form-control'}}) }}
-            </div>
-            <div class="mb-3">
-                {{ form_row(form.status, {'attr': {'class': 'form-select'}}) }}
-            </div>
-            <div class="mb-3">
-                {{ form_row(form.createdAt, {'attr': {'class': 'form-control'}}) }}
-            </div>
+            {{ include('_form_fields.html.twig', {form: form}) }}
 
             <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">Create Product</button>

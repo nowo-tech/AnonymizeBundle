@@ -18,16 +18,19 @@ class CacheDataType extends AbstractType
     {
         $builder
             ->add('cacheKey', TextType::class, [
+                'attr'     => ['class' => 'form-control'],
                 'required' => true,
                 'label'    => 'Cache Key',
             ])
             ->add('cacheValue', TextareaType::class, [
+                'attr'     => ['class' => 'form-control', 'rows' => 10],
                 'required' => true,
                 'label'    => 'Cache Value (JSON)',
-                'help'     => 'Enter JSON data as a string',
+                'help'     => 'Enter JSON data as a string (e.g., {"key": "value"})',
                 'mapped'   => false,
             ])
             ->add('expiresAt', DateTimeType::class, [
+                'attr'     => ['class' => 'form-control'],
                 'required' => true,
                 'widget'   => 'single_text',
                 'label'    => 'Expires At',

@@ -44,7 +44,7 @@ class ProductType extends AbstractType
                     'Draft'    => 'draft',
                 ],
                 'required' => true,
-                'attr'     => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-select'],
             ])
             ->add('createdAt', DateTimeType::class, [
                 'required' => false,

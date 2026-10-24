@@ -18,13 +18,16 @@ class LogEntryType extends AbstractType
     {
         $builder
             ->add('message', TextareaType::class, [
+                'attr'     => ['class' => 'form-control', 'rows' => 3],
                 'required' => true,
             ])
             ->add('ipAddress', TextType::class, [
+                'attr'     => ['class' => 'form-control'],
                 'required' => true,
                 'label'    => 'IP Address',
             ])
             ->add('loggedAt', DateTimeType::class, [
+                'attr'     => ['class' => 'form-control'],
                 'required' => true,
                 'widget'   => 'single_text',
                 'label'    => 'Logged At',

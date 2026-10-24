@@ -18,79 +18,24 @@
     </div>
     <div class="card-body">
         {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': true}}) }}
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.sessionId, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.ipAddress, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.macAddress, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.logLevel, {'attr': {'class': 'form-select'}}) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.countryCode, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.languageCode, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.apiKey, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.tokenHash, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.location, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.themeColor, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.score, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.isActive) }}
-                </div>
-            </div>
-            <div class="mb-3">
-                {{ form_row(form.logFile, {'attr': {'class': 'form-control'}}) }}
-            </div>
-            <div class="mb-3">
-                {{ form_row(form.metadata, {'attr': {'class': 'form-control'}}) }}
-            </div>
-            <div class="mb-3">
-                {{ form_row(form.description, {'attr': {'class': 'form-control'}}) }}
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.userIdHash, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.processStatus, {'attr': {'class': 'form-select'}}) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.dataClassification, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.createdAt, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
+            {{ include('_form_fields.html.twig', {form: form, columns: {
+                sessionId: 'col-md-6',
+                ipAddress: 'col-md-6',
+                macAddress: 'col-md-6',
+                logLevel: 'col-md-6',
+                countryCode: 'col-md-6',
+                languageCode: 'col-md-6',
+                apiKey: 'col-md-6',
+                tokenHash: 'col-md-6',
+                location: 'col-md-6',
+                themeColor: 'col-md-6',
+                score: 'col-md-6',
+                isActive: 'col-md-6',
+                userIdHash: 'col-md-6',
+                processStatus: 'col-md-6',
+                dataClassification: 'col-md-6',
+                createdAt: 'col-md-6',
+            }}) }}
 
             <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">Update</button>

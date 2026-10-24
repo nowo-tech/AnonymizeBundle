@@ -1,0 +1,19 @@
+{#
+  Demo form body (REQ-TWIG-003): one child loop in a Bootstrap grid.
+  columns: field name => column class (default col-12). Labels, attr and help come from the FormType; the field order
+  follows the FormType add() calls.
+#}
+{% set columns = columns|default({}) %}
+<div class="row">
+    {% for child in form %}
+        {% if not child.rendered %}
+            {% if 'hidden' in child.vars.block_prefixes %}
+                {{ form_row(child) }}
+            {% else %}
+                <div class="{{ columns[child.vars.name]|default('col-12') }} mb-3">
+                    {{ form_row(child) }}
+                </div>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+</div>

@@ -36,10 +36,6 @@ class EmailSubscriptionType extends AbstractType
                 'required' => true,
                 'attr'     => ['class' => 'form-select'],
             ])
-            ->add('backupEmail', EmailType::class, [
-                'required' => false,
-                'attr'     => ['class' => 'form-control'],
-            ])
             ->add('source', ChoiceType::class, [
                 'choices' => [
                     'Website'    => 'website',
@@ -49,6 +45,10 @@ class EmailSubscriptionType extends AbstractType
                 ],
                 'required' => true,
                 'attr'     => ['class' => 'form-select'],
+            ])
+            ->add('backupEmail', EmailType::class, [
+                'required' => false,
+                'attr'     => ['class' => 'form-control'],
             ])
             ->add('subscribedAt', DateTimeType::class, [
                 'required' => true,

@@ -18,33 +18,14 @@
     </div>
     <div class="card-body">
         {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': true}}) }}
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.orderNumber, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.customerEmail, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.shippingAddress, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.billingAddress, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.totalAmount, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form_row(form.status, {'attr': {'class': 'form-select'}}) }}
-                </div>
-            </div>
-            <div class="mb-3">
-                {{ form_row(form.orderDate, {'attr': {'class': 'form-control'}}) }}
-            </div>
+            {{ include('_form_fields.html.twig', {form: form, columns: {
+                orderNumber: 'col-md-6',
+                customerEmail: 'col-md-6',
+                shippingAddress: 'col-md-6',
+                billingAddress: 'col-md-6',
+                totalAmount: 'col-md-6',
+                status: 'col-md-6',
+            }}) }}
 
             <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">Create Order</button>
