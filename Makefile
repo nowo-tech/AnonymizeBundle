@@ -171,7 +171,7 @@ igor: ensure-up
 # Validate composer.json and align composer.lock (generate/update lock without install)
 composer-sync: ensure-up
 	$(COMPOSE) exec -T php composer validate --strict
-	$(COMPOSE) exec -T php composer update --no-install
+	$(COMPOSE) exec -T php composer install --no-interaction --prefer-dist
 
 # Update composer.lock
 update: ensure-up
