@@ -168,6 +168,26 @@ jobs:
       - name: Check code style
         run: composer cs-check
 
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2, cs2pr
+
+      - name: Install dependencies
+        run: composer update --no-interaction --prefer-dist --no-progress
+
+      - name: PHPStan (level and ignoreErrors from phpstan.neon.dist; fails the build on any error)
+        run: composer phpstan --no-interaction
+
   coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
