@@ -16,6 +16,12 @@ use PHPUnit\Framework\TestCase;
 class NameFallbackFakerTest extends TestCase
 {
     /**
+     * Original value that no Faker locale dataset contains, so "is anonymized" assertions
+     * cannot fail by chance (e.g. en_US firstName() may legitimately return 'John').
+     */
+    private const ORIGINAL_NAME = 'Original-Name-Not-In-Faker-Dataset';
+
+    /**
      * Test that NameFallbackFaker generates a name when current field is null but related field has value.
      */
     public function testGenerateWhenCurrentNullButRelatedHasValue(): void
@@ -38,14 +44,14 @@ class NameFallbackFakerTest extends TestCase
     {
         $faker = new NameFallbackFaker('en_US');
         $name  = $faker->generate([
-            'original_value' => 'John',
+            'original_value' => self::ORIGINAL_NAME,
             'fallback_field' => 'firstname',
             'record'         => ['firstname' => null],
         ]);
 
         $this->assertIsString($name);
         $this->assertNotEmpty($name);
-        $this->assertNotEquals('John', $name); // Should be anonymized
+        $this->assertNotSame(self::ORIGINAL_NAME, $name); // Should be anonymized
     }
 
     /**
@@ -71,14 +77,14 @@ class NameFallbackFakerTest extends TestCase
     {
         $faker = new NameFallbackFaker('en_US');
         $name  = $faker->generate([
-            'original_value' => 'John',
+            'original_value' => self::ORIGINAL_NAME,
             'fallback_field' => 'firstname',
             'record'         => ['firstname' => 'Jane'],
         ]);
 
         $this->assertIsString($name);
         $this->assertNotEmpty($name);
-        $this->assertNotEquals('John', $name); // Should be anonymized
+        $this->assertNotSame(self::ORIGINAL_NAME, $name); // Should be anonymized
     }
 
     /**
