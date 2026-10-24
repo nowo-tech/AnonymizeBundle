@@ -100,6 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Developer tooling (REQ-MAKE-002):** `make release-check` runs the full REQ-MAKE-002 chain in order (ensure-up, co-author and open-PR gates, composer-sync, cs-fix, cs-check, rector-dry, phpstan, igor, test-coverage, demo release-check). New `make check-no-raw-html-form` target (`.scripts/check-no-raw-html-form.sh`, REQ-TWIG-005); it joins the chain once the demo raw form markup is migrated. `check-twig-extra` does not apply (no bundle Twig views).
 - **Demo (REQ-TWIG-003):** the `new` / `edit` pages of every demo entity render the form through the child loop instead of one `form_row(form.x)` (or `form_widget(form)`) per page: field-list pages share `templates/_form_fields.html.twig` (one Bootstrap grid, column class per field from a name-keyed map), the others loop directly. Field order, `attr` classes (`form-control` / `form-select`, textarea rows) and the cache-value hint moved into the demo FormTypes.
 
 ## [1.2.4] - 2026-10-21
