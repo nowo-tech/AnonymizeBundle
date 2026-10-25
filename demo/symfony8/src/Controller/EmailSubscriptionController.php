@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\EmailSubscription;
+use App\Form\DeleteFormFactory;
 use App\Form\EmailSubscriptionType;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -144,7 +145,7 @@ class EmailSubscriptionController extends AbstractController
     }
 
     #[Route('/{id}', name: 'email_subscription_delete', methods: ['POST'])]
-    public function delete(Request $request, string $connection, int $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $connection, int $id): Response
     {
         $em           = $this->doctrine->getManager($connection);
         $subscription = $em->getRepository(EmailSubscription::class)->find($id);
@@ -153,7 +154,7 @@ class EmailSubscriptionController extends AbstractController
             throw $this->createNotFoundException('Email subscription not found');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $subscription->getId(), $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $subscription->getId())) {
             $em->remove($subscription);
             $em->flush();
 

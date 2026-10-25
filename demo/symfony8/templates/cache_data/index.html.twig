@@ -60,10 +60,11 @@
                                     <div class="btn-group" role="group">
                                         <a href="{{ path('cache_data_show', {connection: connection, id: cache_data.id ?? cache_data.id}) }}" class="btn btn-sm btn-outline-secondary">Show</a>
                                         <a href="{{ path('cache_data_edit', {connection: connection, id: cache_data.id ?? cache_data.id}) }}" class="btn btn-sm btn-outline-primary">Edit</a>
-                                        <form method="post" action="{{ path('cache_data_delete', {connection: connection, id: cache_data.id ?? cache_data.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure?')">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ (cache_data.id ?? cache_data.id)) }}">
+                                        {% set delete_form = demo_delete_form('cache_data_delete', {connection: connection, id: cache_data.id ?? cache_data.id}, (cache_data.id ?? cache_data.id), 'Are you sure?') %}
+                                        {{ form_start(delete_form) }}
+                                            {% for child in delete_form %}{% if not child.rendered %}{{ form_row(child) }}{% endif %}{% endfor %}
                                             <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                                        </form>
+                                        {{ form_end(delete_form) }}
                                     </div>
                                 </td>
                             </tr>

@@ -65,10 +65,11 @@
                                     <div class="btn-group" role="group">
                                         <a href="{{ path('customer_show', {connection: connection, id: customer.id}) }}" class="btn btn-sm btn-outline-secondary">Show</a>
                                         <a href="{{ path('customer_edit', {connection: connection, id: customer.id}) }}" class="btn btn-sm btn-outline-primary">Edit</a>
-                                        <form method="post" action="{{ path('customer_delete', {connection: connection, id: customer.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure?')">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ customer.id) }}">
+                                        {% set delete_form = demo_delete_form('customer_delete', {connection: connection, id: customer.id}, customer.id, 'Are you sure?') %}
+                                        {{ form_start(delete_form) }}
+                                            {% for child in delete_form %}{% if not child.rendered %}{{ form_row(child) }}{% endif %}{% endfor %}
                                             <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                                        </form>
+                                        {{ form_end(delete_form) }}
                                     </div>
                                 </td>
                             </tr>

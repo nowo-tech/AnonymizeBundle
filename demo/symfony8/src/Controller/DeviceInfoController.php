@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use DateTime;
+use App\Form\DeleteFormFactory;
+use App\Form\Mongo\DeviceInfoDocumentType;
 use Exception;
 use MongoDB\BSON\ObjectId;
-use MongoDB\BSON\UTCDateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -101,7 +101,10 @@ class DeviceInfoController extends AbstractController
     #[Route('/new', name: 'mongodb_device_info_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
-        if ($request->isMethod('POST')) {
+        $form = $this->createForm(DeviceInfoDocumentType::class, DeviceInfoDocumentType::defaults());
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $collection = $this->getCollection();
             if (!$collection) {
                 $this->addFlash('error', 'MongoDB connection not available.');
@@ -110,20 +113,7 @@ class DeviceInfoController extends AbstractController
             }
 
             try {
-                $data = [
-                    'deviceId'       => $request->request->get('deviceId', ''),
-                    'ipAddress'      => $request->request->get('ipAddress', ''),
-                    'macAddress'     => $request->request->get('macAddress', ''),
-                    'deviceHash'     => $request->request->get('deviceHash', ''),
-                    'location'       => $request->request->get('location', ''),
-                    'themeColor'     => $request->request->get('themeColor', '#667eea'),
-                    'deviceName'     => $request->request->get('deviceName', ''),
-                    'osVersion'      => $request->request->get('osVersion', ''),
-                    'browserVersion' => $request->request->get('browserVersion', ''),
-                    'isActive'       => $request->request->get('isActive') === '1',
-                    'lastSeen'       => new UTCDateTime(new DateTime($request->request->get('lastSeen', 'now'))),
-                    'anonymized'     => false,
-                ];
+                $data = DeviceInfoDocumentType::toDocument($form->getData()) + ['anonymized' => false];
                 $collection->insertOne($data);
                 $this->addFlash('success', 'Device info created successfully!');
 
@@ -134,6 +124,7 @@ class DeviceInfoController extends AbstractController
         }
 
         return $this->render('device_info/new.html.twig', [
+            'form'       => $form,
             'connection' => 'mongodb',
         ]);
     }
@@ -187,22 +178,13 @@ class DeviceInfoController extends AbstractController
             return $this->redirectToRoute('mongodb_device_info_index');
         }
 
-        if ($request->isMethod('POST')) {
+        $form = $this->createForm(DeviceInfoDocumentType::class, DeviceInfoDocumentType::fromDocument($device));
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
             try {
                 $updateData = [
-                    '$set' => [
-                        'deviceId'       => $request->request->get('deviceId', ''),
-                        'ipAddress'      => $request->request->get('ipAddress', ''),
-                        'macAddress'     => $request->request->get('macAddress', ''),
-                        'deviceHash'     => $request->request->get('deviceHash', ''),
-                        'location'       => $request->request->get('location', ''),
-                        'themeColor'     => $request->request->get('themeColor', '#667eea'),
-                        'deviceName'     => $request->request->get('deviceName', ''),
-                        'osVersion'      => $request->request->get('osVersion', ''),
-                        'browserVersion' => $request->request->get('browserVersion', ''),
-                        'isActive'       => $request->request->get('isActive') === '1',
-                        'lastSeen'       => new UTCDateTime(new DateTime($request->request->get('lastSeen', 'now'))),
-                    ],
+                    '$set' => DeviceInfoDocumentType::toDocument($form->getData()),
                 ];
                 $collection->updateOne(['_id' => new ObjectId($id)], $updateData);
                 $this->addFlash('success', 'Device info updated successfully!');
@@ -214,13 +196,14 @@ class DeviceInfoController extends AbstractController
         }
 
         return $this->render('device_info/edit.html.twig', [
+            'form'       => $form,
             'device'     => $device,
             'connection' => 'mongodb',
         ]);
     }
 
     #[Route('/{id}', name: 'mongodb_device_info_delete', methods: ['POST'])]
-    public function delete(Request $request, string $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $id): Response
     {
         $collection = $this->getCollection();
         if (!$collection) {
@@ -229,7 +212,7 @@ class DeviceInfoController extends AbstractController
             return $this->redirectToRoute('mongodb_device_info_index');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $id, $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $id)) {
             try {
                 $collection->deleteOne(['_id' => new ObjectId($id)]);
                 $this->addFlash('success', 'Device info deleted successfully!');

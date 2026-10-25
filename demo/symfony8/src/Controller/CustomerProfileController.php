@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use DateTime;
+use App\Form\DeleteFormFactory;
+use App\Form\Mongo\CustomerProfileDocumentType;
 use Exception;
 use MongoDB\BSON\ObjectId;
-use MongoDB\BSON\UTCDateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -101,7 +101,10 @@ class CustomerProfileController extends AbstractController
     #[Route('/new', name: 'mongodb_customer_profile_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
-        if ($request->isMethod('POST')) {
+        $form = $this->createForm(CustomerProfileDocumentType::class, CustomerProfileDocumentType::defaults());
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $collection = $this->getCollection();
             if (!$collection) {
                 $this->addFlash('error', 'MongoDB connection not available.');
@@ -110,20 +113,7 @@ class CustomerProfileController extends AbstractController
             }
 
             try {
-                $data = [
-                    'email'      => $request->request->get('email', ''),
-                    'firstName'  => $request->request->get('firstName', ''),
-                    'lastName'   => $request->request->get('lastName', ''),
-                    'phone'      => $request->request->get('phone', ''),
-                    'address'    => $request->request->get('address', ''),
-                    'company'    => $request->request->get('company', ''),
-                    'username'   => $request->request->get('username', ''),
-                    'website'    => $request->request->get('website', ''),
-                    'age'        => (int) $request->request->get('age', 0),
-                    'status'     => $request->request->get('status', 'active'),
-                    'createdAt'  => new UTCDateTime(new DateTime($request->request->get('createdAt', 'now'))),
-                    'anonymized' => false,
-                ];
+                $data = CustomerProfileDocumentType::toDocument($form->getData()) + ['anonymized' => false];
                 $collection->insertOne($data);
                 $this->addFlash('success', 'Customer profile created successfully!');
 
@@ -134,6 +124,7 @@ class CustomerProfileController extends AbstractController
         }
 
         return $this->render('customer_profile/new.html.twig', [
+            'form'       => $form,
             'connection' => 'mongodb',
         ]);
     }
@@ -187,22 +178,13 @@ class CustomerProfileController extends AbstractController
             return $this->redirectToRoute('mongodb_customer_profile_index');
         }
 
-        if ($request->isMethod('POST')) {
+        $form = $this->createForm(CustomerProfileDocumentType::class, CustomerProfileDocumentType::fromDocument($profile));
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
             try {
                 $updateData = [
-                    '$set' => [
-                        'email'     => $request->request->get('email', ''),
-                        'firstName' => $request->request->get('firstName', ''),
-                        'lastName'  => $request->request->get('lastName', ''),
-                        'phone'     => $request->request->get('phone', ''),
-                        'address'   => $request->request->get('address', ''),
-                        'company'   => $request->request->get('company', ''),
-                        'username'  => $request->request->get('username', ''),
-                        'website'   => $request->request->get('website', ''),
-                        'age'       => (int) $request->request->get('age', 0),
-                        'status'    => $request->request->get('status', 'active'),
-                        'createdAt' => new UTCDateTime(new DateTime($request->request->get('createdAt', 'now'))),
-                    ],
+                    '$set' => CustomerProfileDocumentType::toDocument($form->getData()),
                 ];
                 $collection->updateOne(['_id' => new ObjectId($id)], $updateData);
                 $this->addFlash('success', 'Customer profile updated successfully!');
@@ -214,13 +196,14 @@ class CustomerProfileController extends AbstractController
         }
 
         return $this->render('customer_profile/edit.html.twig', [
+            'form'       => $form,
             'profile'    => $profile,
             'connection' => 'mongodb',
         ]);
     }
 
     #[Route('/{id}', name: 'mongodb_customer_profile_delete', methods: ['POST'])]
-    public function delete(Request $request, string $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $id): Response
     {
         $collection = $this->getCollection();
         if (!$collection) {
@@ -229,7 +212,7 @@ class CustomerProfileController extends AbstractController
             return $this->redirectToRoute('mongodb_customer_profile_index');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $id, $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $id)) {
             try {
                 $collection->deleteOne(['_id' => new ObjectId($id)]);
                 $this->addFlash('success', 'Customer profile deleted successfully!');

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\LogEntry;
+use App\Form\DeleteFormFactory;
 use App\Form\LogEntryType;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -130,7 +131,7 @@ class LogEntryController extends AbstractController
     }
 
     #[Route('/{id}', name: 'log_entry_delete', methods: ['POST'])]
-    public function delete(Request $request, string $connection, int $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $connection, int $id): Response
     {
         $em       = $this->doctrine->getManager($connection);
         $logEntry = $em->getRepository(LogEntry::class)->find($id);
@@ -139,7 +140,7 @@ class LogEntryController extends AbstractController
             throw $this->createNotFoundException('LogEntry not found');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $logEntry->getId(), $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $logEntry->getId())) {
             $em->remove($logEntry);
             $em->flush();
 

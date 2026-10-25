@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\Contact;
 use App\Form\ContactType;
+use App\Form\DeleteFormFactory;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
@@ -130,7 +131,7 @@ class ContactController extends AbstractController
     }
 
     #[Route('/{id}', name: 'contact_delete', methods: ['POST'])]
-    public function delete(Request $request, string $connection, int $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $connection, int $id): Response
     {
         $em      = $this->doctrine->getManager($connection);
         $contact = $em->getRepository(Contact::class)->find($id);
@@ -139,7 +140,7 @@ class ContactController extends AbstractController
             throw $this->createNotFoundException('Contact not found');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $contact->getId(), $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $contact->getId())) {
             $em->remove($contact);
             $em->flush();
 

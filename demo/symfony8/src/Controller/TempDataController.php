@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\TempData;
+use App\Form\DeleteFormFactory;
 use App\Form\TempDataType;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -130,7 +131,7 @@ class TempDataController extends AbstractController
     }
 
     #[Route('/{id}', name: 'temp_data_delete', methods: ['POST'])]
-    public function delete(Request $request, string $connection, int $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $connection, int $id): Response
     {
         $em       = $this->doctrine->getManager($connection);
         $tempData = $em->getRepository(TempData::class)->find($id);
@@ -139,7 +140,7 @@ class TempDataController extends AbstractController
             throw $this->createNotFoundException('TempData not found');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $tempData->getId(), $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $tempData->getId())) {
             $em->remove($tempData);
             $em->flush();
 

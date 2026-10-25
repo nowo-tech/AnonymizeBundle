@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use DateTime;
+use App\Form\DeleteFormFactory;
+use App\Form\Mongo\AnalyticsEventDocumentType;
 use Exception;
 use MongoDB\BSON\ObjectId;
-use MongoDB\BSON\UTCDateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -101,7 +101,10 @@ class AnalyticsEventController extends AbstractController
     #[Route('/new', name: 'mongodb_analytics_event_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
-        if ($request->isMethod('POST')) {
+        $form = $this->createForm(AnalyticsEventDocumentType::class, AnalyticsEventDocumentType::defaults());
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $collection = $this->getCollection();
             if (!$collection) {
                 $this->addFlash('error', 'MongoDB connection not available.');
@@ -110,19 +113,7 @@ class AnalyticsEventController extends AbstractController
             }
 
             try {
-                $data = [
-                    'eventId'            => $request->request->get('eventId', ''),
-                    'eventType'          => $request->request->get('eventType', 'page_view'),
-                    'country'            => $request->request->get('country', ''),
-                    'language'           => $request->request->get('language', ''),
-                    'eventData'          => $request->request->get('eventData', '{}'),
-                    'description'        => $request->request->get('description', ''),
-                    'userIdHash'         => $request->request->get('userIdHash', ''),
-                    'category'           => $request->request->get('category', ''),
-                    'dataClassification' => $request->request->get('dataClassification', 'ANONYMIZED'),
-                    'timestamp'          => new UTCDateTime(new DateTime($request->request->get('timestamp', 'now'))),
-                    'anonymized'         => false,
-                ];
+                $data = AnalyticsEventDocumentType::toDocument($form->getData()) + ['anonymized' => false];
                 $collection->insertOne($data);
                 $this->addFlash('success', 'Analytics event created successfully!');
 
@@ -133,6 +124,7 @@ class AnalyticsEventController extends AbstractController
         }
 
         return $this->render('analytics_event/new.html.twig', [
+            'form'       => $form,
             'connection' => 'mongodb',
         ]);
     }
@@ -186,21 +178,13 @@ class AnalyticsEventController extends AbstractController
             return $this->redirectToRoute('mongodb_analytics_event_index');
         }
 
-        if ($request->isMethod('POST')) {
+        $form = $this->createForm(AnalyticsEventDocumentType::class, AnalyticsEventDocumentType::fromDocument($event));
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
             try {
                 $updateData = [
-                    '$set' => [
-                        'eventId'            => $request->request->get('eventId', ''),
-                        'eventType'          => $request->request->get('eventType', 'page_view'),
-                        'country'            => $request->request->get('country', ''),
-                        'language'           => $request->request->get('language', ''),
-                        'eventData'          => $request->request->get('eventData', '{}'),
-                        'description'        => $request->request->get('description', ''),
-                        'userIdHash'         => $request->request->get('userIdHash', ''),
-                        'category'           => $request->request->get('category', ''),
-                        'dataClassification' => $request->request->get('dataClassification', 'ANONYMIZED'),
-                        'timestamp'          => new UTCDateTime(new DateTime($request->request->get('timestamp', 'now'))),
-                    ],
+                    '$set' => AnalyticsEventDocumentType::toDocument($form->getData()),
                 ];
                 $collection->updateOne(['_id' => new ObjectId($id)], $updateData);
                 $this->addFlash('success', 'Analytics event updated successfully!');
@@ -212,13 +196,14 @@ class AnalyticsEventController extends AbstractController
         }
 
         return $this->render('analytics_event/edit.html.twig', [
+            'form'       => $form,
             'event'      => $event,
             'connection' => 'mongodb',
         ]);
     }
 
     #[Route('/{id}', name: 'mongodb_analytics_event_delete', methods: ['POST'])]
-    public function delete(Request $request, string $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $id): Response
     {
         $collection = $this->getCollection();
         if (!$collection) {
@@ -227,7 +212,7 @@ class AnalyticsEventController extends AbstractController
             return $this->redirectToRoute('mongodb_analytics_event_index');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $id, $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $id)) {
             try {
                 $collection->deleteOne(['_id' => new ObjectId($id)]);
                 $this->addFlash('success', 'Analytics event deleted successfully!');

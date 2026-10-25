@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\FakerTypeExample;
+use App\Form\DeleteFormFactory;
 use App\Form\FakerTypeExampleType;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -130,7 +131,7 @@ class FakerTypeExampleController extends AbstractController
     }
 
     #[Route('/{id}', name: 'faker_type_example_delete', methods: ['POST'])]
-    public function delete(Request $request, string $connection, int $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $connection, int $id): Response
     {
         $em               = $this->doctrine->getManager($connection);
         $fakertypeexample = $em->getRepository(FakerTypeExample::class)->find($id);
@@ -139,7 +140,7 @@ class FakerTypeExampleController extends AbstractController
             throw $this->createNotFoundException('FakerTypeExample not found');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $fakertypeexample->getId(), $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $fakertypeexample->getId())) {
             $em->remove($fakertypeexample);
             $em->flush();
 

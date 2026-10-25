@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Invoice;
+use App\Form\DeleteFormFactory;
 use App\Form\InvoiceType;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -144,7 +145,7 @@ class InvoiceController extends AbstractController
     }
 
     #[Route('/{id}', name: 'invoice_delete', methods: ['POST'])]
-    public function delete(Request $request, string $connection, int $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $connection, int $id): Response
     {
         $em      = $this->doctrine->getManager($connection);
         $invoice = $em->getRepository(Invoice::class)->find($id);
@@ -153,7 +154,7 @@ class InvoiceController extends AbstractController
             throw $this->createNotFoundException('Invoice not found');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $invoice->getId(), $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $invoice->getId())) {
             $em->remove($invoice);
             $em->flush();
 

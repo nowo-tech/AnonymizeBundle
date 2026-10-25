@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Product;
+use App\Form\DeleteFormFactory;
 use App\Form\ProductType;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -147,7 +148,7 @@ class ProductController extends AbstractController
     }
 
     #[Route('/{id}', name: 'product_delete', methods: ['POST'])]
-    public function delete(Request $request, string $connection, int $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $connection, int $id): Response
     {
         $em      = $this->doctrine->getManager($connection);
         $product = $em->getRepository(Product::class)->find($id);
@@ -156,7 +157,7 @@ class ProductController extends AbstractController
             throw $this->createNotFoundException('Product not found');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $product->getId(), $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $product->getId())) {
             $em->remove($product);
             $em->flush();
 

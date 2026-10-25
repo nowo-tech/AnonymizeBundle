@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\EmailSignature;
+use App\Form\DeleteFormFactory;
 use App\Form\EmailSignatureType;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -130,7 +131,7 @@ class EmailSignatureController extends AbstractController
     }
 
     #[Route('/{id}', name: 'email_signature_delete', methods: ['POST'])]
-    public function delete(Request $request, string $connection, int $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $connection, int $id): Response
     {
         $em             = $this->doctrine->getManager($connection);
         $emailsignature = $em->getRepository(EmailSignature::class)->find($id);
@@ -139,7 +140,7 @@ class EmailSignatureController extends AbstractController
             throw $this->createNotFoundException('EmailSignature not found');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $emailsignature->getId(), $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $emailsignature->getId())) {
             $em->remove($emailsignature);
             $em->flush();
 

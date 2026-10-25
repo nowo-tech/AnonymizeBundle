@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Form\DeleteFormFactory;
 use App\Form\UserType;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -147,7 +148,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/{id}', name: 'user_delete', methods: ['POST'])]
-    public function delete(Request $request, string $connection, int $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $connection, int $id): Response
     {
         $em   = $this->doctrine->getManager($connection);
         $user = $em->getRepository(User::class)->find($id);
@@ -156,7 +157,7 @@ class UserController extends AbstractController
             throw $this->createNotFoundException('User not found');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $user->getId(), $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $user->getId())) {
             $em->remove($user);
             $em->flush();
 

@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\CustomFakerExample;
 use App\Form\CustomFakerExampleType;
+use App\Form\DeleteFormFactory;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
@@ -130,7 +131,7 @@ class CustomFakerExampleController extends AbstractController
     }
 
     #[Route('/{id}', name: 'custom_faker_example_delete', methods: ['POST'])]
-    public function delete(Request $request, string $connection, int $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $connection, int $id): Response
     {
         $em                 = $this->doctrine->getManager($connection);
         $customfakerexample = $em->getRepository(CustomFakerExample::class)->find($id);
@@ -139,7 +140,7 @@ class CustomFakerExampleController extends AbstractController
             throw $this->createNotFoundException('CustomFakerExample not found');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $customfakerexample->getId(), $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $customfakerexample->getId())) {
             $em->remove($customfakerexample);
             $em->flush();
 

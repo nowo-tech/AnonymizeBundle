@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\MarketingCampaign;
+use App\Form\DeleteFormFactory;
 use App\Form\MarketingCampaignType;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -130,7 +131,7 @@ class MarketingCampaignController extends AbstractController
     }
 
     #[Route('/{id}', name: 'marketing_campaign_delete', methods: ['POST'])]
-    public function delete(Request $request, string $connection, int $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $connection, int $id): Response
     {
         $em                = $this->doctrine->getManager($connection);
         $marketingcampaign = $em->getRepository(MarketingCampaign::class)->find($id);
@@ -139,7 +140,7 @@ class MarketingCampaignController extends AbstractController
             throw $this->createNotFoundException('MarketingCampaign not found');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $marketingcampaign->getId(), $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $marketingcampaign->getId())) {
             $em->remove($marketingcampaign);
             $em->flush();
 

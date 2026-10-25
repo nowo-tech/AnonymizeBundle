@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\Customer;
 use App\Form\CustomerType;
+use App\Form\DeleteFormFactory;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
@@ -147,7 +148,7 @@ class CustomerController extends AbstractController
     }
 
     #[Route('/{id}', name: 'customer_delete', methods: ['POST'])]
-    public function delete(Request $request, string $connection, int $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $connection, int $id): Response
     {
         $em       = $this->doctrine->getManager($connection);
         $customer = $em->getRepository(Customer::class)->find($id);
@@ -156,7 +157,7 @@ class CustomerController extends AbstractController
             throw $this->createNotFoundException('Customer not found');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $customer->getId(), $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $customer->getId())) {
             $em->remove($customer);
             $em->flush();
 

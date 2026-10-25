@@ -7,10 +7,10 @@ namespace App\Controller;
 // Note: MongoDB client requires mongodb/mongodb package or mongodb PHP extension
 // For now, we'll check if it's available at runtime
 // TODO: Add mongodb/mongodb to composer.json when MongoDB ODM support is added
-use DateTime;
+use App\Form\DeleteFormFactory;
+use App\Form\Mongo\UserActivityDocumentType;
 use Exception;
 use MongoDB\BSON\ObjectId;
-use MongoDB\BSON\UTCDateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -144,7 +144,10 @@ class UserActivityController extends AbstractController
     #[Route('/new', name: 'mongodb_user_activity_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
-        if ($request->isMethod('POST')) {
+        $form = $this->createForm(UserActivityDocumentType::class, UserActivityDocumentType::defaults());
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $collection = $this->getCollection();
 
             if (!$collection) {
@@ -154,19 +157,7 @@ class UserActivityController extends AbstractController
             }
 
             try {
-                $data = [
-                    'userEmail' => $request->request->get('userEmail', ''),
-                    'userName'  => $request->request->get('userName', ''),
-                    'ipAddress' => $request->request->get('ipAddress', ''),
-                    'action'    => $request->request->get('action', ''),
-                    'timestamp' => new UTCDateTime(new DateTime($request->request->get('timestamp', 'now'))),
-                    'metadata'  => [
-                        'userAgent' => $request->request->get('userAgent', ''),
-                        'sessionId' => $request->request->get('sessionId', ''),
-                        'referrer'  => $request->request->get('referrer', ''),
-                    ],
-                    'anonymized' => false, // Track anonymization status
-                ];
+                $data = UserActivityDocumentType::toDocument($form->getData()) + ['anonymized' => false];
 
                 $collection->insertOne($data);
                 $this->addFlash('success', 'User activity created successfully!');
@@ -178,6 +169,7 @@ class UserActivityController extends AbstractController
         }
 
         return $this->render('user_activity/new.html.twig', [
+            'form'       => $form,
             'connection' => 'mongodb',
         ]);
     }
@@ -223,20 +215,11 @@ class UserActivityController extends AbstractController
                 throw $this->createNotFoundException('User activity not found');
             }
 
-            if ($request->isMethod('POST')) {
-                $updateData = [
-                    'userEmail' => $request->request->get('userEmail', ''),
-                    'userName'  => $request->request->get('userName', ''),
-                    'ipAddress' => $request->request->get('ipAddress', ''),
-                    'action'    => $request->request->get('action', ''),
-                    'timestamp' => new UTCDateTime(new DateTime($request->request->get('timestamp', 'now'))),
-                    'metadata'  => [
-                        'userAgent' => $request->request->get('userAgent', ''),
-                        'sessionId' => $request->request->get('sessionId', ''),
-                        'referrer'  => $request->request->get('referrer', ''),
-                    ],
-                    // Note: anonymized field is preserved (not updated via form)
-                ];
+            $form = $this->createForm(UserActivityDocumentType::class, UserActivityDocumentType::fromDocument($activity));
+            $form->handleRequest($request);
+
+            if ($form->isSubmitted() && $form->isValid()) {
+                $updateData = UserActivityDocumentType::toDocument($form->getData());
 
                 $collection->updateOne(
                     ['_id' => new ObjectId($id)],
@@ -252,13 +235,14 @@ class UserActivityController extends AbstractController
         }
 
         return $this->render('user_activity/edit.html.twig', [
+            'form'       => $form,
             'activity'   => $activity,
             'connection' => 'mongodb',
         ]);
     }
 
     #[Route('/{id}', name: 'mongodb_user_activity_delete', methods: ['POST'])]
-    public function delete(Request $request, string $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $id): Response
     {
         $collection = $this->getCollection();
 
@@ -266,7 +250,7 @@ class UserActivityController extends AbstractController
             throw $this->createNotFoundException('MongoDB connection not available');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $id, $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $id)) {
             try {
                 $result = $collection->deleteOne(['_id' => new ObjectId($id)]);
 

@@ -36,7 +36,7 @@ help:
 	@echo "  qa            Run all QA checks (cs-check + test)"
 	@echo "  release-check Pre-release: ensure-up, git/PR gates, cs-fix, cs-check, rector-dry, phpstan, igor, test-coverage, demo healthchecks"
 	@echo "  check-open-prs Fail if unresolved open GitHub PRs remain (REQ-REL-003)"
-	@echo "  check-no-raw-html-form Fail on raw <form>/<input>/<textarea>/<select> in Twig (REQ-TWIG-005; not yet in release-check)"
+	@echo "  check-no-raw-html-form Fail on raw <form>/<input>/<textarea>/<select> in Twig (REQ-TWIG-005)"
 	@echo "  composer-sync Validate composer.json and align composer.lock (no install)"
 	@echo "  clean         Remove vendor and cache"
 	@echo "  update        Update composer.lock (composer update, bundle only)"
@@ -187,8 +187,7 @@ qa: ensure-up
 
 # Pre-release (REQ-MAKE-002): ensure-up → git/PR gates → composer-sync → QA → demos
 # check-twig-extra (REQ-TWIG-004) is omitted: the bundle ships no Twig views.
-# check-no-raw-html-form (REQ-TWIG-005) is wired once the remaining raw form markup is migrated
-release-check: ensure-up check-no-cursor-coauthor check-open-prs composer-sync cs-fix cs-check rector-dry phpstan igor test-coverage release-check-demos
+release-check: ensure-up check-no-cursor-coauthor check-open-prs check-no-raw-html-form composer-sync cs-fix cs-check rector-dry phpstan igor test-coverage release-check-demos
 
 # REQ-TEST-011 — boot demo stack and assert one HTTP 200
 demo-smoke:

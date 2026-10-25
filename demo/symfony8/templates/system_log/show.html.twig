@@ -96,10 +96,11 @@
         </dl>
 
         <div class="mt-4">
-            <form method="post" action="{{ path('system_log_delete', {connection: connection, id: log.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this log?')">
-                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ log.id) }}">
+            {% set delete_form = demo_delete_form('system_log_delete', {connection: connection, id: log.id}, log.id, 'Are you sure you want to delete this log?') %}
+            {{ form_start(delete_form) }}
+                {% for child in delete_form %}{% if not child.rendered %}{{ form_row(child) }}{% endif %}{% endfor %}
                 <button type="submit" class="btn btn-danger">Delete Log</button>
-            </form>
+            {{ form_end(delete_form) }}
         </div>
     </div>
 </div>

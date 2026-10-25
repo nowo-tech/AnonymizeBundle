@@ -34,10 +34,11 @@
         </dl>
 
         <div class="mt-4">
-            <form method="post" action="{{ path('faker_type_example_delete', {connection: connection, id: fakertypeexample.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this fakertypeexample?')">
-                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ fakertypeexample.id) }}">
+            {% set delete_form = demo_delete_form('faker_type_example_delete', {connection: connection, id: fakertypeexample.id}, fakertypeexample.id, 'Are you sure you want to delete this fakertypeexample?') %}
+            {{ form_start(delete_form) }}
+                {% for child in delete_form %}{% if not child.rendered %}{{ form_row(child) }}{% endif %}{% endfor %}
                 <button type="submit" class="btn btn-danger">Delete Faker Type Example</button>
-            </form>
+            {{ form_end(delete_form) }}
         </div>
     </div>
 </div>

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use DateTime;
+use App\Form\DeleteFormFactory;
+use App\Form\Mongo\TransactionLogDocumentType;
 use Exception;
 use MongoDB\BSON\ObjectId;
-use MongoDB\BSON\UTCDateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -101,7 +101,10 @@ class TransactionLogController extends AbstractController
     #[Route('/new', name: 'mongodb_transaction_log_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
-        if ($request->isMethod('POST')) {
+        $form = $this->createForm(TransactionLogDocumentType::class, TransactionLogDocumentType::defaults());
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $collection = $this->getCollection();
             if (!$collection) {
                 $this->addFlash('error', 'MongoDB connection not available.');
@@ -110,19 +113,7 @@ class TransactionLogController extends AbstractController
             }
 
             try {
-                $data = [
-                    'transactionId'   => $request->request->get('transactionId', ''),
-                    'customerEmail'   => $request->request->get('customerEmail', ''),
-                    'iban'            => $request->request->get('iban', ''),
-                    'creditCard'      => $request->request->get('creditCard', ''),
-                    'maskedCard'      => $request->request->get('maskedCard', ''),
-                    'amount'          => (float) $request->request->get('amount', 0),
-                    'currency'        => $request->request->get('currency', 'EUR'),
-                    'transactionHash' => $request->request->get('transactionHash', ''),
-                    'status'          => $request->request->get('status', 'pending'),
-                    'transactionDate' => new UTCDateTime(new DateTime($request->request->get('transactionDate', 'now'))),
-                    'anonymized'      => false,
-                ];
+                $data = TransactionLogDocumentType::toDocument($form->getData()) + ['anonymized' => false];
                 $collection->insertOne($data);
                 $this->addFlash('success', 'Transaction log created successfully!');
 
@@ -133,6 +124,7 @@ class TransactionLogController extends AbstractController
         }
 
         return $this->render('transaction_log/new.html.twig', [
+            'form'       => $form,
             'connection' => 'mongodb',
         ]);
     }
@@ -186,21 +178,13 @@ class TransactionLogController extends AbstractController
             return $this->redirectToRoute('mongodb_transaction_log_index');
         }
 
-        if ($request->isMethod('POST')) {
+        $form = $this->createForm(TransactionLogDocumentType::class, TransactionLogDocumentType::fromDocument($transaction));
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
             try {
                 $updateData = [
-                    '$set' => [
-                        'transactionId'   => $request->request->get('transactionId', ''),
-                        'customerEmail'   => $request->request->get('customerEmail', ''),
-                        'iban'            => $request->request->get('iban', ''),
-                        'creditCard'      => $request->request->get('creditCard', ''),
-                        'maskedCard'      => $request->request->get('maskedCard', ''),
-                        'amount'          => (float) $request->request->get('amount', 0),
-                        'currency'        => $request->request->get('currency', 'EUR'),
-                        'transactionHash' => $request->request->get('transactionHash', ''),
-                        'status'          => $request->request->get('status', 'pending'),
-                        'transactionDate' => new UTCDateTime(new DateTime($request->request->get('transactionDate', 'now'))),
-                    ],
+                    '$set' => TransactionLogDocumentType::toDocument($form->getData()),
                 ];
                 $collection->updateOne(['_id' => new ObjectId($id)], $updateData);
                 $this->addFlash('success', 'Transaction log updated successfully!');
@@ -212,13 +196,14 @@ class TransactionLogController extends AbstractController
         }
 
         return $this->render('transaction_log/edit.html.twig', [
+            'form'        => $form,
             'transaction' => $transaction,
             'connection'  => 'mongodb',
         ]);
     }
 
     #[Route('/{id}', name: 'mongodb_transaction_log_delete', methods: ['POST'])]
-    public function delete(Request $request, string $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $id): Response
     {
         $collection = $this->getCollection();
         if (!$collection) {
@@ -227,7 +212,7 @@ class TransactionLogController extends AbstractController
             return $this->redirectToRoute('mongodb_transaction_log_index');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $id, $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $id)) {
             try {
                 $collection->deleteOne(['_id' => new ObjectId($id)]);
                 $this->addFlash('success', 'Transaction log deleted successfully!');

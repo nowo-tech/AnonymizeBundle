@@ -70,10 +70,11 @@
         </dl>
 
         <div class="mt-4">
-            <form method="post" action="{{ path('mongodb_device_info_delete', {id: device._id}) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this device?')">
-                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ device._id) }}">
+            {% set delete_form = demo_delete_form('mongodb_device_info_delete', {id: device._id}, device._id, 'Are you sure you want to delete this device?') %}
+            {{ form_start(delete_form) }}
+                {% for child in delete_form %}{% if not child.rendered %}{{ form_row(child) }}{% endif %}{% endfor %}
                 <button type="submit" class="btn btn-danger">Delete Device</button>
-            </form>
+            {{ form_end(delete_form) }}
         </div>
     </div>
 </div>

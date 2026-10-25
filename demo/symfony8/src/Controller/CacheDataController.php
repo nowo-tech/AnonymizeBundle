@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\CacheData;
 use App\Form\CacheDataType;
+use App\Form\DeleteFormFactory;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
@@ -163,7 +164,7 @@ class CacheDataController extends AbstractController
     }
 
     #[Route('/{id}', name: 'cache_data_delete', methods: ['POST'])]
-    public function delete(Request $request, string $connection, int $id): Response
+    public function delete(Request $request, DeleteFormFactory $deleteForms, string $connection, int $id): Response
     {
         $em        = $this->doctrine->getManager($connection);
         $cacheData = $em->getRepository(CacheData::class)->find($id);
@@ -172,7 +173,7 @@ class CacheDataController extends AbstractController
             throw $this->createNotFoundException('CacheData not found');
         }
 
-        if ($this->isCsrfTokenValid('delete' . $cacheData->getId(), $request->request->get('_token'))) {
+        if ($deleteForms->isValidSubmission($request, (string) $cacheData->getId())) {
             $em->remove($cacheData);
             $em->flush();
 

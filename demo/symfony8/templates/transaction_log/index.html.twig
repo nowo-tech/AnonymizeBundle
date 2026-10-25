@@ -64,10 +64,11 @@
                                 <div class="btn-group" role="group">
                                     <a href="{{ path('mongodb_transaction_log_show', {id: transaction._id}) }}" class="btn btn-sm btn-outline-primary">Show</a>
                                     <a href="{{ path('mongodb_transaction_log_edit', {id: transaction._id}) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
-                                    <form method="post" action="{{ path('mongodb_transaction_log_delete', {id: transaction._id}) }}" onsubmit="return confirm('Are you sure you want to delete this item?');" class="d-inline">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ transaction._id) }}">
+                                    {% set delete_form = demo_delete_form('mongodb_transaction_log_delete', {id: transaction._id}, transaction._id, 'Are you sure you want to delete this item?') %}
+                                    {{ form_start(delete_form) }}
+                                        {% for child in delete_form %}{% if not child.rendered %}{{ form_row(child) }}{% endif %}{% endfor %}
                                         <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                                    </form>
+                                    {{ form_end(delete_form) }}
                                 </div>
                             </td>
                         </tr>
