@@ -29,6 +29,7 @@ use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
+use RuntimeException;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -763,7 +764,7 @@ class AnonymizeCommandTest extends TestCase
         $doctrine->method('getManager')->with('default')->willReturn($em);
 
         $command = $this->createDefaultAnonymizeCommand($doctrine);
-        $input   = new ArrayInput(['--stats-only' => true]);
+        $input   = new ArrayInput(['--stats-only' => true, '--force' => true]);
         $output  = new BufferedOutput();
 
         $exitCode = $command->run($input, $output);
@@ -1321,6 +1322,69 @@ class AnonymizeCommandTest extends TestCase
 
         $this->assertSame(2, $exitCode);
         $this->assertStringContainsString('resolves outside the configured', $output->fetch());
+    }
+
+    public function testTtyConfirmationDescribesUnusableManagersWithoutCredentials(): void
+    {
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['odm' => 'odm', 'broken' => 'broken']);
+        $doctrine->method('getManager')->willReturnCallback(function (?string $name = null): ObjectManager {
+            if ($name === 'broken') {
+                throw new RuntimeException('password=hunter2-not-real');
+            }
+
+            return $this->createMock(ObjectManager::class);
+        });
+
+        $input  = new ArrayInput([]);
+        $stream = fopen('php://memory', 'r+');
+        $this->assertIsResource($stream);
+        fwrite($stream, "no\n");
+        rewind($stream);
+        $input->setStream($stream);
+        $output = new BufferedOutput();
+
+        $exitCode = $this->createDefaultAnonymizeCommand($doctrine)->run($input, $output);
+        $out      = $output->fetch();
+
+        $this->assertSame(0, $exitCode);
+        $this->assertStringContainsString('odm: not a Doctrine ORM entity manager (skipped)', $out);
+        $this->assertStringContainsString('broken: unresolved (RuntimeException)', $out);
+        $this->assertStringNotContainsString('hunter2', $out);
+    }
+
+    public function testStatsFilesAndDirectoryAreOwnerOnly(): void
+    {
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
+        $doctrine->method('getManager')->with('default')->willReturn($this->createMock(EntityManagerInterface::class));
+
+        $exitCode = $this->createDefaultAnonymizeCommand($doctrine)->run(new ArrayInput(['--stats-json' => 'run.json', '--stats-csv' => 'run.csv', '--force' => true]), new BufferedOutput());
+
+        $this->assertSame(0, $exitCode);
+        $this->assertSame(0o700, fileperms($this->tempDir . '/stats') & 0o777);
+        $this->assertSame(0o600, fileperms($this->tempDir . '/stats/run.json') & 0o777);
+        $this->assertSame(0o600, fileperms($this->tempDir . '/stats/run.csv') & 0o777);
+    }
+
+    public function testStatsPathThroughASymlinkIsRejected(): void
+    {
+        mkdir($this->tempDir . '/stats', 0o700, true);
+        mkdir($this->tempDir . '/elsewhere');
+        symlink($this->tempDir . '/elsewhere', $this->tempDir . '/stats/linked-dir');
+        symlink($this->tempDir . '/elsewhere/target.json', $this->tempDir . '/stats/linked-file.json');
+
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
+
+        foreach (['linked-dir/escape.json', 'linked-file.json'] as $path) {
+            $output   = new BufferedOutput();
+            $exitCode = $this->createDefaultAnonymizeCommand($doctrine)->run(new ArrayInput(['--stats-json' => $path, '--force' => true]), $output);
+
+            $this->assertSame(2, $exitCode, $path);
+            $this->assertStringContainsString('symbolic link', $output->fetch());
+        }
+        $this->assertSame([], glob($this->tempDir . '/elsewhere/*') ?: []);
     }
 
     private function createSafeEnvironmentProtection(): EnvironmentProtectionService

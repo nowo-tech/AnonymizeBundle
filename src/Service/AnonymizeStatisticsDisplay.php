@@ -41,6 +41,8 @@ final class AnonymizeStatisticsDisplay
         if ($statsJson !== null) {
             $json = $statistics->toJson();
             file_put_contents($statsJson, $json);
+            // Owner-only: statistics name tables and volumes of personal data
+            chmod($statsJson, 0o600);
             $io->success(sprintf('Statistics exported to JSON: %s', $statsJson));
         }
 
@@ -48,6 +50,8 @@ final class AnonymizeStatisticsDisplay
         if ($statsCsv !== null) {
             $csv = $statistics->toCsv();
             file_put_contents($statsCsv, $csv);
+            // Owner-only: statistics name tables and volumes of personal data
+            chmod($statsCsv, 0o600);
             $io->success(sprintf('Statistics exported to CSV: %s', $statsCsv));
         }
 

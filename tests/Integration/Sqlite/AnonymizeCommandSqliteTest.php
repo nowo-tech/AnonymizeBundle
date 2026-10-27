@@ -199,6 +199,48 @@ final class AnonymizeCommandSqliteTest extends TestCase
         self::assertSame(5, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM e2e_document'));
     }
 
+    /**
+     * SEC-004 M1: --stats-only only reduces the output; without --force a non-interactive run must not write.
+     */
+    public function testNonInteractiveStatsOnlyWithoutForceRefusesAndWritesNothing(): void
+    {
+        [$exitCode, $out] = $this->runCommand(['--stats-only' => true]);
+
+        self::assertSame(1, $exitCode, $out);
+        self::assertStringContainsString('Refusing destructive anonymization without --force', $out);
+        self::assertSame('alice@example.test', $this->customers()[1]['email']);
+        self::assertSame(5, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM e2e_document'));
+        self::assertSame('user alice logged in', $this->em->getConnection()->fetchOne('SELECT message FROM e2e_audit_log'));
+    }
+
+    /**
+     * SEC-004 M1: the TRUNCATE prompt is still asked with --stats-only, and declining it aborts before any write.
+     */
+    public function testStatsOnlyStillAsksBeforeTruncating(): void
+    {
+        [$exitCode, $out] = $this->runCommand(['--stats-only' => true], "yes\nno\n");
+
+        self::assertSame(1, $exitCode, $out);
+        self::assertStringContainsString('TRUNCATE will permanently empty these tables. Continue?', $out);
+        self::assertStringContainsString('Truncate aborted.', $out);
+        self::assertSame(5, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM e2e_document'));
+        self::assertSame('alice@example.test', $this->customers()[1]['email']);
+    }
+
+    /**
+     * SEC-004 I9: a TTY run without --force shows the target databases and does nothing when declined.
+     */
+    public function testTtyRunWithoutForceListsTargetsAndCanBeDeclined(): void
+    {
+        [$exitCode, $out] = $this->runCommand([], "no\n");
+
+        self::assertSame(0, $exitCode, $out);
+        self::assertStringContainsString('This run overwrites data in place', $out);
+        self::assertStringContainsString('default: pdo_sqlite', $out);
+        self::assertStringContainsString('Anonymization cancelled by user.', $out);
+        self::assertSame('alice@example.test', $this->customers()[1]['email']);
+    }
+
     public function testRelationshipPatternsJoinOnlyOwningToOneAssociationsAndSkipEmbeddedHosts(): void
     {
         $service    = $this->createAnonymizeService();
