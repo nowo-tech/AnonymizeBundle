@@ -14,7 +14,7 @@ class HomeController extends AbstractController
     public function index(): Response
     {
         return $this->render('home.html.twig', [
-            'connections' => ['default', 'postgres', 'sqlite', 'mongodb'],
+            'connections' => ['default', 'postgres', 'mongodb'],
         ]);
     }
 }

@@ -29,7 +29,7 @@ use function is_string;
  * 2. Change the namespace to match your project (e.g., App\Service)
  * 3. Update the class name if needed
  * 4. Implement your custom logic in the generate() method
- * 5. Register the service in services.yaml or use #[Autoconfigure(public: true)]
+ * 5. Register it as a service (autowiring is enough: services implementing FakerInterface are resolvable by id, public or not)
  * 6. Use it in your entity:
  *
  *     #[AnonymizeProperty(

@@ -155,7 +155,7 @@ Nothing in Phases A–C changes the rule: **dev/test only, production execution 
 - **v1.0.43**: FrankenPHP demo Hot Reload (dev/test); docs/roadmap aligned with shipped features
 - **Demos**: 9 entities (User, Customer, Product, Order, Invoice, Employee, SystemLog, EmailSubscription, Type) with comprehensive fixtures and complete CRUD interfaces
 - **Demos Coverage**: 100% faker coverage (all 40 fakers demonstrated)
-- **Demos Databases**: MySQL, PostgreSQL, SQLite, MongoDB (infrastructure ready)
+- **Demos Databases**: MySQL, PostgreSQL, MongoDB (infrastructure ready); SQLite is supported by the bundle but not used as a demo database (REQ-DEMO-011)
 
 ---
 

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Unit\Service;
 
+use DateTimeImmutable;
 use Nowo\AnonymizeBundle\Service\AnonymizationHistoryService;
 use PHPUnit\Framework\TestCase;
+use Psr\Clock\ClockInterface;
 
 use function count;
 
@@ -716,5 +718,27 @@ class AnonymizationHistoryServiceTest extends TestCase
         $this->assertFileExists($filePath);
         $content = $this->decodeJsonFile($filePath);
         $this->assertSame('unknown', $content['metadata']['symfony_version'] ?? null);
+    }
+
+    public function testSaveRunNamesTheFileFromTheInjectedClock(): void
+    {
+        $clock = new class implements ClockInterface {
+            public function now(): DateTimeImmutable
+            {
+                return new DateTimeImmutable('2020-01-02 03:04:05');
+            }
+        };
+        $service = new AnonymizationHistoryService($this->tempDir, $clock);
+
+        $path = $service->saveRun(['global' => ['total_entities' => 0]]);
+
+        $this->assertFileExists($path);
+        $this->assertStringStartsWith($this->tempDir . '/run_2020-01-02_030405_', $path);
+        $index = json_decode((string) file_get_contents($this->tempDir . '/index.json'), true);
+        $this->assertIsArray($index);
+        $this->assertSame($path, $index[0]['file']);
+        $run = $service->getRun($index[0]['id']);
+        $this->assertIsArray($run);
+        $this->assertArrayHasKey('statistics', $run);
     }
 }

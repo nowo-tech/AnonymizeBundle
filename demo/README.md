@@ -4,7 +4,7 @@ This directory contains a complete demo showing how to use the AnonymizeBundle w
 
 ## Demo Structure
 
-The demo is organized under `symfony8/`. It includes **multiple database connections** (MySQL, PostgreSQL, SQLite, and MongoDB) with pre-loaded test data, allowing you to test the bundle with different database systems in a single environment.
+The demo is organized under `symfony8/`. It includes **multiple database connections** (MySQL, PostgreSQL and MongoDB, all as Compose services — no SQLite file database, REQ-DEMO-011) with pre-loaded test data, allowing you to test the bundle with different database systems in a single environment.
 
 ## Available Demo
 
@@ -46,10 +46,9 @@ The demo includes four database systems:
 
 - **`default`**: MySQL connection (hostname `mysql` on the Compose network; not published on the host)
 - **`postgres`**: PostgreSQL connection (hostname `postgres` on the Compose network; not published on the host)
-- **`sqlite`**: SQLite connection (file-based: `var/data/anonymize_demo.sqlite`)
 - **`mongodb`**: MongoDB connection (hostname `mongodb` on the Compose network; optional host port 27018 for local tools)
 
-MySQL, PostgreSQL, and SQLite connections have the same entities and the same test data, allowing you to test the bundle with different database systems. From your machine, use **phpMyAdmin** / **pgAdmin** or `docker compose exec php …` to query MySQL/PostgreSQL. MongoDB infrastructure is ready with Mongo Express for management, and documents are prepared for when the bundle supports MongoDB ODM.
+MySQL and PostgreSQL connections have the same entities and the same test data, allowing you to test the bundle with different database systems. From your machine, use **phpMyAdmin** / **pgAdmin** or `docker compose exec php …` to query MySQL/PostgreSQL. MongoDB infrastructure is ready with Mongo Express for management, and documents are prepared for when the bundle supports MongoDB ODM.
 
 ### Example Entities
 
@@ -160,7 +159,6 @@ The data should be anonymized according to the attributes defined in the entitie
 | Symfony Version | 8.0 |
 | MySQL | 8.0 |
 | PostgreSQL | 16 |
-| SQLite | ✅ |
 | MongoDB | 7.0 |
 | MySQL / PostgreSQL published on host | No (Compose network + admin UIs) |
 | MongoDB host port (optional) | 27018 |
@@ -169,7 +167,6 @@ The data should be anonymized according to the attributes defined in the entitie
 | Makefile | ✅ |
 | Fixtures | ✅ |
 | Multiple connections | ✅ |
-| SQLite Support | ✅ |
 | MongoDB Infrastructure | ✅ |
 | MongoDB CRUD | ✅ |
 
@@ -180,8 +177,7 @@ When you run the demo with Docker from this repository, it uses the **bundle cod
 ## Important Notes
 
 - **Bundle from repo**: With Docker, the bundle is resolved from the path `/bundles` (repo root). Run `make install` or `make setup` inside the demo so Composer installs/links the bundle from that path.
-- **Test data**: Fixtures are automatically loaded in all SQL connections (MySQL, PostgreSQL, SQLite) when running `make setup`.
-- **SQLite**: File-based database at `var/data/anonymize_demo.sqlite`, perfect for local development and testing.
+- **Test data**: Fixtures are automatically loaded in all SQL connections (MySQL, PostgreSQL) when running `make setup`.
 - **MongoDB**: MongoDB infrastructure is ready with Mongo Express for management. Documents are prepared for when the bundle supports MongoDB ODM.
 - **MongoDB CRUD**: Full CRUD interface available at `/mongodb/user-activity` to view and manage user activities with `anonymized` field tracking.
 - **MongoDB Fixtures**: 30 user activities automatically loaded with `anonymized: false` field.

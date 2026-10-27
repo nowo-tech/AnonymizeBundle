@@ -5,8 +5,7 @@
 {% block body %}
 {% set connectionList = [
     { id: 'default', label: 'MySQL' },
-    { id: 'postgres', label: 'PostgreSQL' },
-    { id: 'sqlite', label: 'SQLite' }
+    { id: 'postgres', label: 'PostgreSQL' }
 ] %}
 
 {% set crudSections = [
@@ -72,7 +71,6 @@
                 <ul class="list-unstyled mb-0">
                     <li class="mb-2"><strong>default</strong> - MySQL 8.0 (Docker service <code>mysql</code>)</li>
                     <li class="mb-2"><strong>postgres</strong> - PostgreSQL 16 (Docker service <code>postgres</code>)</li>
-                    <li class="mb-2"><strong>sqlite</strong> - SQLite (File-based)</li>
                     <li class="mb-0"><strong>mongodb</strong> - MongoDB 7.0 (optional host port 27018)</li>
                 </ul>
             </div>

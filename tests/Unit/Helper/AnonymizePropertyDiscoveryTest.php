@@ -110,6 +110,30 @@ final class AnonymizePropertyDiscoveryTest extends TestCase
         $this->assertSame('phoneNumber.number', $fieldNames[1]);
         $this->assertSame('phoneNumber.verificationCode', $fieldNames[2]);
     }
+
+    public function testSkipsEmbeddedWhoseClassDoesNotExist(): void
+    {
+        $entity = new class {
+            #[ORM\Embedded(class: 'App\\Missing\\EmbeddableThatDoesNotExist')]
+            public mixed $missing = null;
+        };
+
+        $this->assertSame([], AnonymizePropertyDiscovery::discover(new ReflectionClass($entity)));
+    }
+
+    public function testSkipsEmbeddedWhoseClassCannotBeResolved(): void
+    {
+        $entity = new class {
+            /** @var array<string, mixed> */
+            #[ORM\Embedded]
+            public array $untypedEmbed = [];
+
+            #[ORM\Embedded]
+            public mixed $builtinType = null;
+        };
+
+        $this->assertSame([], AnonymizePropertyDiscovery::discover(new ReflectionClass($entity)));
+    }
 }
 
 /**

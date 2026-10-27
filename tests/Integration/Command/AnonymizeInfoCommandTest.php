@@ -12,6 +12,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\FieldMapping;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
+use Doctrine\Persistence\ObjectManager;
 use Exception;
 use Nowo\AnonymizeBundle\Command\AnonymizeInfoCommand;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
@@ -762,6 +763,23 @@ class AnonymizeInfoCommandTest extends TestCase
         $out = $output->fetch();
         $this->assertStringContainsString('Records to Anonymize: 1', $out);
         $this->assertStringContainsString('50%', $out);
+    }
+
+    /**
+     * A manager that is not an ORM EntityManager (e.g. Doctrine ODM) is skipped with a note.
+     */
+    public function testExecuteSkipsManagerThatIsNotAnEntityManager(): void
+    {
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['odm' => 'doctrine_mongodb.odm.default_document_manager']);
+        $doctrine->method('getManager')->with('odm')->willReturn($this->createMock(ObjectManager::class));
+
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $doctrine, 'en_US', []);
+        $output  = new BufferedOutput();
+
+        $command->run(new ArrayInput([]), $output);
+
+        $this->assertStringContainsString('Manager "odm" is not an EntityManagerInterface, skipping.', $output->fetch());
     }
 
     public function testExecuteFailsWhenEnvironmentProtectionBlocks(): void

@@ -587,6 +587,7 @@ class DatabaseExportServiceTest extends TestCase
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
             false,
+            $this->createRunnerWithoutCommands(),
         );
 
         $em         = $this->createMock(EntityManagerInterface::class);
@@ -616,6 +617,7 @@ class DatabaseExportServiceTest extends TestCase
             '{connection}_{database}_{date}_{time}.{format}',
             'none',
             false,
+            $this->createRunnerWithoutCommands(),
         );
 
         $em         = $this->createMock(EntityManagerInterface::class);
@@ -2086,5 +2088,26 @@ class DatabaseExportServiceTest extends TestCase
         );
 
         $this->assertFalse($method->invoke($service, $subDir, $tarPath));
+    }
+
+    /**
+     * Command runner on which no external tool is installed (deterministic whatever the host has).
+     */
+    private function createRunnerWithoutCommands(): CommandRunnerInterface
+    {
+        return new class implements CommandRunnerInterface {
+            public function commandExists(string $command): bool
+            {
+                return false;
+            }
+
+            /** @param-out list<string> $output */
+            public function exec(string $command, ?array &$output = null): int
+            {
+                $output = [];
+
+                return 1;
+            }
+        };
     }
 }

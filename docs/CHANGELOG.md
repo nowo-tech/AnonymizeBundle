@@ -100,6 +100,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Custom service resolution (REQ-DI-001):** `FakerFactory` and `AnonymizeService` no longer receive the whole service container (`@service_container`). A new compiler pass (`AnonymizeServiceLocatorPass`) builds a closed service locator with every service implementing `FakerInterface` or `EntityAnonymizerServiceInterface`, services tagged `nowo_anonymize.faker` / `nowo_anonymize.entity_anonymizer`, public services exposing `generate()` / `__invoke()` (the documented duck-typed contract) and their aliases. Custom fakers and `anonymizeService` anonymizers **no longer need `public: true`**; a private duck-typed service must be tagged `nowo_anonymize.faker`. Constructor signatures are unchanged. See [UPGRADING.md](UPGRADING.md#unreleased).
+- **`--locale` keeps custom services:** `nowo:anonymize:run --locale xx_XX` (a locale different from `nowo_anonymize.locale`) now keeps resolving `type: 'service'` fakers, `anonymizeService` anonymizers and locale-independent built-ins (e.g. `hash_preserve` with its configured salt); previously it rebuilt the service without the container. New `FakerFactory::withLocale()` / `AnonymizeService::withLocale()`.
+- **Entity anonymizer lookup:** the `anonymizeService` is resolved once per entity (on the first non-empty chunk) instead of once per record.
+- **Relationship patterns:** patterns on `association.field` join only owning to-one associations; collection or inverse-side associations are ignored (they used to throw a Doctrine mapping error). Several pattern fields on the same association now share one JOIN and are all selected (only the first one was selected before). The discriminator filter of polymorphic entities is qualified with the main table alias.
+- **Polymorphic entities on ORM 2:** the discriminator filter (STI/CTI anonymize and truncate) now also reads the legacy array discriminator mapping instead of silently ignoring it.
+- **Type conversion:** generated values are cast according to the **column** type also when the column name differs from the property name (e.g. `#[ORM\Column(name: 'customer_age', type: 'integer')]`).
+- **Stats output directory:** an unusable `stats_output_dir` (e.g. below a file) reports a single "Unable to create or resolve stats output directory" error instead of a PHP warning.
+- **Demo (REQ-DEMO-011):** the Symfony 8 demo no longer uses a SQLite file database: the `sqlite` DBAL connection / entity manager, `DATABASE_URL_SQLITE`, the `pdo_sqlite` extension in the demo image and the tracked `demo/docker/init/sqlite/init.sqlite` dump were removed; MySQL (default) and PostgreSQL run as Compose services. The bundle itself still supports SQLite.
+- **Tests (REQ-TEST-003, REQ-SF-005):** `phpunit.xml.dist` no longer excludes `AnonymizeCommand`, `AnonymizeService` and `OrmHelper`; `src/` is at **100%** lines and `make test-coverage` (`.scripts/php-coverage-percent.sh`, `PHP_COVERAGE_MIN`, default 100) and the CI `coverage` job fail below 100%. PHPUnit's native deprecation gate is enabled (`failOnDeprecation`, `ignoreSuppressionOfDeprecations`, `restrictDeprecations="false"`) because `SYMFONY_DEPRECATIONS_HELPER` has no effect without `symfony/phpunit-bridge`. New end-to-end tests run `nowo:anonymize:run` against a real Doctrine ORM + SQLite (in memory) schema.
+
+### Fixed
+
+- **Demo:** the MySQL init dump (`demo/docker/init/mysql/init.sql`) started with mysqldump's password warning, so MySQL aborted its first start on a fresh volume (ERROR 1064); the line was removed.
+- **History file name:** `AnonymizationHistoryService::saveRun()` names the file from the injected clock (the entry timestamp) instead of the system time, so the path stored in the history index always matches (REQ-DI-001 clock rule).
+- **`pattern_based` fallback locale:** the fallback faker used a **random** locale (it read Faker's deprecated `Generator::$locale` magic property, which triggered a deprecation and returned a random `locale()` value); it now uses the configured locale.
+
+### Removed
+
+- `Nowo\AnonymizeBundle\Internal\KernelParameterBagAdapter` (`@internal`, unused by the bundle).
+
+### Documentation
+
+- `preserve_null`: documented the actual behaviour — `NULL` originals are never anonymized, so the option has no additional effect (the unreachable code path was removed).
+
 - Demo: every delete button (list and show pages, Doctrine and MongoDB) renders through a Symfony Form Type (`App\Form\CsrfOnlyType` built by `App\Form\DeleteFormFactory`, exposed to Twig as `demo_delete_form()`: form `delete_{id}`, CSRF token id `delete{id}`, same routes, classes and confirm prompts), and the MongoDB `new` / `edit` pages (analytics event, customer profile, device info, transaction log, user activity) use Form Types (`App\Form\Mongo\*DocumentType`) instead of hand-rolled inputs; delete, create and update actions validate with `handleRequest` + `isValid()` (REQ-TWIG-005).
 - **Developer tooling (REQ-MAKE-002):** `make release-check` runs the full REQ-MAKE-002 chain in order (ensure-up, co-author and open-PR gates, composer-sync, cs-fix, cs-check, rector-dry, phpstan, igor, test-coverage, demo release-check). New `make check-no-raw-html-form` target (`.scripts/check-no-raw-html-form.sh`, REQ-TWIG-005); fails on raw `<form>` / `<input>` / `<textarea>` / `<select>` in demo templates and runs in the chain after `check-open-prs`. `check-twig-extra` does not apply (no bundle Twig views).
 - **Demo (REQ-TWIG-003):** the `new` / `edit` pages of every demo entity render the form through the child loop instead of one `form_row(form.x)` (or `form_widget(form)`) per page: field-list pages share `templates/_form_fields.html.twig` (one Bootstrap grid, column class per field from a name-keyed map), the others loop directly. Field order, `attr` classes (`form-control` / `form-select`, textarea rows) and the cache-value hint moved into the demo FormTypes.

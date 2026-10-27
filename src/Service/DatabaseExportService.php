@@ -418,15 +418,9 @@ final class DatabaseExportService
      */
     private function createZipArchive(string $directory, string $zipPath): bool
     {
-        // ext-zip is required in supported environments; keep guard for misconfigured hosts.
-        // @codeCoverageIgnoreStart
-        if (!class_exists(ZipArchive::class)) {
-            return false;
-        }
-        // @codeCoverageIgnoreEnd
-
-        $zip = new ZipArchive();
-        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+        // Without ext-zip (misconfigured hosts) the archive is simply not created
+        $zip = class_exists(ZipArchive::class) ? new ZipArchive() : null;
+        if ($zip === null || $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
             return false;
         }
 
@@ -512,12 +506,7 @@ final class DatabaseExportService
      */
     private function writeSecretFile(string $prefix, string $content): string
     {
-        $path = tempnam(sys_get_temp_dir(), 'nowo_anonymize_' . $prefix);
-        // @codeCoverageIgnoreStart
-        if ($path === false) {
-            throw new RuntimeException('Unable to create a temporary credentials file.');
-        }
-        // @codeCoverageIgnoreEnd
+        $path = tempnam(sys_get_temp_dir(), 'nowo_anonymize_' . $prefix) ?: throw new RuntimeException('Unable to create a temporary credentials file.');
 
         // tempnam() creates the file 0600; enforce it before writing the secret.
         chmod($path, 0o600);

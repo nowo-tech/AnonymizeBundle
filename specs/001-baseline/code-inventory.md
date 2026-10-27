@@ -2,7 +2,7 @@
 
 **Baseline spec**: [`spec.md`](spec.md)  
 **Package**: `nowo-tech/anonymize-bundle`  
-**Last audited**: 2026-10-20
+**Last audited**: 2026-10-27
 
 Paths in the tables are relative to `src/`. Tests under `tests/` are out of Packagist scope.
 
@@ -21,6 +21,7 @@ Audit command: `git ls-files src | wc -l` (83 production files).
 | `AnonymizeBundle.php` | Bundle entry | FR-BUNDLE-001 |
 | `DependencyInjection/Configuration.php` | Config tree `nowo_anonymize` | FR-CFG-001 |
 | `DependencyInjection/AnonymizeExtension.php` | DI extension | FR-CFG-002 |
+| `DependencyInjection/Compiler/AnonymizeServiceLocatorPass.php` | Closed plugin locator for custom fakers / entity anonymizers | FR-DI-002 |
 
 ## Attributes & trait
 
@@ -139,21 +140,20 @@ Audit command: `git ls-files src | wc -l` (83 production files).
 | `Helper/DbalHelper.php` | DBAL utilities | FR-HELPER-001 |
 | `Helper/OrmHelper.php` | ORM metadata helpers | FR-HELPER-001 |
 | `Helper/AnonymizePropertyDiscovery.php` | `#[AnonymizeProperty]` discovery on fields and Doctrine embeddables | FR-HELPER-001, FR-ATTR-001 |
-| `Internal/KernelParameterBagAdapter.php` | Kernel param adapter | FR-INT-001 |
 
 ## Coverage summary
 
 | Category | Files | Mapped |
 | --- | ---: | ---: |
 | Symfony config | 1 | 1 |
-| Bundle & DI | 3 | 3 |
+| Bundle & DI | 4 | 4 |
 | Attributes & trait | 3 | 3 |
 | CLI | 8 | 8 |
 | Events | 5 | 5 |
 | Enums | 2 | 2 |
 | Faker (factory + impls) | 41 | 41 |
 | Services | 12 | 12 |
-| Helpers & internal | 4 | 4 |
+| Helpers & internal | 3 | 3 |
 | **Total production sources** | **83** | **83** |
 
 ## Maintainer tooling (out of `src/`, REQ-GIT-001)

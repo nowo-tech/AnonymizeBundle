@@ -10,13 +10,11 @@ use Exception;
 use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Event\AfterAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
-use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Service\AnonymizationHistoryService;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\AnonymizeStatistics;
 use Nowo\AnonymizeBundle\Service\AnonymizeStatisticsDisplay;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
-use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -227,13 +225,8 @@ final class AnonymizeCommand extends AbstractCommand
             return self::FAILURE;
         }
 
-        // Resolve anonymize service — use injected service for default locale, recreate for custom locale
-        $anonymizeService = $this->anonymizeService;
-        if ($locale !== $this->locale) {
-            $fakerFactory     = new FakerFactory($locale);
-            $patternMatcher   = new PatternMatcher();
-            $anonymizeService = new AnonymizeService($fakerFactory, $patternMatcher, $this->eventDispatcher);
-        }
+        // Resolve anonymize service for the requested locale (keeps custom anonymizer/faker services available)
+        $anonymizeService = $this->anonymizeService->withLocale((string) $locale);
 
         $preFlightCheck = $this->preFlightCheck;
         $statistics     = new AnonymizeStatistics();
@@ -717,13 +710,14 @@ final class AnonymizeCommand extends AbstractCommand
     private function resolveStatsOutputPath(string $userPath, string $statsOutputDir): string
     {
         $statsOutputDir = rtrim(str_replace('\\', '/', $statsOutputDir), '/');
-        if (!is_dir($statsOutputDir) && !mkdir($statsOutputDir, 0o755, true) && !is_dir($statsOutputDir)) {
-            throw new RuntimeException(sprintf('Unable to create stats output directory: %s', $statsOutputDir));
+        if (!is_dir($statsOutputDir)) {
+            // Failure (e.g. a parent path is a file) is reported below, once the path cannot be resolved
+            @mkdir($statsOutputDir, 0o755, true);
         }
 
         $baseReal = realpath($statsOutputDir);
-        if ($baseReal === false) {
-            throw new RuntimeException(sprintf('Unable to resolve stats output directory: %s', $statsOutputDir));
+        if ($baseReal === false || !is_dir($baseReal)) {
+            throw new RuntimeException(sprintf('Unable to create or resolve stats output directory: %s', $statsOutputDir));
         }
         $baseReal = str_replace('\\', '/', $baseReal);
 

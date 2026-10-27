@@ -26,6 +26,7 @@ This guide covers how to use the Anonymize Bundle in your Symfony application.
   - [DNI/CIF/NIF Faker](#dnicifnif-faker)
   - [HTML Faker](#html-faker)
   - [Nullable Option](#nullable-option)
+  - [Custom service resolution](#custom-service-resolution)
   - [Preserve Null Option](#preserve-null-option)
   - [Pattern-Based Faker](#pattern-based-faker)
   - [UTM Faker](#utm-faker)
@@ -584,7 +585,7 @@ class SmsNotification extends AbstractNotification
 - When `anonymizeService` is set, **you do not need any `#[AnonymizeProperty]`** on that entity; the command will process it and call the service for each record (or per chunk when `supportsBatch()` is true). Property-level attributes, if present, are ignored; the service's return value is the only source of updates.
 - **Record-by-record vs batch**: If `supportsBatch()` returns `false`, the bundle calls `anonymize($record)` for each record. If it returns `true`, it calls `anonymizeBatch($records)` once per chunk (of size `batch_size`), so the service can optimize bulk work (e.g. one API call for many records).
 - Entity-level `includePatterns` / `excludePatterns` still apply: excluded records are skipped and the service is not called.
-- The bundle resolves the service by id (FQCN or alias) via the container. **The service must be declared as `public: true`** in your `config/services.yaml` (or equivalent), otherwise the container may inline it at compile time and you will get "service has been removed or inlined". See the demo: `SmsNotification` and `SmsNotificationAnonymizerService` in `demo/symfony8` (e.g. `App\Service\SmsNotificationAnonymizerService` with `public: true`).
+- The bundle resolves the service by id (FQCN or alias) from its **plugin locator** — a service locator built at compile time with every service implementing `EntityAnonymizerServiceInterface` (or tagged `nowo_anonymize.entity_anonymizer`). The service **does not need to be public** (since the release after 1.2.4; older releases required `public: true`). See the demo: `SmsNotification` and `App\Service\SmsNotificationAnonymizerService` in `demo/symfony8`.
 
 **Example: polymorphic entity and migrating file paths (e.g. AWS S3)**  
 If your entity stores **file paths** (e.g. S3 keys) and anonymization should **copy the file from one bucket to another** and update the path in the DB, use a custom service that reads the path from the record, performs the copy (or uploads a placeholder), and returns the new path. See [EXAMPLES_POLYMORPHISM_ANONYMIZE_SERVICE.md](EXAMPLES_POLYMORPHISM_ANONYMIZE_SERVICE.md) for a full step-by-step example (polymorphism + service + flow).
@@ -672,7 +673,7 @@ This example demonstrates:
 2. Change the namespace to match your project (e.g., `App\Service`)
 3. Update the class name if needed
 4. Implement your custom logic in the `generate()` method
-5. Register the service in `services.yaml` or use `#[Autoconfigure(public: true)]`
+5. Register it as a service (autowiring is enough). Services implementing `FakerInterface` are resolvable by id whatever their visibility; a duck-typed service (only a `generate()` method or `__invoke()`) must be public or tagged `nowo_anonymize.faker` — see [Custom service resolution](#custom-service-resolution)
 6. Use it in your entity:
 
 ```php
@@ -1116,14 +1117,34 @@ class User
 
 **Note**: The `nullable` option works with all faker types. When a value is determined to be null, it bypasses the faker generation and sets the field to `null` directly.
 
+### Custom service resolution
+
+Custom fakers (`type: 'service'`) and entity anonymizers (`#[Anonymize(anonymizeService: ...)]`) are looked up by service id in a **closed service locator** that the bundle builds at compile time (REQ-DI-001; the bundle no longer receives the whole service container). The locator contains:
+
+| Service | Included | Visibility |
+|---------|----------|------------|
+| Implements `Nowo\AnonymizeBundle\Faker\FakerInterface` | Always | Public or private |
+| Implements `Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface` | Always | Public or private |
+| Tagged `nowo_anonymize.faker` or `nowo_anonymize.entity_anonymizer` | Always | Public or private |
+| Only a public `generate()` / `__invoke()` method (duck typing) | When the service is **public** | Public only |
+| Any other service | Never | — |
+
+Aliases of included services (e.g. a custom id pointing to your class) are included too. To use a duck-typed private service, tag it:
+
+```yaml
+services:
+    App\Anonymizer\LegacyReferenceGenerator:
+        tags: ['nowo_anonymize.faker']
+```
+
+When an id is not in the locator, the service faker fails with `Service "<id>" not found. Custom faker services must implement ... or be tagged "nowo_anonymize.faker".`
+
 ### Preserve Null Option
 
-All fakers support a `preserve_null` option that allows you to skip anonymization when the original value is `null`. This is useful when you want to anonymize only fields that have values, leaving null values unchanged.
+`nowo:anonymize:run` never anonymizes a column whose original value is `NULL`: NULL values are always left unchanged, so only fields that have values are anonymized. The `preserve_null` option documents that intent on an attribute and is accepted on every faker for compatibility; it has no additional effect.
 
 **Options**:
-- `preserve_null` (bool): Skip anonymization if the original value is null (default: `false`)
-  - `true` = If original value is null, skip anonymization (preserve the null)
-  - `false` = Always anonymize, even if original value is null (generate a new value)
+- `preserve_null` (bool): Documents that NULL originals stay NULL (always the case; default: `false`)
 
 **Example**:
 ```php

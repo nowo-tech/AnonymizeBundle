@@ -208,15 +208,11 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
                 continue;
             }
 
+            // Unreadable entries (e.g. broken symlinks) are skipped
             $pathname = $file->getPathname();
-            // Unreadable / failed reads are rare under root Docker CI.
-            if (!is_readable($pathname)) {
-                continue; // @codeCoverageIgnore
-            }
-
-            $content = file_get_contents($pathname);
+            $content  = is_readable($pathname) ? file_get_contents($pathname) : false;
             if ($content === false) {
-                continue; // @codeCoverageIgnore
+                continue;
             }
 
             // Look for #[Anonymize] attribute (even if commented)
@@ -226,8 +222,6 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
                 // Or: @MongoDB\Document(collection="collection_name")
                 if (preg_match('/collection\s*[=:]\s*[\'"]?([^\'"\s,)]+)[\'"]?/', $content, $matches)) {
                     $collections[] = $matches[1];
-                } elseif (preg_match('/Document\(collection\s*=\s*[\'"]?([^\'"\s,)]+)[\'"]?/', $content, $matches)) { // @codeCoverageIgnore
-                    $collections[] = $matches[1]; // @codeCoverageIgnore
                 }
             }
         }

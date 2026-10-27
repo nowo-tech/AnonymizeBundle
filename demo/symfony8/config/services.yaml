@@ -11,12 +11,12 @@ services:
 
 
 # The anonymize bundle (and its nowo_anonymize.faker_factory service) is loaded in dev/test only.
-# Public so the bundle can resolve the custom anonymizer by class name (container->get()).
+# The anonymizer can stay private: the bundle resolves it from its plugin locator
+# (every service implementing EntityAnonymizerServiceInterface).
 when@dev: &anonymizer_services
     services:
         App\Service\SmsNotificationAnonymizerService:
             autowire: true
-            public: true
             arguments:
                 $fakerFactory: '@nowo_anonymize.faker_factory'
 

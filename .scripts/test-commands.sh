@@ -23,14 +23,12 @@ COMMANDS=(
     "nowo:anonymize:info"
     "nowo:anonymize:info --connection default"
     "nowo:anonymize:info --connection postgres"
-    "nowo:anonymize:info --connection sqlite"
     "nowo:anonymize:info --connection default --locale es_ES"
     "nowo:anonymize:info --connection default --verbose"
     
     # nowo:anonymize:run - Test dry-run with all connections
     "nowo:anonymize:run --connection default --dry-run"
     "nowo:anonymize:run --connection postgres --dry-run"
-    "nowo:anonymize:run --connection sqlite --dry-run"
     "nowo:anonymize:run --connection default --dry-run --batch-size 50"
     "nowo:anonymize:run --connection default --dry-run --locale es_ES"
     "nowo:anonymize:run --connection default --dry-run --verbose"
@@ -44,14 +42,12 @@ COMMANDS=(
     # nowo:anonymize:export-db - Test export with all connections (no dry-run option)
     "nowo:anonymize:export-db --connection default"
     "nowo:anonymize:export-db --connection postgres"
-    "nowo:anonymize:export-db --connection sqlite"
     "nowo:anonymize:export-db --connection mongodb"
     
     # nowo:anonymize:generate-column-migration - Test migration generation
     "nowo:anonymize:generate-column-migration"
     "nowo:anonymize:generate-column-migration --connection default"
     "nowo:anonymize:generate-column-migration --connection postgres"
-    "nowo:anonymize:generate-column-migration --connection sqlite"
     
     # nowo:anonymize:generate-mongo-field - Test MongoDB field generation
     "nowo:anonymize:generate-mongo-field --scan-documents"

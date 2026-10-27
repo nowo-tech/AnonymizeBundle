@@ -708,4 +708,14 @@ final class UtmFakerTest extends TestCase
         }
         $this->assertTrue($found);
     }
+
+    public function testGenerateCampaignPadsRandomWordNamesUpToMinLength(): void
+    {
+        // min_length == max_length: the random-word branch can never reach the target with words alone
+        // (joined length is always shorter), so it must pad. Repeat to hit the 30% random-word branch.
+        for ($i = 0; $i < 100; ++$i) {
+            $result = $this->faker->generate(['type' => 'campaign', 'min_length' => 60, 'max_length' => 60]);
+            $this->assertSame(60, strlen($result));
+        }
+    }
 }

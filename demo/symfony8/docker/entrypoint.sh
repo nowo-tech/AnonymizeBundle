@@ -114,13 +114,6 @@ setup_database() {
                 INIT_BACKUP="/app/docker/init/postgres/init.sql"
             fi
             ;;
-        sqlite)
-            if [ -f "/app/../docker/init/sqlite/init.sqlite" ] && [ -s "/app/../docker/init/sqlite/init.sqlite" ]; then
-                INIT_BACKUP="/app/../docker/init/sqlite/init.sqlite"
-            elif [ -f "/app/docker/init/sqlite/init.sqlite" ] && [ -s "/app/docker/init/sqlite/init.sqlite" ]; then
-                INIT_BACKUP="/app/docker/init/sqlite/init.sqlite"
-            fi
-            ;;
     esac
 
     # Create database if not exists
@@ -167,21 +160,6 @@ setup_database() {
                     INIT_BACKUP=""
                 fi
                 ;;
-            sqlite)
-                # SQLite: Copy backup file if database doesn't exist or is empty
-                SQLITE_DB="/app/var/data/anonymize_demo.sqlite"
-                if [ ! -f "$SQLITE_DB" ] || [ ! -s "$SQLITE_DB" ]; then
-                    echo "  Database doesn't exist or is empty, copying backup..."
-                    mkdir -p /app/var/data
-                    cp "$INIT_BACKUP" "$SQLITE_DB" 2>&1 || {
-                        echo "  ⚠️  Warning: Could not copy backup, falling back to fixtures"
-                        INIT_BACKUP=""
-                    }
-                else
-                    echo "  Database already exists, skipping backup copy"
-                    INIT_BACKUP=""
-                fi
-                ;;
         esac
     fi
 
@@ -202,7 +180,7 @@ setup_database() {
                 echo "  ⚠️  Warning: Could not load fixtures (may already be loaded or schema issue)"
             }
         else
-            # For PostgreSQL and SQLite, we can use truncate
+            # For PostgreSQL, we can use truncate
             php bin/console doctrine:fixtures:load --no-interaction --purge-with-truncate --em="$em" 2>&1 || {
                 echo "  ⚠️  Warning: Could not load fixtures, trying without truncate..."
                 php bin/console doctrine:fixtures:load --no-interaction --em="$em" 2>&1 || {
@@ -252,25 +230,6 @@ main() {
     # Setup PostgreSQL connection
     if [ -n "${DATABASE_URL_POSTGRES}" ]; then
         setup_database postgres postgres || echo "⚠️  Failed to setup postgres connection"
-    fi
-
-    # Setup SQLite connection (file-based, no need to wait)
-    if [ -n "${DATABASE_URL_SQLITE}" ]; then
-        echo ""
-        echo "📦 Setting up SQLite..."
-        
-        # Check if vendor exists
-        if [ ! -d "/app/vendor" ]; then
-            echo "  ⚠️  Warning: vendor directory not found. Skipping SQLite setup."
-            echo "  💡 Run 'composer install' first, then restart the container."
-        else
-            # Ensure data directory exists
-            mkdir -p /app/var/data
-            chmod 777 /app/var/data 2>/dev/null || true
-            
-            # Setup SQLite database
-            setup_database sqlite sqlite || echo "⚠️  Failed to setup sqlite connection"
-        fi
     fi
 
     # Setup MongoDB (if configured)

@@ -2,6 +2,8 @@
 set -eu
 
 RAW_FILE="${1:-coverage-php.txt}"
+# REQ-TEST-003: minimum PHP Lines coverage; below it the script exits non-zero.
+MIN_COVERAGE="${PHP_COVERAGE_MIN:-100}"
 
 if [ ! -f "$RAW_FILE" ]; then
   echo "ERROR: coverage output file not found: $RAW_FILE" >&2
@@ -27,3 +29,8 @@ if [ -z "${VALUE:-}" ]; then
 fi
 
 echo "Global PHP coverage (Lines): ${VALUE}%"
+
+if awk "BEGIN { exit !(${VALUE} < ${MIN_COVERAGE}) }"; then
+  echo "ERROR: PHP Lines coverage ${VALUE}% is below the required ${MIN_COVERAGE}% (REQ-TEST-003)" >&2
+  exit 1
+fi

@@ -32,7 +32,7 @@ class CustomFakerExampleFixtures extends Fixture
         $example1->setCustomOptionField('custom_value_1');
         $manager->persist($example1);
 
-        // Example 2: Empty/minimal value (use empty string to avoid NOT NULL issues on sqlite when column not yet nullable)
+        // Example 2: Empty/minimal value (use empty string to avoid NOT NULL issues when the column is not yet nullable)
         $example2 = new CustomFakerExample();
         $example2->setPreservedField('original_value_2');
         $example2->setAnonymizedField('');

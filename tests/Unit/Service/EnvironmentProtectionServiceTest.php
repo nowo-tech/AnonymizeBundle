@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\Persistence\ManagerRegistry;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 
 /**
@@ -304,6 +305,74 @@ class EnvironmentProtectionServiceTest extends TestCase
             if ($backup !== null) {
                 $_SERVER['DATABASE_URL'] = $backup;
             }
+        }
+    }
+
+    public function testDoctrineConnectionsWithoutUsableParamsAreSkipped(): void
+    {
+        $backup = $_SERVER['DATABASE_URL'] ?? null;
+        unset($_SERVER['DATABASE_URL']);
+
+        try {
+            $empty = $this->createMock(Connection::class);
+            $empty->method('getParams')->willReturn(['host' => '', 'port' => 3306]);
+
+            $doctrine = $this->createMock(ManagerRegistry::class);
+            $doctrine->method('getConnections')->willReturn([
+                'not_dbal' => new stdClass(),
+                'empty'    => $empty,
+            ]);
+
+            $service = new EnvironmentProtectionService(new ParameterBag([
+                'kernel.environment' => 'dev',
+                'kernel.project_dir' => sys_get_temp_dir(),
+            ]), ['prod-db.internal'], $doctrine);
+
+            $this->assertSame([], $service->performChecks());
+        } finally {
+            $this->restoreEnv('DATABASE_URL', $backup);
+        }
+    }
+
+    public function testBlockedDsnMatchesPrimaryReplicaParams(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection->method('getParams')->willReturn([
+            'driver'  => 'pdo_mysql',
+            'primary' => ['host' => 'prod-db.internal', 'dbname' => 'app'],
+        ]);
+
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getConnections')->willReturn(['default' => $connection]);
+
+        $service = new EnvironmentProtectionService(new ParameterBag([
+            'kernel.environment' => 'dev',
+            'kernel.project_dir' => sys_get_temp_dir(),
+        ]), ['prod-db.internal'], $doctrine);
+
+        $errors = $service->performChecks();
+
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('Doctrine connection "default"', implode("\n", $errors));
+    }
+
+    public function testUnparsableDatabaseUrlIsMatchedAsRawString(): void
+    {
+        $backup                  = $this->backupEnv('DATABASE_URL');
+        $_SERVER['DATABASE_URL'] = 'mysql:///prod-db.internal';
+
+        try {
+            $service = new EnvironmentProtectionService(new ParameterBag([
+                'kernel.environment' => 'dev',
+                'kernel.project_dir' => sys_get_temp_dir(),
+            ]), ['prod-db.internal']);
+
+            $errors = $service->performChecks();
+
+            $this->assertNotEmpty($errors);
+            $this->assertStringContainsString('DATABASE_URL', $errors[0]);
+        } finally {
+            $this->restoreEnv('DATABASE_URL', $backup);
         }
     }
 }

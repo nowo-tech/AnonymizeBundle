@@ -7,7 +7,6 @@ namespace Nowo\AnonymizeBundle\Service;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Doctrine\ORM\Mapping\DiscriminatorColumnMapping;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Exception;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
@@ -60,15 +59,28 @@ final class AnonymizeService implements ResetInterface
      * @param FakerFactory $fakerFactory The faker factory for creating faker instances
      * @param PatternMatcher $patternMatcher The pattern matcher for inclusion/exclusion patterns
      * @param EventDispatcherInterface|null $eventDispatcher Optional event dispatcher for extensibility
-     * @param ContainerInterface|null $container Documented strategy/service-id registry for custom anonymizeService ids (REQ-DI-001 exception for closed plugin registries), not a general service locator
+     * @param ContainerInterface|null $container Closed locator of anonymization plugins (entity anonymizer services) built by AnonymizeServiceLocatorPass (REQ-DI-001)
      */
     public function __construct(
         private readonly FakerFactory $fakerFactory,
         private readonly PatternMatcher $patternMatcher,
         private readonly ?EventDispatcherInterface $eventDispatcher = null,
-        /** Documented strategy/service-id registry for custom anonymizeService ids (REQ-DI-001 exception for closed plugin registries), not a general service locator. */
+        /** Closed locator of anonymization plugins (entity anonymizer services) built by AnonymizeServiceLocatorPass (REQ-DI-001). */
         private readonly ?ContainerInterface $container = null
     ) {
+    }
+
+    /**
+     * Returns a service generating values for another locale (same pattern matcher, dispatcher and plugin locator).
+     */
+    public function withLocale(string $locale): self
+    {
+        $fakerFactory = $this->fakerFactory->withLocale($locale);
+        if ($fakerFactory === $this->fakerFactory) {
+            return $this;
+        }
+
+        return new self($fakerFactory, $this->patternMatcher, $this->eventDispatcher, $this->container);
     }
 
     /**
@@ -278,6 +290,25 @@ final class AnonymizeService implements ResetInterface
     }
 
     /**
+     * Resolves the entity-level anonymizer service from the plugin locator.
+     *
+     * @throws RuntimeException When the service cannot be resolved or does not implement EntityAnonymizerServiceInterface
+     */
+    private function resolveEntityAnonymizer(ContainerInterface $container, string $serviceId): EntityAnonymizerServiceInterface
+    {
+        try {
+            $anonymizer = $container->get($serviceId);
+        } catch (Throwable $e) {
+            throw new RuntimeException(sprintf('Cannot get anonymizer service "%s": %s', $serviceId, $e->getMessage()), 0, $e);
+        }
+        if (!$anonymizer instanceof EntityAnonymizerServiceInterface) {
+            throw new RuntimeException(sprintf('Service "%s" must implement %s.', $serviceId, EntityAnonymizerServiceInterface::class));
+        }
+
+        return $anonymizer;
+    }
+
+    /**
      * Whether the table exists and has an "anonymized" column (AnonymizableTrait).
      */
     private function tableHasAnonymizedColumn(Connection $connection, string $tableName): bool
@@ -311,12 +342,12 @@ final class AnonymizeService implements ResetInterface
         if ($inheritanceType === ClassMetadata::INHERITANCE_TYPE_NONE) {
             return ['column' => null, 'value' => null];
         }
-        $discCol   = $metadata->discriminatorColumn ?? null;
         $discValue = $metadata->discriminatorValue ?? null;
-        if (!$discCol instanceof DiscriminatorColumnMapping || $discValue === null) {
+        if ($discValue === null) {
             return ['column' => null, 'value' => null];
         }
-        $columnName = OrmHelper::resolveDiscriminatorColumnName($discCol);
+        // DiscriminatorColumnMapping object (ORM 3) or legacy array mapping (ORM 2)
+        $columnName = OrmHelper::resolveDiscriminatorColumnName($metadata->discriminatorColumn ?? null);
         if ($columnName === null || $columnName === '') {
             return ['column' => null, 'value' => null];
         }
@@ -380,8 +411,10 @@ final class AnonymizeService implements ResetInterface
         // For polymorphic entities, only load rows for this discriminator value
         $disc = $this->getDiscriminatorForTruncate($metadata);
         if ($disc['column'] !== null && $disc['value'] !== null) {
+            // Qualified with the main table alias: a joined table may have a column with the same name
             $query .= sprintf(
-                ' WHERE %s = %s',
+                ' WHERE %s.%s = %s',
+                DbalHelper::quoteIdentifier($connection, 't0'),
                 DbalHelper::quoteIdentifier($connection, $disc['column']),
                 $connection->quote($disc['value']),
             );
@@ -394,7 +427,8 @@ final class AnonymizeService implements ResetInterface
             $progressCallback(0, $totalRecords, sprintf('Starting anonymization of %d records', $totalRecords));
         }
 
-        $offset = 0;
+        $anonymizer = null;
+        $offset     = 0;
         while (true) {
             $chunkQuery = $this->appendOrderByAndLimit($connection, $query, $metadata, 't0', $batchSize, $offset);
             $records    = $connection->fetchAllAssociative($chunkQuery);
@@ -406,14 +440,8 @@ final class AnonymizeService implements ResetInterface
             try {
                 $useBatch = false;
                 if ($entityAttribute instanceof Anonymize && $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '' && $this->container instanceof ContainerInterface) {
-                    try {
-                        $anonymizer = $this->container->get($entityAttribute->anonymizeService);
-                    } catch (Throwable $e) {
-                        throw new RuntimeException(sprintf('Cannot get anonymizer service "%s": %s', $entityAttribute->anonymizeService, $e->getMessage()), 0, $e);
-                    }
-                    if (!$anonymizer instanceof EntityAnonymizerServiceInterface) {
-                        throw new RuntimeException(sprintf('Service "%s" must implement %s.', $entityAttribute->anonymizeService, EntityAnonymizerServiceInterface::class));
-                    }
+                    // Resolved once per entity, on the first chunk (no lookup when the table is empty)
+                    $anonymizer ??= $this->resolveEntityAnonymizer($this->container, $entityAttribute->anonymizeService);
                     if ($anonymizer->supportsBatch()) {
                         $useBatch   = true;
                         $allUpdates = $anonymizer->anonymizeBatch($em, $metadata, $records, $dryRun);
@@ -449,17 +477,9 @@ final class AnonymizeService implements ResetInterface
                         }
 
                         // When anonymizeService is set, delegate to the service instead of property-based anonymization
-                        if ($entityAttribute instanceof Anonymize && $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '' && $this->container instanceof ContainerInterface) {
+                        if ($anonymizer instanceof EntityAnonymizerServiceInterface) {
                             if ($isEntityExcluded) {
                                 continue;
-                            }
-                            try {
-                                $anonymizer = $this->container->get($entityAttribute->anonymizeService);
-                            } catch (Throwable $e) {
-                                throw new RuntimeException(sprintf('Cannot get anonymizer service "%s": %s', $entityAttribute->anonymizeService, $e->getMessage()), 0, $e);
-                            }
-                            if (!$anonymizer instanceof EntityAnonymizerServiceInterface) {
-                                throw new RuntimeException(sprintf('Service "%s" must implement %s.', $entityAttribute->anonymizeService, EntityAnonymizerServiceInterface::class));
                             }
                             $updates = $anonymizer->anonymize($em, $metadata, $record, $dryRun);
                             if ($updates !== []) {
@@ -495,7 +515,8 @@ final class AnonymizeService implements ResetInterface
                                 $columnName = OrmHelper::getFieldColumnName($metadata, $propertyName);
                             }
 
-                            // Check if column exists in record
+                            // Check if column exists in record. NULL originals are never anonymized
+                            // (the documented `preserve_null` behaviour is therefore always in effect).
                             if (!isset($record[$columnName])) {
                                 continue;
                             }
@@ -520,14 +541,7 @@ final class AnonymizeService implements ResetInterface
                             // This allows fakers to use the original value if needed (e.g., hash_preserve, masking)
                             // or ignore it if not needed (most fakers)
                             $fakerOptions  = $attribute->options;
-                            $originalValue = $record[$columnName] ?? null;
-
-                            // Check if we should preserve null values (skip anonymization if original is null)
-                            $preserveNull = $fakerOptions['preserve_null'] ?? false;
-                            if ($preserveNull && $originalValue === null) {
-                                // Skip anonymization for this property if original value is null
-                                continue;
-                            }
+                            $originalValue = $record[$columnName];
 
                             // Set original_value (standard key for all fakers)
                             $fakerOptions['original_value'] ??= $originalValue;
@@ -565,7 +579,7 @@ final class AnonymizeService implements ResetInterface
 
                             // Convert value based on field type (but preserve null values)
                             if ($anonymizedValue !== null) {
-                                $anonymizedValue = $this->convertValue($anonymizedValue, $metadata, $propertyName);
+                                $anonymizedValue = $this->convertValue($anonymizedValue, $metadata, $columnName);
                             }
 
                             // Dispatch AnonymizePropertyEvent to allow listeners to modify or skip anonymization
@@ -855,7 +869,7 @@ final class AnonymizeService implements ResetInterface
         $joinCounter    = 1;
 
         // Detect relationship patterns (fields with dots, e.g., 'type.name')
-        foreach ($patternFields as $patternField) {
+        foreach (array_unique($patternFields) as $patternField) {
             if (!str_contains($patternField, '.')) {
                 continue; // Not a relationship pattern
             }
@@ -864,80 +878,41 @@ final class AnonymizeService implements ResetInterface
             $associationName = $parts[0];
             $relatedField    = $parts[1];
 
-            // Check if association exists
-            if (!$metadata->hasAssociation($associationName)) {
-                continue; // Skip if association doesn't exist
+            // Only owning to-one associations with a single join column can be joined
+            // (collections and inverse sides have no join column on this table)
+            if (!$metadata->hasAssociation($associationName) || !$metadata->isAssociationWithSingleJoinColumn($associationName)) {
+                continue;
             }
 
             $associationMapping = $metadata->getAssociationMapping($associationName);
-            $targetEntity       = $associationMapping['targetEntity'];
-            $targetMetadata     = $em->getClassMetadata($targetEntity);
-            $targetTable        = $targetMetadata->getTableName();
-            $alias              = 't' . $joinCounter;
+            $targetMetadata     = $em->getClassMetadata($associationMapping['targetEntity']);
 
-            // Get join columns
-            $joinColumns = $associationMapping['joinColumns'] ?? [];
-            if (empty($joinColumns)) {
-                // ManyToOne or OneToOne - use source column
-                $sourceColumn = $metadata->getSingleAssociationJoinColumnName($associationName);
-                // Get target ID column name
-                $targetIdField   = $targetMetadata->getSingleIdentifierFieldName();
-                $targetIdMapping = $targetMetadata->getFieldMapping($targetIdField);
-                $targetColumn    = OrmHelper::getColumnNameFromFieldMapping($targetIdMapping, 'id');
-            } else {
-                $joinColumn   = $joinColumns[0];
-                $sourceColumn = $joinColumn['name'] ?? $associationName . '_id';
-                $targetColumn = $joinColumn['referencedColumnName'] ?? 'id';
-            }
-
-            // Check if join already exists
-            $joinKey = $associationName;
-            if (!isset($joins[$joinKey])) {
-                $joins[$joinKey] = [
-                    'table'        => $targetTable,
-                    'alias'        => $alias,
-                    'sourceColumn' => $sourceColumn,
-                    'targetColumn' => $targetColumn,
-                    'counter'      => $joinCounter,
+            // One LEFT JOIN per association, shared by every pattern field on it
+            if (!isset($joins[$associationName])) {
+                // ArrayAccess works on both legacy array mappings (ORM 2) and mapping objects (ORM 3)
+                $joinColumn              = $associationMapping['joinColumns'][0];
+                $joins[$associationName] = [
+                    'table'        => $targetMetadata->getTableName(),
+                    'alias'        => 't' . $joinCounter,
+                    'sourceColumn' => $joinColumn['name'],
+                    'targetColumn' => $joinColumn['referencedColumnName'],
                 ];
-
-                // Add related field to SELECT if it exists in target metadata
-                if ($targetMetadata->hasField($relatedField)) {
-                    $relatedFieldMapping = $targetMetadata->getFieldMapping($relatedField);
-                    $relatedColumnName   = OrmHelper::getColumnNameFromFieldMapping($relatedFieldMapping, $relatedField);
-
-                    // Validate that we have valid identifiers before adding to SELECT
-                    if ($relatedColumnName !== '') {
-                        $selectFields[] = sprintf(
-                            '%s.%s AS %s',
-                            DbalHelper::quoteIdentifier($connection, $alias),
-                            DbalHelper::quoteIdentifier($connection, $relatedColumnName),
-                            DbalHelper::quoteIdentifier($connection, $patternField),
-                        );
-                    }
-                }
-
                 ++$joinCounter;
             }
-        }
 
-        // Build SELECT clause
-        // Always start with main table fields - ensure it's properly quoted
-        $mainTableSelect = DbalHelper::quoteIdentifier($connection, $mainTableAlias) . '.*';
-
-        // Build list of valid select fields
-        // Start fresh and always include main table first
-        $validSelectFields = [$mainTableSelect];
-
-        // Add related fields that are not empty and different from main table select
-        foreach ($selectFields as $field) {
-            $trimmed = trim($field);
-            if (!in_array($trimmed, ['', '0', $mainTableSelect], true)) {
-                $validSelectFields[] = $trimmed;
+            // Expose the related column under the pattern name (e.g. "type.name") so patterns can match it
+            if ($targetMetadata->hasField($relatedField)) {
+                $selectFields[] = sprintf(
+                    '%s.%s AS %s',
+                    DbalHelper::quoteIdentifier($connection, $joins[$associationName]['alias']),
+                    DbalHelper::quoteIdentifier($connection, OrmHelper::getFieldColumnName($targetMetadata, $relatedField)),
+                    DbalHelper::quoteIdentifier($connection, $patternField),
+                );
             }
         }
 
-        $selectClause = implode(', ', $validSelectFields);
+        // Main table columns first, then one aliased column per joined pattern field
+        $selectClause = implode(', ', $selectFields);
 
         // Build FROM clause
         $fromClause = sprintf(
@@ -958,13 +933,6 @@ final class AnonymizeService implements ResetInterface
                 DbalHelper::quoteIdentifier($connection, $join['alias']),
                 DbalHelper::quoteIdentifier($connection, $join['targetColumn']),
             );
-        }
-
-        // Build final query
-        // Validate SELECT clause before building query
-        if (in_array(trim($selectClause), ['', '0'], true) || str_starts_with(trim($selectClause), '.')) {
-            // If SELECT clause is malformed, use only main table fields
-            $selectClause = $mainTableSelect;
         }
 
         $query = sprintf('SELECT %s FROM %s', $selectClause, $fromClause);

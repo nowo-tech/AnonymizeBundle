@@ -9,6 +9,7 @@ use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
 use Exception;
 use Nowo\AnonymizeBundle\Command\ExportDatabaseCommand;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
@@ -773,6 +774,61 @@ class ExportDatabaseCommandTest extends TestCase
         if (is_dir($projectDir)) {
             rmdir($projectDir);
         }
+    }
+
+    /**
+     * MongoDB without MONGODB_URL: a manager that is not an ORM EntityManager, or a connection without a database, fails that export.
+     */
+    public function testExecuteWithMongoConnectionCountsFailureWhenDoctrineManagerIsUnusable(): void
+    {
+        $backup = $_SERVER['MONGODB_URL'] ?? null;
+        unset($_SERVER['MONGODB_URL']);
+
+        try {
+            $connection = $this->createMock(Connection::class);
+            $connection->method('getParams')->willReturn([]);
+            $connection->method('getDatabase')->willReturn(null);
+            $emWithoutDatabase = $this->createMock(EntityManagerInterface::class);
+            $emWithoutDatabase->method('getConnection')->willReturn($connection);
+
+            foreach ([$this->createMock(ObjectManager::class), $emWithoutDatabase] as $manager) {
+                $doctrine = $this->createMock(ManagerRegistry::class);
+                $doctrine->method('getManagerNames')->willReturn([]);
+                $doctrine->method('getManager')->with('mongodb')->willReturn($manager);
+
+                $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $this->parameterBag, sys_get_temp_dir());
+                $output  = new BufferedOutput();
+
+                $exitCode = $command->run(new ArrayInput(['--connection' => ['mongodb'], '--no-gitignore' => true]), $output);
+
+                $this->assertSame(1, $exitCode);
+                $this->assertStringContainsString('1 export(s) failed', $output->fetch());
+            }
+        } finally {
+            if ($backup !== null) {
+                $_SERVER['MONGODB_URL'] = $backup;
+            }
+        }
+    }
+
+    /**
+     * An ORM connection whose manager is not an EntityManagerInterface is skipped and counted as failed.
+     */
+    public function testExecuteSkipsOrmManagerThatIsNotAnEntityManager(): void
+    {
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
+        $doctrine->method('getManager')->with('default')->willReturn($this->createMock(ObjectManager::class));
+
+        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $this->parameterBag, sys_get_temp_dir());
+        $output  = new BufferedOutput();
+
+        $exitCode = $command->run(new ArrayInput(['--no-gitignore' => true]), $output);
+        $content  = $output->fetch();
+
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('Manager "default" is not an EntityManagerInterface, skipping.', $content);
+        $this->assertStringContainsString('1 export(s) failed', $content);
     }
 
     private function createSafeEnvironmentProtection(): EnvironmentProtectionService
