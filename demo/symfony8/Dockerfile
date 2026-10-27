@@ -16,7 +16,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		zip \
 		pdo_mysql \
 		pdo_pgsql \
-		pdo_sqlite \
 		opcache \
 		intl \
 	&& pecl install mongodb-2.5.4 \

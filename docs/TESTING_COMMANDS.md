@@ -55,16 +55,16 @@ This script automatically tests **all bundle commands with their main options** 
 
 ### What It Tests
 
-The script tests **26 command combinations** (26 entries in the `COMMANDS` array in `scripts/test-commands.sh`):
+The script tests **22 command combinations** (22 entries in the `COMMANDS` array in `scripts/test-commands.sh`):
 
-#### 1. `nowo:anonymize:info` (6 tests)
+#### 1. `nowo:anonymize:info` (5 tests)
 - Without options (all connections)
-- With `--connection default`, `postgres`, and `sqlite`
+- With `--connection default` and `postgres`
 - With `--locale es_ES` on the default connection
 - With `--verbose` on the default connection
 
-#### 2. `nowo:anonymize:run` (6 tests)
-- `--dry-run` with connections `default`, `postgres`, and `sqlite`
+#### 2. `nowo:anonymize:run` (5 tests)
+- `--dry-run` with connections `default` and `postgres`
 - `--dry-run` with `--batch-size 50` and `--locale es_ES`
 - `--dry-run` with `--verbose`
 
@@ -76,14 +76,14 @@ The script tests **26 command combinations** (26 entries in the `COMMANDS` array
 - With `--connection default`
 - Combined `--limit 10 --connection default`
 
-#### 4. `nowo:anonymize:export-db` (4 tests)
-- One run per connection: `default`, `postgres`, `sqlite`, `mongodb`
+#### 4. `nowo:anonymize:export-db` (3 tests)
+- One run per connection: `default`, `postgres`, `mongodb`
 
 > **Note**: The export command does **not** define a `--dry-run` flag in this bundle. These tests run the real export flow (files may be produced under the demo’s configured export paths). Use only in environments where that is acceptable.
 
-#### 5. `nowo:anonymize:generate-column-migration` (4 tests)
+#### 5. `nowo:anonymize:generate-column-migration` (3 tests)
 - Without options
-- With `--connection default`, `postgres`, and `sqlite`
+- With `--connection default` and `postgres`
 
 #### 6. `nowo:anonymize:generate-mongo-field` (2 tests)
 - With `--scan-documents`
@@ -132,7 +132,7 @@ Testing: nowo:anonymize:info --connection default
 
 ==========================================
 📊 Summary for symfony8:
-   ✅ Successful: 26
+   ✅ Successful: 22
    ❌ Failed: 2
    ⚠️  Skipped: 1
 ==========================================
@@ -161,7 +161,6 @@ Test information display for all connections:
 # In each demo container
 php bin/console nowo:anonymize:info --connection default
 php bin/console nowo:anonymize:info --connection postgres
-php bin/console nowo:anonymize:info --connection sqlite
 php bin/console nowo:anonymize:info  # All connections
 ```
 
@@ -175,7 +174,6 @@ Test anonymization execution (use `--dry-run` first):
 # Dry-run mode (safe, no changes)
 php bin/console nowo:anonymize:run --connection default --dry-run
 php bin/console nowo:anonymize:run --connection postgres --dry-run
-php bin/console nowo:anonymize:run --connection sqlite --dry-run
 
 # Test a single entity (e.g. to verify anonymizeService or event listeners)
 php bin/console nowo:anonymize:run --entity "App\Entity\SmsNotification" --dry-run
@@ -211,7 +209,6 @@ Test database export (there is **no** `--dry-run` option; exports write real dum
 ```bash
 php bin/console nowo:anonymize:export-db --connection default
 php bin/console nowo:anonymize:export-db --connection postgres
-php bin/console nowo:anonymize:export-db --connection sqlite
 php bin/console nowo:anonymize:export-db --connection mongodb
 # Omit --connection to export all configured connections (default behavior)
 ```
@@ -245,7 +242,7 @@ php bin/console nowo:anonymize:generate-mongo-field --collection user_activities
 
 For the Symfony 8 demo:
 
-- [ ] `nowo:anonymize:info` works for all connections (default, postgres, sqlite)
+- [ ] `nowo:anonymize:info` works for all connections (default, postgres)
 - [ ] `nowo:anonymize:run --dry-run` works for all connections
 - [ ] `nowo:anonymize:run` with various options works
 - [ ] `nowo:anonymize:history` displays history correctly
