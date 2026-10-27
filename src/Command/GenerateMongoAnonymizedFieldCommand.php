@@ -15,7 +15,11 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 use function count;
+use function is_string;
 use function sprintf;
+
+use const JSON_THROW_ON_ERROR;
+use const JSON_UNESCAPED_SLASHES;
 
 /**
  * Command to generate MongoDB scripts for adding the `anonymized` field to anonymizable documents.
@@ -166,8 +170,16 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
             return self::FAILURE;
         }
 
+        // Names end up in generated JavaScript and shell hints: reject anything that is not a plain MongoDB name
+        $invalidNames = $this->invalidNames((string) $database, $collections);
+        if ($invalidNames !== []) {
+            $io->error(sprintf('Invalid MongoDB database/collection name(s): %s. Allowed: letters, digits, "_", "-" and "." (collections), without "system." prefix.', implode(', ', array_map(json_encode(...), $invalidNames))));
+
+            return self::FAILURE;
+        }
+
         // Generate JavaScript script
-        $script = $this->generateMongoScript($database, $collections);
+        $script = $this->generateMongoScript((string) $database, array_values($collections));
 
         if ($outputFile !== null) {
             file_put_contents($outputFile, $script);
@@ -181,6 +193,26 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Returns the database / collection names that are not plain MongoDB names.
+     *
+     * @param array<int|string, mixed> $collections
+     *
+     * @return list<string>
+     */
+    private function invalidNames(string $database, array $collections): array
+    {
+        $invalid = preg_match('/^[A-Za-z0-9_-]{1,63}$/', $database) === 1 ? [] : [$database];
+        foreach ($collections as $collection) {
+            $name = is_string($collection) ? $collection : '';
+            if (preg_match('/^[A-Za-z_][A-Za-z0-9_.-]{0,119}$/', $name) !== 1 || str_starts_with($name, 'system.')) {
+                $invalid[] = $name;
+            }
+        }
+
+        return $invalid;
     }
 
     /**
@@ -239,35 +271,38 @@ final class GenerateMongoAnonymizedFieldCommand extends AbstractCommand
      */
     private function generateMongoScript(string $database, array $collections): string
     {
-        $script = <<<'JS'
-            // MongoDB Script to Add Anonymized Field
-            // Generated: {DATE}
-            // Database: {DATABASE}
-            // Collections: {COLLECTIONS}
-
-            // Switch to the target database
-            use('{DATABASE}');
-
-            // Process each collection
-            {COLLECTION_SCRIPTS}
-
-            print('✅ Anonymized field migration completed successfully!');
-            JS;
+        $script = <<<'JS_WRAP'
+        // MongoDB Script to Add Anonymized Field
+        // Generated: {DATE}
+        // Database: {DATABASE}
+        // Collections: {COLLECTIONS}
+        
+        // Switch to the target database
+        db = db.getSiblingDB({DATABASE_JSON});
+        
+        // Process each collection
+        {COLLECTION_SCRIPTS}
+        
+        print('✅ Anonymized field migration completed successfully!');
+        JS_WRAP;
 
         $collectionScripts = [];
-        foreach ($collections as $collection) {
+        foreach ($collections as $index => $collection) {
+            // Names are validated; they are still emitted as JSON string literals, never as raw code
+            $name                = json_encode($collection, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
             $collectionScripts[] = <<<JS
                 // Add anonymized field to collection: {$collection}
-                print('Processing collection: {$collection}...');
-                const result{$collection} = db.{$collection}.updateMany(
+                print('Processing collection: ' + {$name} + '...');
+                const result{$index} = db.getCollection({$name}).updateMany(
                     { anonymized: { \$exists: false } },
                     { \$set: { anonymized: false } }
                 );
-                print(`  ✓ Updated \${result{$collection}.modifiedCount} document(s) in {$collection}`);
+                print('  ✓ Updated ' + result{$index}.modifiedCount + ' document(s) in ' + {$name});
                 JS;
         }
 
         $script = str_replace('{DATE}', date('Y-m-d H:i:s'), $script);
+        $script = str_replace('{DATABASE_JSON}', json_encode($database, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES), $script);
         $script = str_replace('{DATABASE}', $database, $script);
         $script = str_replace('{COLLECTIONS}', implode(', ', $collections), $script);
 

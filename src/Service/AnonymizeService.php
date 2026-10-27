@@ -810,7 +810,7 @@ final class AnonymizeService implements ResetInterface
      *
      * @return array<int, string>
      */
-    private function getPatternFieldNames(array $patterns): array
+    public function getPatternFieldNames(array $patterns): array
     {
         if ($patterns === []) {
             return [];

@@ -7,10 +7,13 @@ namespace Nowo\AnonymizeBundle\Command;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
+use Nowo\AnonymizeBundle\Attribute\Anonymize;
+use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
 use Nowo\AnonymizeBundle\Helper\OrmHelper;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
+use ReflectionProperty;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -166,9 +169,14 @@ final class AnonymizeInfoCommand extends AbstractCommand
                     $countQuery   = sprintf('SELECT COUNT(*) as total FROM %s', $this->quoteIdentifier($connection, $tableName));
                     $totalRecords = (int) $connection->fetchOne($countQuery);
 
-                    // Get all records for pattern matching (only needed when we have properties to show samples)
-                    $query      = sprintf('SELECT * FROM %s', $this->quoteIdentifier($connection, $tableName));
-                    $allRecords = $connection->fetchAllAssociative($query);
+                    // Rows are only needed to evaluate patterns, and only the pattern columns are read (no SELECT *:
+                    // the info command must not pull whole tables of personal data into memory)
+                    $patternColumns = $this->patternColumns($metadata->getColumnNames(), $entityAttribute, $properties);
+                    $allRecords     = $patternColumns === [] ? null : $connection->fetchAllAssociative(sprintf(
+                        'SELECT %s FROM %s',
+                        implode(', ', array_map(fn (string $column): string => $this->quoteIdentifier($connection, $column), $patternColumns)),
+                        $this->quoteIdentifier($connection, $tableName),
+                    ));
 
                     $io->writeln('');
                     $io->writeln(sprintf('  <comment>Entity:</comment> <info>%s</info>', $className));
@@ -222,9 +230,9 @@ final class AnonymizeInfoCommand extends AbstractCommand
                             $columnName = OrmHelper::getFieldColumnName($metadata, $propertyName);
                         }
 
-                        // Count records that will be anonymized for this property
-                        $recordsToAnonymize = 0;
-                        foreach ($allRecords as $record) {
+                        // Count records that will be anonymized for this property (every row when no pattern applies)
+                        $recordsToAnonymize = $allRecords === null ? $totalRecords : 0;
+                        foreach ($allRecords ?? [] as $record) {
                             // Check entity-level patterns first
                             $entityMatches = $this->patternMatcher->matches(
                                 $record,
@@ -258,7 +266,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
                         }
 
                         if ($attribute->options !== []) {
-                            $io->writeln(sprintf('         Options: <comment>%s</comment>', json_encode($attribute->options, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)));
+                            $io->writeln(sprintf('         Options: <comment>%s</comment>', json_encode($this->maskSecrets($attribute->options), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)));
                         }
 
                         if ($attribute->includePatterns !== []) {
@@ -281,7 +289,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
                             'faker_type'           => $attribute->type,
                             'service'              => $attribute->service,
                             'weight'               => $weight,
-                            'options'              => $attribute->options,
+                            'options'              => $this->maskSecrets($attribute->options),
                             'include_patterns'     => $attribute->includePatterns,
                             'exclude_patterns'     => $attribute->excludePatterns,
                             'total_records'        => $totalRecords,
@@ -333,5 +341,48 @@ final class AnonymizeInfoCommand extends AbstractCommand
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Plain table columns referenced by entity / property patterns (relationship paths like "type.name" are not columns here).
+     *
+     * @param array<int, string> $tableColumns
+     * @param list<array{property: ReflectionProperty, attribute: AnonymizeProperty, weight: int, fieldName: string}> $properties
+     *
+     * @return list<string>
+     */
+    private function patternColumns(array $tableColumns, Anonymize $entityAttribute, array $properties): array
+    {
+        $fields = array_merge(
+            $this->anonymizeService->getPatternFieldNames($entityAttribute->includePatterns),
+            $this->anonymizeService->getPatternFieldNames($entityAttribute->excludePatterns),
+        );
+        foreach ($properties as $propertyData) {
+            $fields = array_merge(
+                $fields,
+                $this->anonymizeService->getPatternFieldNames($propertyData['attribute']->includePatterns),
+                $this->anonymizeService->getPatternFieldNames($propertyData['attribute']->excludePatterns),
+            );
+        }
+
+        return array_values(array_intersect($tableColumns, $fields));
+    }
+
+    /**
+     * Masks option values whose key looks secret (salt, key, secret, password, token) before printing them.
+     *
+     * @param array<string, mixed> $options
+     *
+     * @return array<string, mixed>
+     */
+    private function maskSecrets(array $options): array
+    {
+        foreach ($options as $name => $value) {
+            if (preg_match('/salt|key|secret|password|token/i', (string) $name) === 1) {
+                $options[$name] = '***';
+            }
+        }
+
+        return $options;
     }
 }

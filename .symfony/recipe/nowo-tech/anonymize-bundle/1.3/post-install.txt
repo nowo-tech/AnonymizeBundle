@@ -1,0 +1,41 @@
+Anonymize Bundle has been installed!
+
+The following files have been created:
+  - config/packages/dev/nowo_anonymize.yaml (configuration)
+
+⚠️ IMPORTANT: This bundle is development-only and should never be used in production.
+
+The bundle has been registered only for 'dev' and 'test' environments.
+The command includes built-in protection that prevents execution in production.
+
+To use the bundle:
+1. Mark your entities with the #[Anonymize] attribute
+2. Mark properties with the #[AnonymizeProperty] attribute
+3. Run: php bin/console nowo:anonymize:run --dry-run (to preview)
+4. Run: php bin/console nowo:anonymize:run (to anonymize)
+
+Available commands:
+- nowo:anonymize:run - Anonymize database records
+- nowo:anonymize:export-db - Export databases to files
+- nowo:anonymize:info - Display information about anonymizers
+- nowo:anonymize:generate-column-migration - Generate SQL migrations
+- nowo:anonymize:generate-mongo-field - Generate MongoDB scripts
+
+Using the hash_preserve faker? Set a dedicated secret key (>= 32 characters) in .env.local,
+never in a committed file:
+  NOWO_ANONYMIZE_HASH_KEY=<output of: php -r 'echo bin2hex(random_bytes(32));'>
+
+Export dumps, history and statistics are written owner-only (0600) but still contain the data
+you exported: anonymize first, then export.
+
+You can customize the configuration in config/packages/dev/nowo_anonymize.yaml.
+The bundle works with default values if you delete the config file.
+
+New features:
+- Export statistics to JSON/CSV (--stats-json, --stats-csv)
+- Export databases with compression (nowo:anonymize:export-db)
+- Interactive mode for step-by-step confirmations (--interactive)
+
+For more information, see:
+- README.md: https://github.com/nowo-tech/anonymize-bundle
+- Documentation: docs/INSTALLATION.md and docs/CONFIGURATION.md

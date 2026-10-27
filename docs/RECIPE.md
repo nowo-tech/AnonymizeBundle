@@ -25,7 +25,7 @@ While the recipe is not published, users must manually create the configuration 
    ```
 
 2. Create the file `config/packages/dev/nowo_anonymize.yaml` with the content from the template located at:
-   `.symfony/recipe/nowo-tech/anonymize-bundle/0.0.1/config/packages/dev/nowo_anonymize.yaml`
+   `.symfony/recipe/nowo-tech/anonymize-bundle/1.3/config/packages/dev/nowo_anonymize.yaml`
 
 ## How to Publish the Recipe
 
@@ -38,7 +38,7 @@ For the recipe to work automatically, it must be published in the official Symfo
    ```
    nowo-tech/
      anonymize-bundle/
-       0.0.1/
+       1.3/
          manifest.json
          config/
            packages/
@@ -46,7 +46,7 @@ For the recipe to work automatically, it must be published in the official Symfo
                nowo_anonymize.yaml
          post-install.txt
    ```
-3. Copy the files from `.symfony/recipe/nowo-tech/anonymize-bundle/0.0.1/`
+3. Copy the files from `.symfony/recipe/nowo-tech/anonymize-bundle/1.3/` (and `0.0.1/` for older bundle versions)
 4. Create a Pull Request in the recipes-contrib repository
 
 ### Option 2: Update the Recipe for Future Versions
@@ -59,11 +59,11 @@ When a new version of the bundle is published, you should:
 
 ## Recipe Structure
 
-The current recipe (`0.0.1`) includes:
+The current recipe (`1.3`, for bundle 1.3+; `0.0.1` covers older versions) includes:
 
-- **manifest.json**: Defines bundle registration and files to copy
+- **manifest.json**: Registers the bundle for `dev` / `test` and copies the config file. It does **not** touch the host `.env` (earlier `0.0.1` revisions appended `APP_ENV=dev`; removed in both versions, SEC-004 L4)
 - **config/packages/dev/nowo_anonymize.yaml**: Default configuration file
-- **post-install.txt**: Message displayed after installation
+- **post-install.txt**: Message displayed after installation (1.3 also explains the `NOWO_ANONYMIZE_HASH_KEY` secret for `hash_preserve` and owner-only exports)
 
 ## Important Notes
 
