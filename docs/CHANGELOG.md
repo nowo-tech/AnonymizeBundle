@@ -112,6 +112,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Demo:** the MySQL init dump (`demo/docker/init/mysql/init.sql`) started with mysqldump's password warning, so MySQL aborted its first start on a fresh volume (ERROR 1064); the line was removed.
 - **History file name:** `AnonymizationHistoryService::saveRun()` names the file from the injected clock (the entry timestamp) instead of the system time, so the path stored in the history index always matches (REQ-DI-001 clock rule).
 - **`pattern_based` fallback locale:** the fallback faker used a **random** locale (it read Faker's deprecated `Generator::$locale` magic property, which triggered a deprecation and returned a random `locale()` value); it now uses the configured locale.
 
