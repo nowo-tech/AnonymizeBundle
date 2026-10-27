@@ -11,6 +11,7 @@
 - [Important note](#important-note)
 - [Remediations addressed](#remediations-addressed)
 - [Release security checklist (12.4.1)](#release-security-checklist-1241)
+- [AI security audit](#ai-security-audit)
 
 ## Scope
 
@@ -111,7 +112,19 @@ Before tagging a release, confirm:
 | **Cryptography** | If used: keys from secure config; never hardcoded. |
 | **Permissions / exposure** | Routes and admin features documented; roles configured for production. |
 | **Limits / DoS** | `export.timeout` + PHP/Caddy hierarchy documented (REQ-RUNTIME-001). |
-| **AI security audit (REQ-SEC-004)** | Latest AI security review grade is current for this release (re-audit when commands, environment protection or export change); record the grade in the maintainers' security catalogue. |
+| **AI security audit (REQ-SEC-004)** | Grade **Pass (good)** / risk **Low** (2026-10-27, re-audit of `main` `b10f6d7` + fixes in PR #31, shipped in 1.3.0). See [AI security audit](#ai-security-audit). Re-audit when commands, environment protection, export, `hash_preserve` or the plugin locator change. |
 
 Record confirmation in the release PR or tag notes.
+
+## AI security audit
+
+| Field | Value |
+| --- | --- |
+| Date | 2026-10-27 |
+| Scope | `main` `b10f6d7` (PR #30 closed plugin locator) + hardening PR #31 (head `e544045`), released as 1.3.0 |
+| Grade | Pass (good) |
+| Risk | Low |
+| Method | Claude Code static review of `src/` (commands, SQL building, export service and runners, history/statistics, environment protection, locator pass, fakers), Flex recipes, docs and demo env files; `--locale` autoload check on PHP 8.5.12; fix verification by diff review and bypass attempts (`--stats-only`/`-i`/`-n` combinations, symlinked stats/history/export paths, failed/timed-out tools, mongosh name injection, placeholder keys) |
+| Findings (fixed in 1.3.0) | M1 `--stats-only` bypassed the non-interactive `--force` guard and the TRUNCATE prompt (1.0.33–1.2.x); L1 `hash_preserve` was `sha256(value . salt)` with `%kernel.secret%` (now HMAC with a dedicated key, quality-checked before any write); L2 world-readable dumps/history/statistics (now 0700/0600, pre-1.3 directories tightened, ZIPs staged privately); L3 partial dumps and ignored compression exit codes; L4 recipe wrote `APP_ENV=dev`; L5 unescaped names in the generated mongosh script; N2 `--interactive` without a terminal and `-i --stats-only` without confirmation; Info: shell strings (now argv), trusted history index paths, symlink-blind stats path, `SELECT *` + unmasked options in `info`, exception messages on export, TTY runs without target confirmation, duck-typed locator services (deprecated), symlinked Mongo dump directory |
+| Open residuals | Destructive by design in dev/test; DSN denylist is substring-based and can be emptied; `hash_preserve` output is pseudonymous (treat the key like a password); anonymize before `export-db`; bundle services keep `public: true` |
 
