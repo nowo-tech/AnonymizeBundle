@@ -3,6 +3,9 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 1.3.0](#to-130)
+  - [Security changes that need action (SEC-004)](#security-changes-that-need-action-sec-004)
+  - [Custom services (closed locator, REQ-DI-001)](#custom-services-closed-locator-req-di-001)
 - [To 1.2.4](#to-124)
 - [To 1.2.3](#to-123)
 - [To 1.2.2](#to-122)
@@ -95,6 +98,14 @@
 - [Notes](#notes-17)
 
 ## Unreleased
+
+## To 1.3.0
+
+From **1.2.4**:
+
+```bash
+composer update nowo-tech/anonymize-bundle
+```
 
 ### Security changes that need action (SEC-004)
 
