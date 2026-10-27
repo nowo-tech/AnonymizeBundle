@@ -210,6 +210,8 @@ jobs:
           composer update --no-interaction --prefer-dist --no-progress
 
       - name: Run tests with coverage
+        env:
+          SYMFONY_DEPRECATIONS_HELPER: max[direct]=0
         run: |
           echo "🧪 Running tests with coverage..."
           rm -rf .phpunit.cache
@@ -220,13 +222,22 @@ jobs:
           fi
           echo "✅ All tests passed successfully"
 
-      - name: Validate coverage file
+      - name: Enforce coverage gate (REQ-TEST-003)
         run: |
           if [ ! -f coverage.xml ]; then
             echo "ERROR: coverage.xml was not generated"
             exit 1
           fi
-          echo "✅ coverage.xml generated"
+          METRICS_LINE=$(grep -m1 '<metrics files=' coverage.xml)
+          STATEMENTS=$(echo "$METRICS_LINE" | sed -E 's/.* statements="([0-9]+)".*/\1/')
+          COVERED=$(echo "$METRICS_LINE" | sed -E 's/.* coveredstatements="([0-9]+)".*/\1/')
+          echo "Covered statements: ${COVERED}/${STATEMENTS}"
+          # The whole of src/ is covered (no exclusions in phpunit.xml.dist); any uncovered statement fails the build.
+          if [ "$STATEMENTS" -eq 0 ] || [ "$COVERED" -ne "$STATEMENTS" ]; then
+            echo "ERROR: PHP coverage must be 100% of src/ (${COVERED}/${STATEMENTS} statements covered)"
+            exit 1
+          fi
+          echo "✅ PHP coverage 100% (${COVERED}/${STATEMENTS})"
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7

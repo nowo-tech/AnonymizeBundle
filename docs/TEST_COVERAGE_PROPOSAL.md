@@ -2,6 +2,8 @@
 
 Goal: cover code that is currently uncovered in classes below 100%.
 
+> **Status (2026-10-27): done.** `src/` is at **100%** lines (3778/3778) with no exclusions in `phpunit.xml.dist`, and `make test-coverage` / CI fail below 100% (REQ-TEST-003). The sections below are the historical proposal; `KernelParameterBagAdapter` (section 8) was removed as unused internal code.
+
 **Current coverage (after latest tests):** Lines 91,94 % (3283/3571), Classes 85,71 % (60/70). AnonymizeCommand 77,33 %; DatabaseExportService 66,99 % (140/209).
 
 ## Table of contents
