@@ -9,6 +9,8 @@ use PHPUnit\Framework\TestCase;
 
 use function is_resource;
 
+use const PHP_BINARY;
+
 /**
  * Unit tests for SystemCommandRunner.
  */
@@ -132,5 +134,16 @@ class SystemCommandRunnerTest extends TestCase
         );
 
         $this->assertFalse($runner->commandExists('php'));
+    }
+
+    public function testRunExecutesAnArgumentVectorWithEnvironmentAndNoShell(): void
+    {
+        $runner = new SystemCommandRunner();
+        $output = [];
+
+        $code = $runner->run([PHP_BINARY, '-r', 'echo getenv("NOWO_TEST_ENV"), "|", $argv[1];', '$(echo injected)'], ['NOWO_TEST_ENV' => 'from-env'], $output);
+
+        $this->assertSame(0, $code);
+        $this->assertSame(['from-env|$(echo injected)'], $output);
     }
 }

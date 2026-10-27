@@ -24,7 +24,7 @@ use const PHP_OS;
  *
  * An optional proc-open callable can be injected for testing commandExists() only.
  */
-final class SystemCommandRunner implements CommandRunnerInterface
+final class SystemCommandRunner implements ArgvCommandRunnerInterface
 {
     private const DEFAULT_TIMEOUT_SECONDS = 180.0;
 
@@ -78,7 +78,26 @@ final class SystemCommandRunner implements CommandRunnerInterface
     /** Runs a shell command with the configured timeouts; fills $output (when given) with its lines and returns the exit code (124 on timeout). */
     public function exec(string $command, ?array &$output = null): int
     {
-        $process = Process::fromShellCommandline($command);
+        return $this->runProcess(Process::fromShellCommandline($command), $output);
+    }
+
+    /**
+     * Runs a program without a shell (argument vector), with the configured timeouts.
+     *
+     * @param list<string> $argv
+     * @param array<string, string> $env
+     * @param array<string>|null $output
+     */
+    public function run(array $argv, array $env = [], ?array &$output = null): int
+    {
+        return $this->runProcess(new Process($argv, null, $env === [] ? null : $env), $output);
+    }
+
+    /**
+     * @param array<string>|null $output
+     */
+    private function runProcess(Process $process, ?array &$output): int
+    {
         $process->setTimeout($this->timeoutSeconds);
         $process->setIdleTimeout($this->idleTimeoutSeconds);
 
