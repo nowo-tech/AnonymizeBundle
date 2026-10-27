@@ -18,6 +18,7 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
@@ -529,7 +530,7 @@ class ExportDatabaseCommandTest extends TestCase
 
         $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, (static fn (mixed $v): string => is_string($v) ? $v : sys_get_temp_dir())($parameterBag->get('kernel.project_dir')));
         $input   = new ArrayInput(['--no-gitignore' => true]);
-        $output  = new BufferedOutput();
+        $output  = new BufferedOutput(OutputInterface::VERBOSITY_VERY_VERBOSE);
 
         $exitCode = $command->run($input, $output);
         $content  = $output->fetch();
@@ -590,12 +591,12 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->expects($this->once())->method('getManager')->with('reporting')->willThrowException(new Exception('reporting reached'));
 
         $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, sys_get_temp_dir());
-        $output  = new BufferedOutput();
+        $output  = new BufferedOutput(OutputInterface::VERBOSITY_VERY_VERBOSE);
 
         $command->run(new ArrayInput(['--no-gitignore' => true]), $output);
         $content = $output->fetch();
 
-        $this->assertStringContainsString('Error exporting reporting: reporting reached', $content);
+        $this->assertStringContainsString('Error exporting reporting (Exception): reporting reached', $content);
         $this->assertStringNotContainsString('Exporting default', $content);
         $this->assertStringNotContainsString('Error exporting default', $content);
     }
@@ -616,11 +617,11 @@ class ExportDatabaseCommandTest extends TestCase
         $doctrine->expects($this->once())->method('getManager')->with('default')->willThrowException(new Exception('default reached'));
 
         $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $parameterBag, sys_get_temp_dir());
-        $output  = new BufferedOutput();
+        $output  = new BufferedOutput(OutputInterface::VERBOSITY_VERY_VERBOSE);
 
         $command->run(new ArrayInput(['--connection' => ['default'], '--no-gitignore' => true]), $output);
 
-        $this->assertStringContainsString('Error exporting default: default reached', $output->fetch());
+        $this->assertStringContainsString('Error exporting default (Exception): default reached', $output->fetch());
     }
 
     /**
@@ -829,6 +830,26 @@ class ExportDatabaseCommandTest extends TestCase
         $this->assertSame(1, $exitCode);
         $this->assertStringContainsString('Manager "default" is not an EntityManagerInterface, skipping.', $content);
         $this->assertStringContainsString('1 export(s) failed', $content);
+    }
+
+    /**
+     * Without -vv a failed export shows only the exception class (driver messages can echo connection details).
+     */
+    public function testExecuteHidesExceptionMessageUnlessVeryVerbose(): void
+    {
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
+        $doctrine->method('getManager')->with('default')->willThrowException(new Exception('host=db.example.test user=app'));
+
+        $command = new ExportDatabaseCommand($this->createSafeEnvironmentProtection(), $doctrine, $this->parameterBag, sys_get_temp_dir());
+        $output  = new BufferedOutput();
+
+        $exitCode = $command->run(new ArrayInput(['--no-gitignore' => true]), $output);
+        $content  = $output->fetch();
+
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('Error exporting default (Exception); re-run with -vv for details', $content);
+        $this->assertStringNotContainsString('db.example.test', $content);
     }
 
     private function createSafeEnvironmentProtection(): EnvironmentProtectionService

@@ -11,6 +11,7 @@ use Symfony\Component\DependencyInjection\Attribute\Exclude;
 use function is_callable;
 use function is_object;
 use function sprintf;
+use function trigger_deprecation;
 
 /**
  * Faker for generating anonymized values using a custom service.
@@ -66,14 +67,24 @@ final readonly class ServiceFaker implements FakerInterface
             return $service->generate($options);
         }
 
+        // Duck-typed services stay in the plugin locator only for BC (REQ-DI-001, SEC-004 I1)
         if (method_exists($service, 'generate')) {
+            $this->deprecateDuckTyping();
+
             return $service->generate($options);
         }
 
         if (is_callable($service)) {
+            $this->deprecateDuckTyping();
+
             return $service($options);
         }
 
         throw new RuntimeException(sprintf('Service "%s" must implement FakerInterface, have a generate() method, or be callable.', $this->serviceName));
+    }
+
+    private function deprecateDuckTyping(): void
+    {
+        trigger_deprecation('nowo-tech/anonymize-bundle', '1.3.0', 'Custom faker service "%s" does not implement "%s"; duck-typed generate()/__invoke() fakers are deprecated and will not be resolved in 2.0.', $this->serviceName, FakerInterface::class);
     }
 }

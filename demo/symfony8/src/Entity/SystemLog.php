@@ -97,7 +97,7 @@ class SystemLog
     private ?DateTimeInterface $createdAt = null;
 
     #[ORM\Column(length: 64, nullable: true)]
-    #[AnonymizeProperty(type: 'hash_preserve', weight: 17, options: ['algorithm' => 'sha256', 'salt' => 'demo-salt'])]
+    #[AnonymizeProperty(type: 'hash_preserve', weight: 17, options: ['algorithm' => 'sha256', 'salt' => 'system_logs.user_id'])]
     private ?string $userIdHash = null;
 
     #[ORM\Column(length: 50, nullable: true)]

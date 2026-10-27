@@ -7,10 +7,12 @@ namespace Nowo\AnonymizeBundle\Service;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Exception;
+use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
 use Nowo\AnonymizeBundle\Enum\FakerType;
 use Nowo\AnonymizeBundle\Faker\FakerFactoryInterface;
+use Nowo\AnonymizeBundle\Faker\HashPreserveFaker;
 use Nowo\AnonymizeBundle\Helper\AnonymizePropertyDiscovery;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Helper\OrmHelper;
@@ -65,6 +67,8 @@ final readonly class PreFlightCheckService
         // Check database connectivity
         $errors = array_merge($errors, $this->checkDatabaseConnectivity($em));
 
+        $usesHashPreserve = false;
+
         // Check each entity
         foreach ($entities as $className => $entityData) {
             $metadata   = $entityData['metadata'];
@@ -88,10 +92,38 @@ final readonly class PreFlightCheckService
 
                 // Validate patterns
                 $errors = array_merge($errors, $this->validatePatterns($propertyAttribute));
+
+                $usesHashPreserve = $usesHashPreserve
+                    || $propertyAttribute->type === FakerType::HASH_PRESERVE->value
+                    || ($propertyAttribute->options['fallback_faker'] ?? null) === FakerType::HASH_PRESERVE->value;
             }
         }
 
+        // A missing / weak hash_preserve key must stop the run before any row is written (no half-anonymized tables)
+        if ($usesHashPreserve) {
+            return array_merge($errors, $this->checkHashPreserveKey());
+        }
+
         return $errors;
+    }
+
+    /**
+     * Checks that the hash_preserve faker has a usable HMAC key.
+     *
+     * @return array<string> Array of error messages
+     */
+    private function checkHashPreserveKey(): array
+    {
+        $faker = $this->fakerFactory->create(FakerType::HASH_PRESERVE);
+        if ($faker instanceof HashPreserveFaker) {
+            try {
+                $faker->assertUsableKey();
+            } catch (InvalidArgumentException $e) {
+                return [$e->getMessage()];
+            }
+        }
+
+        return [];
     }
 
     /**

@@ -197,17 +197,18 @@ The export command will automatically detect available compression tools and fal
 
 ### hash_preserve
 
-Defaults for deterministic `HashPreserveFaker` hashing:
+Key for the `hash_preserve` faker, a keyed **HMAC** (SHA-256 / SHA-512). Its output is deterministic, so it is **pseudonymous, not anonymous**: whoever holds the key can confirm a guessed value.
 
 ```yaml
 nowo_anonymize:
     hash_preserve:
-        default_salt: null   # null → %kernel.secret%; set an explicit string to override
+        key: '%env(NOWO_ANONYMIZE_HASH_KEY)%'   # null (default) reads NOWO_ANONYMIZE_HASH_KEY
 ```
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `hash_preserve.default_salt` | `null` (`%kernel.secret%`) | Salt used when faker options omit `salt` or pass an empty string. |
+| `hash_preserve.key` | `null` → `%env(default::NOWO_ANONYMIZE_HASH_KEY)%` | Dedicated secret, at least 32 characters (`php -r 'echo bin2hex(random_bytes(32));'`). Keep it in `.env.local` or a secret store, never in the repository. Without a usable key (missing, shorter than 32 characters, or a placeholder such as `changeme`) `hash_preserve` fails instead of producing unkeyed hashes. `kernel.secret` is no longer used. |
+| `hash_preserve.default_salt` | `null` | **Deprecated** (1.3) alias of `key`. |
 
 ### environment_protection
 

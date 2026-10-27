@@ -6,6 +6,7 @@ namespace Nowo\AnonymizeBundle\Tests\Integration\Command;
 
 use Nowo\AnonymizeBundle\Command\GenerateMongoAnonymizedFieldCommand;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -102,7 +103,7 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         $this->assertFileExists($tempFile);
         $fileContent = file_get_contents($tempFile);
         $this->assertIsString($fileContent);
-        $this->assertStringContainsString('use(', $fileContent);
+        $this->assertStringContainsString('db.getSiblingDB(', $fileContent);
         $this->assertStringContainsString('users', $fileContent);
 
         // Cleanup
@@ -144,6 +145,41 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         $this->assertStringContainsString('anonymized', $script);
     }
 
+    public function testGeneratedScriptUsesJsonLiteralsAndIndexedVariables(): void
+    {
+        $method = (new ReflectionClass($this->command))->getMethod('generateMongoScript');
+        $script = $method->invoke($this->command, 'test_db', ['user.events', 'audit-log']);
+
+        $this->assertStringContainsString('db = db.getSiblingDB("test_db");', $script);
+        $this->assertStringContainsString('const result0 = db.getCollection("user.events").updateMany(', $script);
+        $this->assertStringContainsString('const result1 = db.getCollection("audit-log").updateMany(', $script);
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>}>
+     */
+    public static function invalidNameProvider(): iterable
+    {
+        yield 'database with quote' => [['--database' => "app'); db.dropDatabase(); ('", '--collection' => ['users']]];
+        yield 'collection with code' => [['--collection' => ['users; db.dropDatabase()']]];
+        yield 'system collection' => [['--collection' => ['system.users']]];
+        yield 'collection with newline' => [['--collection' => ["users\nprint(1)"]]];
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     */
+    #[DataProvider('invalidNameProvider')]
+    public function testExecuteRejectsNamesThatAreNotPlainMongoNames(array $options): void
+    {
+        $output = new BufferedOutput();
+
+        $result = $this->command->run(new ArrayInput($options), $output);
+
+        $this->assertEquals(GenerateMongoAnonymizedFieldCommand::FAILURE, $result);
+        $this->assertStringContainsString('Invalid MongoDB database/collection name(s)', $output->fetch());
+    }
+
     /**
      * Test that generateMongoScript handles empty collections array.
      */
@@ -156,7 +192,7 @@ class GenerateMongoAnonymizedFieldCommandTest extends TestCase
         $script = $method->invoke($this->command, 'test_db', []);
 
         $this->assertStringContainsString('test_db', $script);
-        $this->assertStringContainsString('use(', $script);
+        $this->assertStringContainsString('db.getSiblingDB(', $script);
     }
 
     /**

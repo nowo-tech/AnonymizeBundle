@@ -45,6 +45,7 @@ final readonly class FakerFactory implements FakerFactoryInterface
      * @param string $locale The locale for Faker generators (fallback when container is not available)
      * @param ContainerInterface|null $container Closed locator of anonymization plugins (built-in and custom fakers) built by AnonymizeServiceLocatorPass (REQ-DI-001)
      * @param bool $localeFakersFromContainer Whether locale-dependent built-in fakers come from the container (false when the locale differs from the configured one)
+     * @param string|null $hashPreserveKey HMAC key for directly instantiated hash_preserve fakers (also used by copy / pattern_based fallbacks)
      */
     public function __construct(
         // #[Autowire('%nowo_anonymize.locale%')]
@@ -52,6 +53,7 @@ final readonly class FakerFactory implements FakerFactoryInterface
         /** Closed locator of anonymization plugins (built-in and custom fakers) built by AnonymizeServiceLocatorPass (REQ-DI-001). */
         private ?ContainerInterface $container = null,
         private bool $localeFakersFromContainer = true,
+        private ?string $hashPreserveKey = null,
     ) {
     }
 
@@ -66,7 +68,7 @@ final readonly class FakerFactory implements FakerFactoryInterface
             return $this;
         }
 
-        return new self($locale, $this->container, false);
+        return new self($locale, $this->container, false, $this->hashPreserveKey);
     }
 
     /**
@@ -170,14 +172,14 @@ final readonly class FakerFactory implements FakerFactoryInterface
             FakerType::ENUM->value          => new EnumFaker($this->locale),
             FakerType::COUNTRY->value       => new CountryFaker($this->locale),
             FakerType::LANGUAGE->value      => new LanguageFaker($this->locale),
-            FakerType::HASH_PRESERVE->value => new HashPreserveFaker(),
+            FakerType::HASH_PRESERVE->value => new HashPreserveFaker($this->hashPreserveKey),
             FakerType::SHUFFLE->value       => new ShuffleFaker(),
             FakerType::CONSTANT->value      => new ConstantFaker(),
             FakerType::DNI_CIF->value       => new DniCifFaker($this->locale),
             FakerType::NAME_FALLBACK->value => new NameFallbackFaker($this->locale),
             FakerType::HTML->value          => new HtmlFaker($this->locale),
-            FakerType::PATTERN_BASED->value => new PatternBasedFaker($this->locale),
-            FakerType::COPY->value          => new CopyFaker(),
+            FakerType::PATTERN_BASED->value => new PatternBasedFaker($this->locale, $this),
+            FakerType::COPY->value          => new CopyFaker($this),
             FakerType::NULL->value          => new NullFaker(),
             FakerType::UTM->value           => new UtmFaker($this->locale),
             FakerType::MAP->value           => new MapFaker(),

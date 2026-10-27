@@ -60,11 +60,12 @@ final class AnonymizeExtension extends Extension
             $protectionConfig['blocked_dsn_substrings'] ?? [],
         );
 
+        // Dedicated HMAC key for hash_preserve; kernel.secret is no longer reused (it signs other things)
         $hashPreserveConfig = $config['hash_preserve'] ?? [];
-        $defaultSalt        = $hashPreserveConfig['default_salt'] ?? null;
+        $key                = $hashPreserveConfig['key'] ?? $hashPreserveConfig['default_salt'] ?? null;
         $container->setParameter(
-            'nowo_anonymize.hash_preserve_default_salt',
-            is_string($defaultSalt) && $defaultSalt !== '' ? $defaultSalt : '%kernel.secret%',
+            'nowo_anonymize.hash_preserve.key',
+            is_string($key) && $key !== '' ? $key : '%env(default::NOWO_ANONYMIZE_HASH_KEY)%',
         );
     }
 

@@ -55,11 +55,14 @@ php bin/console nowo:anonymize:run [options]
 - `--locale, -l`: Locale for Faker generator (default: en_US)
 - `--stats-json`: Export statistics to JSON file
 - `--stats-csv`: Export statistics to CSV file
-- `--stats-only`: Show only statistics summary (suppress detailed output)
+- `--stats-only`: Show only statistics summary (suppress detailed output). It **still writes**: like any run without `--dry-run`, it needs `--force` (or `--interactive`) when not attached to a terminal, and asks before truncating
 - `--no-progress`: Disable progress bar display
 - `--verbose, -v`: Increase verbosity of messages
 - `--debug`: Enable debug mode (shows detailed information)
 - `--interactive, -i`: Enable interactive mode with step-by-step confirmations
+- `--force`: Skip confirmations. Required for non-interactive runs that write (anything without `--dry-run`, including `--stats-only`) and to truncate without a prompt
+
+**Safety:** without `--force`, a run attached to a terminal first lists the target databases (driver, host, database name) and asks `Anonymize these databases now?` (default: no); a non-interactive run exits 1 without touching the database. `truncate: true` tables are emptied only after their own confirmation or with `--force`.
 
 ### Examples
 
@@ -310,8 +313,10 @@ php bin/console nowo:anonymize:run --stats-json stats.json
 Show only the statistics summary without detailed processing output:
 
 ```bash
-php bin/console nowo:anonymize:run --stats-only
+php bin/console nowo:anonymize:run --stats-only --force
 ```
+
+`--stats-only` only reduces the output; combine it with `--dry-run` for a read-only report.
 
 ## Anonymization History Command
 

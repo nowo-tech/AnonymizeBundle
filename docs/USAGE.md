@@ -1126,7 +1126,7 @@ Custom fakers (`type: 'service'`) and entity anonymizers (`#[Anonymize(anonymize
 | Implements `Nowo\AnonymizeBundle\Faker\FakerInterface` | Always | Public or private |
 | Implements `Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface` | Always | Public or private |
 | Tagged `nowo_anonymize.faker` or `nowo_anonymize.entity_anonymizer` | Always | Public or private |
-| Only a public `generate()` / `__invoke()` method (duck typing) | When the service is **public** | Public only |
+| Only a public `generate()` / `__invoke()` method (duck typing, **deprecated** since 1.3) | When the service is **public** | Public only |
 | Any other service | Never | — |
 
 Aliases of included services (e.g. a custom id pointing to your class) are included too. To use a duck-typed private service, tag it:

@@ -8,12 +8,13 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
+use Nowo\AnonymizeBundle\Internal\PrivateDirectory;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
 use ZipArchive;
 
-use function sprintf;
+use function dirname;
 use function strlen;
 
 use const JSON_THROW_ON_ERROR;
@@ -64,6 +65,7 @@ final class DatabaseExportService
      */
     public function exportConnection(EntityManagerInterface $em, string $connectionName): ?string
     {
+        // Dumps hold personal data: the directory is 0700 and every file is created 0600 before a tool writes it
         $connection = $em->getConnection();
         $driver     = DbalHelper::getDriverName($connection);
         $database   = $connection->getDatabase();
@@ -72,10 +74,7 @@ final class DatabaseExportService
         $filename   = $this->generateFilename($connectionName, (string) $database, $driver);
         $outputPath = rtrim($this->outputDir, '/') . '/' . $filename;
 
-        // Ensure output directory exists
-        if (!is_dir($this->outputDir)) {
-            mkdir($this->outputDir, 0o755, true);
-        }
+        $this->ensureOutputDirectory();
 
         // Export based on driver
         $exportedFile = match ($driver) {
@@ -101,6 +100,8 @@ final class DatabaseExportService
             }
         }
 
+        chmod($exportedFile, 0o600);
+
         // Update .gitignore if enabled
         if ($this->autoGitignore) {
             $this->updateGitignore();
@@ -123,77 +124,80 @@ final class DatabaseExportService
      */
     public function exportMongoDB(string $connectionName, string $database, string $host = 'localhost', int $port = 27017, ?string $uri = null): ?string
     {
-        // Check if mongodump is available
-        if (!$this->getCommandRunner()->commandExists('mongodump')) {
+        // Check if mongodump is available; the database name is also a directory name (no paths)
+        if (!$this->getCommandRunner()->commandExists('mongodump') || preg_match('/^[A-Za-z0-9_-]{1,63}$/', $database) !== 1) {
             return null;
         }
 
         // Generate filename
         $filename = $this->generateFilename($connectionName, $database, 'mongodb');
 
-        // Ensure output directory exists
-        if (!is_dir($this->outputDir)) {
-            mkdir($this->outputDir, 0o755, true);
-        }
+        $this->ensureOutputDirectory();
 
         // Export MongoDB. With a connection string, credentials go through a 0600 --config file
         // (mongodump >= 100.3.0) so they are not visible in the process list.
         $configFile = null;
         if ($uri !== null && $uri !== '') {
             $configFile = $this->writeSecretFile('mongodump_', 'uri: ' . $this->yamlString($uri) . "\n");
-            $command    = sprintf(
-                'mongodump --config=%s --db %s --out %s',
-                escapeshellarg($configFile),
-                escapeshellarg($database),
-                escapeshellarg($this->outputDir),
-            );
+            $argv       = ['mongodump', '--config=' . $configFile, '--db', $database, '--out', $this->outputDir];
         } else {
-            $command = sprintf(
-                'mongodump --host %s --port %d --db %s --out %s',
-                escapeshellarg($host),
-                $port,
-                escapeshellarg($database),
-                escapeshellarg($this->outputDir),
-            );
+            $argv = ['mongodump', '--host', $host, '--port', (string) $port, '--db', $database, '--out', $this->outputDir];
+        }
+
+        // mongodump writes plain BSON files to <outputDir>/<database>: always removed, also on failure
+        $mongoExportDir = $this->outputDir . '/' . $database;
+        $archivePath    = $this->outputDir . '/' . pathinfo($filename, PATHINFO_FILENAME);
+
+        // A pre-existing symlink would make the clean-up below act on its target: refuse
+        if (is_link($mongoExportDir)) {
+            $this->removeSecretFile($configFile);
+
+            return null;
         }
 
         try {
-            $returnCode = $this->getCommandRunner()->exec($command, $output);
+            if (!is_dir($mongoExportDir)) {
+                mkdir($mongoExportDir, 0o700);
+            }
+            try {
+                $returnCode = $this->runCommand($argv);
+            } finally {
+                $this->removeSecretFile($configFile);
+            }
+
+            // The directory was pre-created: an empty one means mongodump exported nothing
+            if ($returnCode !== 0 || array_diff((array) scandir($mongoExportDir), ['.', '..']) === []) {
+                return null;
+            }
+
+            if ($this->compression === 'zip') {
+                $archivePath .= '.zip';
+                $archived = $this->createZipArchive($mongoExportDir, $archivePath);
+            } else {
+                // Use tar with compression
+                $ext = $this->compression === 'gzip' ? 'tar.gz' : ($this->compression === 'bzip2' ? 'tar.bz2' : 'tar');
+                $archivePath .= '.' . $ext;
+                $this->createPrivateFile($archivePath);
+                $archived = $this->createTarArchive($mongoExportDir, $archivePath);
+            }
         } finally {
-            $this->removeSecretFile($configFile);
+            $this->removeDirectory($mongoExportDir);
         }
 
-        if ($returnCode !== 0) {
+        if (!$archived || !is_file($archivePath)) {
+            // Never keep a partial archive around
+            $this->removeFile($archivePath);
+
             return null;
         }
-
-        // MongoDB exports to a directory, we need to create an archive
-        $mongoExportDir = $this->outputDir . '/' . $database;
-        if (!is_dir($mongoExportDir)) {
-            return null;
-        }
-
-        // Create archive
-        $archivePath = $this->outputDir . '/' . pathinfo($filename, PATHINFO_FILENAME);
-        if ($this->compression === 'zip') {
-            $archivePath .= '.zip';
-            $this->createZipArchive($mongoExportDir, $archivePath);
-        } else {
-            // Use tar with compression
-            $ext = $this->compression === 'gzip' ? 'tar.gz' : ($this->compression === 'bzip2' ? 'tar.bz2' : 'tar');
-            $archivePath .= '.' . $ext;
-            $this->createTarArchive($mongoExportDir, $archivePath);
-        }
-
-        // Remove temporary directory
-        $this->removeDirectory($mongoExportDir);
+        chmod($archivePath, 0o600);
 
         // Update .gitignore if enabled
         if ($this->autoGitignore) {
             $this->updateGitignore();
         }
 
-        return file_exists($archivePath) ? $archivePath : null;
+        return $archivePath;
     }
 
     /**
@@ -224,32 +228,25 @@ final class DatabaseExportService
             $optionsFile = $this->writeSecretFile('mysqldump_', "[client]\npassword=\"" . $this->escapeMysqlOptionValue($password) . "\"\n");
         }
 
-        $command = sprintf(
-            'mysqldump %s--host=%s --port=%d --user=%s --result-file=%s %s',
-            $optionsFile !== null ? '--defaults-extra-file=' . escapeshellarg($optionsFile) . ' ' : '',
-            escapeshellarg((string) $host),
-            $port,
-            escapeshellarg((string) $user),
-            escapeshellarg($outputPath),
-            escapeshellarg((string) $database),
-        );
+        $argv = ['mysqldump'];
+        if ($optionsFile !== null) {
+            // --defaults-extra-file must be the first option
+            $argv[] = '--defaults-extra-file=' . $optionsFile;
+        }
+        $argv[] = '--host=' . $host;
+        $argv[] = '--port=' . $port;
+        $argv[] = '--user=' . $user;
+        $argv[] = '--result-file=' . $outputPath;
+        $argv[] = (string) $database;
 
+        $this->createPrivateFile($outputPath);
         try {
-            $returnCode = $this->getCommandRunner()->exec($command, $output);
+            $returnCode = $this->runCommand($argv);
         } finally {
             $this->removeSecretFile($optionsFile);
         }
 
-        if ($returnCode !== 0) {
-            // Never keep a partial dump around.
-            if (is_file($outputPath)) {
-                unlink($outputPath);
-            }
-
-            return null;
-        }
-
-        return file_exists($outputPath) ? $outputPath : null;
+        return $this->keepDumpOnSuccess($returnCode, $outputPath);
     }
 
     /**
@@ -280,23 +277,16 @@ final class DatabaseExportService
             $passFile = $this->writeSecretFile('pgpass_', '*:*:*:*:' . $this->escapePgpassValue($password) . "\n");
         }
 
-        $command = sprintf(
-            '%spg_dump --host=%s --port=%d --username=%s --dbname=%s --file=%s --no-password',
-            $passFile !== null ? 'PGPASSFILE=' . escapeshellarg($passFile) . ' ' : '',
-            escapeshellarg((string) $host),
-            $port,
-            escapeshellarg((string) $user),
-            escapeshellarg((string) $database),
-            escapeshellarg($outputPath),
-        );
+        $argv = ['pg_dump', '--host=' . $host, '--port=' . $port, '--username=' . $user, '--dbname=' . $database, '--file=' . $outputPath, '--no-password'];
 
+        $this->createPrivateFile($outputPath);
         try {
-            $returnCode = $this->getCommandRunner()->exec($command, $output);
+            $returnCode = $this->runCommand($argv, $passFile !== null ? ['PGPASSFILE' => $passFile] : []);
         } finally {
             $this->removeSecretFile($passFile);
         }
 
-        return $returnCode === 0 && file_exists($outputPath) ? $outputPath : null;
+        return $this->keepDumpOnSuccess($returnCode, $outputPath);
     }
 
     /**
@@ -316,7 +306,8 @@ final class DatabaseExportService
             return null;
         }
 
-        // SQLite is just a file copy
+        // SQLite is just a file copy (copy() keeps the 0600 mode of the existing target)
+        $this->createPrivateFile($outputPath);
         if (copy($path, $outputPath)) {
             return $outputPath;
         }
@@ -375,37 +366,30 @@ final class DatabaseExportService
      */
     private function compressFile(string $filePath): ?string
     {
-        $compressedPath = $filePath;
+        // Stays null when the tool / extension is missing: the caller then keeps the plain dump
+        $compressedPath = null;
 
         switch ($this->compression) {
             case 'gzip':
-                if ($this->getCommandRunner()->commandExists('gzip')) {
-                    $this->getCommandRunner()->exec('gzip ' . escapeshellarg($filePath) . ' 2>&1', $output);
-                    $compressedPath = $filePath . '.gz';
-                }
-                break;
-
             case 'bzip2':
-                if ($this->getCommandRunner()->commandExists('bzip2')) {
-                    $this->getCommandRunner()->exec('bzip2 ' . escapeshellarg($filePath) . ' 2>&1', $output);
-                    $compressedPath = $filePath . '.bz2';
+                $tool = $this->compression;
+                if ($this->getCommandRunner()->commandExists($tool)) {
+                    $compressedPath = $filePath . ($tool === 'gzip' ? '.gz' : '.bz2');
+                    if ($this->runCommand([$tool, $filePath]) !== 0) {
+                        // Partial archive removed; the caller keeps the plain dump
+                        $this->removeFile($compressedPath);
+
+                        return null;
+                    }
                 }
                 break;
 
             case 'zip':
-                if (class_exists(ZipArchive::class)) {
-                    $zipPath = $filePath . '.zip';
-                    $zip     = new ZipArchive();
-                    if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-                        $zip->addFile($filePath, basename($filePath));
-                        $zip->close();
-                        $compressedPath = $zipPath;
-                    }
-                }
+                $compressedPath = $this->buildZipPrivately($filePath . '.zip', [$filePath => basename($filePath)]) ? $filePath . '.zip' : null;
                 break;
         }
 
-        return file_exists($compressedPath) ? $compressedPath : null;
+        return $compressedPath !== null && file_exists($compressedPath) ? $compressedPath : null;
     }
 
     /**
@@ -418,26 +402,63 @@ final class DatabaseExportService
      */
     private function createZipArchive(string $directory, string $zipPath): bool
     {
-        // Without ext-zip (misconfigured hosts) the archive is simply not created
-        $zip = class_exists(ZipArchive::class) ? new ZipArchive() : null;
-        if ($zip === null || $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            return false;
-        }
-
         $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($directory),
+            new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS),
             RecursiveIteratorIterator::LEAVES_ONLY,
         );
 
+        $files = [];
         foreach ($iterator as $file) {
-            if (!$file->isDir()) {
-                $filePath     = $file->getRealPath();
-                $relativePath = substr((string) $filePath, strlen($directory) + 1);
-                $zip->addFile($filePath, $relativePath);
+            // Symlinks are not archived: they could pull files from outside the dump into the archive
+            if ($file->isFile() && !$file->isLink()) {
+                $files[$file->getPathname()] = substr($file->getPathname(), strlen($directory) + 1);
             }
         }
 
-        return $zip->close();
+        return $this->buildZipPrivately($zipPath, $files);
+    }
+
+    /**
+     * @param array<string, string> $files Source path => entry name
+     */
+    private function addZipEntries(ZipArchive $zip, array $files): bool
+    {
+        foreach ($files as $path => $entryName) {
+            $zip->addFile($path, $entryName);
+        }
+
+        return true;
+    }
+
+    /**
+     * Writes a ZIP archive without ever exposing it with umask permissions: ZipArchive writes into a fresh
+     * 0700 staging directory, the archive is made 0600 and only then moved to $zipPath.
+     *
+     * @param array<string, string> $files Source path => entry name
+     */
+    private function buildZipPrivately(string $zipPath, array $files): bool
+    {
+        $staging = dirname($zipPath) . '/.nowo-zip-' . bin2hex(random_bytes(6));
+        if (!@mkdir($staging, 0o700)) {
+            return false;
+        }
+        $stagedZip = $staging . '/' . basename($zipPath);
+
+        try {
+            // Without ext-zip (misconfigured hosts) the archive is simply not created; close() writes nothing for an empty archive
+            $zip = class_exists(ZipArchive::class) ? new ZipArchive() : null;
+
+            return $zip instanceof ZipArchive
+                && $zip->open($stagedZip, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true
+                && $this->addZipEntries($zip, $files)
+                && $zip->close()
+                && is_file($stagedZip)
+                && chmod($stagedZip, 0o600)
+                // Fails (false) when the target is e.g. an existing directory
+                && @rename($stagedZip, $zipPath);
+        } finally {
+            $this->removeDirectory($staging);
+        }
     }
 
     /**
@@ -461,14 +482,7 @@ final class DatabaseExportService
             $compressionFlag = 'j';
         }
 
-        $command = sprintf(
-            'tar -c%sf %s -C %s . 2>&1',
-            $compressionFlag,
-            escapeshellarg($tarPath),
-            escapeshellarg($directory),
-        );
-
-        $returnCode = $this->getCommandRunner()->exec($command, $output);
+        $returnCode = $this->runCommand(['tar', '-c' . $compressionFlag . 'f', $tarPath, '-C', $directory, '.']);
 
         return $returnCode === 0 && file_exists($tarPath);
     }
@@ -482,14 +496,14 @@ final class DatabaseExportService
      */
     private function removeDirectory(string $directory): bool
     {
-        if (!is_dir($directory)) {
-            return false;
+        if (is_link($directory) || !is_dir($directory)) {
+            // A symlink is removed itself, never followed
+            return $this->removeFile($directory);
         }
 
-        $files = array_diff(scandir($directory), ['.', '..']);
-        foreach ($files as $file) {
+        foreach (array_diff((array) scandir($directory), ['.', '..']) as $file) {
             $path = $directory . '/' . $file;
-            if (is_dir($path)) {
+            if (is_dir($path) && !is_link($path)) {
                 $this->removeDirectory($path);
             } else {
                 unlink($path);
@@ -497,6 +511,93 @@ final class DatabaseExportService
         }
 
         return rmdir($directory);
+    }
+
+    /**
+     * Removes a file or symlink when present.
+     */
+    private function removeFile(string $path): bool
+    {
+        return (is_file($path) || is_link($path)) && unlink($path);
+    }
+
+    /**
+     * Keeps the dump only when the tool succeeded; a failed or timed-out run never leaves a partial dump behind.
+     */
+    private function keepDumpOnSuccess(int $returnCode, string $outputPath): ?string
+    {
+        // The file was pre-created empty: an empty file means the tool wrote nothing
+        if ($returnCode !== 0 || filesize($outputPath) === 0) {
+            $this->removeFile($outputPath);
+
+            return null;
+        }
+
+        return $outputPath;
+    }
+
+    /**
+     * Creates the output directory owner-only when missing.
+     */
+    private function ensureOutputDirectory(): void
+    {
+        // Also tightens an export directory created 0755 by older versions (when this process owns it)
+        PrivateDirectory::ensure($this->outputDir);
+    }
+
+    /**
+     * Creates (or truncates) a file with mode 0600 before a tool writes into it: tools opening it with O_TRUNC
+     * keep that mode, so the dump is never readable by other users, not even while it is being written.
+     */
+    private function createPrivateFile(string $path): void
+    {
+        // Never follow a planted symlink: replace it with a regular file
+        if (is_link($path)) {
+            unlink($path);
+        }
+        touch($path);
+        chmod($path, 0o600);
+    }
+
+    /**
+     * Runs an external tool: as an argument vector (no shell) when the runner supports it, otherwise as an
+     * escaped command string for plain CommandRunnerInterface implementations.
+     *
+     * @param list<string> $argv
+     * @param array<string, string> $env
+     */
+    private function runCommand(array $argv, array $env = []): int
+    {
+        $runner = $this->getCommandRunner();
+        if ($runner instanceof ArgvCommandRunnerInterface) {
+            return $runner->run($argv, $env, $output);
+        }
+
+        $parts = [];
+        foreach ($env as $name => $value) {
+            $parts[] = $name . '=' . escapeshellarg($value);
+        }
+        foreach ($argv as $index => $argument) {
+            $parts[] = $this->shellArgument($argument, $index === 0);
+        }
+
+        return $runner->exec(implode(' ', $parts), $output);
+    }
+
+    /**
+     * Shell form of one argument: program names, bare options and integers as-is, "--option=value" with the
+     * value quoted, anything else quoted.
+     */
+    private function shellArgument(string $argument, bool $isProgram): string
+    {
+        if ($isProgram || preg_match('/^(?:-[A-Za-z-]+|\d+)$/', $argument) === 1) {
+            return $argument;
+        }
+        if (preg_match('/^(--[A-Za-z-]+=)(.*)$/s', $argument, $matches) === 1) {
+            return $matches[1] . (ctype_digit($matches[2]) ? $matches[2] : escapeshellarg($matches[2]));
+        }
+
+        return escapeshellarg($argument);
     }
 
     /**

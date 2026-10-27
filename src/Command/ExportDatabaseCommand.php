@@ -295,7 +295,8 @@ final class ExportDatabaseCommand extends AbstractCommand
                     ++$failureCount;
                 }
             } catch (Exception $e) {
-                $io->writeln(sprintf('  ✗ Error exporting %s: %s', $managerName, $e->getMessage()));
+                // Driver messages can echo connection details: only the exception class by default, the message with -vv
+                $io->writeln(sprintf('  ✗ Error exporting %s (%s)%s', $managerName, $e::class, $output->isVeryVerbose() ? ': ' . $e->getMessage() : '; re-run with -vv for details'));
                 ++$failureCount;
             }
         }

@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Service;
 
 use DateTimeImmutable;
+use Nowo\AnonymizeBundle\Internal\PrivateDirectory;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\Kernel;
 
 use function array_slice;
+use function dirname;
+use function is_string;
 use function sprintf;
 
 use const JSON_PRETTY_PRINT;
@@ -87,10 +90,8 @@ final class AnonymizationHistoryService
      */
     public function saveRun(array $statistics, array $metadata = []): string
     {
-        // Ensure history directory exists
-        if (!is_dir($this->historyDir)) {
-            $this->filesystem->mkdir($this->historyDir, 0o755);
-        }
+        // Owner-only history directory (also tightens one created 0755 by older versions)
+        PrivateDirectory::ensure($this->historyDir);
 
         // Create history entry
         $historyEntry = [
@@ -111,10 +112,7 @@ final class AnonymizationHistoryService
         $filename = sprintf('run_%s_%s.json', date('Y-m-d_His', $historyEntry['timestamp']), $historyEntry['id']);
         $filePath = $this->historyDir . '/' . $filename;
 
-        $this->filesystem->dumpFile(
-            $filePath,
-            json_encode($historyEntry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}',
-        );
+        $this->writeOwnerOnly($filePath, json_encode($historyEntry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}');
 
         // Update index file for quick access
         $this->updateIndex($historyEntry);
@@ -158,11 +156,12 @@ final class AnonymizationHistoryService
                 }
             }
 
-            // Load full run data
-            if (isset($entry['file']) && file_exists($entry['file'])) {
-                $runData = json_decode(file_get_contents($entry['file']) ?: '{}', true);
+            // Load full run data (only from run files inside the history directory)
+            $runFile = $this->trustedRunFile($entry['file'] ?? null);
+            if ($runFile !== null) {
+                $runData = json_decode(file_get_contents($runFile) ?: '{}', true);
                 if ($runData !== null) {
-                    $runData['file'] = $entry['file'];
+                    $runData['file'] = $runFile;
                     $runs[]          = $runData;
                 }
             } else {
@@ -201,8 +200,9 @@ final class AnonymizationHistoryService
 
         foreach ($index as $entry) {
             if (isset($entry['id']) && $entry['id'] === $runId) {
-                if (isset($entry['file']) && file_exists($entry['file'])) {
-                    $runData = json_decode(file_get_contents($entry['file']) ?: '{}', true);
+                $runFile = $this->trustedRunFile($entry['file'] ?? null);
+                if ($runFile !== null) {
+                    $runData = json_decode(file_get_contents($runFile) ?: '{}', true);
                     if ($runData !== null) {
                         return $runData;
                     }
@@ -268,7 +268,8 @@ final class AnonymizationHistoryService
         $deleted    = 0;
 
         foreach ($runs as $run) {
-            if (isset($run['timestamp']) && $run['timestamp'] < $cutoffTime && (isset($run['file']) && file_exists($run['file']))) {
+            // getRuns() only exposes "file" for run files inside the history directory
+            if (isset($run['timestamp']) && $run['timestamp'] < $cutoffTime && isset($run['file']) && $this->trustedRunFile($run['file']) !== null) {
                 // @igor-ignore - Filesystem I/O on disk files; not in-process shared state mutation.
                 $this->filesystem->remove($run['file']);
                 ++$deleted;
@@ -279,6 +280,31 @@ final class AnonymizationHistoryService
         $this->rebuildIndex();
 
         return $deleted;
+    }
+
+    /**
+     * Returns the path when it is a regular run file directly inside the history directory, else null.
+     *
+     * index.json is a plain file on disk: its "file" entries are not trusted to read or delete arbitrary paths.
+     */
+    private function trustedRunFile(mixed $file): ?string
+    {
+        if (!is_string($file) || preg_match('/^run_[0-9_-]+_[0-9a-f]+\.json$/', basename($file)) !== 1 || is_link($file) || !is_file($file)) {
+            return null;
+        }
+
+        $directory = realpath(dirname($file));
+
+        return $directory !== false && $directory === realpath($this->historyDir) ? $file : null;
+    }
+
+    /**
+     * Writes a history file readable by its owner only (run statistics describe personal data tables).
+     */
+    private function writeOwnerOnly(string $path, string $content): void
+    {
+        $this->filesystem->dumpFile($path, $content);
+        $this->filesystem->chmod($path, 0o600);
     }
 
     /**
@@ -325,10 +351,7 @@ final class AnonymizationHistoryService
 
         $index = array_slice($index, 0, 1000);
 
-        $this->filesystem->dumpFile(
-            $indexFile,
-            json_encode($index, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '[]',
-        );
+        $this->writeOwnerOnly($indexFile, json_encode($index, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '[]');
     }
 
     /**
@@ -366,10 +389,7 @@ final class AnonymizationHistoryService
         usort($index, static fn (array $a, array $b): int => ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0));
 
         $indexFile = $this->historyDir . '/index.json';
-        $this->filesystem->dumpFile(
-            $indexFile,
-            json_encode($index, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '[]',
-        );
+        $this->writeOwnerOnly($indexFile, json_encode($index, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '[]');
     }
 
     /**

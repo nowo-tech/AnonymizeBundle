@@ -21,6 +21,7 @@ use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
@@ -725,6 +726,7 @@ class AnonymizeInfoCommandTest extends TestCase
 
         $metadata = $this->createMock(ClassMetadata::class);
         $metadata->method('getTableName')->willReturn('match_pattern_entity');
+        $metadata->method('getColumnNames')->willReturn(['id', 'email', 'status', 'active']);
         $metadata->method('hasField')->with('email')->willReturn(true);
         $metadata->method('getFieldMapping')->with('email')->willReturn(new FieldMapping('email', 'string', 'email'));
 
@@ -741,10 +743,10 @@ class AnonymizeInfoCommandTest extends TestCase
         $connection->method('getDatabase')->willReturn('test_db');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('fetchOne')->willReturn('2');
-        $connection->method('fetchAllAssociative')->willReturn([
-            ['status' => 'active', 'active' => '1', 'email' => 'match@example.com'],
-            ['status' => 'inactive', 'active' => '0', 'email' => 'no@example.com'],
-        ]);
+        // Only the pattern columns are read (no SELECT *)
+        $connection->expects($this->once())->method('fetchAllAssociative')
+            ->with($this->logicalAnd($this->stringContains('active'), $this->logicalNot($this->stringContains('*')), $this->logicalNot($this->stringContains('email'))))
+            ->willReturn([['status' => 'active', 'active' => '1'], ['status' => 'inactive', 'active' => '0']]);
 
         $em = $this->createMock(EntityManagerInterface::class);
         $em->method('getConfiguration')->willReturn($config);
@@ -780,6 +782,17 @@ class AnonymizeInfoCommandTest extends TestCase
         $command->run(new ArrayInput([]), $output);
 
         $this->assertStringContainsString('Manager "odm" is not an EntityManagerInterface, skipping.', $output->fetch());
+    }
+
+    public function testOptionValuesWithSecretLookingNamesAreMasked(): void
+    {
+        $command = new AnonymizeInfoCommand($this->createDefaultAnonymizeService(), new PatternMatcher(), $this->createSafeEnvironmentProtection(), $this->createMock(ManagerRegistry::class), 'en_US', []);
+        $mask    = new ReflectionMethod($command, 'maskSecrets');
+
+        $this->assertSame(
+            ['salt' => '***', 'api_key' => '***', 'clientSecret' => '***', 'password' => '***', 'token' => '***', 'format' => 'international'],
+            $mask->invoke($command, ['salt' => 'pepper', 'api_key' => 'x', 'clientSecret' => 'y', 'password' => 'z', 'token' => 't', 'format' => 'international']),
+        );
     }
 
     public function testExecuteFailsWhenEnvironmentProtectionBlocks(): void

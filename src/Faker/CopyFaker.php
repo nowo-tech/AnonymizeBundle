@@ -18,8 +18,16 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
  * @copyright 2025 Nowo.tech
  */
 #[AsAlias(id: 'nowo_anonymize.faker.copy')]
-final class CopyFaker implements FakerInterface
+final readonly class CopyFaker implements FakerInterface
 {
+    /**
+     * @param FakerFactoryInterface|null $fakerFactory Factory for the fallback faker (keeps the plugin locator and the hash_preserve key)
+     */
+    public function __construct(
+        private ?FakerFactoryInterface $fakerFactory = null,
+    ) {
+    }
+
     /**
      * Generates an anonymized value by copying from another field.
      *
@@ -58,7 +66,7 @@ final class CopyFaker implements FakerInterface
         }
 
         // If source field is null, use fallback faker
-        $fakerFactory          = new FakerFactory();
+        $fakerFactory          = $this->fakerFactory ?? new FakerFactory();
         $fallbackFakerInstance = $fakerFactory->create($fallbackFaker);
 
         return $fallbackFakerInstance->generate($fallbackOptions);

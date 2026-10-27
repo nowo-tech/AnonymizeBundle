@@ -98,6 +98,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+Fixes from the independent SEC-004 audit of 2026-10-27 (see [SECURITY.md](SECURITY.md)).
+
+- **M1 — `--stats-only` bypassed the destructive-run guards (affects 1.0.33 / 1.1.0 → 1.2.4).** `--stats-only` only reduces the output but did not imply `--dry-run`, and it skipped both the non-interactive `--force` requirement and the TRUNCATE confirmation: `nowo:anonymize:run --stats-only -n` overwrote every `#[Anonymize]` table and emptied `truncate: true` tables without `--force` or a prompt. It now needs `--force` (or `--interactive` on a terminal) like any other writing run and the TRUNCATE prompt is always asked unless `--force`.
+- **TTY confirmation (I9):** a run attached to a terminal without `--force` / `--interactive` / `--dry-run` lists the target databases (driver, host, database — never credentials) and asks `Anonymize these databases now?` (default: no).
+- **L1 — `hash_preserve` is a keyed HMAC.** `HashPreserveFaker` used `sha256(value . salt)` with `%kernel.secret%` as default salt (md5/sha1 allowed; the `copy` / `pattern_based` fallbacks hashed **unsalted**). It is now `hash_hmac('sha256' | 'sha512', ...)` with a dedicated key: new `nowo_anonymize.hash_preserve.key`, default `%env(default::NOWO_ANONYMIZE_HASH_KEY)%`, at least 32 characters, placeholders rejected; without a usable key the faker fails. md5/sha1 are rejected, the per-attribute `salt` becomes non-secret context, fallbacks reuse the same key, `hash_preserve.default_salt` is deprecated (alias of `key`), `kernel.secret` is no longer used. Outputs change — see [UPGRADING.md](UPGRADING.md#unreleased).
+- **L2 — owner-only files.** Export directory `0700`, dumps / archives `0600` (pre-created before the dump tool writes, so they are never world-readable); history directory `0700`, run files and `index.json` `0600`; statistics directory `0700`, `--stats-json` / `--stats-csv` files `0600`.
+- **L3 — no partial dumps.** A failed / timed-out `pg_dump` (like `mysqldump`) deletes its output; the `mongodump` BSON directory is always removed (also on failure); `gzip` / `bzip2` / `tar` exit codes are checked and partial archives removed (the plain dump is kept). Previously a missing `gzip` / `bzip2` also deleted the plain dump.
+- **L4 — Flex recipe.** The recipe no longer appends `APP_ENV=dev` to the host `.env` (new recipe `1.3`; removed from `0.0.1` too). The 1.3 post-install message documents `NOWO_ANONYMIZE_HASH_KEY`.
+- **L5 — MongoDB script generation.** `nowo:anonymize:generate-mongo-field` rejects database / collection names outside `[A-Za-z0-9_.-]` (and `system.*`) and emits them as JSON literals (`db.getSiblingDB(...)`, `db.getCollection(...)`, indexed result variables) instead of raw JavaScript.
+- **I1:** duck-typed custom fakers (`generate()` / `__invoke()` without `FakerInterface`) trigger a deprecation; they will not be resolved in 2.0.
+- **I2:** export tools run as an argument vector without a shell (new `ArgvCommandRunnerInterface`, implemented by `SystemCommandRunner`; `PGPASSFILE` is passed as environment). Custom runners implementing only `CommandRunnerInterface` still receive an escaped command string.
+- **I3:** history `index.json` entries are only read or deleted (`--cleanup`) when they point at a `run_*.json` file directly inside the history directory.
+- **I4:** `--stats-json` / `--stats-csv` paths are also rejected when they leave `stats_output_dir` through a symlinked directory or point at a symlink.
+- **I6:** `nowo:anonymize:info` reads only the columns used by patterns (no `SELECT *`; no rows without patterns) and masks option values named like `salt`, `key`, `secret`, `password`, `token`.
+- **I7:** `nowo:anonymize:export-db` prints only the exception class of a failed export; the message (which may echo connection details) is shown with `-vv`.
+- **I8:** export clean-up removes symlinks without following them; a MongoDB database name must be a plain name (no path).
+- **N1 — directories from older versions.** Export, history and statistics directories created `0755` by ≤ 1.2 are tightened to `0700` when the process owns them (new `@internal` `PrivateDirectory`); ZIP archives (dump and MongoDB) are built in a fresh `0700` staging directory, made `0600` and only then moved into place, so they are never exposed with umask permissions. Dump files replace a planted symlink instead of following it.
+- **N2 — `--interactive` is not consent.** `--interactive` without a terminal (e.g. `-n`, cron) no longer counts as an opt-in: such runs need `--force` or `--dry-run`. `--interactive --stats-only` on a terminal now confirms the target databases (the interactive summary, which is skipped with `--stats-only`, used to be the only prompt); the interactive summary lists the targets too.
+- **Key quality (I-a).** Besides placeholders, keys with fewer than 8 distinct characters are rejected, and committed demo / test keys (`not-a-secret`, `demo-only`, `test-only`) are accepted only when `kernel.environment` is `test`. The demo no longer ships a key: `make up` writes a random one into the local `.env`.
+- **Pre-flight key check (I-b).** When an entity uses `hash_preserve` (also as `fallback_faker`), a missing or unusable key fails the pre-flight checks before any row is written (no half-anonymized tables).
+- **MongoDB dump directory (I-c).** If `<output_dir>/<database>` already exists as a symlink, the export is refused and nothing is deleted.
+- `symfony/deprecation-contracts` is now a direct requirement.
+
 ### Changed
 
 - **Custom service resolution (REQ-DI-001):** `FakerFactory` and `AnonymizeService` no longer receive the whole service container (`@service_container`). A new compiler pass (`AnonymizeServiceLocatorPass`) builds a closed service locator with every service implementing `FakerInterface` or `EntityAnonymizerServiceInterface`, services tagged `nowo_anonymize.faker` / `nowo_anonymize.entity_anonymizer`, public services exposing `generate()` / `__invoke()` (the documented duck-typed contract) and their aliases. Custom fakers and `anonymizeService` anonymizers **no longer need `public: true`**; a private duck-typed service must be tagged `nowo_anonymize.faker`. Constructor signatures are unchanged. See [UPGRADING.md](UPGRADING.md#unreleased).

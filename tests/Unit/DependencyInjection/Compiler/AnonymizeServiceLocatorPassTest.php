@@ -148,6 +148,8 @@ final class AnonymizeServiceLocatorPassTest extends TestCase
     {
         $container = new ContainerBuilder(new ParameterBag(['kernel.project_dir' => sys_get_temp_dir(), 'kernel.secret' => 'test']));
         (new AnonymizeExtension())->load([], $container);
+        // Plain ParameterBag (no env processors in these unit containers)
+        $container->setParameter('nowo_anonymize.hash_preserve.key', 'REDACTED-TEST-KEY-0000000000000000000');
 
         return $container;
     }

@@ -741,4 +741,55 @@ class AnonymizationHistoryServiceTest extends TestCase
         $this->assertIsArray($run);
         $this->assertArrayHasKey('statistics', $run);
     }
+
+    public function testHistoryDirectoryAndFilesAreOwnerOnly(): void
+    {
+        $dir     = $this->tempDir . '/private-history';
+        $service = new AnonymizationHistoryService($dir);
+
+        $path = $service->saveRun(['global' => ['total_entities' => 1]]);
+
+        $this->assertSame(0o700, fileperms($dir) & 0o777);
+        $this->assertSame(0o600, fileperms($path) & 0o777);
+        $this->assertSame(0o600, fileperms($dir . '/index.json') & 0o777);
+    }
+
+    public function testIndexEntriesOutsideTheHistoryDirectoryAreNeitherReadNorDeleted(): void
+    {
+        $outside = $this->tempDir . '/outside';
+        mkdir($outside);
+        $victim = $outside . '/run_2020-01-01_000000_abcdef012345.json';
+        file_put_contents($victim, json_encode(['id' => 'abcdef012345', 'timestamp' => 1, 'statistics' => ['secret' => 'outside']]));
+        $notARun = $this->tempDir . '/notes.json';
+        file_put_contents($notARun, '{"id":"x"}');
+
+        mkdir($this->tempDir . '/history');
+        file_put_contents($this->tempDir . '/history/index.json', json_encode([
+            ['id' => 'abcdef012345', 'timestamp' => 1, 'file' => $victim],
+            ['id' => 'x', 'timestamp' => 2, 'file' => $notARun],
+        ]));
+        $service = new AnonymizationHistoryService($this->tempDir . '/history');
+
+        $run = $service->getRun('abcdef012345');
+        $this->assertIsArray($run);
+        $this->assertArrayNotHasKey('statistics', $run, 'the index entry is returned, the outside file is not read');
+        foreach ($service->getRuns() as $entry) {
+            $this->assertArrayNotHasKey('statistics', $entry);
+        }
+
+        $this->assertSame(0, $service->cleanup(0));
+        $this->assertFileExists($victim);
+        $this->assertFileExists($notARun);
+    }
+
+    public function testLegacyLooseHistoryDirectoryIsTightened(): void
+    {
+        $dir = $this->tempDir . '/legacy-history';
+        mkdir($dir);
+        chmod($dir, 0o755);
+
+        (new AnonymizationHistoryService($dir))->saveRun(['global' => []]);
+
+        $this->assertSame(0o700, fileperms($dir) & 0o777);
+    }
 }

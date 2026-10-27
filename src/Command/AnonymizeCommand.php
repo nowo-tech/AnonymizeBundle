@@ -10,6 +10,8 @@ use Exception;
 use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Event\AfterAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
+use Nowo\AnonymizeBundle\Helper\DbalHelper;
+use Nowo\AnonymizeBundle\Internal\PrivateDirectory;
 use Nowo\AnonymizeBundle\Service\AnonymizationHistoryService;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\AnonymizeStatistics;
@@ -27,8 +29,10 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use Throwable;
 
 use function count;
+use function dirname;
 use function in_array;
 use function is_string;
 use function sprintf;
@@ -185,13 +189,15 @@ final class AnonymizeCommand extends AbstractCommand
         $locale       = $input->getOption('locale') ?: $this->locale;
         $verbose      = ($input->hasOption('verbose') && $input->getOption('verbose')) || $output->isVerbose();
         $debug        = $input->getOption('debug') || $output->isDebug();
-        $interactive  = $input->getOption('interactive');
-        $force        = (bool) $input->getOption('force');
-        $statsOnly    = (bool) $input->getOption('stats-only');
+        // --interactive only means something with a terminal to answer the prompts: never consent on its own
+        $interactive = (bool) $input->getOption('interactive') && $input->isInteractive();
+        $force       = (bool) $input->getOption('force');
+        $statsOnly   = (bool) $input->getOption('stats-only');
 
         // Fail closed: non-interactive destructive runs need an explicit opt-in.
-        if (!$dryRun && !$statsOnly && !$force && !$interactive && !$input->isInteractive()) {
-            $io->error('Refusing destructive anonymization without --force, --dry-run, or --interactive in non-interactive mode.');
+        // --stats-only only reduces the output and --interactive needs a terminal: neither is consent.
+        if (!$dryRun && !$force && !$input->isInteractive()) {
+            $io->error('Refusing destructive anonymization without --force or --dry-run in non-interactive mode (--interactive needs a terminal).');
 
             return self::FAILURE;
         }
@@ -259,10 +265,27 @@ final class AnonymizeCommand extends AbstractCommand
             return self::INVALID;
         }
 
+        // Every writing TTY run without --force confirms its targets once (the interactive summary below asks
+        // instead when it is shown, i.e. with --interactive and without --stats-only)
+        $showInteractiveSummary = $interactive && !$statsOnly;
+        if (!$dryRun && !$force && !$showInteractiveSummary) {
+            $io->caution('This run overwrites data in place in the following database(s):');
+            $io->listing($this->describeTargets($managersToProcess));
+            if (!$io->confirm('Anonymize these databases now?', false)) {
+                $io->warning('Anonymization cancelled by user. Use --force to skip this confirmation.');
+
+                return self::SUCCESS;
+            }
+        }
+
         // Show summary if interactive mode
-        if ($interactive && !$statsOnly) {
+        if ($showInteractiveSummary) {
             $io->title('Interactive Mode - Anonymization Summary');
             $io->writeln(sprintf('Entity managers to process: <info>%s</info>', implode(', ', $managersToProcess)));
+            if (!$dryRun) {
+                $io->writeln('Target database(s), overwritten in place:');
+                $io->listing($this->describeTargets($managersToProcess));
+            }
             if (!empty($entityFilter)) {
                 $io->writeln(sprintf('Entities filter: <info>%s</info>', implode(', ', $entityFilter)));
             }
@@ -477,7 +500,8 @@ final class AnonymizeCommand extends AbstractCommand
                 $io->newLine();
             }
 
-            if (!$dryRun && !$statsOnly) {
+            // Asked even with --stats-only (it only reduces the output); --force skips it
+            if (!$dryRun) {
                 $force = $input instanceof InputInterface && (bool) $input->getOption('force');
                 if (!$force && !$io->confirm('TRUNCATE will permanently empty these tables. Continue?', false)) {
                     $io->error('Truncate aborted. Re-run with --force to confirm non-interactively, or answer yes at the prompt.');
@@ -699,6 +723,35 @@ final class AnonymizeCommand extends AbstractCommand
     }
 
     /**
+     * Describes each target entity manager as "name: driver host/database" (never credentials).
+     *
+     * @param array<int|string, int|string> $managerNames
+     *
+     * @return list<string>
+     */
+    private function describeTargets(array $managerNames): array
+    {
+        $targets = [];
+        foreach ($managerNames as $managerName) {
+            try {
+                $em = $this->doctrine->getManager((string) $managerName);
+                if (!$em instanceof EntityManagerInterface) {
+                    $targets[] = sprintf('%s: not a Doctrine ORM entity manager (skipped)', $managerName);
+                    continue;
+                }
+                $connection = $em->getConnection();
+                $params     = $connection->getParams();
+                $host       = $params['host'] ?? $params['path'] ?? 'local';
+                $targets[]  = sprintf('%s: %s %s/%s', $managerName, DbalHelper::getDriverName($connection), is_string($host) ? $host : 'local', (string) $connection->getDatabase());
+            } catch (Throwable $e) {
+                $targets[] = sprintf('%s: unresolved (%s)', $managerName, $e::class);
+            }
+        }
+
+        return $targets;
+    }
+
+    /**
      * Resolves --stats-json/--stats-csv under stats_output_dir and rejects path traversal / absolute escape.
      *
      * Relative paths are joined to the configured stats directory. Absolute paths are accepted only when
@@ -710,10 +763,8 @@ final class AnonymizeCommand extends AbstractCommand
     private function resolveStatsOutputPath(string $userPath, string $statsOutputDir): string
     {
         $statsOutputDir = rtrim(str_replace('\\', '/', $statsOutputDir), '/');
-        if (!is_dir($statsOutputDir)) {
-            // Failure (e.g. a parent path is a file) is reported below, once the path cannot be resolved
-            @mkdir($statsOutputDir, 0o755, true);
-        }
+        // Owner-only (also tightens a directory created 0755 by older versions); failure is reported below
+        PrivateDirectory::ensure($statsOutputDir);
 
         $baseReal = realpath($statsOutputDir);
         if ($baseReal === false || !is_dir($baseReal)) {
@@ -729,6 +780,13 @@ final class AnonymizeCommand extends AbstractCommand
 
         if ($canonical !== $baseReal && !str_starts_with($canonical, $basePrefix)) {
             throw new InvalidArgumentException(sprintf('Stats output path "%s" resolves outside the configured stats_output_dir (%s). Absolute paths and ".." segments that escape the directory are rejected.', $userPath, $baseReal));
+        }
+
+        // The lexical check above does not see symlinks: the existing parent directory must really be inside
+        // the stats directory, and the target itself must not be a symlink (it would redirect the write).
+        $parentReal = realpath(dirname($canonical));
+        if (is_link($canonical) || ($parentReal !== false && $parentReal !== $baseReal && !str_starts_with(str_replace('\\', '/', $parentReal) . '/', $basePrefix))) {
+            throw new InvalidArgumentException(sprintf('Stats output path "%s" resolves outside the configured stats_output_dir (%s) through a symbolic link.', $userPath, $baseReal));
         }
 
         return $canonical;

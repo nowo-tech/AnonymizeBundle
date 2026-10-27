@@ -8,14 +8,20 @@ use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
+use function count;
+use function get_debug_type;
+use function in_array;
+use function is_scalar;
 use function is_string;
+use function sprintf;
 use function strlen;
 
 /**
- * Faker for deterministic anonymization using hash functions.
+ * Deterministic pseudonymisation with a keyed HMAC.
  *
- * This faker hashes the original value to maintain referential integrity
- * while anonymizing data. The same input will always produce the same output.
+ * The same input always produces the same output (referential integrity across tables), so the result is
+ * **pseudonymous, not anonymous**: anyone holding the key can confirm a guessed value. The key must be a
+ * dedicated secret (nowo_anonymize.hash_preserve.key / NOWO_ANONYMIZE_HASH_KEY), never committed.
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
@@ -24,28 +30,48 @@ use function strlen;
 #[Autoconfigure(public: true)]
 final readonly class HashPreserveFaker implements FakerInterface
 {
+    /** Minimum key length: shorter keys are treated as placeholders. */
+    public const MIN_KEY_LENGTH = 32;
+
+    /** Keys with fewer distinct characters are rejected as low-entropy. */
+    public const MIN_DISTINCT_CHARACTERS = 8;
+
+    private const ALGORITHMS = ['sha256', 'sha512'];
+
     /**
-     * @param string $defaultSalt Applied when the per-call "salt" option is empty (from nowo_anonymize.hash_preserve.default_salt / kernel.secret)
+     * @param string|null $key HMAC key (nowo_anonymize.hash_preserve.key, defaults to the NOWO_ANONYMIZE_HASH_KEY env var)
      */
     public function __construct(
-        private string $defaultSalt = '',
+        private ?string $key = null,
+        /** Kernel environment: demo / test-only keys are accepted in "test" only. */
+        private string $environment = '',
     ) {
     }
 
     /**
-     * Generates a deterministic hash from the original value.
+     * Fails when no usable key is configured, so a run can be stopped before it writes anything (pre-flight).
+     *
+     * @throws InvalidArgumentException when the key is missing, a placeholder, a demo / test key outside "test" or low-entropy
+     */
+    public function assertUsableKey(): void
+    {
+        $this->usableKey();
+    }
+
+    /**
+     * Generates a deterministic HMAC of the original value.
      *
      * @param array<string, mixed> $options Options:
      *                                      - 'original_value' (mixed): The original value to hash (standard, always provided).
      *                                      - 'value' (mixed): Alias for 'original_value' (backward compatibility).
-     *                                      - 'algorithm' (string): Hash algorithm ('md5', 'sha1', 'sha256', 'sha512', default: 'sha256').
-     *                                      - 'salt' (string): Optional salt to add before hashing (empty falls back to configured default salt).
-     *                                      - 'preserve_format' (bool): If true, attempts to preserve the format of the original value (default: false).
-     *                                      - 'length' (int|null): Maximum length of the output (truncates hash if specified).
+     *                                      - 'algorithm' (string): 'sha256' (default) or 'sha512'.
+     *                                      - 'salt' (string): Optional context mixed into the HMAC message (e.g. per column), not a secret.
+     *                                      - 'preserve_format' (bool): Keep only digits for numeric originals (reduces entropy).
+     *                                      - 'length' (int|null): Truncate the output (reduces entropy).
      *
-     * @throws InvalidArgumentException if neither 'original_value' nor 'value' option is provided
+     * @throws InvalidArgumentException when the value is missing, the key is missing / a placeholder, or the algorithm is unsupported
      *
-     * @return string the hashed value
+     * @return string the pseudonymised value
      */
     public function generate(FakerOptions|array $options = []): string
     {
@@ -56,28 +82,19 @@ final readonly class HashPreserveFaker implements FakerInterface
         if ($value === null) {
             throw new InvalidArgumentException('HashPreserveFaker requires an "original_value" (or "value") option with the original value to hash.');
         }
-        $algorithm      = $opts['algorithm'] ?? 'sha256';
-        $saltOption     = $opts['salt'] ?? '';
-        $salt           = is_string($saltOption) && $saltOption !== '' ? $saltOption : $this->defaultSalt;
+
+        $key       = $this->usableKey();
+        $algorithm = $opts['algorithm'] ?? 'sha256';
+        if (!in_array($algorithm, self::ALGORITHMS, true)) {
+            throw new InvalidArgumentException(sprintf('HashPreserveFaker algorithm "%s" is not supported; use "sha256" or "sha512" (md5 and sha1 were removed).', is_scalar($algorithm) ? (string) $algorithm : get_debug_type($algorithm)));
+        }
+        $context        = $opts['salt'] ?? '';
         $preserveFormat = $opts['preserve_format'] ?? false;
         $length         = $opts['length'] ?? null;
 
-        // Convert to string
-        $valueToHash = (string) $value;
-
-        // Add salt if provided (per-call option or configured default)
-        if ($salt !== '') {
-            $valueToHash .= $salt;
-        }
-
-        // Generate hash
-        $hash = match ($algorithm) {
-            'md5'    => md5($valueToHash),
-            'sha1'   => sha1($valueToHash),
-            'sha256' => hash('sha256', $valueToHash),
-            'sha512' => hash('sha512', $valueToHash),
-            default  => hash('sha256', $valueToHash),
-        };
+        // Context (former "salt") separates domains; the secret is the HMAC key
+        $message = is_string($context) && $context !== '' ? $context . "\0" . $value : (string) $value;
+        $hash    = hash_hmac($algorithm, $message, $key);
 
         // Truncate if length specified
         if ($length !== null && $length > 0) {
@@ -98,5 +115,23 @@ final readonly class HashPreserveFaker implements FakerInterface
         }
 
         return $hash;
+    }
+
+    /**
+     * @throws InvalidArgumentException when no usable key is configured
+     */
+    private function usableKey(): string
+    {
+        $key = $this->key ?? '';
+        if (strlen($key) < self::MIN_KEY_LENGTH
+            || preg_match('/change_?me|placeholder|your[_-]?(secret|key)/i', $key) === 1
+            // Demo / test keys are public (committed in demos and fixtures): accepted only by the test environment
+            || ($this->environment !== 'test' && preg_match('/not-a-secret|demo-only|test-only/i', $key) === 1)
+            // Low entropy (e.g. one repeated character)
+            || count(array_unique(str_split($key))) < self::MIN_DISTINCT_CHARACTERS) {
+            throw new InvalidArgumentException(sprintf('hash_preserve needs a secret HMAC key of at least %d characters: set nowo_anonymize.hash_preserve.key or the NOWO_ANONYMIZE_HASH_KEY environment variable (e.g. "php -r \'echo bin2hex(random_bytes(32));\'"). Placeholder, low-entropy and demo / test-only keys (outside the test environment) are rejected.', self::MIN_KEY_LENGTH));
+        }
+
+        return $key;
     }
 }
