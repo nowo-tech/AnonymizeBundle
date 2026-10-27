@@ -31,11 +31,11 @@ final readonly class ServiceFaker implements FakerInterface
     /**
      * Creates a new ServiceFaker instance.
      *
-     * @param ContainerInterface $container Documented strategy/service-id registry for custom faker ids (REQ-DI-001 exception for closed plugin registries), not a general service locator
+     * @param ContainerInterface $container Closed locator of anonymization plugins (built-in and custom fakers) built by AnonymizeServiceLocatorPass (REQ-DI-001)
      * @param string $serviceName The name of the service to use for anonymization
      */
     public function __construct(
-        /** Documented strategy/service-id registry for custom faker ids (REQ-DI-001 exception for closed plugin registries), not a general service locator. */
+        /** Closed locator of anonymization plugins (built-in and custom fakers) built by AnonymizeServiceLocatorPass (REQ-DI-001). */
         private ContainerInterface $container,
         private string $serviceName
     ) {
@@ -53,7 +53,7 @@ final readonly class ServiceFaker implements FakerInterface
     public function generate(FakerOptions|array $options = []): mixed
     {
         if (!$this->container->has($this->serviceName)) {
-            throw new RuntimeException(sprintf('Service "%s" not found.', $this->serviceName));
+            throw new RuntimeException(sprintf('Service "%s" not found. Custom faker services must implement %s or be tagged "nowo_anonymize.faker".', $this->serviceName, FakerInterface::class));
         }
 
         $service = $this->container->get($this->serviceName);

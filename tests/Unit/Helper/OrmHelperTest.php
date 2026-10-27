@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\FieldMapping;
 use Nowo\AnonymizeBundle\Helper\OrmHelper;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 /**
  * Test case for OrmHelper.
@@ -110,5 +111,106 @@ class OrmHelperTest extends TestCase
     {
         $this->assertSame('type', OrmHelper::getDiscriminatorColumnName(null));
         $this->assertSame('custom', OrmHelper::getDiscriminatorColumnName(null, 'custom'));
+    }
+
+    public function testGetColumnNameFromFieldMappingUsesGetterOnLegacyObjects(): void
+    {
+        $mapping = new class {
+            public string $columnName = '';
+
+            public function getColumnName(): string
+            {
+                return 'legacy_col';
+            }
+        };
+
+        $this->assertSame('legacy_col', OrmHelper::getColumnNameFromFieldMapping($mapping, 'fallback'));
+    }
+
+    public function testGetColumnNameFromFieldMappingFallsBackForUnusableValues(): void
+    {
+        $emptyGetter = new class {
+            public function getColumnName(): string
+            {
+                return '';
+            }
+        };
+
+        $this->assertSame('fallback', OrmHelper::getColumnNameFromFieldMapping($emptyGetter, 'fallback'));
+        $this->assertSame('fallback', OrmHelper::getColumnNameFromFieldMapping(['columnName' => ''], 'fallback'));
+        $this->assertSame('fallback', OrmHelper::getColumnNameFromFieldMapping('scalar', 'fallback'));
+        $this->assertSame('from_array', OrmHelper::getColumnNameFromFieldMapping(['columnName' => 'from_array'], 'fallback'));
+    }
+
+    public function testGetFieldTypeFromFieldMappingUsesGetterOnLegacyObjects(): void
+    {
+        $mapping = new class {
+            public function getType(): string
+            {
+                return 'integer';
+            }
+        };
+
+        $this->assertSame('integer', OrmHelper::getFieldTypeFromFieldMapping($mapping));
+    }
+
+    public function testGetFieldTypeFromFieldMappingFallsBackForUnusableValues(): void
+    {
+        $emptyGetter = new class {
+            public ?string $type = null;
+
+            public function getType(): string
+            {
+                return '';
+            }
+        };
+
+        $this->assertSame('text', OrmHelper::getFieldTypeFromFieldMapping($emptyGetter, 'text'));
+        $this->assertSame('text', OrmHelper::getFieldTypeFromFieldMapping(['type' => ''], 'text'));
+        $this->assertSame('text', OrmHelper::getFieldTypeFromFieldMapping(42, 'text'));
+        $this->assertSame('boolean', OrmHelper::getFieldTypeFromFieldMapping(['type' => 'boolean'], 'text'));
+    }
+
+    public function testResolveDiscriminatorColumnNameRejectsScalars(): void
+    {
+        $this->assertNull(OrmHelper::resolveDiscriminatorColumnName('type'));
+    }
+
+    public function testResolveDiscriminatorColumnNameUsesColumnNameProperty(): void
+    {
+        $discColumn = new class {
+            public string $name = '';
+
+            public string $columnName = 'disc_column';
+        };
+
+        $this->assertSame('disc_column', OrmHelper::resolveDiscriminatorColumnName($discColumn));
+    }
+
+    public function testResolveDiscriminatorColumnNameUsesGetter(): void
+    {
+        $discColumn = new class {
+            public string $columnName = '';
+
+            public function getName(): string
+            {
+                return 'disc_getter';
+            }
+        };
+
+        $this->assertSame('disc_getter', OrmHelper::resolveDiscriminatorColumnName($discColumn));
+    }
+
+    public function testResolveDiscriminatorColumnNameReturnsNullWhenObjectHasNoUsableName(): void
+    {
+        $discColumn = new class {
+            public function getName(): string
+            {
+                return '';
+            }
+        };
+
+        $this->assertNull(OrmHelper::resolveDiscriminatorColumnName($discColumn));
+        $this->assertNull(OrmHelper::resolveDiscriminatorColumnName(new stdClass()));
     }
 }

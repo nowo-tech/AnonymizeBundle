@@ -96,6 +96,22 @@
 
 ## Unreleased
 
+No configuration change is required. Behaviour changes for applications with custom services:
+
+- **Custom fakers / entity anonymizers no longer need to be public.** The bundle resolves `#[AnonymizeProperty(type: 'service', service: ...)]` and `#[Anonymize(anonymizeService: ...)]` ids from a closed service locator instead of the service container. You can drop `public: true` from those services.
+- **Duck-typed custom fakers** (a class with only a `generate()` method or `__invoke()`, without `Nowo\AnonymizeBundle\Faker\FakerInterface`) keep working when they are **public**. If such a service is private, tag it:
+
+  ```yaml
+  services:
+      App\Anonymizer\LegacyReferenceGenerator:
+          tags: ['nowo_anonymize.faker']
+  ```
+
+  Otherwise the run fails with `Service "<id>" not found. Custom faker services must implement ... or be tagged "nowo_anonymize.faker".` Implementing `FakerInterface` is the recommended fix.
+- Arbitrary services that are neither fakers nor anonymizers can no longer be referenced from attributes (they were reachable through the full container before).
+- `Nowo\AnonymizeBundle\Internal\KernelParameterBagAdapter` (`@internal`) was removed.
+- `pattern_based` fallbacks now use the configured locale (they used a random locale before), and `--locale` keeps custom services available.
+
 ## To 1.2.4
 
 From **1.2.3**:

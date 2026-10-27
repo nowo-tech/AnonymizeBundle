@@ -31,12 +31,11 @@ services:
     Nowo\AnonymizeBundle\Faker\MapFaker: ~
 
     # FakerFactory is excluded from autowiring pattern but needed by services.
-    # Uses ContainerInterface as documented plugin registry (REQ-DI-001 exception).
+    # $container receives the closed plugin locator built by AnonymizeServiceLocatorPass (REQ-DI-001).
     nowo_anonymize.faker_factory:
         class: Nowo\AnonymizeBundle\Faker\FakerFactory
         arguments:
             $locale: '%nowo_anonymize.locale%'
-            $container: '@service_container'
 
     # Autowiring aliases so app services can type-hint FakerFactory / FakerFactoryInterface
     Nowo\AnonymizeBundle\Faker\FakerFactory:
@@ -53,11 +52,10 @@ services:
     # Services - auto-registered via autowiring
     # AnonymizeService: FakerFactory is injected explicitly so it works even when
     # the app excludes this bundle's namespace from autowiring (FakerFactory is excluded from our own pattern)
-    # Uses ContainerInterface as documented plugin registry (REQ-DI-001 exception).
+    # $container receives the closed plugin locator built by AnonymizeServiceLocatorPass (REQ-DI-001).
     Nowo\AnonymizeBundle\Service\AnonymizeService:
         arguments:
             $fakerFactory: '@nowo_anonymize.faker_factory'
-            $container: '@service_container'
 
     # AnonymizationHistoryService — alias by FQCN for autowiring in commands
     nowo_anonymize.service.anonymization_history:

@@ -11,6 +11,7 @@ use Psr\Container\ContainerInterface;
 // use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 // use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+use function in_array;
 use function sprintf;
 
 /**
@@ -27,18 +28,45 @@ final readonly class FakerFactory implements FakerFactoryInterface
 {
     public const SERVICE_NAME = 'nowo_anonymize.faker_factory';
 
+    /** Built-in faker types whose output does not depend on the locale (their container services stay valid for any locale). */
+    private const LOCALE_INDEPENDENT_TYPES = [
+        FakerType::MASKING->value,
+        FakerType::HASH_PRESERVE->value,
+        FakerType::SHUFFLE->value,
+        FakerType::CONSTANT->value,
+        FakerType::COPY->value,
+        FakerType::NULL->value,
+        FakerType::MAP->value,
+    ];
+
     /**
      * Creates a new FakerFactory instance.
      *
      * @param string $locale The locale for Faker generators (fallback when container is not available)
-     * @param ContainerInterface|null $container Documented strategy/service-id registry for custom faker ids (REQ-DI-001 exception for closed plugin registries), not a general service locator
+     * @param ContainerInterface|null $container Closed locator of anonymization plugins (built-in and custom fakers) built by AnonymizeServiceLocatorPass (REQ-DI-001)
+     * @param bool $localeFakersFromContainer Whether locale-dependent built-in fakers come from the container (false when the locale differs from the configured one)
      */
     public function __construct(
         // #[Autowire('%nowo_anonymize.locale%')]
         private string $locale = 'en_US',
-        /** Documented strategy/service-id registry for custom faker ids (REQ-DI-001 exception for closed plugin registries), not a general service locator. */
-        private ?ContainerInterface $container = null
+        /** Closed locator of anonymization plugins (built-in and custom fakers) built by AnonymizeServiceLocatorPass (REQ-DI-001). */
+        private ?ContainerInterface $container = null,
+        private bool $localeFakersFromContainer = true,
     ) {
+    }
+
+    /**
+     * Returns a factory for another locale that keeps the plugin locator (custom service fakers and
+     * locale-independent built-ins such as hash_preserve with its configured salt), while locale-dependent
+     * built-in fakers are instantiated for the requested locale.
+     */
+    public function withLocale(string $locale): self
+    {
+        if ($locale === $this->locale) {
+            return $this;
+        }
+
+        return new self($locale, $this->container, false);
     }
 
     /**
@@ -60,8 +88,9 @@ final readonly class FakerFactory implements FakerFactoryInterface
             $type = $type->value;
         }
 
-        // Try to get from container first (if available)
-        if ($this->container instanceof ContainerInterface) {
+        // Try to get from container first (if available and valid for this locale)
+        if ($this->container instanceof ContainerInterface
+            && ($this->localeFakersFromContainer || in_array($type, self::LOCALE_INDEPENDENT_TYPES, true))) {
             $serviceId = match ($type) {
                 FakerType::EMAIL->value         => 'nowo_anonymize.faker.email',
                 FakerType::NAME->value          => 'nowo_anonymize.faker.name',

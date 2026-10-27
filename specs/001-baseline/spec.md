@@ -50,6 +50,7 @@ Doctrine entity anonymization for **dev/test** environments: PHP attributes mark
 - **FR-CFG-001**: `Configuration` defines `locale`, `connections`, `dry_run`, `batch_size`, `stats_output_dir`, `history_dir`, `export.*`.
 - **FR-CFG-002**: `AnonymizeExtension` wires services and parameters from merged config.
 - **FR-DI-001**: `services.yaml` autowires commands, `AnonymizeService`, Faker factory, helpers.
+- **FR-DI-002**: `AnonymizeServiceLocatorPass` injects a closed service locator (built-in/custom fakers, entity anonymizers; interface-, tag- or public duck-typed services) into `FakerFactory` and `AnonymizeService` instead of the service container (REQ-DI-001).
 
 ### Attributes & traits
 
@@ -87,7 +88,7 @@ Doctrine entity anonymization for **dev/test** environments: PHP attributes mark
 ### Helpers
 
 - **FR-HELPER-001**: `DbalHelper` / `OrmHelper` abstract connection and metadata access.
-- **FR-INT-001**: `KernelParameterBagAdapter` reads kernel params without tight coupling.
+- **FR-INT-001**: *(retired)* The unused internal `KernelParameterBagAdapter` was removed; services read parameters through the injected `ParameterBagInterface`.
 
 ### Repository hygiene (maintainers)
 

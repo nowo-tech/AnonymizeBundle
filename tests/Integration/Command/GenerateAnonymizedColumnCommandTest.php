@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
+use Doctrine\Persistence\ObjectManager;
 use Exception;
 use Nowo\AnonymizeBundle\Command\GenerateAnonymizedColumnCommand;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
@@ -726,6 +727,24 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $this->command = new GenerateAnonymizedColumnCommand($this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
 
         $result = $this->command->run($input, $output);
+
+        $this->assertEquals(GenerateAnonymizedColumnCommand::SUCCESS, $result);
+        $this->assertStringContainsString('not found', $output->fetch());
+    }
+
+    /**
+     * Managers that are not ORM EntityManagers are ignored while looking up a connection by name.
+     */
+    public function testExecuteIgnoresNonOrmManagersWhenSearchingByConnectionName(): void
+    {
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['odm' => 'doctrine_mongodb.odm.default_document_manager']);
+        $doctrine->method('getManager')->with('odm')->willReturn($this->createMock(ObjectManager::class));
+
+        $output        = new BufferedOutput();
+        $this->command = new GenerateAnonymizedColumnCommand($this->anonymizeService, $this->createSafeEnvironmentProtection(), $doctrine, []);
+
+        $result = $this->command->run(new ArrayInput(['--connection' => ['reporting']]), $output);
 
         $this->assertEquals(GenerateAnonymizedColumnCommand::SUCCESS, $result);
         $this->assertStringContainsString('not found', $output->fetch());

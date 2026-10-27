@@ -107,7 +107,8 @@ final class AnonymizationHistoryService
         ];
 
         // Save to file
-        $filename = sprintf('run_%s_%s.json', date('Y-m-d_His'), $historyEntry['id']);
+        // Same clock instant as the entry timestamp, so the index entry (built from it) points at this file
+        $filename = sprintf('run_%s_%s.json', date('Y-m-d_His', $historyEntry['timestamp']), $historyEntry['id']);
         $filePath = $this->historyDir . '/' . $filename;
 
         $this->filesystem->dumpFile(

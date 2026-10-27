@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Faker;
 
-use Faker\Factory;
-use Faker\Generator as FakerGenerator;
 use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -32,8 +30,6 @@ use function is_string;
 #[AsAlias(id: 'nowo_anonymize.faker.pattern_based')]
 final readonly class PatternBasedFaker implements FakerInterface
 {
-    private FakerGenerator $faker;
-
     /**
      * Creates a new PatternBasedFaker instance.
      *
@@ -41,9 +37,8 @@ final readonly class PatternBasedFaker implements FakerInterface
      */
     public function __construct(
         #[Autowire('%nowo_anonymize.locale%')]
-        string $locale = 'en_US'
+        private string $locale = 'en_US'
     ) {
-        $this->faker = Factory::create($locale);
     }
 
     /**
@@ -95,7 +90,7 @@ final readonly class PatternBasedFaker implements FakerInterface
         }
 
         // If source field is null, use fallback faker
-        $fakerFactory          = new FakerFactory($this->faker->locale);
+        $fakerFactory          = new FakerFactory($this->locale);
         $fallbackFakerInstance = $fakerFactory->create($fallbackFaker);
         $fallbackValue         = $fallbackFakerInstance->generate($fallbackOptions);
 

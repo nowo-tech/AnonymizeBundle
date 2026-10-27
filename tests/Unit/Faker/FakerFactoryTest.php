@@ -9,10 +9,12 @@ use Nowo\AnonymizeBundle\Enum\FakerType;
 use Nowo\AnonymizeBundle\Faker\EmailFaker;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
+use Nowo\AnonymizeBundle\Faker\HashPreserveFaker;
 use Nowo\AnonymizeBundle\Faker\ServiceFaker;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 
 /**
  * Test case for FakerFactory.
@@ -594,5 +596,31 @@ class FakerFactoryTest extends TestCase
         $faker     = $factory->create('service', 'test_service');
 
         $this->assertInstanceOf(ServiceFaker::class, $faker);
+    }
+
+    public function testWithLocaleKeepsLocatorForCustomAndLocaleIndependentFakers(): void
+    {
+        $containerEmail = new EmailFaker('en_US');
+        $hashPreserve   = new HashPreserveFaker('configured-salt');
+        $custom         = $this->createMock(FakerInterface::class);
+        $custom->method('generate')->willReturn('custom');
+        $locator = new ServiceLocator([
+            'nowo_anonymize.faker.email'         => static fn (): EmailFaker => $containerEmail,
+            'nowo_anonymize.faker.hash_preserve' => static fn (): HashPreserveFaker => $hashPreserve,
+            'app.custom_faker'                   => static fn (): FakerInterface => $custom,
+        ]);
+        $factory = new FakerFactory('en_US', $locator);
+
+        self::assertSame($factory, $factory->withLocale('en_US'));
+        self::assertSame($containerEmail, $factory->create(FakerType::EMAIL));
+
+        $spanish = $factory->withLocale('es_ES');
+        self::assertNotSame($factory, $spanish);
+        // Locale-dependent built-ins are created for the requested locale ...
+        self::assertNotSame($containerEmail, $spanish->create(FakerType::EMAIL));
+        // ... locale-independent ones keep their configured service (e.g. the hash_preserve salt) ...
+        self::assertSame($hashPreserve, $spanish->create(FakerType::HASH_PRESERVE));
+        // ... and custom service fakers stay resolvable.
+        self::assertSame('custom', $spanish->create(FakerType::SERVICE, 'app.custom_faker')->generate());
     }
 }

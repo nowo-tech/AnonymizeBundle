@@ -16,6 +16,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\FieldMapping;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
+use Doctrine\Persistence\ObjectManager;
 use Exception;
 use Nowo\AnonymizeBundle\Command\AnonymizeCommand;
 use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
@@ -1262,6 +1263,64 @@ class AnonymizeCommandTest extends TestCase
         $this->assertSame(0, $exitCode);
         $this->assertStringContainsString('would be truncated', $out);
         $this->assertStringNotContainsString('Truncate aborted', $out);
+    }
+
+    public function testExecuteDefaultsStatsDirToProjectVarStatsWhenNotConfigured(): void
+    {
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
+        $doctrine->method('getManager')->with('default')->willReturn($this->createMock(EntityManagerInterface::class));
+
+        $command = $this->createDefaultAnonymizeCommand($doctrine, new ParameterBag(['kernel.environment' => 'dev']));
+        $output  = new BufferedOutput();
+
+        $exitCode = $command->run(new ArrayInput(['--stats-json' => 'default_dir.json', '--force' => true]), $output);
+
+        $this->assertSame(0, $exitCode, $output->fetch());
+        $this->assertFileExists($this->tempDir . '/var/stats/default_dir.json');
+    }
+
+    public function testExecuteSkipsManagerThatIsNotAnEntityManager(): void
+    {
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['odm' => 'doctrine_mongodb.odm.default_document_manager']);
+        $doctrine->method('getManager')->with('odm')->willReturn($this->createMock(ObjectManager::class));
+
+        $output   = new BufferedOutput();
+        $exitCode = $this->createDefaultAnonymizeCommand($doctrine)->run(new ArrayInput(['--force' => true]), $output);
+
+        $this->assertSame(0, $exitCode);
+        $this->assertStringContainsString('Manager "odm" is not an EntityManagerInterface, skipping.', $output->fetch());
+    }
+
+    public function testExecuteRejectsStatsDirThatCannotBeCreated(): void
+    {
+        touch($this->tempDir . '/not_a_dir');
+        $parameterBag = new ParameterBag([
+            'kernel.environment'              => 'dev',
+            'nowo_anonymize.stats_output_dir' => $this->tempDir . '/not_a_dir/stats',
+        ]);
+
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
+
+        $output   = new BufferedOutput();
+        $exitCode = $this->createDefaultAnonymizeCommand($doctrine, $parameterBag)->run(new ArrayInput(['--stats-json' => 'x.json', '--force' => true]), $output);
+
+        $this->assertSame(2, $exitCode);
+        $this->assertStringContainsString('Unable to create or resolve stats output directory', $output->fetch());
+    }
+
+    public function testExecuteRejectsBackslashRelativeStatsPathEscapingTheStatsDir(): void
+    {
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
+
+        $output   = new BufferedOutput();
+        $exitCode = $this->createDefaultAnonymizeCommand($doctrine)->run(new ArrayInput(['--stats-csv' => '..\\..\\escape.csv', '--force' => true]), $output);
+
+        $this->assertSame(2, $exitCode);
+        $this->assertStringContainsString('resolves outside the configured', $output->fetch());
     }
 
     private function createSafeEnvironmentProtection(): EnvironmentProtectionService

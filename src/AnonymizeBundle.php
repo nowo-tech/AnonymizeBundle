@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle;
 
 use Nowo\AnonymizeBundle\DependencyInjection\AnonymizeExtension;
+use Nowo\AnonymizeBundle\DependencyInjection\Compiler\AnonymizeServiceLocatorPass;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -32,6 +34,16 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  */
 final class AnonymizeBundle extends Bundle
 {
+    /**
+     * Registers the compiler pass that builds the anonymization plugin locator (REQ-DI-001).
+     */
+    public function build(ContainerBuilder $container): void
+    {
+        parent::build($container);
+
+        $container->addCompilerPass(new AnonymizeServiceLocatorPass());
+    }
+
     /**
      * Overridden to allow for the custom extension alias.
      *
