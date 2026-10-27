@@ -106,7 +106,9 @@
   5. Previously pseudonymised values **change**: re-run the anonymization on a fresh copy if you rely on matching hashes across runs. The output is pseudonymous, not anonymous — treat the key like a password.
 - **`--stats-only` writes.** Scripts running `nowo:anonymize:run --stats-only` non-interactively must add `--force` (or `--dry-run` for a read-only report); TRUNCATE is confirmed or needs `--force`.
 - **Terminal runs ask first.** Without `--force`, a run on a terminal asks `Anonymize these databases now?` (default no). Add `--force` to scripts that rely on a TTY.
-- **File permissions.** Exports (`0700` directory, `0600` files), history and statistics files are owner-only. If another user or process (CI artifact upload, web server) reads them, run it as the same user or copy the files explicitly. Anonymize **before** exporting.
+- **`--interactive` without a terminal.** `nowo:anonymize:run --interactive -n` (or from cron / CI) is refused: use `--force` (or `--dry-run`).
+- **Key quality.** Keys with fewer than 8 distinct characters, and demo / test keys containing `not-a-secret`, `demo-only` or `test-only` outside `APP_ENV=test`, are rejected; a run using `hash_preserve` stops at the pre-flight checks until the key is fixed (nothing is written).
+- **File permissions.** Exports (`0700` directory, `0600` files), history and statistics files are owner-only; existing export / history / statistics directories created `0755` by earlier versions are switched to `0700` on the next run when the process owns them. If another user or process (CI artifact upload, web server) reads them, run it as the same user or copy the files explicitly. Anonymize **before** exporting.
 - **Flex recipe.** The recipe no longer writes `APP_ENV=dev` into `.env`; set it yourself if you relied on it.
 - **MongoDB script generator.** Only plain database / collection names are accepted; the generated script uses `db.getSiblingDB()` / `db.getCollection()`.
 - **Custom export runners** keep working (`CommandRunnerInterface`); implement `ArgvCommandRunnerInterface` to receive argument vectors instead of shell strings.
