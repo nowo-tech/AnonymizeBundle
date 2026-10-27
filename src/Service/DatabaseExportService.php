@@ -8,11 +8,13 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
+use Nowo\AnonymizeBundle\Internal\PrivateDirectory;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
 use ZipArchive;
 
+use function dirname;
 use function strlen;
 
 use const JSON_THROW_ON_ERROR;
@@ -145,6 +147,13 @@ final class DatabaseExportService
         // mongodump writes plain BSON files to <outputDir>/<database>: always removed, also on failure
         $mongoExportDir = $this->outputDir . '/' . $database;
         $archivePath    = $this->outputDir . '/' . pathinfo($filename, PATHINFO_FILENAME);
+
+        // A pre-existing symlink would make the clean-up below act on its target: refuse
+        if (is_link($mongoExportDir)) {
+            $this->removeSecretFile($configFile);
+
+            return null;
+        }
 
         try {
             if (!is_dir($mongoExportDir)) {
@@ -376,15 +385,7 @@ final class DatabaseExportService
                 break;
 
             case 'zip':
-                if (class_exists(ZipArchive::class)) {
-                    $zipPath = $filePath . '.zip';
-                    $zip     = new ZipArchive();
-                    if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-                        $zip->addFile($filePath, basename($filePath));
-                        $zip->close();
-                        $compressedPath = $zipPath;
-                    }
-                }
+                $compressedPath = $this->buildZipPrivately($filePath . '.zip', [$filePath => basename($filePath)]) ? $filePath . '.zip' : null;
                 break;
         }
 
@@ -401,26 +402,63 @@ final class DatabaseExportService
      */
     private function createZipArchive(string $directory, string $zipPath): bool
     {
-        // Without ext-zip (misconfigured hosts) the archive is simply not created
-        $zip = class_exists(ZipArchive::class) ? new ZipArchive() : null;
-        if (!$zip instanceof ZipArchive || $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            return false;
-        }
-
         $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($directory),
+            new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS),
             RecursiveIteratorIterator::LEAVES_ONLY,
         );
 
+        $files = [];
         foreach ($iterator as $file) {
-            if (!$file->isDir()) {
-                $filePath     = $file->getRealPath();
-                $relativePath = substr((string) $filePath, strlen($directory) + 1);
-                $zip->addFile($filePath, $relativePath);
+            // Symlinks are not archived: they could pull files from outside the dump into the archive
+            if ($file->isFile() && !$file->isLink()) {
+                $files[$file->getPathname()] = substr($file->getPathname(), strlen($directory) + 1);
             }
         }
 
-        return $zip->close();
+        return $this->buildZipPrivately($zipPath, $files);
+    }
+
+    /**
+     * @param array<string, string> $files Source path => entry name
+     */
+    private function addZipEntries(ZipArchive $zip, array $files): bool
+    {
+        foreach ($files as $path => $entryName) {
+            $zip->addFile($path, $entryName);
+        }
+
+        return true;
+    }
+
+    /**
+     * Writes a ZIP archive without ever exposing it with umask permissions: ZipArchive writes into a fresh
+     * 0700 staging directory, the archive is made 0600 and only then moved to $zipPath.
+     *
+     * @param array<string, string> $files Source path => entry name
+     */
+    private function buildZipPrivately(string $zipPath, array $files): bool
+    {
+        $staging = dirname($zipPath) . '/.nowo-zip-' . bin2hex(random_bytes(6));
+        if (!@mkdir($staging, 0o700)) {
+            return false;
+        }
+        $stagedZip = $staging . '/' . basename($zipPath);
+
+        try {
+            // Without ext-zip (misconfigured hosts) the archive is simply not created; close() writes nothing for an empty archive
+            $zip = class_exists(ZipArchive::class) ? new ZipArchive() : null;
+
+            return $zip instanceof ZipArchive
+                && $zip->open($stagedZip, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true
+                && $this->addZipEntries($zip, $files)
+                && $zip->close()
+                && is_file($stagedZip)
+                && chmod($stagedZip, 0o600)
+                // Fails (false) when the target is e.g. an existing directory
+                && @rename($stagedZip, $zipPath);
+        } finally {
+            $this->removeDirectory($staging);
+        }
     }
 
     /**
@@ -503,9 +541,8 @@ final class DatabaseExportService
      */
     private function ensureOutputDirectory(): void
     {
-        if (!is_dir($this->outputDir)) {
-            mkdir($this->outputDir, 0o700, true);
-        }
+        // Also tightens an export directory created 0755 by older versions (when this process owns it)
+        PrivateDirectory::ensure($this->outputDir);
     }
 
     /**
@@ -514,6 +551,10 @@ final class DatabaseExportService
      */
     private function createPrivateFile(string $path): void
     {
+        // Never follow a planted symlink: replace it with a regular file
+        if (is_link($path)) {
+            unlink($path);
+        }
         touch($path);
         chmod($path, 0o600);
     }

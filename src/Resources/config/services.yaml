@@ -26,6 +26,7 @@ services:
     Nowo\AnonymizeBundle\Faker\HashPreserveFaker:
         arguments:
             $key: '%nowo_anonymize.hash_preserve.key%'
+            $environment: '%kernel.environment%'
     Nowo\AnonymizeBundle\Faker\ShuffleFaker: ~
     Nowo\AnonymizeBundle\Faker\ConstantFaker: ~
     Nowo\AnonymizeBundle\Faker\MapFaker: ~

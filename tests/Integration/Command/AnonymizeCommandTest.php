@@ -1353,6 +1353,19 @@ class AnonymizeCommandTest extends TestCase
         $this->assertStringNotContainsString('hunter2', $out);
     }
 
+    public function testLegacyLooseStatsDirectoryIsTightened(): void
+    {
+        mkdir($this->tempDir . '/stats');
+        chmod($this->tempDir . '/stats', 0o755);
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
+        $doctrine->method('getManager')->with('default')->willReturn($this->createMock(EntityManagerInterface::class));
+
+        $this->createDefaultAnonymizeCommand($doctrine)->run(new ArrayInput(['--stats-json' => 'run.json', '--force' => true]), new BufferedOutput());
+
+        $this->assertSame(0o700, fileperms($this->tempDir . '/stats') & 0o777);
+    }
+
     public function testStatsFilesAndDirectoryAreOwnerOnly(): void
     {
         $doctrine = $this->createMock(ManagerRegistry::class);

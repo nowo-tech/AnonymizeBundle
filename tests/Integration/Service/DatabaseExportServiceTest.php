@@ -16,8 +16,6 @@ use ReflectionClass;
 
 use function dirname;
 
-use const PHP_OS_FAMILY;
-
 /**
  * Test case for DatabaseExportService.
  *
@@ -1862,9 +1860,8 @@ class DatabaseExportServiceTest extends TestCase
             false,
         );
 
-        // /dev/null (or similar non-regular path) causes ZipArchive::open to fail with error code, not true
-        $readOnlyPath = (PHP_OS_FAMILY === 'Windows') ? 'NUL' : '/dev/null';
-        $result       = $method->invoke($service, $subDir, $readOnlyPath);
+        // The staging directory cannot be created next to a target in a missing directory
+        $result = $method->invoke($service, $subDir, $this->tempDir . '/missing-dir/archive.zip');
         $this->assertFalse($result);
     }
 

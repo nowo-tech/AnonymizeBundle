@@ -144,4 +144,42 @@ class HashPreserveFakerTest extends TestCase
 
         $this->assertSame('0', $faker->generate(['value' => $value, 'length' => 1, 'preserve_format' => true]));
     }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function publicKeyProvider(): iterable
+    {
+        yield 'demo key' => ['demo-only-hash-preserve-key-not-a-secret-0000'];
+        yield 'test key' => ['test-only-hash-preserve-key-not-a-secret-000'];
+    }
+
+    #[DataProvider('publicKeyProvider')]
+    public function testDemoAndTestKeysAreRejectedOutsideTheTestEnvironment(string $key): void
+    {
+        $this->assertSame(64, strlen((new HashPreserveFaker($key, 'test'))->generate(['value' => 'v'])));
+
+        foreach (['dev', ''] as $environment) {
+            try {
+                (new HashPreserveFaker($key, $environment))->assertUsableKey();
+                $this->fail('Expected the key to be rejected in "' . $environment . '"');
+            } catch (InvalidArgumentException $e) {
+                $this->assertStringContainsString('demo / test-only keys', $e->getMessage());
+            }
+        }
+    }
+
+    public function testLowEntropyKeyIsRejected(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        (new HashPreserveFaker(str_repeat('a', 64), 'test'))->assertUsableKey();
+    }
+
+    public function testUsableKeyPassesTheCheck(): void
+    {
+        (new HashPreserveFaker(self::KEY))->assertUsableKey();
+
+        $this->addToAssertionCount(1);
+    }
 }

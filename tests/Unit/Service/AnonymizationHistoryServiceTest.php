@@ -781,4 +781,15 @@ class AnonymizationHistoryServiceTest extends TestCase
         $this->assertFileExists($victim);
         $this->assertFileExists($notARun);
     }
+
+    public function testLegacyLooseHistoryDirectoryIsTightened(): void
+    {
+        $dir = $this->tempDir . '/legacy-history';
+        mkdir($dir);
+        chmod($dir, 0o755);
+
+        (new AnonymizationHistoryService($dir))->saveRun(['global' => []]);
+
+        $this->assertSame(0o700, fileperms($dir) & 0o777);
+    }
 }

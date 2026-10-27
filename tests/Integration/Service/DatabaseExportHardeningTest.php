@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Nowo\AnonymizeBundle\Service\CommandRunnerInterface;
 use Nowo\AnonymizeBundle\Service\DatabaseExportService;
 use PHPUnit\Framework\TestCase;
+use ZipArchive;
 
 use function strlen;
 
@@ -219,5 +220,76 @@ final class DatabaseExportHardeningTest extends TestCase
         $connection->method('getParams')->willReturn($params);
 
         return $em;
+    }
+
+    public function testLegacyLooseExportDirectoryIsTightenedAndZipDumpIsOwnerOnly(): void
+    {
+        mkdir($this->tempDir . '/out', 0o755);
+        chmod($this->tempDir . '/out', 0o755);
+        $sqlite = $this->tempDir . '/source.sqlite';
+        file_put_contents($sqlite, 'sqlite-bytes');
+
+        $result = $this->service('zip', $this->scriptedRunner([]))->exportConnection($this->em(['driver' => 'pdo_sqlite', 'path' => $sqlite]), 'default');
+
+        $this->assertSame($this->tempDir . '/out/default_test_db.sqlite.zip', $result);
+        $this->assertSame(0o600, fileperms($result) & 0o777);
+        $this->assertSame(0o700, fileperms($this->tempDir . '/out') & 0o777);
+        $this->assertSame(['default_test_db.sqlite.zip'], array_values(array_diff((array) scandir($this->tempDir . '/out'), ['.', '..'])), 'no staging directory or plain dump left');
+    }
+
+    public function testMongoZipArchiveIsOwnerOnlyAndSkipsSymlinks(): void
+    {
+        file_put_contents($this->tempDir . '/outside.txt', 'not part of the dump');
+        $runner = $this->scriptedRunner(['mongodump' => function (): int {
+            file_put_contents($this->tempDir . '/out/mydb/users.bson', 'data');
+            symlink($this->tempDir . '/outside.txt', $this->tempDir . '/out/mydb/leak.bson');
+
+            return 0;
+        }]);
+
+        $archive = $this->service('zip', $runner)->exportMongoDB('mongodb', 'mydb');
+
+        $this->assertSame($this->tempDir . '/out/mongodb_mydb.zip', $archive);
+        $this->assertSame(0o600, fileperms($archive) & 0o777);
+        $zip = new ZipArchive();
+        $zip->open($archive);
+        $this->assertSame(1, $zip->numFiles);
+        $this->assertSame('users.bson', $zip->getNameIndex(0));
+        $zip->close();
+    }
+
+    public function testPreExistingSymlinkAtTheMongoDumpDirectoryIsRefused(): void
+    {
+        mkdir($this->tempDir . '/out', 0o700);
+        mkdir($this->tempDir . '/elsewhere');
+        file_put_contents($this->tempDir . '/elsewhere/keep.txt', 'keep');
+        symlink($this->tempDir . '/elsewhere', $this->tempDir . '/out/mydb');
+        $runner = $this->scriptedRunner(['mongodump' => static fn (): int => 0]);
+
+        $this->assertNull($this->service('gzip', $runner)->exportMongoDB('mongodb', 'mydb', 'localhost', 27017, 'mongodb://user:not-a-real-password@db/mydb'));
+        $this->assertSame([], $runner->calls);
+        $this->assertTrue(is_link($this->tempDir . '/out/mydb'));
+        $this->assertFileExists($this->tempDir . '/elsewhere/keep.txt');
+        $this->assertSame([], glob(sys_get_temp_dir() . '/nowo_anonymize_mongodump_*') ?: [], 'credential file removed');
+    }
+
+    public function testPlantedSymlinkAtTheDumpPathIsReplacedNotFollowed(): void
+    {
+        mkdir($this->tempDir . '/out', 0o700);
+        file_put_contents($this->tempDir . '/victim.txt', 'victim');
+        chmod($this->tempDir . '/victim.txt', 0o644);
+        symlink($this->tempDir . '/victim.txt', $this->tempDir . '/out/default_test_db.sql');
+        $runner = $this->scriptedRunner(['mysqldump' => static function (array $argv): int {
+            file_put_contents((string) self::option($argv, '--result-file='), 'dump');
+
+            return 0;
+        }]);
+
+        $result = $this->service('none', $runner)->exportConnection($this->em(['driver' => 'pdo_mysql', 'host' => 'db']), 'default');
+
+        $this->assertSame($this->tempDir . '/out/default_test_db.sql', $result);
+        $this->assertFalse(is_link($result));
+        $this->assertSame('victim', file_get_contents($this->tempDir . '/victim.txt'));
+        $this->assertSame(0o644, fileperms($this->tempDir . '/victim.txt') & 0o777);
     }
 }

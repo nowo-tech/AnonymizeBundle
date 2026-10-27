@@ -6,7 +6,7 @@
 
 Paths in the tables are relative to `src/`. Tests under `tests/` are out of Packagist scope.
 
-Audit command: `git ls-files src | wc -l` (84 production files).
+Audit command: `git ls-files src | wc -l` (85 production files).
 
 ## Symfony config (`src/Resources/config/`)
 
@@ -141,6 +141,7 @@ Audit command: `git ls-files src | wc -l` (84 production files).
 | `Helper/DbalHelper.php` | DBAL utilities | FR-HELPER-001 |
 | `Helper/OrmHelper.php` | ORM metadata helpers | FR-HELPER-001 |
 | `Helper/AnonymizePropertyDiscovery.php` | `#[AnonymizeProperty]` discovery on fields and Doctrine embeddables | FR-HELPER-001, FR-ATTR-001 |
+| `Internal/PrivateDirectory.php` | Owner-only (0700) export / history / stats directories | FR-SVC-005, FR-SVC-006 |
 
 ## Coverage summary
 
@@ -154,8 +155,8 @@ Audit command: `git ls-files src | wc -l` (84 production files).
 | Enums | 2 | 2 |
 | Faker (factory + impls) | 41 | 41 |
 | Services | 13 | 13 |
-| Helpers & internal | 3 | 3 |
-| **Total production sources** | **84** | **84** |
+| Helpers & internal | 4 | 4 |
+| **Total production sources** | **85** | **85** |
 
 ## Maintainer tooling (out of `src/`, REQ-GIT-001)
 

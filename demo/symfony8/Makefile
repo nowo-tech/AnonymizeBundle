@@ -48,6 +48,8 @@ help:
 up:
 	@echo "🚀 Starting demo containers..."
 	@[ -f .env ] || cp .env.example .env
+	@# Local random hash_preserve key (never committed; demo keys are rejected outside APP_ENV=test)
+	@{ grep -Eq '^NOWO_ANONYMIZE_HASH_KEY=.{32,}' .env && ! grep -q '^NOWO_ANONYMIZE_HASH_KEY=demo-only' .env; } || { sed -i '/^NOWO_ANONYMIZE_HASH_KEY=/d' .env; echo "NOWO_ANONYMIZE_HASH_KEY=$$(od -An -tx1 -N32 /dev/urandom | tr -d ' \n')" >> .env; }
 	$(COMPOSE) up -d --build
 	@echo "⏳ Waiting for MySQL and PostgreSQL to be ready..."
 	@echo "Waiting for container to be ready..."

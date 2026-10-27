@@ -11,6 +11,7 @@ use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Event\AfterAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
+use Nowo\AnonymizeBundle\Internal\PrivateDirectory;
 use Nowo\AnonymizeBundle\Service\AnonymizationHistoryService;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\AnonymizeStatistics;
@@ -188,14 +189,15 @@ final class AnonymizeCommand extends AbstractCommand
         $locale       = $input->getOption('locale') ?: $this->locale;
         $verbose      = ($input->hasOption('verbose') && $input->getOption('verbose')) || $output->isVerbose();
         $debug        = $input->getOption('debug') || $output->isDebug();
-        $interactive  = $input->getOption('interactive');
-        $force        = (bool) $input->getOption('force');
-        $statsOnly    = (bool) $input->getOption('stats-only');
+        // --interactive only means something with a terminal to answer the prompts: never consent on its own
+        $interactive = (bool) $input->getOption('interactive') && $input->isInteractive();
+        $force       = (bool) $input->getOption('force');
+        $statsOnly   = (bool) $input->getOption('stats-only');
 
         // Fail closed: non-interactive destructive runs need an explicit opt-in.
-        // --stats-only only reduces the output: it still writes, so it needs the same opt-in.
-        if (!$dryRun && !$force && !$interactive && !$input->isInteractive()) {
-            $io->error('Refusing destructive anonymization without --force, --dry-run, or --interactive in non-interactive mode.');
+        // --stats-only only reduces the output and --interactive needs a terminal: neither is consent.
+        if (!$dryRun && !$force && !$input->isInteractive()) {
+            $io->error('Refusing destructive anonymization without --force or --dry-run in non-interactive mode (--interactive needs a terminal).');
 
             return self::FAILURE;
         }
@@ -263,8 +265,10 @@ final class AnonymizeCommand extends AbstractCommand
             return self::INVALID;
         }
 
-        // TTY run without --force / --interactive: show the target databases and ask once before writing
-        if (!$dryRun && !$force && !$interactive && $input->isInteractive()) {
+        // Every writing TTY run without --force confirms its targets once (the interactive summary below asks
+        // instead when it is shown, i.e. with --interactive and without --stats-only)
+        $showInteractiveSummary = $interactive && !$statsOnly;
+        if (!$dryRun && !$force && !$showInteractiveSummary) {
             $io->caution('This run overwrites data in place in the following database(s):');
             $io->listing($this->describeTargets($managersToProcess));
             if (!$io->confirm('Anonymize these databases now?', false)) {
@@ -275,9 +279,13 @@ final class AnonymizeCommand extends AbstractCommand
         }
 
         // Show summary if interactive mode
-        if ($interactive && !$statsOnly) {
+        if ($showInteractiveSummary) {
             $io->title('Interactive Mode - Anonymization Summary');
             $io->writeln(sprintf('Entity managers to process: <info>%s</info>', implode(', ', $managersToProcess)));
+            if (!$dryRun) {
+                $io->writeln('Target database(s), overwritten in place:');
+                $io->listing($this->describeTargets($managersToProcess));
+            }
             if (!empty($entityFilter)) {
                 $io->writeln(sprintf('Entities filter: <info>%s</info>', implode(', ', $entityFilter)));
             }
@@ -755,10 +763,8 @@ final class AnonymizeCommand extends AbstractCommand
     private function resolveStatsOutputPath(string $userPath, string $statsOutputDir): string
     {
         $statsOutputDir = rtrim(str_replace('\\', '/', $statsOutputDir), '/');
-        if (!is_dir($statsOutputDir)) {
-            // Failure (e.g. a parent path is a file) is reported below, once the path cannot be resolved
-            @mkdir($statsOutputDir, 0o700, true);
-        }
+        // Owner-only (also tightens a directory created 0755 by older versions); failure is reported below
+        PrivateDirectory::ensure($statsOutputDir);
 
         $baseReal = realpath($statsOutputDir);
         if ($baseReal === false || !is_dir($baseReal)) {

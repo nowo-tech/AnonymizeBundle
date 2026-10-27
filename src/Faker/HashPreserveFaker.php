@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
+use function count;
 use function get_debug_type;
 use function in_array;
 use function is_scalar;
@@ -32,6 +33,9 @@ final readonly class HashPreserveFaker implements FakerInterface
     /** Minimum key length: shorter keys are treated as placeholders. */
     public const MIN_KEY_LENGTH = 32;
 
+    /** Keys with fewer distinct characters are rejected as low-entropy. */
+    public const MIN_DISTINCT_CHARACTERS = 8;
+
     private const ALGORITHMS = ['sha256', 'sha512'];
 
     /**
@@ -39,7 +43,19 @@ final readonly class HashPreserveFaker implements FakerInterface
      */
     public function __construct(
         private ?string $key = null,
+        /** Kernel environment: demo / test-only keys are accepted in "test" only. */
+        private string $environment = '',
     ) {
+    }
+
+    /**
+     * Fails when no usable key is configured, so a run can be stopped before it writes anything (pre-flight).
+     *
+     * @throws InvalidArgumentException when the key is missing, a placeholder, a demo / test key outside "test" or low-entropy
+     */
+    public function assertUsableKey(): void
+    {
+        $this->usableKey();
     }
 
     /**
@@ -107,8 +123,13 @@ final readonly class HashPreserveFaker implements FakerInterface
     private function usableKey(): string
     {
         $key = $this->key ?? '';
-        if (strlen($key) < self::MIN_KEY_LENGTH || preg_match('/change_?me|placeholder|your[_-]?(secret|key)/i', $key) === 1) {
-            throw new InvalidArgumentException(sprintf('hash_preserve needs a secret HMAC key of at least %d characters: set nowo_anonymize.hash_preserve.key or the NOWO_ANONYMIZE_HASH_KEY environment variable (e.g. "php -r \'echo bin2hex(random_bytes(32));\'"). Placeholder values are rejected.', self::MIN_KEY_LENGTH));
+        if (strlen($key) < self::MIN_KEY_LENGTH
+            || preg_match('/change_?me|placeholder|your[_-]?(secret|key)/i', $key) === 1
+            // Demo / test keys are public (committed in demos and fixtures): accepted only by the test environment
+            || ($this->environment !== 'test' && preg_match('/not-a-secret|demo-only|test-only/i', $key) === 1)
+            // Low entropy (e.g. one repeated character)
+            || count(array_unique(str_split($key))) < self::MIN_DISTINCT_CHARACTERS) {
+            throw new InvalidArgumentException(sprintf('hash_preserve needs a secret HMAC key of at least %d characters: set nowo_anonymize.hash_preserve.key or the NOWO_ANONYMIZE_HASH_KEY environment variable (e.g. "php -r \'echo bin2hex(random_bytes(32));\'"). Placeholder, low-entropy and demo / test-only keys (outside the test environment) are rejected.', self::MIN_KEY_LENGTH));
         }
 
         return $key;

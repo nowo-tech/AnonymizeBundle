@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Service;
 
 use DateTimeImmutable;
+use Nowo\AnonymizeBundle\Internal\PrivateDirectory;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\Kernel;
@@ -89,10 +90,8 @@ final class AnonymizationHistoryService
      */
     public function saveRun(array $statistics, array $metadata = []): string
     {
-        // Ensure history directory exists
-        if (!is_dir($this->historyDir)) {
-            $this->filesystem->mkdir($this->historyDir, 0o700);
-        }
+        // Owner-only history directory (also tightens one created 0755 by older versions)
+        PrivateDirectory::ensure($this->historyDir);
 
         // Create history entry
         $historyEntry = [

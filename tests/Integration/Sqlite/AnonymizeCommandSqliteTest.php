@@ -18,6 +18,7 @@ use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
+use Nowo\AnonymizeBundle\Tests\Integration\Sqlite\Entity\E2eApiToken;
 use Nowo\AnonymizeBundle\Tests\Integration\Sqlite\Entity\E2eAuditLog;
 use Nowo\AnonymizeBundle\Tests\Integration\Sqlite\Entity\E2eCompany;
 use Nowo\AnonymizeBundle\Tests\Integration\Sqlite\Entity\E2eCustomer;
@@ -43,6 +44,9 @@ use const PHP_VERSION_ID;
  */
 final class AnonymizeCommandSqliteTest extends TestCase
 {
+    /** Obvious test-only HMAC key (not a secret). */
+    private const HASH_KEY = 'REDACTED-TEST-KEY-0000000000000000000';
+
     private EntityManager $em;
 
     private string $tempDir;
@@ -79,6 +83,7 @@ final class AnonymizeCommandSqliteTest extends TestCase
         $this->em->persist(new E2eTempDocument('Draft 2'));
         $this->em->persist(new E2eTempDocument('Draft 3'));
         $this->em->persist(new E2eAuditLog('user alice logged in'));
+        $this->em->persist(new E2eApiToken('tok_live_original'));
         $this->em->flush();
         $this->em->clear();
     }
@@ -128,6 +133,8 @@ final class AnonymizeCommandSqliteTest extends TestCase
 
         // Custom anonymizer service
         self::assertSame('redacted #1', $this->em->getConnection()->fetchOne('SELECT message FROM e2e_audit_log'));
+        // hash_preserve: keyed HMAC
+        self::assertSame(hash_hmac('sha256', 'tok_live_original', self::HASH_KEY), $this->em->getConnection()->fetchOne('SELECT token FROM e2e_api_token'));
 
         self::assertStringContainsString('emptied', $out);
         self::assertStringContainsString('Property statistics:', $out);
@@ -195,6 +202,7 @@ final class AnonymizeCommandSqliteTest extends TestCase
         [$exitCode, $out] = $this->runCommand(['--interactive' => true], "yes\nyes\nno\n");
 
         self::assertSame(1, $exitCode, $out);
+        self::assertStringContainsString('Target database(s), overwritten in place:', $out);
         self::assertStringContainsString('Truncate aborted.', $out);
         self::assertSame(5, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM e2e_document'));
     }
@@ -241,6 +249,49 @@ final class AnonymizeCommandSqliteTest extends TestCase
         self::assertSame('alice@example.test', $this->customers()[1]['email']);
     }
 
+    /**
+     * SEC-004 N2: --interactive is not consent without a terminal, also combined with --stats-only.
+     */
+    public function testInteractiveWithoutTerminalIsNotConsent(): void
+    {
+        foreach ([['--interactive' => true], ['--interactive' => true, '--stats-only' => true]] as $options) {
+            [$exitCode, $out] = $this->runCommand($options);
+
+            self::assertSame(1, $exitCode, $out);
+            self::assertStringContainsString('Refusing destructive anonymization without --force or --dry-run', $out);
+        }
+        self::assertSame('alice@example.test', $this->customers()[1]['email']);
+        self::assertSame(5, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM e2e_document'));
+    }
+
+    /**
+     * SEC-004 N2: with a terminal, --interactive --stats-only (no interactive summary) still confirms the targets.
+     */
+    public function testInteractiveStatsOnlyStillConfirmsTargets(): void
+    {
+        [$exitCode, $out] = $this->runCommand(['--interactive' => true, '--stats-only' => true], "no\n");
+
+        self::assertSame(0, $exitCode, $out);
+        self::assertStringContainsString('default: pdo_sqlite', $out);
+        self::assertStringContainsString('Anonymization cancelled by user.', $out);
+        self::assertSame('alice@example.test', $this->customers()[1]['email']);
+    }
+
+    /**
+     * SEC-004 I-b: a missing hash_preserve key fails the pre-flight checks before any row is written.
+     */
+    public function testMissingHashPreserveKeyStopsTheRunBeforeAnyWrite(): void
+    {
+        [$exitCode, $out] = $this->runCommand(['--force' => true], null, OutputInterface::VERBOSITY_NORMAL, null);
+
+        self::assertSame(1, $exitCode, $out);
+        self::assertStringContainsString('Pre-flight checks failed', $out);
+        self::assertStringContainsString('hash_preserve needs a secret HMAC key', $out);
+        self::assertSame('alice@example.test', $this->customers()[1]['email']);
+        self::assertSame('tok_live_original', $this->em->getConnection()->fetchOne('SELECT token FROM e2e_api_token'));
+        self::assertSame(5, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM e2e_document'));
+    }
+
     public function testRelationshipPatternsJoinOnlyOwningToOneAssociationsAndSkipEmbeddedHosts(): void
     {
         $service    = $this->createAnonymizeService();
@@ -282,16 +333,16 @@ final class AnonymizeCommandSqliteTest extends TestCase
      *
      * @return array{int, string}
      */
-    private function runCommand(array $options, ?string $answers = null, int $verbosity = OutputInterface::VERBOSITY_NORMAL): array
+    private function runCommand(array $options, ?string $answers = null, int $verbosity = OutputInterface::VERBOSITY_NORMAL, ?string $hashKey = self::HASH_KEY): array
     {
         $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')->willReturn($this->em);
 
-        $anonymizeService = $this->createAnonymizeService();
+        $anonymizeService = $this->createAnonymizeService($hashKey);
         $command          = new AnonymizeCommand(
             $anonymizeService,
-            new PreFlightCheckService(new FakerFactory('en_US')),
+            new PreFlightCheckService(new FakerFactory('en_US', null, true, $hashKey)),
             new AnonymizationHistoryService($this->tempDir . '/history'),
             new EnvironmentProtectionService(new ParameterBag(['kernel.environment' => 'test', 'kernel.project_dir' => $this->tempDir]), []),
             $doctrine,
@@ -317,11 +368,11 @@ final class AnonymizeCommandSqliteTest extends TestCase
         return [$exitCode, $output->fetch()];
     }
 
-    private function createAnonymizeService(): AnonymizeService
+    private function createAnonymizeService(?string $hashKey = self::HASH_KEY): AnonymizeService
     {
         $locator = new ServiceLocator(['e2e.audit_log_anonymizer' => static fn (): E2eAuditLogAnonymizer => new E2eAuditLogAnonymizer()]);
 
-        return new AnonymizeService(new FakerFactory('en_US', $locator), new PatternMatcher(), null, $locator);
+        return new AnonymizeService(new FakerFactory('en_US', $locator, true, $hashKey), new PatternMatcher(), null, $locator);
     }
 
     /**
