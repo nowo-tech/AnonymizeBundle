@@ -96,10 +96,27 @@
 
 ## Unreleased
 
-No configuration change is required. Behaviour changes for applications with custom services:
+### Security changes that need action (SEC-004)
+
+- **`hash_preserve` key (outputs change).** `hash_preserve` is now an HMAC with a dedicated key instead of `sha256(value . salt)` with `%kernel.secret%`:
+  1. Generate a key: `php -r 'echo bin2hex(random_bytes(32));'` and set `NOWO_ANONYMIZE_HASH_KEY=<value>` in `.env.local` (or your secret store) — or configure `nowo_anonymize.hash_preserve.key: '%env(MY_VAR)%'`. Without a key of at least 32 characters (placeholders such as `changeme` are rejected) every `hash_preserve` property fails.
+  2. `algorithm: 'md5'` / `'sha1'` are rejected: use `sha256` (default) or `sha512`.
+  3. `hash_preserve.default_salt` is deprecated and used as the key when `key` is not set; move the value to `key` (it must also be at least 32 characters).
+  4. The per-attribute `salt` option is now a non-secret context (e.g. the column name), not the secret.
+  5. Previously pseudonymised values **change**: re-run the anonymization on a fresh copy if you rely on matching hashes across runs. The output is pseudonymous, not anonymous — treat the key like a password.
+- **`--stats-only` writes.** Scripts running `nowo:anonymize:run --stats-only` non-interactively must add `--force` (or `--dry-run` for a read-only report); TRUNCATE is confirmed or needs `--force`.
+- **Terminal runs ask first.** Without `--force`, a run on a terminal asks `Anonymize these databases now?` (default no). Add `--force` to scripts that rely on a TTY.
+- **File permissions.** Exports (`0700` directory, `0600` files), history and statistics files are owner-only. If another user or process (CI artifact upload, web server) reads them, run it as the same user or copy the files explicitly. Anonymize **before** exporting.
+- **Flex recipe.** The recipe no longer writes `APP_ENV=dev` into `.env`; set it yourself if you relied on it.
+- **MongoDB script generator.** Only plain database / collection names are accepted; the generated script uses `db.getSiblingDB()` / `db.getCollection()`.
+- **Custom export runners** keep working (`CommandRunnerInterface`); implement `ArgvCommandRunnerInterface` to receive argument vectors instead of shell strings.
+
+### Custom services (closed locator, REQ-DI-001)
+
+Behaviour changes for applications with custom services:
 
 - **Custom fakers / entity anonymizers no longer need to be public.** The bundle resolves `#[AnonymizeProperty(type: 'service', service: ...)]` and `#[Anonymize(anonymizeService: ...)]` ids from a closed service locator instead of the service container. You can drop `public: true` from those services.
-- **Duck-typed custom fakers** (a class with only a `generate()` method or `__invoke()`, without `Nowo\AnonymizeBundle\Faker\FakerInterface`) keep working when they are **public**. If such a service is private, tag it:
+- **Duck-typed custom fakers** (a class with only a `generate()` method or `__invoke()`, without `Nowo\AnonymizeBundle\Faker\FakerInterface`) keep working when they are **public** (deprecated since 1.3: implement `FakerInterface`; they will not be resolved in 2.0). If such a service is private, tag it:
 
   ```yaml
   services:

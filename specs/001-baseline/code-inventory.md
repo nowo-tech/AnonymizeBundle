@@ -6,7 +6,7 @@
 
 Paths in the tables are relative to `src/`. Tests under `tests/` are out of Packagist scope.
 
-Audit command: `git ls-files src | wc -l` (83 production files).
+Audit command: `git ls-files src | wc -l` (84 production files).
 
 ## Symfony config (`src/Resources/config/`)
 
@@ -132,6 +132,7 @@ Audit command: `git ls-files src | wc -l` (83 production files).
 | `Service/AnonymizeStatisticsDisplay.php` | Stats output formatting | FR-SVC-007 |
 | `Service/CommandRunnerInterface.php` | External command runner | FR-SVC-005 |
 | `Service/SystemCommandRunner.php` | Symfony Process runner | FR-SVC-005 |
+| `Service/ArgvCommandRunnerInterface.php` | Shell-free (argv) command runner contract | FR-SVC-005 |
 
 ## Helpers & internal
 
@@ -152,9 +153,9 @@ Audit command: `git ls-files src | wc -l` (83 production files).
 | Events | 5 | 5 |
 | Enums | 2 | 2 |
 | Faker (factory + impls) | 41 | 41 |
-| Services | 12 | 12 |
+| Services | 13 | 13 |
 | Helpers & internal | 3 | 3 |
-| **Total production sources** | **83** | **83** |
+| **Total production sources** | **84** | **84** |
 
 ## Maintainer tooling (out of `src/`, REQ-GIT-001)
 
