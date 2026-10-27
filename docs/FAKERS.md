@@ -117,8 +117,8 @@ private ?string $legalId = null;
 
 ## Data Preservation Fakers
 
-- **hash_preserve**: Deterministic anonymization using hash functions (maintains referential integrity)
-  - Options: `algorithm` (md5/sha1/sha256/sha512), `salt`, `preserve_format`, `length`
+- **hash_preserve**: Deterministic **pseudonymisation** with a keyed HMAC (maintains referential integrity; pseudonymous, not anonymous). Requires `nowo_anonymize.hash_preserve.key` / `NOWO_ANONYMIZE_HASH_KEY` (see [CONFIGURATION.md](CONFIGURATION.md#hash_preserve))
+  - Options: `algorithm` (sha256/sha512; md5 and sha1 are rejected), `salt` (non-secret context mixed into the HMAC, e.g. the column name), `preserve_format`, `length` (both reduce entropy)
 - **shuffle**: Shuffle values within a column while maintaining distribution
   - Options: `values` (required), `seed` (for reproducibility), `exclude`
 - **constant**: Replace with constant value

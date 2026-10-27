@@ -37,7 +37,9 @@ final readonly class PatternBasedFaker implements FakerInterface
      */
     public function __construct(
         #[Autowire('%nowo_anonymize.locale%')]
-        private string $locale = 'en_US'
+        private string $locale = 'en_US',
+        /** Factory for the fallback faker (keeps the plugin locator and the hash_preserve key). */
+        private ?FakerFactoryInterface $fakerFactory = null,
     ) {
     }
 
@@ -90,7 +92,7 @@ final readonly class PatternBasedFaker implements FakerInterface
         }
 
         // If source field is null, use fallback faker
-        $fakerFactory          = new FakerFactory($this->locale);
+        $fakerFactory          = $this->fakerFactory ?? new FakerFactory($this->locale);
         $fallbackFakerInstance = $fakerFactory->create($fallbackFaker);
         $fallbackValue         = $fallbackFakerInstance->generate($fallbackOptions);
 

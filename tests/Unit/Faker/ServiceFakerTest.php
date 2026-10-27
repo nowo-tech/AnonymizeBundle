@@ -6,10 +6,13 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Faker;
 
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use Nowo\AnonymizeBundle\Faker\ServiceFaker;
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use RuntimeException;
 use stdClass;
+
+use const E_USER_DEPRECATED;
 
 /**
  * Test case for ServiceFaker.
@@ -49,6 +52,7 @@ class ServiceFakerTest extends TestCase
     /**
      * Test that ServiceFaker uses service with generate method.
      */
+    #[IgnoreDeprecations]
     public function testGenerateWithGenerateMethod(): void
     {
         $mockService = new class {
@@ -78,6 +82,7 @@ class ServiceFakerTest extends TestCase
     /**
      * Test that ServiceFaker uses callable service.
      */
+    #[IgnoreDeprecations]
     public function testGenerateWithCallableService(): void
     {
         $callableService = static fn (array $options = []): string => 'callable_value';
@@ -101,6 +106,7 @@ class ServiceFakerTest extends TestCase
     /**
      * Test that ServiceFaker uses service with __invoke method.
      */
+    #[IgnoreDeprecations]
     public function testGenerateWithInvokeMethod(): void
     {
         $invokableService = new class {
@@ -215,5 +221,31 @@ class ServiceFakerTest extends TestCase
         $this->expectExceptionMessage('Service "scalar_service" must be an object.');
 
         $serviceFaker->generate();
+    }
+
+    #[IgnoreDeprecations]
+    public function testDuckTypedServiceTriggersADeprecation(): void
+    {
+        $service = new class {
+            /**
+             * @param array<string, mixed> $options
+             */
+            public function generate(array $options = []): string
+            {
+                return 'duck';
+            }
+        };
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('has')->willReturn(true);
+        $container->method('get')->willReturn($service);
+
+        error_clear_last();
+        $result = (new ServiceFaker($container, 'app.duck'))->generate();
+        $last   = error_get_last();
+
+        $this->assertSame('duck', $result);
+        $this->assertIsArray($last);
+        $this->assertSame(E_USER_DEPRECATED, $last['type']);
+        $this->assertStringContainsString('Custom faker service "app.duck" does not implement', $last['message']);
     }
 }

@@ -623,4 +623,31 @@ class FakerFactoryTest extends TestCase
         // ... and custom service fakers stay resolvable.
         self::assertSame('custom', $spanish->create(FakerType::SERVICE, 'app.custom_faker')->generate());
     }
+
+    public function testDirectlyCreatedHashPreserveAndFallbacksUseTheConfiguredKey(): void
+    {
+        $key     = 'REDACTED-TEST-KEY-0000000000000000000';
+        $factory = new FakerFactory('en_US', null, true, $key);
+
+        $this->assertSame(hash_hmac('sha256', 'value', $key), $factory->create(FakerType::HASH_PRESERVE)->generate(['original_value' => 'value']));
+        $this->assertSame(hash_hmac('sha256', 'value', $key), $factory->withLocale('es_ES')->create(FakerType::HASH_PRESERVE)->generate(['original_value' => 'value']));
+
+        // copy / pattern_based fallbacks go through the same factory (and key)
+        $copy = $factory->create(FakerType::COPY)->generate([
+            'source_field'     => 'email',
+            'record'           => ['email' => null],
+            'fallback_faker'   => 'hash_preserve',
+            'fallback_options' => ['original_value' => 'value'],
+        ]);
+        $this->assertSame(hash_hmac('sha256', 'value', $key), $copy);
+
+        $pattern = $factory->create(FakerType::PATTERN_BASED)->generate([
+            'source_field'     => 'email',
+            'record'           => ['email' => null],
+            'original_value'   => 'x(1)',
+            'fallback_faker'   => 'hash_preserve',
+            'fallback_options' => ['original_value' => 'value'],
+        ]);
+        $this->assertStringStartsWith(hash_hmac('sha256', 'value', $key), $pattern);
+    }
 }

@@ -25,7 +25,7 @@ services:
     Nowo\AnonymizeBundle\Faker\MaskingFaker: ~
     Nowo\AnonymizeBundle\Faker\HashPreserveFaker:
         arguments:
-            $defaultSalt: '%nowo_anonymize.hash_preserve_default_salt%'
+            $key: '%nowo_anonymize.hash_preserve.key%'
     Nowo\AnonymizeBundle\Faker\ShuffleFaker: ~
     Nowo\AnonymizeBundle\Faker\ConstantFaker: ~
     Nowo\AnonymizeBundle\Faker\MapFaker: ~
@@ -36,6 +36,7 @@ services:
         class: Nowo\AnonymizeBundle\Faker\FakerFactory
         arguments:
             $locale: '%nowo_anonymize.locale%'
+            $hashPreserveKey: '%nowo_anonymize.hash_preserve.key%'
 
     # Autowiring aliases so app services can type-hint FakerFactory / FakerFactoryInterface
     Nowo\AnonymizeBundle\Faker\FakerFactory:

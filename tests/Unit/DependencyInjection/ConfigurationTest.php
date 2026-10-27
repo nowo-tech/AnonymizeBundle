@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Tests\Unit\DependencyInjection;
 
 use Nowo\AnonymizeBundle\DependencyInjection\Configuration;
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
@@ -59,6 +60,7 @@ class ConfigurationTest extends TestCase
         $this->assertSame('%kernel.project_dir%/var/stats', $config['stats_output_dir']);
         $this->assertSame('%kernel.project_dir%/var/anonymize_history', $config['history_dir']);
         $this->assertNull($config['hash_preserve']['default_salt']);
+        $this->assertNull($config['hash_preserve']['key']);
         $this->assertIsArray($config['export']);
         $this->assertArrayHasKey('enabled', $config['export']);
         $this->assertArrayHasKey('output_dir', $config['export']);
@@ -178,6 +180,7 @@ class ConfigurationTest extends TestCase
         $this->processConfiguration([['export' => ['compression' => 'invalid']]]);
     }
 
+    #[IgnoreDeprecations]
     public function testHashPreserveCustomDefaultSalt(): void
     {
         $config = $this->processConfiguration([
@@ -185,5 +188,14 @@ class ConfigurationTest extends TestCase
         ]);
 
         $this->assertSame('custom-salt', $config['hash_preserve']['default_salt']);
+    }
+
+    public function testHashPreserveKey(): void
+    {
+        $config = $this->processConfiguration([
+            ['hash_preserve' => ['key' => '%env(MY_HASH_KEY)%']],
+        ]);
+
+        $this->assertSame('%env(MY_HASH_KEY)%', $config['hash_preserve']['key']);
     }
 }

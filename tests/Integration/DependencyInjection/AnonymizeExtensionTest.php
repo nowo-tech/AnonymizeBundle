@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Tests\Integration\DependencyInjection;
 
 use Nowo\AnonymizeBundle\DependencyInjection\AnonymizeExtension;
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
@@ -186,5 +187,34 @@ class AnonymizeExtensionTest extends TestCase
         $this->assertEquals(50, $container->getParameter('nowo_anonymize.batch_size'));
         // Second config should be used for connections
         $this->assertEquals(['default'], $container->getParameter('nowo_anonymize.connections'));
+    }
+
+    public function testHashPreserveKeyDefaultsToTheEnvironmentVariable(): void
+    {
+        $container = new ContainerBuilder();
+        (new AnonymizeExtension())->load([], $container);
+
+        $this->assertSame('%env(default::NOWO_ANONYMIZE_HASH_KEY)%', $container->getParameter('nowo_anonymize.hash_preserve.key'));
+    }
+
+    public function testHashPreserveKeyFromConfiguration(): void
+    {
+        $container = new ContainerBuilder();
+        $configs   = [['hash_preserve' => ['key' => '%env(MY_HASH_KEY)%']]];
+        /* @phpstan-ignore-next-line argument.type */
+        (new AnonymizeExtension())->load($configs, $container);
+
+        $this->assertSame('%env(MY_HASH_KEY)%', $container->getParameter('nowo_anonymize.hash_preserve.key'));
+    }
+
+    #[IgnoreDeprecations]
+    public function testDeprecatedDefaultSaltIsUsedAsKey(): void
+    {
+        $container = new ContainerBuilder();
+        $configs   = [['hash_preserve' => ['default_salt' => 'legacy-dev-salt']]];
+        /* @phpstan-ignore-next-line argument.type */
+        (new AnonymizeExtension())->load($configs, $container);
+
+        $this->assertSame('legacy-dev-salt', $container->getParameter('nowo_anonymize.hash_preserve.key'));
     }
 }
