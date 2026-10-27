@@ -325,6 +325,9 @@ PHP;
         file_put_contents($readable, "<?php\n#[Anonymize]\n#[Doc(collection: 'readable_coll')]\nclass R {}");
         file_put_contents($unreadable, "<?php\n#[Anonymize]\n#[Doc(collection: 'unreadable_coll')]\nclass U {}");
         chmod($unreadable, 0o000);
+        // A broken symlink is unreadable for every user (chmod 000 is still readable by root)
+        $broken = $docPath . '/Broken.php';
+        symlink($docPath . '/missing-target.php', $broken);
 
         $command = new GenerateMongoAnonymizedFieldCommand($tmpDir, $this->createSafeEnvironmentProtection());
         $input   = new ArrayInput(['--scan-documents' => true, '--document-path' => $docPath]);
@@ -339,6 +342,7 @@ PHP;
         chmod($unreadable, 0o644);
         unlink($readable);
         unlink($unreadable);
+        unlink($broken);
         rmdir($docPath);
         rmdir($tmpDir);
     }

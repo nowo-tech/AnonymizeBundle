@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Unit\Service;
 
+use DateTimeImmutable;
 use Nowo\AnonymizeBundle\Service\AnonymizationHistoryService;
 use PHPUnit\Framework\TestCase;
+use Psr\Clock\ClockInterface;
 
 use function count;
 
@@ -720,10 +722,10 @@ class AnonymizationHistoryServiceTest extends TestCase
 
     public function testSaveRunNamesTheFileFromTheInjectedClock(): void
     {
-        $clock = new class implements \Psr\Clock\ClockInterface {
-            public function now(): \DateTimeImmutable
+        $clock = new class implements ClockInterface {
+            public function now(): DateTimeImmutable
             {
-                return new \DateTimeImmutable('2020-01-02 03:04:05');
+                return new DateTimeImmutable('2020-01-02 03:04:05');
             }
         };
         $service = new AnonymizationHistoryService($this->tempDir, $clock);

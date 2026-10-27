@@ -227,6 +227,7 @@ The script tests **22 command combinations** (entries in `scripts/test-commands.
 
 - Tests: PHPUnit (unit and integration; run `make test` or `composer test`)
 - PHP (Lines): **100%** (3778/3778) of `src/`, with no exclusions in `phpunit.xml.dist`. `make test-coverage` and the CI `coverage` job fail below 100% (REQ-TEST-003); the run also fails on any deprecation (REQ-SF-005). Real Doctrine ORM + SQLite (in memory) end-to-end tests cover the anonymize command (relationship patterns, embedded fields, STI truncate, custom services, interactive mode)
+- Justified `@codeCoverageIgnore` blocks (defensive, environment-dependent, REQ-TEST-003): `SystemCommandRunner` (`which`/`where` timeout handler and the null `proc_open` hook) and `DbalHelper::quoteIdentifier()` DBAL 2 fallback (unreachable on DBAL 3/4)
 - TS/JS: N/A
 - Python: N/A
 
