@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.4.0] - 2026-10-28](#140---2026-10-28)
 - [[1.3.0] - 2026-10-27](#130---2026-10-27)
 - [[1.2.4] - 2026-10-21](#124---2026-10-21)
 - [[1.2.3] - 2026-10-13](#123---2026-10-13)
@@ -98,6 +99,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[0.0.1] - 2026-01-19](#001---2026-01-19)
 
 ## [Unreleased]
+
+## [1.4.0] - 2026-10-28
+
+Performance: anonymization reads single-key tables with keyset chunks instead of LIMIT/OFFSET. See [UPGRADING](UPGRADING.md#to-140).
 
 ### Performance
 
@@ -269,6 +274,7 @@ _(none)_
 
 ---
 
+[1.4.0]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.4.0
 [1.3.0]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.3.0
 [1.2.4]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.2.4
 [1.2.3]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.2.3
