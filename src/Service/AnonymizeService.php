@@ -28,9 +28,11 @@ use Symfony\Contracts\Service\ResetInterface;
 use Throwable;
 
 use function count;
+use function ctype_digit;
 use function in_array;
 use function is_array;
 use function is_bool;
+use function is_int;
 use function is_string;
 use function sprintf;
 
@@ -409,8 +411,10 @@ final class AnonymizeService implements ResetInterface
         // Build query with JOINs for relationships
         $query = $this->buildQueryWithRelationships($em, $metadata, $tableName, $allPatterns);
         // For polymorphic entities, only load rows for this discriminator value
-        $disc = $this->getDiscriminatorForTruncate($metadata);
+        $disc     = $this->getDiscriminatorForTruncate($metadata);
+        $hasWhere = false;
         if ($disc['column'] !== null && $disc['value'] !== null) {
+            $hasWhere = true;
             // Qualified with the main table alias: a joined table may have a column with the same name
             $query .= sprintf(
                 ' WHERE %s.%s = %s',
@@ -429,9 +433,16 @@ final class AnonymizeService implements ResetInterface
 
         $anonymizer = null;
         $offset     = 0;
+        // Keyset pagination on a single-column primary key (WHERE pk > last ORDER BY pk LIMIT n): OFFSET re-scans every
+        // previous chunk (O(n²) on large tables). Composite keys keep LIMIT/OFFSET.
+        $idColumns = $metadata->getIdentifierColumnNames();
+        $keyColumn = count($idColumns) === 1 ? $idColumns[0] : null;
+        $lastKey   = null;
         while (true) {
-            $chunkQuery = $this->appendOrderByAndLimit($connection, $query, $metadata, 't0', $batchSize, $offset);
-            $records    = $connection->fetchAllAssociative($chunkQuery);
+            $chunkQuery = $keyColumn !== null
+                ? $this->appendKeysetChunk($connection, $query, $hasWhere, 't0', $keyColumn, $lastKey, $batchSize)
+                : $this->appendOrderByAndLimit($connection, $query, $metadata, 't0', $batchSize, $offset);
+            $records = $connection->fetchAllAssociative($chunkQuery);
             if (count($records) === 0) {
                 break;
             }
@@ -641,6 +652,12 @@ final class AnonymizeService implements ResetInterface
                 $progressCallback($processed, $totalRecords, sprintf('Processed %d/%d records (%d updated)', $processed, $totalRecords, $updated));
             }
             $offset += $batchSize;
+            if ($keyColumn !== null) {
+                $lastKey = $records[count($records) - 1][$keyColumn] ?? null;
+                if ($lastKey === null) {
+                    break; // the key column is always selected (t0.*); never restart from the first chunk
+                }
+            }
             if (count($records) < $batchSize) {
                 break;
             }
@@ -976,6 +993,28 @@ final class AnonymizeService implements ResetInterface
         }
 
         return $query;
+    }
+
+    /**
+     * Next chunk after $lastKey ordered by the single-column primary key (keyset pagination).
+     */
+    private function appendKeysetChunk(
+        Connection $connection,
+        string $query,
+        bool $hasWhere,
+        string $mainTableAlias,
+        string $keyColumn,
+        mixed $lastKey,
+        int $limit
+    ): string {
+        $key = DbalHelper::quoteIdentifier($connection, $mainTableAlias) . '.' . DbalHelper::quoteIdentifier($connection, $keyColumn);
+        if ($lastKey !== null) {
+            // Integer keys inline (some drivers return them as digit strings); anything else is quoted.
+            $value = is_int($lastKey) || (is_string($lastKey) && ctype_digit($lastKey)) ? (string) $lastKey : $connection->quote((string) $lastKey);
+            $query .= sprintf(' %s %s > %s', $hasWhere ? 'AND' : 'WHERE', $key, $value);
+        }
+
+        return $query . sprintf(' ORDER BY %s LIMIT %d', $key, $limit);
     }
 
     /**

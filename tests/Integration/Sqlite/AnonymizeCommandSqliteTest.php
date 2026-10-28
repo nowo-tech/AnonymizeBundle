@@ -144,6 +144,21 @@ final class AnonymizeCommandSqliteTest extends TestCase
         self::assertStringContainsString('Anonymization: custom service (no property attributes)', $out);
     }
 
+    /** Chunks of one row: keyset pagination must visit every row exactly once (also with the STI discriminator WHERE). */
+    public function testBatchSizeOfOneStillAnonymizesEveryRow(): void
+    {
+        [$exitCode, $out] = $this->runCommand(['--force' => true, '--batch-size' => '1']);
+
+        self::assertSame(0, $exitCode, $out);
+        $customers = $this->customers();
+        self::assertSame(1, (int) $customers[1]['anonymized']);
+        self::assertSame('A****', $customers[1]['name']);
+        self::assertSame('bob@keep.test', $customers[2]['email']);
+        self::assertSame(1, (int) $customers[2]['anonymized']);
+        self::assertSame('Carol', $customers[3]['name']);
+        self::assertSame(['document', 'document'], $this->em->getConnection()->fetchFirstColumn('SELECT kind FROM e2e_document ORDER BY id'));
+    }
+
     public function testDryRunWithCustomLocaleCountsWithoutWriting(): void
     {
         [$exitCode, $out] = $this->runCommand(['--dry-run' => true, '--locale' => 'es_ES', '--no-progress' => true]);

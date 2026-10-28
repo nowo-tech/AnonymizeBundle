@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\ORM\Configuration;
@@ -26,6 +27,7 @@ use Nowo\AnonymizeBundle\Service\AnonymizeStatistics;
 use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
@@ -33,6 +35,7 @@ use RuntimeException;
 use stdClass;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
+use function count;
 use function in_array;
 
 /**
@@ -368,6 +371,74 @@ class AnonymizeServiceTest extends TestCase
         $this->assertEquals(0, $result['processed']);
         $this->assertEquals(0, $result['updated']);
         $this->assertIsArray($result['propertyStats']);
+    }
+
+    /**
+     * Single-column primary key: chunks are read with keyset pagination (WHERE pk > last), never OFFSET.
+     */
+    public function testAnonymizeEntityReadsSingleKeyTablesWithKeysetChunks(): void
+    {
+        [$em, $connection, $metadata] = $this->chunkedEntityMocks(['id']);
+        $queries                      = [];
+        $connection->method('fetchAllAssociative')->willReturnCallback(static function (string $sql) use (&$queries): array {
+            $queries[] = $sql;
+
+            return match (count($queries)) {
+                1       => [['id' => 7]],
+                2       => [['id' => 'k-9']],
+                3       => [['no_key' => 1]],
+                default => [],
+            };
+        });
+
+        $this->service->anonymizeEntity($em, $metadata, $this->createMock(ReflectionClass::class), [], 1);
+
+        self::assertCount(3, $queries, 'stops when a row has no key value');
+        self::assertStringEndsWith('ORDER BY "t0"."id" LIMIT 1', $queries[0]);
+        self::assertStringContainsString('WHERE "t0"."id" > 7 ORDER BY', $queries[1]);
+        self::assertStringContainsString("WHERE \"t0\".\"id\" > 'k-9' ORDER BY", $queries[2]);
+        foreach ($queries as $sql) {
+            self::assertStringNotContainsString('OFFSET', $sql);
+        }
+    }
+
+    /**
+     * Composite primary keys keep LIMIT/OFFSET ordered by every key column.
+     */
+    public function testAnonymizeEntityKeepsOffsetChunksForCompositeKeys(): void
+    {
+        [$em, $connection, $metadata] = $this->chunkedEntityMocks(['a', 'b']);
+        $queries                      = [];
+        $connection->method('fetchAllAssociative')->willReturnCallback(static function (string $sql) use (&$queries): array {
+            $queries[] = $sql;
+
+            return count($queries) === 1 ? [['a' => 1, 'b' => 1]] : [];
+        });
+
+        $this->service->anonymizeEntity($em, $metadata, $this->createMock(ReflectionClass::class), [], 1);
+
+        self::assertStringEndsWith('ORDER BY "t0"."a", "t0"."b" LIMIT 1 OFFSET 0', $queries[0]);
+        self::assertStringEndsWith('LIMIT 1 OFFSET 1', $queries[1]);
+    }
+
+    /**
+     * @param list<string> $idColumns
+     *
+     * @return array{EntityManagerInterface&MockObject, Connection&MockObject, ClassMetadata<object>&MockObject}
+     */
+    private function chunkedEntityMocks(array $idColumns): array
+    {
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
+        $em->method('getConnection')->willReturn($connection);
+        $metadata->method('getTableName')->willReturn('test_table');
+        $metadata->method('getIdentifierColumnNames')->willReturn($idColumns);
+        $connection->method('getDatabasePlatform')->willReturn(new SQLitePlatform());
+        $connection->method('quote')->willReturnCallback(static fn (string $s): string => "'" . $s . "'");
+        $connection->method('fetchOne')->willReturn(3);
+
+        return [$em, $connection, $metadata];
     }
 
     /**

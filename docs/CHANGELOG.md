@@ -99,6 +99,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Performance
+
+- **Keyset chunks.** Rows were read with `LIMIT n OFFSET k`, so every chunk re-scanned all previous rows (O(n²) on
+  large tables). Entities with a single-column primary key are now read with `WHERE pk > :last ORDER BY pk LIMIT n`;
+  composite keys keep `LIMIT/OFFSET`.
+
 ## [1.3.0] - 2026-10-27
 
 Closed service locator, 100% coverage, demo MySQL/Postgres only; SEC-004: --stats-only guard bypass fixed, HMAC hash_preserve key, owner-only exports/history/stats, argv subprocesses, mongosh name escaping See [UPGRADING](UPGRADING.md#to-130).
