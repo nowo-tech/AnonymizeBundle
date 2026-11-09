@@ -698,16 +698,16 @@
         },
         {
             "name": "doctrine/orm",
-            "version": "3.7.5",
+            "version": "3.7.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/orm.git",
-                "reference": "00c2fd70da291cca1ec75f4dae5344fe3df588fa"
+                "reference": "4487f850401c0e1f27891cce5897fa90b3055c2a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/orm/zipball/00c2fd70da291cca1ec75f4dae5344fe3df588fa",
-                "reference": "00c2fd70da291cca1ec75f4dae5344fe3df588fa",
+                "url": "https://api.github.com/repos/doctrine/orm/zipball/4487f850401c0e1f27891cce5897fa90b3055c2a",
+                "reference": "4487f850401c0e1f27891cce5897fa90b3055c2a",
                 "shasum": ""
             },
             "require": {
@@ -782,9 +782,10 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/orm/issues",
-                "source": "https://github.com/doctrine/orm/tree/3.7.5"
+                "source": "https://github.com/doctrine/orm/tree/3.7.6"
             },
-            "time": "2026-10-09T05:58:13+00:00"
+            "time": "2026-10-30T12:19:09+00:00",
+            "published-time": "2026-10-30T18:12:24+00:00"
         },
         {
             "name": "doctrine/persistence",
@@ -4755,11 +4756,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.3.4",
+            "version": "2.3.5",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/f20ce6f3c82556cfcfc086b152445a12d1d64fff",
-                "reference": "f20ce6f3c82556cfcfc086b152445a12d1d64fff",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/645a1bd6bead15fc1b8474137467961d0fa30a79",
+                "reference": "645a1bd6bead15fc1b8474137467961d0fa30a79",
                 "shasum": ""
             },
             "require": {
@@ -4815,7 +4816,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-28T22:38:53+00:00"
+            "time": "2026-11-03T12:14:22+00:00",
+            "published-time": "2026-11-03T12:14:36+00:00"
         },
         {
             "name": "phpstan/phpstan-phpunit",
@@ -5891,21 +5893,21 @@
         },
         {
             "name": "rector/rector",
-            "version": "2.8.3",
+            "version": "2.8.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/rectorphp/rector.git",
-                "reference": "12ddb68d34acb91bcf3d00302bf1c7c1b5840bd6"
+                "reference": "55acbd956d7e3907f7d21aab54edd68a310609e6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/rectorphp/rector/zipball/12ddb68d34acb91bcf3d00302bf1c7c1b5840bd6",
-                "reference": "12ddb68d34acb91bcf3d00302bf1c7c1b5840bd6",
+                "url": "https://api.github.com/repos/rectorphp/rector/zipball/55acbd956d7e3907f7d21aab54edd68a310609e6",
+                "reference": "55acbd956d7e3907f7d21aab54edd68a310609e6",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.4|^8.0",
-                "phpstan/phpstan": "^2.3.4"
+                "phpstan/phpstan": "^2.3.5"
             },
             "conflict": {
                 "rector/rector-doctrine": "*",
@@ -5936,7 +5938,7 @@
             ],
             "support": {
                 "issues": "https://github.com/rectorphp/rector/issues",
-                "source": "https://github.com/rectorphp/rector/tree/2.8.3"
+                "source": "https://github.com/rectorphp/rector/tree/2.8.4"
             },
             "funding": [
                 {
@@ -5944,7 +5946,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-29T05:51:41+00:00"
+            "time": "2026-11-03T18:48:08+00:00",
+            "published-time": "2026-11-03T18:48:15+00:00"
         },
         {
             "name": "sebastian/cli-parser",
@@ -7263,5 +7266,5 @@
     "platform-overrides": {
         "php": "8.2.0"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }
