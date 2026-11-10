@@ -10,6 +10,8 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -547,10 +549,8 @@ class AnonymizeCommandTest extends TestCase
         $connection->method('commit')->willReturnCallback(static function (): void {});
         $connection->method('executeStatement')->willReturn(1);
 
-        $idColumn = $this->createMock(Column::class);
-        $idColumn->method('getName')->willReturn('id');
-        $emailColumn = $this->createMock(Column::class);
-        $emailColumn->method('getName')->willReturn('email');
+        $idColumn    = new Column('id', Type::getType(Types::STRING));
+        $emailColumn = new Column('email', Type::getType(Types::STRING));
 
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
         $schemaManager->method('tablesExist')->with([$tableName])->willReturn(true);

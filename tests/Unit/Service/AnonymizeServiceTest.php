@@ -11,6 +11,8 @@ use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -1092,9 +1094,7 @@ class AnonymizeServiceTest extends TestCase
             ->with(['test_table'])
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('anonymized');
+        $column = new Column('anonymized', Type::getType(Types::STRING));
         $schemaManager->method('listTableColumns')
             ->with('test_table')
             ->willReturn(['anonymized' => $column]);
@@ -1177,9 +1177,7 @@ class AnonymizeServiceTest extends TestCase
             ->with(['test_table'])
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('anonymized');
+        $column = new Column('anonymized', Type::getType(Types::STRING));
         $schemaManager->expects($this->once())->method('listTableColumns')
             ->with('test_table')
             ->willReturn(['anonymized' => $column]);
@@ -1267,9 +1265,7 @@ class AnonymizeServiceTest extends TestCase
             ->with(['test_table'])
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('other_column');
+        $column = new Column('other_column', Type::getType(Types::STRING));
         $schemaManager->method('listTableColumns')
             ->with('test_table')
             ->willReturn(['other_column' => $column]);

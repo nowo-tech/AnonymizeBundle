@@ -8,6 +8,8 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\FieldMapping;
@@ -78,9 +80,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->with(['test_table'])
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->with('test_table')
@@ -214,9 +214,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->with(['test_table'])
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->with('test_table')
@@ -282,9 +280,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->with(['test_table'])
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->with('test_table')
@@ -356,9 +352,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->with(['test_table'])
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->with('test_table')
@@ -462,9 +456,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->with(['test_table'])
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('other_column');
+        $column = new Column('other_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->with('test_table')
@@ -529,9 +521,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->with(['test_table'])
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->with('test_table')
@@ -596,9 +586,7 @@ class PreFlightCheckServiceTest extends TestCase
             ->with(['test_table'])
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->with('test_table')
@@ -807,9 +795,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->willReturn(['test_column' => $column]);
@@ -869,9 +855,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->willReturn(['test_column' => $column]);
@@ -931,9 +915,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->willReturn(['test_column' => $column]);
@@ -996,9 +978,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->willReturn(['test_column' => $column]);
@@ -1058,9 +1038,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->willReturn(['test_column' => $column]);
@@ -1120,9 +1098,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('testcolumn'); // Different case
+        $column = new Column('testcolumn', Type::getType(Types::STRING)); // Different case
 
         $schemaManager->method('listTableColumns')
             ->willReturn(['testcolumn' => $column]);
@@ -1183,15 +1159,9 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->willReturn(true);
 
-        $column1 = $this->createMock(Column::class);
-        $column1->method('getName')
-            ->willReturn('id');
-        $column2 = $this->createMock(Column::class);
-        $column2->method('getName')
-            ->willReturn('name');
-        $column3 = $this->createMock(Column::class);
-        $column3->method('getName')
-            ->willReturn('email');
+        $column1 = new Column('id', Type::getType(Types::STRING));
+        $column2 = new Column('name', Type::getType(Types::STRING));
+        $column3 = new Column('email', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->willReturn([
@@ -1258,9 +1228,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $columns = [];
         for ($i = 1; $i <= 15; ++$i) {
-            $column = $this->createMock(Column::class);
-            $column->method('getName')
-                ->willReturn("column_{$i}");
+            $column                 = new Column("column_{$i}", Type::getType(Types::STRING));
             $columns["column_{$i}"] = $column;
         }
 
@@ -1323,9 +1291,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->willReturn(['test_column' => $column]);
@@ -1372,8 +1338,7 @@ class PreFlightCheckServiceTest extends TestCase
         $metadata->method('getFieldMapping')->willReturn(new FieldMapping('test_column', 'string', 'test_column'));
 
         $schemaManager->method('tablesExist')->willReturn(true);
-        $column = $this->createMock(Column::class);
-        $column->method('getName')->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
         $schemaManager->method('listTableColumns')->willReturn(['test_column' => $column]);
 
         $testEntity = new class {
@@ -1427,9 +1392,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->willReturn(['test_column' => $column]);
@@ -1490,9 +1453,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->willReturn(['test_column' => $column]);
@@ -1553,9 +1514,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->willReturn(['test_column' => $column]);
@@ -1616,9 +1575,7 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->willReturn(true);
 
-        $column = $this->createMock(Column::class);
-        $column->method('getName')
-            ->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
 
         $schemaManager->method('listTableColumns')
             ->willReturn(['test_column' => $column]);
@@ -1664,8 +1621,7 @@ class PreFlightCheckServiceTest extends TestCase
         $metadata->method('hasField')->willReturn(true);
         $metadata->method('getFieldMapping')->willReturn(new FieldMapping('test_column', 'string', 'test_column'));
         $schemaManager->method('tablesExist')->willReturn(true);
-        $column = $this->createMock(Column::class);
-        $column->method('getName')->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
         $schemaManager->method('listTableColumns')->willReturn(['test_column' => $column]);
 
         $testEntity = new class {
@@ -1836,8 +1792,7 @@ class PreFlightCheckServiceTest extends TestCase
         $metadata->method('getFieldMapping')->willReturn(new FieldMapping('test_column', 'string', 'test_column'));
 
         $schemaManager->method('tablesExist')->willReturn(true);
-        $column = $this->createMock(Column::class);
-        $column->method('getName')->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
         $schemaManager->method('listTableColumns')->willReturn(['test_column' => $column]);
 
         $testEntity = new class {
@@ -1875,8 +1830,7 @@ class PreFlightCheckServiceTest extends TestCase
         $metadata->method('getFieldMapping')->willReturn(new FieldMapping('test_column', 'string', 'test_column'));
 
         $schemaManager->method('tablesExist')->willReturn(true);
-        $column = $this->createMock(Column::class);
-        $column->method('getName')->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
         $schemaManager->method('listTableColumns')->willReturn(['test_column' => $column]);
 
         $testEntity = new class {
@@ -1913,8 +1867,7 @@ class PreFlightCheckServiceTest extends TestCase
         $metadata->method('getFieldMapping')->willReturn(new FieldMapping('col', 'string', 'col'));
 
         $schemaManager->method('tablesExist')->willReturn(true);
-        $column = $this->createMock(Column::class);
-        $column->method('getName')->willReturn('col');
+        $column = new Column('col', Type::getType(Types::STRING));
         $schemaManager->method('listTableColumns')->willReturn(['col' => $column]);
 
         $testEntity = new class {
@@ -1967,8 +1920,7 @@ class PreFlightCheckServiceTest extends TestCase
         $metadata->method('hasField')->willReturn(true);
         $metadata->method('getFieldMapping')->willReturn(new FieldMapping('test_column', 'string', 'test_column'));
         $schemaManager->method('tablesExist')->willReturn(true);
-        $column = $this->createMock(Column::class);
-        $column->method('getName')->willReturn('test_column');
+        $column = new Column('test_column', Type::getType(Types::STRING));
         $schemaManager->method('listTableColumns')->willReturn(['test_column' => $column]);
 
         $testEntity = new class {

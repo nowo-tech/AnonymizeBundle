@@ -114,6 +114,12 @@ Target 1.4.1.
 - The `anonymized` flag is written only for classes that use `AnonymizableTrait`; documented with a workaround for
   entities that map their own column. New "Using it from a DDD / hexagonal application" section in USAGE.
 
+### Tests
+
+- Unit and integration tests build real `Doctrine\DBAL\Schema\Column` objects instead of mocks. With
+  doctrine/dbal 4.5.1, a mocked `Column::getObjectName()` cannot be generated (`UnqualifiedName` is final), which
+  broke the suite on every CI job. Runtime code is unaffected.
+
 ## [1.4.0] - 2026-10-28
 
 Performance: anonymization reads single-key tables with keyset chunks instead of LIMIT/OFFSET. See [UPGRADING](UPGRADING.md#to-140).
