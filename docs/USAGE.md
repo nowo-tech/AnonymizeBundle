@@ -31,6 +31,7 @@ This guide covers how to use the Anonymize Bundle in your Symfony application.
   - [Pattern-Based Faker](#pattern-based-faker)
   - [UTM Faker](#utm-faker)
   - [Copy Faker](#copy-faker)
+- [Using it from a DDD / hexagonal application](#using-it-from-a-ddd--hexagonal-application)
 - [Event System](#event-system)
 - [Forms in Twig (REQ-TWIG-005)](#forms-in-twig-req-twig-005)
 
@@ -759,7 +760,7 @@ The bundle dispatches events that you can listen to for advanced customization:
 
 - **BeforeAnonymizeEvent**: Dispatched before starting anonymization
 - **AfterAnonymizeEvent**: Dispatched after completing anonymization
-- **BeforeEntityAnonymizeEvent**: Dispatched before anonymizing an entity class
+- **BeforeEntityAnonymizeEvent**: Dispatched once per entity class, after counting its rows and before reading any of them (`getTotalRecords()`, `isDryRun()`); informational, it cannot skip the class
 - **AfterEntityAnonymizeEvent**: Dispatched after anonymizing an entity class
 
 **Example Event Listener:**
@@ -866,6 +867,13 @@ This command will:
 3. Generate SQL migrations to add the column if missing
 
 **After anonymization**, records are automatically marked with `anonymized = true`. You can query them:
+
+> The flag is written **only** for entity classes that use `AnonymizableTrait` (and whose table has the `anonymized`
+> column), and only on the rows the bundle actually updated. An entity that maps its own `anonymized` column another
+> way (XML mapping, its own property, no trait) does **not** get the flag in 1.4.x: the column keeps its value. Do not
+> set it with a table-wide `UPDATE`, which would also mark rows the run left untouched (excluded by patterns, skipped
+> by listeners, other classes sharing the table). Writing the flag whenever the table has the `anonymized` column,
+> trait or not, is planned for 1.5.
 
 ```sql
 SELECT * FROM users WHERE anonymized = true;
@@ -1454,6 +1462,61 @@ class UserAccount
 - `emailCanonical`: `hola@pepe.com` → `john@example.com` (same as email)
 - `username`: `hola@pepe.com(15)` → `john@example.com(15)` (email + pattern)
 - `usernameCanonical`: `hola@pepe.com(15)` → `john@example.com(15)` (same as username)
+
+## Using it from a DDD / hexagonal application
+
+AnonymizeBundle is an **operations tool in the infrastructure layer**: console commands that rewrite rows of your
+database copies with fake data. It has no entities of its own and talks to your tables through Doctrine DBAL.
+
+### What it touches
+
+- It finds what to anonymize from PHP attributes on your Doctrine entity classes: `#[Anonymize]` on the class and
+  `#[AnonymizeProperty]` on properties. There is no configuration-based alternative yet, so these attributes live
+  on the mapped classes.
+- Values are written with SQL `UPDATE` statements. Aggregates are not loaded, domain events are not raised and
+  invariants are not checked. Run it only against copies (environment protection is on by default) and rebuild
+  read models, search indexes and projections afterwards, for example from an `AfterEntityAnonymizeEvent` or
+  `AfterAnonymizeEvent` listener.
+- `AnonymizableTrait` is optional; it adds a mapped `anonymized` column to the entity. The flag is only written for
+  classes that use the trait (see [Anonymization Tracking](#anonymization-tracking)).
+
+### Keeping domain logic out of the attributes
+
+When an aggregate needs consistent fake data across several columns, put that rule in an infrastructure service
+that implements `Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface` and reference it with
+`#[Anonymize(anonymizeService: App\Infrastructure\Anonymize\CustomerAnonymizer::class)]`. It receives the raw row
+(column => value) and returns the columns to update, so no entity is hydrated:
+
+```php
+final readonly class CustomerAnonymizer implements EntityAnonymizerServiceInterface
+{
+    public function supportsBatch(): bool { return false; }
+
+    public function anonymize(EntityManagerInterface $em, ClassMetadata $metadata, array $record, bool $dryRun): array
+    {
+        $name = 'Customer ' . $record['id'];
+
+        return ['display_name' => $name, 'email' => sprintf('customer%s@example.invalid', $record['id'])];
+    }
+
+    public function anonymizeBatch(EntityManagerInterface $em, ClassMetadata $metadata, array $records, bool $dryRun): array
+    {
+        return [];
+    }
+}
+```
+
+Custom value generators implement `Faker\FakerInterface`; value-level overrides go through `AnonymizePropertyEvent`
+(change the value or skip the column). Per-class hooks: `BeforeEntityAnonymizeEvent` (row count, dry run) and
+`AfterEntityAnonymizeEvent` (processed / updated counters). Keep these classes in your infrastructure layer.
+
+### Known limitations
+
+- Selection only through PHP attributes; XML-mapped embeddables are not discovered.
+- The `anonymized` flag is set only on classes that use `AnonymizableTrait` (planned for 1.5: whenever the table has
+  the column).
+- `BeforeEntityAnonymizeEvent` is informational: to leave a class out, remove `#[Anonymize]` or narrow it with
+  `includePatterns` / `excludePatterns`.
 
 ## Event System
 

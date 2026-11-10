@@ -7,6 +7,8 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Service;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Exception;
@@ -33,8 +35,7 @@ class SchemaServiceTest extends TestCase
      */
     public function testHasAnonymizedColumnReturnsTrueWhenColumnExists(): void
     {
-        $column = $this->createMock(Column::class);
-        $column->method('getName')->willReturn('anonymized');
+        $column = new Column('anonymized', Type::getType(Types::STRING));
 
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
         $schemaManager->method('tablesExist')->willReturn(true);
@@ -60,8 +61,7 @@ class SchemaServiceTest extends TestCase
      */
     public function testHasAnonymizedColumnReturnsFalseWhenColumnDoesNotExist(): void
     {
-        $column = $this->createMock(Column::class);
-        $column->method('getName')->willReturn('email');
+        $column = new Column('email', Type::getType(Types::STRING));
 
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
         $schemaManager->method('tablesExist')->willReturn(true);
@@ -123,8 +123,7 @@ class SchemaServiceTest extends TestCase
      */
     public function testHasColumnReturnsTrueWhenColumnExists(): void
     {
-        $column = $this->createMock(Column::class);
-        $column->method('getName')->willReturn('email');
+        $column = new Column('email', Type::getType(Types::STRING));
 
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
         $schemaManager->method('tablesExist')->willReturn(true);
@@ -150,8 +149,7 @@ class SchemaServiceTest extends TestCase
      */
     public function testHasColumnReturnsFalseWhenColumnDoesNotExist(): void
     {
-        $column = $this->createMock(Column::class);
-        $column->method('getName')->willReturn('email');
+        $column = new Column('email', Type::getType(Types::STRING));
 
         $schemaManager = $this->createMock(AbstractSchemaManager::class);
         $schemaManager->method('tablesExist')->willReturn(true);

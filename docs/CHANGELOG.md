@@ -100,6 +100,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Target 1.4.1.
+
+### Fixed
+
+- **`BeforeEntityAnonymizeEvent` is dispatched.** The event was documented (CONFIGURATION, USAGE) but never
+  dispatched. `AnonymizeService::anonymizeEntity()` now dispatches it once per entity class, after counting the rows
+  and before reading the first one, with the entity manager, metadata, reflection, row count and dry-run flag. It is
+  informational (no skip flag); what is anonymized does not change. Listeners on `BeforeEntityAnonymizeEvent` never
+  ran in any release before 1.4.1 (0.0.13 – 1.4.0).
+- **A transaction left open by host code no longer reports success.** `anonymizeEntity()` records the connection's
+  transaction nesting level before dispatching `BeforeEntityAnonymizeEvent` and checks it after the listeners and
+  after the last chunk. If a listener or an entity anonymizer service changed it, the run throws a `RuntimeException`
+  instead of reporting "updated N" for writes that sit in an uncommitted outer transaction.
+
+### Documentation
+
+- The `anonymized` flag is written only for classes that use `AnonymizableTrait` (and only on rows the bundle
+  updated); documented, with writing it whenever the column exists planned for 1.5. New "Using it from a DDD /
+  hexagonal application" section in USAGE.
+
+### Tests
+
+- Unit and integration tests build real `Doctrine\DBAL\Schema\Column` objects instead of mocks. With
+  doctrine/dbal 4.5.1, a mocked `Column::getObjectName()` cannot be generated (`UnqualifiedName` is final), which
+  broke the suite on every CI job. Runtime code is unaffected.
+
 ## [1.4.0] - 2026-10-28
 
 Performance: anonymization reads single-key tables with keyset chunks instead of LIMIT/OFFSET. See [UPGRADING](UPGRADING.md#to-140).

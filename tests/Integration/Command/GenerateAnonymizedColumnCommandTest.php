@@ -8,6 +8,8 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -143,9 +145,8 @@ class GenerateAnonymizedColumnCommandTest extends TestCase
         $platform = $this->createMock(AbstractPlatform::class);
         $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn (string $id): string => '"' . $id . '"');
 
-        $anonymizedColumn = $this->createMock(Column::class);
-        $anonymizedColumn->method('getName')->willReturn('anonymized');
-        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $anonymizedColumn = new Column('anonymized', Type::getType(Types::STRING));
+        $schemaManager    = $this->createMock(AbstractSchemaManager::class);
         $schemaManager->method('tablesExist')->with(['table_with_anonymized'])->willReturn(true);
         $schemaManager->method('listTableColumns')->with('table_with_anonymized')->willReturn([$anonymizedColumn]);
 
