@@ -13,6 +13,7 @@ use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
 use Nowo\AnonymizeBundle\Event\AfterEntityAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent;
+use Nowo\AnonymizeBundle\Event\BeforeEntityAnonymizeEvent;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use Nowo\AnonymizeBundle\Helper\AnonymizePropertyDiscovery;
@@ -426,6 +427,17 @@ final class AnonymizeService implements ResetInterface
 
         $countQuery   = $this->buildCountQuery($connection, $tableName, $disc['column'], $disc['value']);
         $totalRecords = (int) $connection->fetchOne($countQuery);
+
+        // Dispatch BeforeEntityAnonymizeEvent (once per entity class, before any record is read)
+        if ($this->eventDispatcher instanceof EventDispatcherInterface) {
+            $this->eventDispatcher->dispatch(new BeforeEntityAnonymizeEvent(
+                $em,
+                $metadata,
+                $reflection,
+                $totalRecords,
+                $dryRun,
+            ));
+        }
 
         if ($progressCallback !== null && $totalRecords > 0) {
             $progressCallback(0, $totalRecords, sprintf('Starting anonymization of %d records', $totalRecords));

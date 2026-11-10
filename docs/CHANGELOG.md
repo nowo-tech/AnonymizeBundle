@@ -100,6 +100,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Target 1.4.1.
+
+### Fixed
+
+- **`BeforeEntityAnonymizeEvent` is dispatched.** The event was documented (CONFIGURATION, USAGE) but never
+  dispatched. `AnonymizeService::anonymizeEntity()` now dispatches it once per entity class, after counting the rows
+  and before reading the first one, with the entity manager, metadata, reflection, row count and dry-run flag. It is
+  informational (no skip flag); what is anonymized does not change.
+
+### Documentation
+
+- The `anonymized` flag is written only for classes that use `AnonymizableTrait`; documented with a workaround for
+  entities that map their own column. New "Using it from a DDD / hexagonal application" section in USAGE.
+
 ## [1.4.0] - 2026-10-28
 
 Performance: anonymization reads single-key tables with keyset chunks instead of LIMIT/OFFSET. See [UPGRADING](UPGRADING.md#to-140).

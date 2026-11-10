@@ -20,7 +20,9 @@ use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Exception;
 use Nowo\AnonymizeBundle\Attribute\Anonymize;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
+use Nowo\AnonymizeBundle\Event\AfterEntityAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent;
+use Nowo\AnonymizeBundle\Event\BeforeEntityAnonymizeEvent;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\AnonymizeStatistics;
@@ -1297,6 +1299,81 @@ class AnonymizeServiceTest extends TestCase
         $this->assertIsArray($result);
         $this->assertEquals(1, $result['processed']);
         $this->assertEquals(1, $result['updated']);
+    }
+
+    /**
+     * BeforeEntityAnonymizeEvent is dispatched once per entity class, after counting and before reading any record.
+     */
+    public function testAnonymizeEntityDispatchesBeforeEntityAnonymizeEventFirst(): void
+    {
+        $em              = $this->createMock(EntityManagerInterface::class);
+        $connection      = $this->createMock(Connection::class);
+        $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
+        $metadata        = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $testEntity = new class {
+            #[AnonymizeProperty(type: 'email')]
+            public string $email = 'test@example.com';
+        };
+        $reflection = new ReflectionClass($testEntity);
+        $service    = new AnonymizeService(new FakerFactory('en_US'), new PatternMatcher(), $eventDispatcher);
+
+        $em->method('getConnection')->willReturn($connection);
+        $metadata->method('getName')->willReturn('App\\Entity\\Customer');
+        $metadata->method('getTableName')->willReturn('test_table');
+        $metadata->method('hasField')->with('email')->willReturn(true);
+        $metadata->method('hasAssociation')->willReturn(false);
+        $metadata->method('getFieldMapping')->with('email')->willReturn(new FieldMapping('email', 'string', 'email'));
+        $metadata->method('getFieldNames')->willReturn(['email']);
+        $metadata->method('getIdentifierColumnNames')->willReturn(['id']);
+
+        $log = [];
+        $connection->method('fetchOne')->willReturn('2');
+        $connection->method('fetchAllAssociative')
+            ->willReturnCallback(static function () use (&$log): array {
+                $log[] = 'read';
+
+                return [['id' => 1, 'email' => 'a@example.com'], ['id' => 2, 'email' => 'b@example.com']];
+            });
+        $platform = $this->createMock(AbstractPlatform::class);
+        $platform->method('quoteSingleIdentifier')->willReturnCallback(static fn ($id): string => '`' . $id . '`');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
+        $connection->method('quote')->willReturnCallback(static fn ($val): string => "'" . $val . "'");
+        $connection->method('executeStatement')->willReturn(1);
+
+        /** @var list<object> $events */
+        $events = [];
+        $eventDispatcher->method('dispatch')
+            ->willReturnCallback(static function (object $event) use (&$events, &$log): object {
+                $events[] = $event;
+                $log[]    = $event::class;
+
+                return $event;
+            });
+
+        $property   = $reflection->getProperty('email');
+        $properties = [[
+            'property'  => $property,
+            'attribute' => $property->getAttributes(AnonymizeProperty::class)[0]->newInstance(),
+            'weight'    => 1,
+        ]];
+
+        $result = $service->anonymizeEntity($em, $metadata, $reflection, $properties, 100, true);
+
+        $this->assertSame(2, $result['processed']);
+        $this->assertSame(BeforeEntityAnonymizeEvent::class, $log[0]);
+        $this->assertSame('read', $log[1]);
+        $this->assertSame(AfterEntityAnonymizeEvent::class, $log[count($log) - 1]);
+        $before = array_values(array_filter($events, static fn (object $e): bool => $e instanceof BeforeEntityAnonymizeEvent));
+        $this->assertCount(1, $before);
+        $this->assertSame(2, $before[0]->getTotalRecords());
+        $this->assertTrue($before[0]->isDryRun());
+        $this->assertSame($metadata, $before[0]->getMetadata());
+        $this->assertSame($reflection, $before[0]->getReflection());
+        $this->assertSame($em, $before[0]->getEntityManager());
+        $this->assertSame('App\\Entity\\Customer', $before[0]->getEntityClass());
     }
 
     /**

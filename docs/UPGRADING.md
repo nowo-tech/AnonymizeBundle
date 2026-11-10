@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 1.4.1](#to-141)
 - [To 1.4.0](#to-140)
 - [To 1.3.0](#to-130)
   - [Security changes that need action (SEC-004)](#security-changes-that-need-action-sec-004)
@@ -99,6 +100,18 @@
 - [Notes](#notes-17)
 
 ## Unreleased
+
+## To 1.4.1
+
+From **1.4.0** — fix, no configuration change:
+
+```bash
+composer update nowo-tech/anonymize-bundle
+```
+
+- Listeners on `BeforeEntityAnonymizeEvent` now run, once per entity class, before its rows are read (they never ran
+  before). An exception thrown by such a listener stops the run before that class is touched.
+- No change to which rows or columns are anonymized.
 
 ## To 1.4.0
 
