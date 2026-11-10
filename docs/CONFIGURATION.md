@@ -488,6 +488,10 @@ is read (also when the table is empty, with `getTotalRecords()` 0). Informationa
 leave the class out (use the patterns or remove `#[Anonymize]`). Dispatched since 1.4.1 (it was documented but never
 dispatched before).
 
+Do not leave a transaction open in this listener (or in `AnonymizePropertyEvent` listeners and entity anonymizer
+services): since 1.4.1 the run fails with a `RuntimeException` when the connection's transaction nesting level changed,
+because the per-chunk commits would only be nested and nothing would be written.
+
 **Properties**:
 - `getEntityManager()`: Returns the EntityManagerInterface
 - `getMetadata()`: Returns the ClassMetadata

@@ -110,7 +110,11 @@ composer update nowo-tech/anonymize-bundle
 ```
 
 - Listeners on `BeforeEntityAnonymizeEvent` now run, once per entity class, before its rows are read (they never ran
-  before). An exception thrown by such a listener stops the run before that class is touched.
+  before). An exception thrown by such a listener stops the run before that class is touched; classes processed
+  before it stay anonymized (each chunk is committed), so fix the listener and run again.
+- `anonymizeEntity()` now fails with a `RuntimeException` when a `BeforeEntityAnonymizeEvent` listener, an
+  `AnonymizePropertyEvent` listener or an entity anonymizer service leaves a transaction open (or closes one it did not
+  open). Before, the run reported the rows as updated while the writes stayed in the uncommitted outer transaction.
 - No change to which rows or columns are anonymized.
 
 ## To 1.4.0

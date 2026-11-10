@@ -428,6 +428,10 @@ final class AnonymizeService implements ResetInterface
         $countQuery   = $this->buildCountQuery($connection, $tableName, $disc['column'], $disc['value']);
         $totalRecords = (int) $connection->fetchOne($countQuery);
 
+        // Listeners and anonymizer services must not leave a transaction open: the per-chunk commits would only be
+        // nested and nothing would reach the database, while the run reports the rows as updated.
+        $nestingLevel = $connection->getTransactionNestingLevel();
+
         // Dispatch BeforeEntityAnonymizeEvent (once per entity class, before any record is read)
         if ($this->eventDispatcher instanceof EventDispatcherInterface) {
             $this->eventDispatcher->dispatch(new BeforeEntityAnonymizeEvent(
@@ -437,6 +441,7 @@ final class AnonymizeService implements ResetInterface
                 $totalRecords,
                 $dryRun,
             ));
+            $this->assertTransactionNestingLevel($connection, $nestingLevel, $metadata, 'a BeforeEntityAnonymizeEvent listener');
         }
 
         if ($progressCallback !== null && $totalRecords > 0) {
@@ -675,6 +680,8 @@ final class AnonymizeService implements ResetInterface
             }
         }
 
+        $this->assertTransactionNestingLevel($connection, $nestingLevel, $metadata, 'an AnonymizePropertyEvent listener or an entity anonymizer service');
+
         // Dispatch AfterEntityAnonymizeEvent
         if ($this->eventDispatcher instanceof EventDispatcherInterface) {
             $event = new AfterEntityAnonymizeEvent(
@@ -694,6 +701,26 @@ final class AnonymizeService implements ResetInterface
             'updated'       => $updated,
             'propertyStats' => $propertyStats,
         ];
+    }
+
+    /**
+     * Fails when host code changed the connection's transaction nesting level during anonymizeEntity().
+     *
+     * An outer transaction left open by a listener turns the bundle's per-chunk commits into nested ones: nothing is
+     * written until that outer transaction commits, and closing the connection rolls every row back to the real data.
+     *
+     * @param ClassMetadata<object> $metadata The entity metadata (for the message)
+     *
+     * @throws RuntimeException When the nesting level differs from the level recorded before the dispatch
+     */
+    private function assertTransactionNestingLevel(Connection $connection, int $expected, ClassMetadata $metadata, string $culprit): void
+    {
+        $actual = $connection->getTransactionNestingLevel();
+        if ($actual === $expected) {
+            return;
+        }
+
+        throw new RuntimeException(sprintf('Anonymization of %s aborted: %s changed the transaction nesting level from %d to %d. Listeners must not leave a transaction open (or close one they did not open); otherwise the anonymized values are not committed.', $metadata->getName(), $culprit, $expected, $actual));
     }
 
     /**
