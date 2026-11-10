@@ -869,10 +869,11 @@ This command will:
 **After anonymization**, records are automatically marked with `anonymized = true`. You can query them:
 
 > The flag is written **only** for entity classes that use `AnonymizableTrait` (and whose table has the `anonymized`
-> column). An entity that maps its own `anonymized` column another way (XML mapping, its own property, no trait) does
-> **not** get it set; set it yourself, e.g. from an `AfterEntityAnonymizeEvent` listener
-> (`UPDATE <table> SET anonymized = 1`) when `isDryRun()` is false.
-
+> column), and only on the rows the bundle actually updated. An entity that maps its own `anonymized` column another
+> way (XML mapping, its own property, no trait) does **not** get the flag in 1.4.x: the column keeps its value. Do not
+> set it with a table-wide `UPDATE`, which would also mark rows the run left untouched (excluded by patterns, skipped
+> by listeners, other classes sharing the table). Writing the flag whenever the table has the `anonymized` column,
+> trait or not, is planned for 1.5.
 
 ```sql
 SELECT * FROM users WHERE anonymized = true;
@@ -1512,7 +1513,8 @@ Custom value generators implement `Faker\FakerInterface`; value-level overrides 
 ### Known limitations
 
 - Selection only through PHP attributes; XML-mapped embeddables are not discovered.
-- The `anonymized` flag is set only on classes that use `AnonymizableTrait`.
+- The `anonymized` flag is set only on classes that use `AnonymizableTrait` (planned for 1.5: whenever the table has
+  the column).
 - `BeforeEntityAnonymizeEvent` is informational: to leave a class out, remove `#[Anonymize]` or narrow it with
   `includePatterns` / `excludePatterns`.
 
