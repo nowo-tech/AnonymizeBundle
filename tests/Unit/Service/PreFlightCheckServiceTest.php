@@ -1137,6 +1137,69 @@ class PreFlightCheckServiceTest extends TestCase
     }
 
     /**
+     * LQ-N-D2-L1: the one column that differs only in letter case (PostgreSQL folds "testColumn") is accepted.
+     */
+    public function testCheckColumnExistenceAcceptsTheOneCaseFoldedColumn(): void
+    {
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $connection->method('executeQuery')
+            ->with('SELECT 1')
+            ->willReturn($this->createMock(Result::class));
+
+        $connection->method('createSchemaManager')
+            ->willReturn($schemaManager);
+
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $metadata->isMappedSuperclass = false;
+        $metadata->isEmbeddedClass    = false;
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+        $metadata->method('hasField')
+            ->willReturn(true);
+        $fieldMapping = new FieldMapping('testColumn', 'string', 'testColumn');
+        $metadata->method('getFieldMapping')
+            ->willReturn($fieldMapping);
+
+        $schemaManager->method('tablesExist')
+            ->willReturn(true);
+
+        // Since 1.5 (LQ-N-D2-L1) one column differing only in case is accepted (PostgreSQL folds "testColumn");
+        // two of them are ambiguous
+        $schemaManager->method('listTableColumns')
+            ->willReturn([
+                'id'         => new Column('id', Type::getType(Types::INTEGER)),
+                'testcolumn' => new Column('testcolumn', Type::getType(Types::STRING)),
+            ]);
+
+        $testEntity = new class {
+            #[AnonymizeProperty(type: 'email', weight: 1)]
+            public string $testColumn = '';
+        };
+        $reflection = new ReflectionClass($testEntity);
+
+        $attribute = new Anonymize();
+
+        $entities = [
+            'TestEntity' => [
+                'metadata'   => $metadata,
+                'reflection' => $reflection,
+                'attribute'  => $attribute,
+            ],
+        ];
+
+        $errors = $this->service->performChecks($em, $entities);
+        $this->assertSame([], $errors);
+    }
+
+    /**
      * Test that checkColumnExistence shows available columns when column is missing.
      */
     public function testCheckColumnExistenceShowsAvailableColumns(): void
