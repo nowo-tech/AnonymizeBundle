@@ -141,6 +141,8 @@ jobs:
           ANONYMIZE_TEST_POSTGRES_URL: pgsql://postgres:postgres@127.0.0.1:5432/anonymize?serverVersion=17
         run: vendor/bin/phpunit --group postgres --fail-on-skipped
 
+  code-style:
+    name: Code Style
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     permissions:
