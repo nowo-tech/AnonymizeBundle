@@ -16,6 +16,7 @@
   - [export](#export)
   - [hash_preserve](#hash_preserve)
   - [environment_protection](#environment_protection)
+  - [entities (since 1.5)](#entities-since-15)
 - [Environment-Specific Configuration](#environment-specific-configuration)
 - [Command-Line Overrides](#command-line-overrides)
 - [Using FakerFactory in your own services](#using-fakerfactory-in-your-own-services)
@@ -228,6 +229,45 @@ nowo_anonymize:
         blocked_dsn_substrings:
             - 'prod.'
             - 'mycompany-prod'
+```
+
+### entities (since 1.5)
+
+**Type**: `map` keyed by entity FQCN  
+**Default**: `{}` (nothing selected by configuration; attributes work as before)  
+**Description**: Selects what is anonymized **without attributes**, for a plain-PHP domain mapped in XML (DDD /
+hexagonal hosts). Each entry takes the settings of `#[Anonymize]`, and `properties` takes those of
+`#[AnonymizeProperty]`, keyed by Doctrine field name (`embedProperty.field` for an embedded value object, mapped in
+XML or with attributes). Attributes win: a class with `#[Anonymize]` uses the attribute's entity settings, and an
+`#[AnonymizeProperty]` replaces the configured entry for the same field; the other configured fields are added.
+
+| Key | Default | Description |
+| --- | --- | --- |
+| `connection` | `null` | Doctrine connection name (`null`: every processed connection). |
+| `include_patterns` / `exclude_patterns` | `[]` | Entity-level patterns, same format as the attribute. |
+| `anonymize_service` | `null` | Service id implementing `EntityAnonymizerServiceInterface`. |
+| `truncate` / `truncate_order` | `false` / `null` | As on the attribute. |
+| `mark_anonymized` | `false` | Set the table's `anonymized` column (when it exists) on every anonymized row, as `AnonymizableTrait` does; `nowo:anonymize:generate-column-migration` covers these entities too. |
+| `properties.<field>.type` | required | Faker type (see [Available Faker Types](#available-faker-types)). |
+| `properties.<field>.weight` / `service` / `options` / `include_patterns` / `exclude_patterns` | `null` / `null` / `[]` / `[]` / `[]` | As on `#[AnonymizeProperty]`. |
+
+Every key must be an existing class written with its exact letter case (checked at container build). A configured
+field that matches no property, and a pattern key that is not a column of the table (or `association.field` of a
+to-one relation), are reported by the pre-flight checks and stop the run. Pattern keys ignore letter case (PostgreSQL
+returns an unquoted camelCase column in lower case); on a JOINED inheritance child only its own table's columns count. To read the selection from somewhere else, alias
+`Nowo\AnonymizeBundle\Metadata\AnonymizeMetadataProviderInterface` to your own service.
+
+**Example**:
+```yaml
+nowo_anonymize:
+    entities:
+        App\Domain\Patient\Patient:
+            exclude_patterns: { status: 'keep' }
+            mark_anonymized: true
+            properties:
+                email: { type: email, weight: 1 }
+                fullName: { type: name }
+                contact.phone: { type: phone }     # embedded value object (XML <embedded name="contact">)
 ```
 
 ## Environment-Specific Configuration

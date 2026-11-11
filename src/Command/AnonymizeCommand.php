@@ -546,7 +546,7 @@ final class AnonymizeCommand extends AbstractCommand
             $attribute  = $entityData['attribute'];
 
             // Get anonymizable properties (optional when entity uses anonymizeService)
-            $properties           = $anonymizeService->getAnonymizableProperties($reflection);
+            $properties           = $anonymizeService->getAnonymizableProperties($reflection, $metadata);
             $usesAnonymizeService = $attribute->anonymizeService !== null && $attribute->anonymizeService !== '';
 
             // Interactive confirmation for each entity

@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Integration\DependencyInjection;
 
+use InvalidArgumentException;
 use Nowo\AnonymizeBundle\DependencyInjection\AnonymizeExtension;
+use Nowo\AnonymizeBundle\Metadata\AnonymizeMetadataProviderInterface;
+use Nowo\AnonymizeBundle\Metadata\ConfigAnonymizeMetadataProvider;
+use Nowo\AnonymizeBundle\Tests\Integration\Ddd\Domain\Patient;
 use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -216,5 +220,86 @@ class AnonymizeExtensionTest extends TestCase
         (new AnonymizeExtension())->load($configs, $container);
 
         $this->assertSame('legacy-dev-salt', $container->getParameter('nowo_anonymize.hash_preserve.key'));
+    }
+
+    /**
+     * Since 1.5: entities selected by configuration (DDD hosts), defaulting to none.
+     */
+    public function testEntitiesDefaultToNoneAndTheProviderIsAliased(): void
+    {
+        $container = new ContainerBuilder(new ParameterBag());
+        $this->extension->load([], $container);
+
+        $this->assertSame([], $container->getParameter('nowo_anonymize.entities'));
+        $this->assertSame(ConfigAnonymizeMetadataProvider::class, (string) $container->getAlias(AnonymizeMetadataProviderInterface::class));
+        $this->assertSame('%nowo_anonymize.entities%', $container->getDefinition(ConfigAnonymizeMetadataProvider::class)->getArgument('$entities'));
+    }
+
+    public function testEntitiesAreValidatedAndKeptAsConfigured(): void
+    {
+        $container = new ContainerBuilder(new ParameterBag());
+        $configs   = [[
+            'entities' => [
+                '\\' . Patient::class => [
+                    'exclude_patterns' => ['status' => 'keep'],
+                    'properties'       => ['contact.phone' => ['type' => 'phone', 'options' => ['country' => 'ES']]],
+                ],
+            ],
+        ]];
+        $this->loadConfigs($configs, $container);
+
+        $entities = $container->getParameter('nowo_anonymize.entities');
+        $this->assertIsArray($entities);
+        $this->assertSame([Patient::class], array_keys($entities));
+        $this->assertSame(['status' => 'keep'], $entities[Patient::class]['exclude_patterns']);
+        $this->assertFalse($entities[Patient::class]['mark_anonymized']);
+        $this->assertSame(['country' => 'ES'], $entities[Patient::class]['properties']['contact.phone']['options']);
+        $this->assertNull($entities[Patient::class]['properties']['contact.phone']['weight']);
+    }
+
+    public function testUnknownEntityClassFails(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The "nowo_anonymize.entities" key "App\\Domain\\Missing" is not an existing class.');
+
+        $configs = [['entities' => ['App\\Domain\\Missing' => []]]];
+        $this->loadConfigs($configs, new ContainerBuilder(new ParameterBag()));
+    }
+
+    /** LQ-N-L2: a key with another letter case would load the class but select nothing. */
+    public function testMisCasedEntityClassFails(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('must be written exactly as the class name "' . Patient::class . '"');
+
+        $configs = [['entities' => [strtolower(Patient::class) => ['properties' => ['email' => ['type' => 'email']]]]]];
+        $this->loadConfigs($configs, new ContainerBuilder(new ParameterBag()));
+    }
+
+    public function testNonArrayPatternsFail(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The "nowo_anonymize.entities.' . Patient::class . '.properties.email.options" option must be an array.');
+
+        $configs = [['entities' => [Patient::class => ['properties' => ['email' => ['type' => 'email', 'options' => 'x']]]]]];
+        $this->loadConfigs($configs, new ContainerBuilder(new ParameterBag()));
+    }
+
+    public function testNonArrayEntityPatternsFail(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The "nowo_anonymize.entities.' . Patient::class . '.include_patterns" option must be an array.');
+
+        $configs = [['entities' => [Patient::class => ['include_patterns' => 'status=active']]]];
+        $this->loadConfigs($configs, new ContainerBuilder(new ParameterBag()));
+    }
+
+    /**
+     * @param array<mixed> $configs list of configuration arrays, as the kernel passes them
+     */
+    private function loadConfigs(array $configs, ContainerBuilder $container): void
+    {
+        /* @var array<string, mixed> $configs */
+        $this->extension->load($configs, $container);
     }
 }

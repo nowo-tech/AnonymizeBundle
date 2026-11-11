@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 1.5.0](#to-150)
 - [To 1.4.1](#to-141)
 - [To 1.4.0](#to-140)
 - [To 1.3.0](#to-130)
@@ -100,6 +101,38 @@
 - [Notes](#notes-17)
 
 ## Unreleased
+
+## To 1.5.0
+
+Target **1.5.0**, from **1.4.x**:
+
+```bash
+composer update nowo-tech/anonymize-bundle
+```
+
+Nothing to change: `nowo_anonymize.entities` defaults to `{}`, so only attributes select what is anonymized, exactly
+as in 1.4. The `anonymized` flag is still written only for `AnonymizableTrait` classes unless you configure
+`mark_anonymized: true`.
+
+- New optional parameters: `AnonymizeService::getAnonymizableProperties($reflection, $metadata = null)`,
+  `AnonymizePropertyDiscovery::discover($reflection, $metadata = null, $configured = [])`, and a fifth constructor
+  argument of `AnonymizeService` / second of `PreFlightCheckService` (the metadata provider). Code that builds these
+  services by hand keeps working; pass the provider to use the configured selection.
+- With the metadata passed (the commands do), an embedded value object mapped in XML is now followed, so
+  `#[AnonymizeProperty]` on its fields is discovered. Before 1.5 such fields were silently ignored.
+- **Pattern keys are now checked before any write.** A key in `includePatterns` / `excludePatterns` (attributes or
+  configuration) that is not a column of the table, nor `association.field` of a joinable to-one relation, makes the
+  pre-flight checks fail and the run stops. Such a pattern never matched anything: fix the key (use the column name,
+  e.g. `customer_age`, not the property name `customerAge`). Embedded paths (`address.street`) are not pattern keys:
+  use the column (`address_street`). Letter case does not matter (PostgreSQL returns `accountStatus` as
+  `accountstatus`; both spellings work). On a JOINED inheritance child, use only the columns of the child's own
+  table: inherited columns and the discriminator are in the parent table, which the run does not read.
+- Anonymised camelCase columns (Doctrine default naming strategy) now pass pre-flight and are anonymised on
+  PostgreSQL / Oracle. If you call `AnonymizeService::anonymizeEntity()` directly (without the pre-flight checks), a
+  mapped anonymised column that is not in the table now throws a `RuntimeException` instead of being skipped.
+- `nowo_anonymize.entities` keys must be written exactly as the class name (letter case included).
+- Optional, for DDD / hexagonal hosts: select entities and fields under `nowo_anonymize.entities` instead of
+  attributes (see USAGE, "Using it from a DDD / hexagonal application").
 
 ## To 1.4.1
 

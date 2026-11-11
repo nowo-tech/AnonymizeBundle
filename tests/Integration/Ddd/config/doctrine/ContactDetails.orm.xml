@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <embeddable name="Nowo\AnonymizeBundle\Tests\Integration\Ddd\Domain\ContactDetails">
+        <field name="phone" type="string" column="phone" length="30" nullable="true"/>
+        <field name="city" type="string" column="city" length="60" nullable="true"/>
+    </embeddable>
+</doctrine-mapping>

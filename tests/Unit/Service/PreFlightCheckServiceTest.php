@@ -23,6 +23,7 @@ use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use ReflectionMethod;
 use stdClass;
 
 /**
@@ -784,6 +785,8 @@ class PreFlightCheckServiceTest extends TestCase
             ->getMock();
         $metadata->isMappedSuperclass = false;
         $metadata->isEmbeddedClass    = false;
+        // Since 1.5 pattern keys must be columns of the table
+        $metadata->method('getColumnNames')->willReturn(['id', 'status', 'email', 'role', 'name', 'test_column']);
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -844,6 +847,8 @@ class PreFlightCheckServiceTest extends TestCase
             ->getMock();
         $metadata->isMappedSuperclass = false;
         $metadata->isEmbeddedClass    = false;
+        // Since 1.5 pattern keys must be columns of the table
+        $metadata->method('getColumnNames')->willReturn(['id', 'status', 'email', 'role', 'name', 'test_column']);
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -904,6 +909,8 @@ class PreFlightCheckServiceTest extends TestCase
             ->getMock();
         $metadata->isMappedSuperclass = false;
         $metadata->isEmbeddedClass    = false;
+        // Since 1.5 pattern keys must be columns of the table
+        $metadata->method('getColumnNames')->willReturn(['id', 'status', 'email', 'role', 'name', 'test_column']);
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -967,6 +974,8 @@ class PreFlightCheckServiceTest extends TestCase
             ->getMock();
         $metadata->isMappedSuperclass = false;
         $metadata->isEmbeddedClass    = false;
+        // Since 1.5 pattern keys must be columns of the table
+        $metadata->method('getColumnNames')->willReturn(['id', 'status', 'email', 'role', 'name', 'test_column']);
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -1098,10 +1107,13 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->willReturn(true);
 
-        $column = new Column('testcolumn', Type::getType(Types::STRING)); // Different case
-
+        // Since 1.5 (LQ-N-D2-L1) one column differing only in case is accepted (PostgreSQL folds "testColumn");
+        // two of them are ambiguous
         $schemaManager->method('listTableColumns')
-            ->willReturn(['testcolumn' => $column]);
+            ->willReturn([
+                'testcolumn' => new Column('testcolumn', Type::getType(Types::STRING)),
+                'TESTCOLUMN' => new Column('TESTCOLUMN', Type::getType(Types::STRING)),
+            ]);
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
@@ -1121,7 +1133,70 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('case mismatch', array_values($errors)[0]);
+        $this->assertStringContainsString('Found similar columns "testcolumn", "TESTCOLUMN" (ambiguous letter case)', array_values($errors)[0]);
+    }
+
+    /**
+     * LQ-N-D2-L1: the one column that differs only in letter case (PostgreSQL folds "testColumn") is accepted.
+     */
+    public function testCheckColumnExistenceAcceptsTheOneCaseFoldedColumn(): void
+    {
+        $em            = $this->createMock(EntityManagerInterface::class);
+        $connection    = $this->createMock(Connection::class);
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+
+        $em->method('getConnection')
+            ->willReturn($connection);
+
+        $connection->method('executeQuery')
+            ->with('SELECT 1')
+            ->willReturn($this->createMock(Result::class));
+
+        $connection->method('createSchemaManager')
+            ->willReturn($schemaManager);
+
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $metadata->isMappedSuperclass = false;
+        $metadata->isEmbeddedClass    = false;
+        $metadata->method('getTableName')
+            ->willReturn('test_table');
+        $metadata->method('hasField')
+            ->willReturn(true);
+        $fieldMapping = new FieldMapping('testColumn', 'string', 'testColumn');
+        $metadata->method('getFieldMapping')
+            ->willReturn($fieldMapping);
+
+        $schemaManager->method('tablesExist')
+            ->willReturn(true);
+
+        // Since 1.5 (LQ-N-D2-L1) one column differing only in case is accepted (PostgreSQL folds "testColumn");
+        // two of them are ambiguous
+        $schemaManager->method('listTableColumns')
+            ->willReturn([
+                'id'         => new Column('id', Type::getType(Types::INTEGER)),
+                'testcolumn' => new Column('testcolumn', Type::getType(Types::STRING)),
+            ]);
+
+        $testEntity = new class {
+            #[AnonymizeProperty(type: 'email', weight: 1)]
+            public string $testColumn = '';
+        };
+        $reflection = new ReflectionClass($testEntity);
+
+        $attribute = new Anonymize();
+
+        $entities = [
+            'TestEntity' => [
+                'metadata'   => $metadata,
+                'reflection' => $reflection,
+                'attribute'  => $attribute,
+            ],
+        ];
+
+        $errors = $this->service->performChecks($em, $entities);
+        $this->assertSame([], $errors);
     }
 
     /**
@@ -1971,5 +2046,25 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertEmpty($errors);
+    }
+
+    /**
+     * LQ-N-D-L1: plain pattern keys are compared without letter case (the row of an unquoted camelCase column is
+     * case-folded on PostgreSQL / Oracle); a key that fits two columns differing only in case is refused.
+     */
+    public function testPatternKeysIgnoreLetterCaseUnlessAmbiguous(): void
+    {
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $metadata->method('getColumnNames')->willReturn(['id', 'accountStatus', 'Code', 'code']);
+        $metadata->method('getAssociationNames')->willReturn([]);
+        $metadata->method('getTableName')->willReturn('test_table');
+
+        $method = new ReflectionMethod($this->service, 'checkPatternFields');
+        $errors = $method->invoke($this->service, $this->createMock(EntityManagerInterface::class), $metadata, ['accountstatus' => 'a', 'ACCOUNTSTATUS' => 'a', 'Code' => 'x', 'code' => 'x', 'CODE' => 'x'], 'TestEntity', 'include');
+
+        $this->assertCount(1, $errors);
+        $this->assertStringContainsString('Unknown field "CODE"', $errors[0]);
     }
 }

@@ -16,16 +16,22 @@ use Nowo\AnonymizeBundle\Faker\HashPreserveFaker;
 use Nowo\AnonymizeBundle\Helper\AnonymizePropertyDiscovery;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Helper\OrmHelper;
+use Nowo\AnonymizeBundle\Metadata\AnonymizeMetadataProviderInterface;
 use ReflectionClass;
 use ValueError;
 
+use function array_fill_keys;
+use function array_keys;
 use function array_slice;
 use function count;
+use function explode;
 use function in_array;
 use function is_array;
 use function is_int;
 use function is_string;
 use function sprintf;
+use function str_contains;
+use function strtolower;
 
 /**
  * Service for pre-flight validation checks before anonymization.
@@ -46,9 +52,11 @@ final readonly class PreFlightCheckService
      * Creates a new PreFlightCheckService instance.
      *
      * @param FakerFactoryInterface $fakerFactory The faker factory for validating faker types
+     * @param AnonymizeMetadataProviderInterface|null $metadataProvider Since 1.5: configured fields are checked too
      */
     public function __construct(
-        private FakerFactoryInterface $fakerFactory
+        private FakerFactoryInterface $fakerFactory,
+        private ?AnonymizeMetadataProviderInterface $metadataProvider = null,
     ) {
     }
 
@@ -78,8 +86,17 @@ final readonly class PreFlightCheckService
             // Check entity existence
             $errors = array_merge($errors, $this->checkEntityExistence($em, $className, $metadata));
 
+            // Since 1.5: every entity-level pattern key must be something the row actually carries (LQ-N-L1)
+            $errors = array_merge($errors, $this->checkPatternFields($em, $metadata, $attribute->includePatterns, $className, 'include'));
+            $errors = array_merge($errors, $this->checkPatternFields($em, $metadata, $attribute->excludePatterns, $className, 'exclude'));
+
             // Check properties (includes Doctrine embedded paths like phoneNumber.number)
-            $properties = AnonymizePropertyDiscovery::discover($reflection);
+            try {
+                $properties = AnonymizePropertyDiscovery::discover($reflection, $metadata, $this->metadataProvider?->getProperties($reflection->getName()) ?? []);
+            } catch (InvalidArgumentException $e) {
+                $errors[] = $e->getMessage();
+                continue;
+            }
             foreach ($properties as $propertyData) {
                 $propertyName      = $propertyData['fieldName'];
                 $propertyAttribute = $propertyData['attribute'];
@@ -90,8 +107,10 @@ final readonly class PreFlightCheckService
                 // Validate faker type
                 $errors = array_merge($errors, $this->validateFakerType($propertyAttribute));
 
-                // Validate patterns
+                // Validate patterns (format, and since 1.5 that every key is a column or a joinable relation field)
                 $errors = array_merge($errors, $this->validatePatterns($propertyAttribute));
+                $errors = array_merge($errors, $this->checkPatternFields($em, $metadata, $propertyAttribute->includePatterns, $className . '::' . $propertyName, 'include'));
+                $errors = array_merge($errors, $this->checkPatternFields($em, $metadata, $propertyAttribute->excludePatterns, $className . '::' . $propertyName, 'exclude'));
 
                 $usesHashPreserve = $usesHashPreserve
                     || $propertyAttribute->type === FakerType::HASH_PRESERVE->value
@@ -205,9 +224,9 @@ final readonly class PreFlightCheckService
                     $columns = $schemaManager->listTableColumns($tableName);
 
                     // Get actual column names from database (case-sensitive)
-                    $actualColumnNames    = [];
-                    $columnExists         = false;
-                    $caseInsensitiveMatch = null;
+                    $actualColumnNames      = [];
+                    $columnExists           = false;
+                    $caseInsensitiveMatches = [];
 
                     foreach ($columns as $column) {
                         $actualColumnName    = DbalHelper::getSchemaObjectName($column);
@@ -221,8 +240,15 @@ final readonly class PreFlightCheckService
 
                         // Case-insensitive match (for databases that are case-insensitive)
                         if (strcasecmp($actualColumnName, $expectedColumnName) === 0) {
-                            $caseInsensitiveMatch = $actualColumnName;
+                            $caseInsensitiveMatches[] = $actualColumnName;
                         }
+                    }
+
+                    // Since 1.5 (audit LQ-N-D2-L1): PostgreSQL folds an unquoted camelCase column ("fullName" is
+                    // stored as "fullname"; Oracle upper-cases it). The run finds the one column that differs only in
+                    // letter case (RowKey), so a unique such column is accepted; two of them are ambiguous.
+                    if (!$columnExists && count($caseInsensitiveMatches) === 1) {
+                        $columnExists = true;
                     }
 
                     if (!$columnExists) {
@@ -234,11 +260,11 @@ final readonly class PreFlightCheckService
                             $propertyName,
                         );
 
-                        // Add case-insensitive match suggestion if found
-                        if ($caseInsensitiveMatch !== null) {
+                        // Several columns differ from it only in letter case: ambiguous
+                        if ($caseInsensitiveMatches !== []) {
                             $errorMessage .= sprintf(
-                                '. Found similar column "%s" (case mismatch)',
-                                $caseInsensitiveMatch,
+                                '. Found similar columns "%s" (ambiguous letter case)',
+                                implode('", "', $caseInsensitiveMatches),
                             );
                         }
 
@@ -301,6 +327,118 @@ final readonly class PreFlightCheckService
         }
 
         return $errors;
+    }
+
+    /**
+     * Since 1.5 (audit LQ-N-L1): a pattern key that the row does not carry matches nothing, so a typo in an include
+     * key would leave every row (and its personal data) untouched while the run reports success. Keys are matched
+     * against the selected row: a plain key must be a column of the entity's table (`customer_age`, `company_id`),
+     * a dotted key `association.field` an owning to-one association with a single join column and a mapped field of
+     * its target.
+     *
+     * Plain keys are compared without letter case (audit LQ-N-D-L1): PostgreSQL folds unquoted identifiers to lower
+     * case (Oracle to upper case), so the row of a camelCase column `accountStatus` carries `accountstatus`, and
+     * {@see PatternMatcher} falls back to the one row key that differs only in case. A key that fits two columns
+     * differing only in case is ambiguous and refused. For a JOINED inheritance child only the columns of its own
+     * table count (audit LQ-N-D-I1): the run reads that table alone, so inherited columns and the root discriminator
+     * are not in the row.
+     *
+     * @param ClassMetadata<object> $metadata
+     * @param Patterns $patterns
+     *
+     * @return list<string>
+     */
+    private function checkPatternFields(EntityManagerInterface $em, ClassMetadata $metadata, array $patterns, string $owner, string $type): array
+    {
+        // Non-string keys are reported by the format check (validatePatterns()); only named fields are looked up here.
+        $keys = [];
+        foreach ($this->isListOfPatternSets($patterns) ? $patterns : [$patterns] as $set) {
+            foreach (array_keys($set) as $key) {
+                if (is_string($key) && $key !== '' && !in_array($key, $keys, true)) {
+                    $keys[] = $key;
+                }
+            }
+        }
+        if ($keys === []) {
+            return [];
+        }
+
+        $joinedChild = $this->isJoinedInheritanceChild($metadata);
+        $columns     = [];
+        if ($joinedChild) {
+            // Only the child table is read: its primary key and the fields and join columns it declares itself
+            $columns = $metadata->getIdentifierColumnNames();
+            foreach ($metadata->getFieldNames() as $field) {
+                if (!$metadata->isInheritedField($field)) {
+                    $columns[] = $metadata->getColumnName($field);
+                }
+            }
+        } else {
+            $columns = $metadata->getColumnNames();
+        }
+        foreach ($metadata->getAssociationNames() as $association) {
+            if ($metadata->isAssociationWithSingleJoinColumn($association) && !($joinedChild && $metadata->isInheritedAssociation($association))) {
+                $columns[] = $metadata->getSingleAssociationJoinColumnName($association);
+            }
+        }
+        $discriminator = $joinedChild ? null : OrmHelper::resolveDiscriminatorColumnName($metadata->discriminatorColumn);
+        if ($discriminator !== null) {
+            $columns[] = $discriminator;
+        }
+
+        // Exact names, and how many columns each case-folded name stands for
+        $exact  = array_fill_keys($columns, true);
+        $folded = [];
+        foreach (array_keys($exact) as $column) {
+            $lower          = strtolower((string) $column);
+            $folded[$lower] = ($folded[$lower] ?? 0) + 1;
+        }
+
+        $errors = [];
+        foreach ($keys as $key) {
+            if (isset($exact[$key]) || ($folded[strtolower($key)] ?? 0) === 1 || $this->isJoinablePatternField($em, $metadata, $key, $joinedChild)) {
+                continue;
+            }
+
+            $errors[] = sprintf(
+                'Unknown field "%s" in the %s patterns of %s: use a column of table "%s" or "association.field" of a to-one relation (a pattern on a missing field matches no row).',
+                $key,
+                $type,
+                $owner,
+                $metadata->getTableName(),
+            );
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @param ClassMetadata<object> $metadata
+     */
+    private function isJoinablePatternField(EntityManagerInterface $em, ClassMetadata $metadata, string $key, bool $joinedChild): bool
+    {
+        if (!str_contains($key, '.')) {
+            return false;
+        }
+
+        [$association, $field] = explode('.', $key, 2);
+        if (!$metadata->hasAssociation($association) || !$metadata->isAssociationWithSingleJoinColumn($association)) {
+            return false;
+        }
+        // The join column of an inherited association lives in a parent table, which the run does not read
+        if ($joinedChild && $metadata->isInheritedAssociation($association)) {
+            return false;
+        }
+
+        return $em->getClassMetadata($metadata->getAssociationTargetClass($association))->hasField($field);
+    }
+
+    /**
+     * @param ClassMetadata<object> $metadata
+     */
+    private function isJoinedInheritanceChild(ClassMetadata $metadata): bool
+    {
+        return $metadata->isInheritanceTypeJoined() && $metadata->parentClasses !== [];
     }
 
     /**

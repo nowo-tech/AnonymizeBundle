@@ -834,4 +834,18 @@ class PatternMatcherTest extends TestCase
         $record = ['type' => ['code' => 'X']];
         $this->assertFalse($this->matcher->matches($record, ['type.name' => 'HR']));
     }
+
+    /**
+     * LQ-N-D-L1: PostgreSQL returns an unquoted camelCase column folded to lower case (Oracle to upper case); the key
+     * written as in the metadata still finds it. An exact key wins, and two keys that differ only in case match nothing.
+     */
+    public function testMatchesFallsBackToTheOneKeyDifferingOnlyInCase(): void
+    {
+        $this->assertTrue($this->matcher->matches(['accountstatus' => 'active'], ['accountStatus' => 'active']));
+        $this->assertTrue($this->matcher->matches(['ACCOUNTSTATUS' => 'active'], ['accountStatus' => 'active']));
+        $this->assertFalse($this->matcher->matches(['accountstatus' => 'closed'], ['accountStatus' => 'active']));
+        $this->assertTrue($this->matcher->matches(['Status' => 'a', 'status' => 'b'], ['status' => 'b']));
+        $this->assertFalse($this->matcher->matches(['Status' => 'a', 'status' => 'a'], ['STATUS' => 'a']));
+        $this->assertFalse($this->matcher->matches(['accountstatus' => null], ['accountStatus' => 'active']));
+    }
 }

@@ -101,6 +101,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Target **1.5.0** (minor). Architecture bar W2 (rule 2: a strict DDD host can use the bundle). Standard hosts: no
+configuration change, same defaults; attribute-based selection is unchanged.
+
+### Added
+
+- **Selection without attributes**: `nowo_anonymize.entities.<FQCN>` (entity settings of `#[Anonymize]`) with
+  `properties.<field>` (settings of `#[AnonymizeProperty]`), so a plain-PHP domain mapped in XML can be anonymized.
+  Attributes win (class-level `#[Anonymize]`; `#[AnonymizeProperty]` on the same field). Unknown classes fail the
+  container build; a configured field that matches no property is reported by the pre-flight checks.
+- `Nowo\AnonymizeBundle\Metadata\AnonymizeMetadataProviderInterface` (port) and `ConfigAnonymizeMetadataProvider`
+  (default, reads the configuration); alias the interface to read the selection from elsewhere.
+- `mark_anonymized: true` sets the `anonymized` column (when the table has it) for configured classes without
+  `AnonymizableTrait`; `nowo:anonymize:generate-column-migration` covers them. `AnonymizeService::marksAnonymized()`.
+- Embedded value objects mapped in XML are discovered from the Doctrine metadata
+  (`AnonymizePropertyDiscovery::discover($reflection, $metadata, $configured)`,
+  `AnonymizeService::getAnonymizableProperties($reflection, $metadata)`; both new parameters are optional).
+- Tests: XML-mapped host (no attributes, XML embeddable, `anonymized` column without the trait) run end to end.
+
+### Fixed
+
+- **A typo in a pattern key no longer skips personal data silently (audit LQ-N-L1).** The pre-flight checks now
+  require every include / exclude pattern key, entity- or property-level, from attributes or configuration, to be a
+  column of the entity's table (including to-one join columns and the discriminator) or `association.field` of an
+  owning to-one relation with a single join column. Before, an unknown key matched no row: an include pattern with a
+  typo left every row untouched and the run exited 0. Plain keys are matched without letter case, on both sides
+  (audit LQ-N-D-L1): PostgreSQL folds an unquoted camelCase column such as `accountStatus` to `accountstatus` (Oracle
+  to upper case), so the run now finds the row key that differs only in case, and pre-flight accepts either
+  spelling. A key that fits two columns differing only in case is refused. For a JOINED inheritance child only the
+  columns of its own table are accepted (audit LQ-N-D-I1): the run reads that table alone, so inherited columns and
+  the root discriminator were never in the row. A PostgreSQL CI job covers these cases.
+- **Anonymised camelCase columns work on PostgreSQL / Oracle (audit LQ-N-D2-L1).** With Doctrine's default naming
+  strategy (or an explicit `name: 'fullName'`), PostgreSQL stores an unquoted `fullName` as `fullname`. Pre-flight
+  refused such a property ("case mismatch"), and a direct `AnonymizeService::anonymizeEntity()` call skipped it while
+  still counting the row as updated, so the value was kept. Now pre-flight accepts the one column that differs only in
+  letter case (two such columns are refused as ambiguous), and the run reads and writes the row's own key, for
+  anonymised and identifier columns. A mapped anonymised column that is missing from the rows throws a
+  `RuntimeException` (the chunk is rolled back) instead of being skipped silently.
+- **A mis-cased class key in `nowo_anonymize.entities` fails the container build (audit LQ-N-L2)** instead of being
+  accepted by the case-insensitive `class_exists()` and then selecting nothing.
+
+### Documentation
+
+- USAGE "Using it from a DDD / hexagonal application" shows both paths; CONFIGURATION documents `entities`.
+
 ## [1.4.1] - 2026-11-10
 
 `BeforeEntityAnonymizeEvent` is dispatched (it never was before 1.4.1), and a run fails instead of reporting updates when host code leaves a transaction open. See [UPGRADING](https://github.com/nowo-tech/AnonymizeBundle/blob/v1.4.1/docs/UPGRADING.md#to-141).

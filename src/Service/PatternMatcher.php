@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Service;
 
+use Nowo\AnonymizeBundle\Helper\RowKey;
+
 use function is_array;
 use function is_string;
 
@@ -240,9 +242,11 @@ final class PatternMatcher
      */
     private function getNestedValue(array $record, string $field): mixed
     {
-        // Direct field access (e.g., 'id', 'status')
-        if (isset($record[$field])) {
-            return $record[$field];
+        // Direct field access (e.g., 'id', 'status'). Since 1.5 (audit LQ-N-D-L1) the key may differ in letter case
+        // only: PostgreSQL returns the camelCase column "accountStatus" as "accountstatus" (see RowKey).
+        $key = RowKey::resolve($record, $field);
+        if ($key !== null) {
+            return $record[$key] ?? null;
         }
 
         // Relationship field access (e.g., 'type.name')

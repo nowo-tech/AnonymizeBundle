@@ -19,6 +19,8 @@ use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use Nowo\AnonymizeBundle\Helper\AnonymizePropertyDiscovery;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Helper\OrmHelper;
+use Nowo\AnonymizeBundle\Helper\RowKey;
+use Nowo\AnonymizeBundle\Metadata\AnonymizeMetadataProviderInterface;
 use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
@@ -69,7 +71,9 @@ final class AnonymizeService implements ResetInterface
         private readonly PatternMatcher $patternMatcher,
         private readonly ?EventDispatcherInterface $eventDispatcher = null,
         /** Closed locator of anonymization plugins (entity anonymizer services) built by AnonymizeServiceLocatorPass (REQ-DI-001). */
-        private readonly ?ContainerInterface $container = null
+        private readonly ?ContainerInterface $container = null,
+        /** Since 1.5: selection for classes without attributes (`nowo_anonymize.entities` by default). */
+        private readonly ?AnonymizeMetadataProviderInterface $metadataProvider = null,
     ) {
     }
 
@@ -83,7 +87,7 @@ final class AnonymizeService implements ResetInterface
             return $this;
         }
 
-        return new self($fakerFactory, $this->patternMatcher, $this->eventDispatcher, $this->container);
+        return new self($fakerFactory, $this->patternMatcher, $this->eventDispatcher, $this->container, $this->metadataProvider);
     }
 
     /**
@@ -95,7 +99,8 @@ final class AnonymizeService implements ResetInterface
     }
 
     /**
-     * Gets all entities from the entity manager that have the Anonymize attribute.
+     * Gets all entities from the entity manager that have the Anonymize attribute or (since 1.5) are selected by the
+     * {@see AnonymizeMetadataProviderInterface} (`nowo_anonymize.entities`). A class-level attribute wins.
      *
      * @param EntityManagerInterface $em The entity manager
      *
@@ -118,11 +123,11 @@ final class AnonymizeService implements ResetInterface
                 $reflection = new ReflectionClass($className);
 
                 $attributes = $reflection->getAttributes(Anonymize::class);
-                if ($attributes === []) {
+                $attribute  = $attributes !== [] ? $attributes[0]->newInstance() : $this->metadataProvider?->getEntity($className);
+                if (!$attribute instanceof Anonymize) {
                     continue;
                 }
 
-                $attribute            = $attributes[0]->newInstance();
                 $entities[$className] = [
                     'metadata'   => $metadata,
                     'reflection' => $reflection,
@@ -143,13 +148,32 @@ final class AnonymizeService implements ResetInterface
      * Also discovers #[AnonymizeProperty] on Doctrine #[ORM\Embedded] value objects.
      * Embedded fields use Doctrine paths (e.g. `phoneNumber.number`).
      *
+     * Since 1.5 also returns the fields selected by the {@see AnonymizeMetadataProviderInterface} (an attribute on the
+     * same field wins), and embeddables known only from the Doctrine metadata when it is passed (XML mapping).
+     *
      * @param ReflectionClass<object> $reflection The entity reflection class
+     * @param ClassMetadata<object>|null $metadata Since 1.5: Doctrine metadata of the entity (XML-mapped embeddables)
      *
      * @return list<array{property: ReflectionProperty, attribute: AnonymizeProperty, weight: int, fieldName: string}>
      */
-    public function getAnonymizableProperties(ReflectionClass $reflection): array
+    public function getAnonymizableProperties(ReflectionClass $reflection, ?ClassMetadata $metadata = null): array
     {
-        return AnonymizePropertyDiscovery::discover($reflection);
+        return AnonymizePropertyDiscovery::discover(
+            $reflection,
+            $metadata,
+            $this->metadataProvider?->getProperties($reflection->getName()) ?? [],
+        );
+    }
+
+    /**
+     * Since 1.5: whether a run sets the `anonymized` column of the class's table (when the table has it): the class uses
+     * {@see AnonymizableTrait}, or the metadata provider marks it (`nowo_anonymize.entities.<class>.mark_anonymized`).
+     *
+     * @param ReflectionClass<object> $reflection
+     */
+    public function marksAnonymized(ReflectionClass $reflection): bool
+    {
+        return $this->usesAnonymizableTrait($reflection) || ($this->metadataProvider?->marksAnonymized($reflection->getName()) ?? false);
     }
 
     /**
@@ -543,9 +567,17 @@ final class AnonymizeService implements ResetInterface
                                 $columnName = OrmHelper::getFieldColumnName($metadata, $propertyName);
                             }
 
-                            // Check if column exists in record. NULL originals are never anonymized
-                            // (the documented `preserve_null` behaviour is therefore always in effect).
-                            if (!isset($record[$columnName])) {
+                            // Find the column in the row. Since 1.5 (audit LQ-N-D2-L1) the row key may differ in letter
+                            // case only (PostgreSQL returns the unquoted camelCase column "fullName" as "fullname"); a
+                            // mapped column missing from the row is an error, never a silently kept value.
+                            $rowKey = $columnName;
+                            if ($metadata->hasField($propertyName)) {
+                                $rowKey = RowKey::resolve($record, $columnName) ?? throw new RuntimeException(sprintf('Cannot anonymize %s::%s: column "%s" is not in the rows read from table "%s" (or two columns differ from it only in letter case). Nothing of this chunk was written.', $metadata->getName(), $propertyName, $columnName, $tableName));
+                            }
+
+                            // NULL originals are never anonymized (the documented `preserve_null` behaviour is therefore
+                            // always in effect).
+                            if (!isset($record[$rowKey])) {
                                 continue;
                             }
 
@@ -569,7 +601,7 @@ final class AnonymizeService implements ResetInterface
                             // This allows fakers to use the original value if needed (e.g., hash_preserve, masking)
                             // or ignore it if not needed (most fakers)
                             $fakerOptions  = $attribute->options;
-                            $originalValue = $record[$columnName];
+                            $originalValue = $record[$rowKey];
 
                             // Set original_value (standard key for all fakers)
                             $fakerOptions['original_value'] ??= $originalValue;
@@ -617,7 +649,7 @@ final class AnonymizeService implements ResetInterface
                                     $metadata,
                                     $property,
                                     $columnName,
-                                    $record[$columnName] ?? null,
+                                    $originalValue,
                                     $anonymizedValue,
                                     $record,
                                     $dryRun,
@@ -633,8 +665,9 @@ final class AnonymizeService implements ResetInterface
                                 $anonymizedValue = $event->getAnonymizedValue();
                             }
 
-                            $updates[$columnName] = $anonymizedValue;
-                            $shouldAnonymize      = true;
+                            // The row's own key is the real column name (quoted as is in the UPDATE)
+                            $updates[$rowKey] = $anonymizedValue;
+                            $shouldAnonymize  = true;
 
                             // Track property statistics
                             $propertyStats[$propertyName] ??= 0;
@@ -642,8 +675,8 @@ final class AnonymizeService implements ResetInterface
                         }
 
                         if ($shouldAnonymize && !$dryRun) {
-                            // Check if entity uses AnonymizableTrait and add anonymized flag
-                            if ($this->usesAnonymizableTrait($reflection)) {
+                            // Entity uses AnonymizableTrait (or is configured to be marked): add the anonymized flag
+                            if ($this->marksAnonymized($reflection)) {
                                 // Introspect the schema once per table (not once per row)
                                 $hasAnonymizedColumn ??= $this->tableHasAnonymizedColumn($connection, $tableName);
                                 if ($hasAnonymizedColumn) {
@@ -789,12 +822,13 @@ final class AnonymizeService implements ResetInterface
         $where      = [];
 
         foreach ($identifier as $idColumn) {
-            $idValue = $record[$idColumn];
+            // Since 1.5 (audit LQ-N-D2-L1): the row key may differ in letter case only; it is the real column name
+            $idKey = RowKey::resolve($record, $idColumn) ?? throw new RuntimeException(sprintf('Cannot update a row of table "%s": identifier column "%s" is not in the row (or two columns differ from it only in letter case).', $tableName, $idColumn));
             // Convert to string for quote() method
             $where[] = sprintf(
                 '%s = %s',
-                DbalHelper::quoteIdentifier($connection, $idColumn),
-                $connection->quote((string) $idValue),
+                DbalHelper::quoteIdentifier($connection, (string) $idKey),
+                $connection->quote((string) ($record[$idKey] ?? '')),
             );
         }
 

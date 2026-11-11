@@ -18,6 +18,7 @@ use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
+use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
 use Nowo\AnonymizeBundle\Tests\Integration\Sqlite\Entity\E2eAuditLog;
 use Nowo\AnonymizeBundle\Tests\Integration\Sqlite\Entity\E2eCompany;
 use Nowo\AnonymizeBundle\Tests\Integration\Sqlite\Entity\E2eCustomer;
@@ -305,6 +306,34 @@ final class AnonymizeServiceSqliteTest extends TestCase
         self::assertSame(0, $after);
         $this->em->getConnection()->rollBack();
         self::assertSame(['first', 'second', 'third'], $this->messages());
+    }
+
+    /**
+     * LQ-N-L1 on the attribute path: entity- and property-level pattern keys must be columns of the table, the
+     * discriminator column, a to-one join column, or "association.field" of a joinable to-one relation.
+     */
+    public function testPreFlightRejectsUnknownPatternFieldsOnAttributes(): void
+    {
+        $preFlight = new PreFlightCheckService(new FakerFactory('en_US'));
+        $customer  = [
+            'metadata'   => $this->em->getClassMetadata(E2eCustomer::class),
+            'reflection' => new ReflectionClass(E2eCustomer::class),
+            'attribute'  => new Anonymize(includePatterns: [['company.name' => 'Acme%', 'company_id' => '1'], ['stauts' => 'active']], excludePatterns: ['company.nme' => 'x', 'email.domain' => 'y']),
+        ];
+        $document = [
+            'metadata'   => $this->em->getClassMetadata(E2eTempDocument::class),
+            'reflection' => new ReflectionClass(E2eTempDocument::class),
+            'attribute'  => new Anonymize(includePatterns: ['kind' => 'temp']),
+        ];
+
+        $errors = array_values($preFlight->performChecks($this->em, [E2eCustomer::class => $customer, E2eTempDocument::class => $document]));
+
+        $unknown = array_values(array_filter($errors, static fn (string $e): bool => str_starts_with($e, 'Unknown field')));
+        self::assertCount(3, $unknown, implode("\n", $errors));
+        self::assertStringContainsString('Unknown field "stauts" in the include patterns of ' . E2eCustomer::class, $unknown[0]);
+        self::assertStringContainsString('"company.nme" in the exclude patterns', $unknown[1]);
+        self::assertStringContainsString('"email.domain" in the exclude patterns', $unknown[2]);
+        self::assertStringContainsString('table "e2e_customer"', $unknown[0]);
     }
 
     /**
