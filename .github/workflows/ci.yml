@@ -139,7 +139,7 @@ jobs:
       - name: Run the PostgreSQL group
         env:
           ANONYMIZE_TEST_POSTGRES_URL: pgsql://postgres:postgres@127.0.0.1:5432/anonymize?serverVersion=17
-        run: vendor/bin/phpunit --group postgres --fail-on-skipped
+        run: vendor/bin/phpunit --no-coverage --group postgres --fail-on-skipped
 
   code-style:
     name: Code Style
