@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Service;
 
+use function array_key_exists;
+use function array_keys;
 use function is_array;
 use function is_string;
+use function strcasecmp;
 
 /**
  * Service for matching records against inclusion/exclusion patterns.
@@ -241,8 +244,24 @@ final class PatternMatcher
     private function getNestedValue(array $record, string $field): mixed
     {
         // Direct field access (e.g., 'id', 'status')
-        if (isset($record[$field])) {
+        if (array_key_exists($field, $record)) {
             return $record[$field];
+        }
+
+        // Since 1.5 (audit LQ-N-D-L1): PostgreSQL folds unquoted identifiers to lower case (Oracle to upper case), so
+        // the row of a camelCase column "accountStatus" carries "accountstatus". Use the one key that differs only in
+        // letter case; two such keys are ambiguous and match nothing (pre-flight refuses that key).
+        $match = null;
+        foreach (array_keys($record) as $key) {
+            if (strcasecmp((string) $key, $field) === 0) {
+                if ($match !== null) {
+                    return null;
+                }
+                $match = $key;
+            }
+        }
+        if ($match !== null) {
+            return $record[$match];
         }
 
         // Relationship field access (e.g., 'type.name')

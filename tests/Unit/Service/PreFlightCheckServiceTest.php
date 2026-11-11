@@ -23,6 +23,7 @@ use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use ReflectionMethod;
 use stdClass;
 
 /**
@@ -1979,5 +1980,25 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertEmpty($errors);
+    }
+
+    /**
+     * LQ-N-D-L1: plain pattern keys are compared without letter case (the row of an unquoted camelCase column is
+     * case-folded on PostgreSQL / Oracle); a key that fits two columns differing only in case is refused.
+     */
+    public function testPatternKeysIgnoreLetterCaseUnlessAmbiguous(): void
+    {
+        $metadata = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $metadata->method('getColumnNames')->willReturn(['id', 'accountStatus', 'Code', 'code']);
+        $metadata->method('getAssociationNames')->willReturn([]);
+        $metadata->method('getTableName')->willReturn('test_table');
+
+        $method = new ReflectionMethod($this->service, 'checkPatternFields');
+        $errors = $method->invoke($this->service, $this->createMock(EntityManagerInterface::class), $metadata, ['accountstatus' => 'a', 'ACCOUNTSTATUS' => 'a', 'Code' => 'x', 'code' => 'x', 'CODE' => 'x'], 'TestEntity', 'include');
+
+        $this->assertCount(1, $errors);
+        $this->assertStringContainsString('Unknown field "CODE"', $errors[0]);
     }
 }

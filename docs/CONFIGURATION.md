@@ -253,7 +253,8 @@ XML or with attributes). Attributes win: a class with `#[Anonymize]` uses the at
 
 Every key must be an existing class written with its exact letter case (checked at container build). A configured
 field that matches no property, and a pattern key that is not a column of the table (or `association.field` of a
-to-one relation), are reported by the pre-flight checks and stop the run. To read the selection from somewhere else, alias
+to-one relation), are reported by the pre-flight checks and stop the run. Pattern keys ignore letter case (PostgreSQL
+returns an unquoted camelCase column in lower case); on a JOINED inheritance child only its own table's columns count. To read the selection from somewhere else, alias
 `Nowo\AnonymizeBundle\Metadata\AnonymizeMetadataProviderInterface` to your own service.
 
 **Example**:

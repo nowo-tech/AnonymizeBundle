@@ -31,6 +31,7 @@ use function is_int;
 use function is_string;
 use function sprintf;
 use function str_contains;
+use function strtolower;
 
 /**
  * Service for pre-flight validation checks before anonymization.
@@ -328,6 +329,13 @@ final readonly class PreFlightCheckService
      * a dotted key `association.field` an owning to-one association with a single join column and a mapped field of
      * its target.
      *
+     * Plain keys are compared without letter case (audit LQ-N-D-L1): PostgreSQL folds unquoted identifiers to lower
+     * case (Oracle to upper case), so the row of a camelCase column `accountStatus` carries `accountstatus`, and
+     * {@see PatternMatcher} falls back to the one row key that differs only in case. A key that fits two columns
+     * differing only in case is ambiguous and refused. For a JOINED inheritance child only the columns of its own
+     * table count (audit LQ-N-D-I1): the run reads that table alone, so inherited columns and the root discriminator
+     * are not in the row.
+     *
      * @param ClassMetadata<object> $metadata
      * @param Patterns $patterns
      *
@@ -348,20 +356,40 @@ final readonly class PreFlightCheckService
             return [];
         }
 
-        $columns = array_fill_keys($metadata->getColumnNames(), true);
+        $joinedChild = $this->isJoinedInheritanceChild($metadata);
+        $columns     = [];
+        if ($joinedChild) {
+            // Only the child table is read: its primary key and the fields and join columns it declares itself
+            $columns = $metadata->getIdentifierColumnNames();
+            foreach ($metadata->getFieldNames() as $field) {
+                if (!$metadata->isInheritedField($field)) {
+                    $columns[] = $metadata->getColumnName($field);
+                }
+            }
+        } else {
+            $columns = $metadata->getColumnNames();
+        }
         foreach ($metadata->getAssociationNames() as $association) {
-            if ($metadata->isAssociationWithSingleJoinColumn($association)) {
-                $columns[$metadata->getSingleAssociationJoinColumnName($association)] = true;
+            if ($metadata->isAssociationWithSingleJoinColumn($association) && !($joinedChild && $metadata->isInheritedAssociation($association))) {
+                $columns[] = $metadata->getSingleAssociationJoinColumnName($association);
             }
         }
-        $discriminator = OrmHelper::resolveDiscriminatorColumnName($metadata->discriminatorColumn);
+        $discriminator = $joinedChild ? null : OrmHelper::resolveDiscriminatorColumnName($metadata->discriminatorColumn);
         if ($discriminator !== null) {
-            $columns[$discriminator] = true;
+            $columns[] = $discriminator;
+        }
+
+        // Exact names, and how many columns each case-folded name stands for
+        $exact  = array_fill_keys($columns, true);
+        $folded = [];
+        foreach (array_keys($exact) as $column) {
+            $lower          = strtolower((string) $column);
+            $folded[$lower] = ($folded[$lower] ?? 0) + 1;
         }
 
         $errors = [];
         foreach ($keys as $key) {
-            if (isset($columns[$key]) || $this->isJoinablePatternField($em, $metadata, $key)) {
+            if (isset($exact[$key]) || ($folded[strtolower($key)] ?? 0) === 1 || $this->isJoinablePatternField($em, $metadata, $key, $joinedChild)) {
                 continue;
             }
 
@@ -380,7 +408,7 @@ final readonly class PreFlightCheckService
     /**
      * @param ClassMetadata<object> $metadata
      */
-    private function isJoinablePatternField(EntityManagerInterface $em, ClassMetadata $metadata, string $key): bool
+    private function isJoinablePatternField(EntityManagerInterface $em, ClassMetadata $metadata, string $key, bool $joinedChild): bool
     {
         if (!str_contains($key, '.')) {
             return false;
@@ -390,8 +418,20 @@ final readonly class PreFlightCheckService
         if (!$metadata->hasAssociation($association) || !$metadata->isAssociationWithSingleJoinColumn($association)) {
             return false;
         }
+        // The join column of an inherited association lives in a parent table, which the run does not read
+        if ($joinedChild && $metadata->isInheritedAssociation($association)) {
+            return false;
+        }
 
         return $em->getClassMetadata($metadata->getAssociationTargetClass($association))->hasField($field);
+    }
+
+    /**
+     * @param ClassMetadata<object> $metadata
+     */
+    private function isJoinedInheritanceChild(ClassMetadata $metadata): bool
+    {
+        return $metadata->isInheritanceTypeJoined() && $metadata->parentClasses !== [];
     }
 
     /**

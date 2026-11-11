@@ -124,7 +124,9 @@ as in 1.4. The `anonymized` flag is still written only for `AnonymizableTrait` c
   configuration) that is not a column of the table, nor `association.field` of a joinable to-one relation, makes the
   pre-flight checks fail and the run stops. Such a pattern never matched anything: fix the key (use the column name,
   e.g. `customer_age`, not the property name `customerAge`). Embedded paths (`address.street`) are not pattern keys:
-  use the column (`address_street`).
+  use the column (`address_street`). Letter case does not matter (PostgreSQL returns `accountStatus` as
+  `accountstatus`; both spellings work). On a JOINED inheritance child, use only the columns of the child's own
+  table: inherited columns and the discriminator are in the parent table, which the run does not read.
 - `nowo_anonymize.entities` keys must be written exactly as the class name (letter case included).
 - Optional, for DDD / hexagonal hosts: select entities and fields under `nowo_anonymize.entities` instead of
   attributes (see USAGE, "Using it from a DDD / hexagonal application").
