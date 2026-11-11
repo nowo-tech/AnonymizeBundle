@@ -1107,10 +1107,13 @@ class PreFlightCheckServiceTest extends TestCase
         $schemaManager->method('tablesExist')
             ->willReturn(true);
 
-        $column = new Column('testcolumn', Type::getType(Types::STRING)); // Different case
-
+        // Since 1.5 (LQ-N-D2-L1) one column differing only in case is accepted (PostgreSQL folds "testColumn");
+        // two of them are ambiguous
         $schemaManager->method('listTableColumns')
-            ->willReturn(['testcolumn' => $column]);
+            ->willReturn([
+                'testcolumn' => new Column('testcolumn', Type::getType(Types::STRING)),
+                'TESTCOLUMN' => new Column('TESTCOLUMN', Type::getType(Types::STRING)),
+            ]);
 
         $testEntity = new class {
             #[AnonymizeProperty(type: 'email', weight: 1)]
@@ -1130,7 +1133,7 @@ class PreFlightCheckServiceTest extends TestCase
 
         $errors = $this->service->performChecks($em, $entities);
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('case mismatch', array_values($errors)[0]);
+        $this->assertStringContainsString('Found similar columns "testcolumn", "TESTCOLUMN" (ambiguous letter case)', array_values($errors)[0]);
     }
 
     /**

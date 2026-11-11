@@ -19,6 +19,7 @@ use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use Nowo\AnonymizeBundle\Helper\AnonymizePropertyDiscovery;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Helper\OrmHelper;
+use Nowo\AnonymizeBundle\Helper\RowKey;
 use Nowo\AnonymizeBundle\Metadata\AnonymizeMetadataProviderInterface;
 use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 use Psr\Container\ContainerInterface;
@@ -566,9 +567,17 @@ final class AnonymizeService implements ResetInterface
                                 $columnName = OrmHelper::getFieldColumnName($metadata, $propertyName);
                             }
 
-                            // Check if column exists in record. NULL originals are never anonymized
-                            // (the documented `preserve_null` behaviour is therefore always in effect).
-                            if (!isset($record[$columnName])) {
+                            // Find the column in the row. Since 1.5 (audit LQ-N-D2-L1) the row key may differ in letter
+                            // case only (PostgreSQL returns the unquoted camelCase column "fullName" as "fullname"); a
+                            // mapped column missing from the row is an error, never a silently kept value.
+                            $rowKey = $columnName;
+                            if ($metadata->hasField($propertyName)) {
+                                $rowKey = RowKey::resolve($record, $columnName) ?? throw new RuntimeException(sprintf('Cannot anonymize %s::%s: column "%s" is not in the rows read from table "%s" (or two columns differ from it only in letter case). Nothing of this chunk was written.', $metadata->getName(), $propertyName, $columnName, $tableName));
+                            }
+
+                            // NULL originals are never anonymized (the documented `preserve_null` behaviour is therefore
+                            // always in effect).
+                            if (!isset($record[$rowKey])) {
                                 continue;
                             }
 
@@ -592,7 +601,7 @@ final class AnonymizeService implements ResetInterface
                             // This allows fakers to use the original value if needed (e.g., hash_preserve, masking)
                             // or ignore it if not needed (most fakers)
                             $fakerOptions  = $attribute->options;
-                            $originalValue = $record[$columnName];
+                            $originalValue = $record[$rowKey];
 
                             // Set original_value (standard key for all fakers)
                             $fakerOptions['original_value'] ??= $originalValue;
@@ -640,7 +649,7 @@ final class AnonymizeService implements ResetInterface
                                     $metadata,
                                     $property,
                                     $columnName,
-                                    $record[$columnName] ?? null,
+                                    $originalValue,
                                     $anonymizedValue,
                                     $record,
                                     $dryRun,
@@ -656,8 +665,9 @@ final class AnonymizeService implements ResetInterface
                                 $anonymizedValue = $event->getAnonymizedValue();
                             }
 
-                            $updates[$columnName] = $anonymizedValue;
-                            $shouldAnonymize      = true;
+                            // The row's own key is the real column name (quoted as is in the UPDATE)
+                            $updates[$rowKey] = $anonymizedValue;
+                            $shouldAnonymize  = true;
 
                             // Track property statistics
                             $propertyStats[$propertyName] ??= 0;
@@ -812,12 +822,13 @@ final class AnonymizeService implements ResetInterface
         $where      = [];
 
         foreach ($identifier as $idColumn) {
-            $idValue = $record[$idColumn];
+            // Since 1.5 (audit LQ-N-D2-L1): the row key may differ in letter case only; it is the real column name
+            $idKey = RowKey::resolve($record, $idColumn) ?? throw new RuntimeException(sprintf('Cannot update a row of table "%s": identifier column "%s" is not in the row (or two columns differ from it only in letter case).', $tableName, $idColumn));
             // Convert to string for quote() method
             $where[] = sprintf(
                 '%s = %s',
-                DbalHelper::quoteIdentifier($connection, $idColumn),
-                $connection->quote((string) $idValue),
+                DbalHelper::quoteIdentifier($connection, (string) $idKey),
+                $connection->quote((string) ($record[$idKey] ?? '')),
             );
         }
 

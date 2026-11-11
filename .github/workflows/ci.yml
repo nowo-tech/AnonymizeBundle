@@ -104,14 +104,14 @@ jobs:
           echo "✅ Coverage generated"
 
   postgres:
-    name: PostgreSQL (pattern keys, audit LQ-N-D-L1)
+    name: PostgreSQL (case-folded columns, audits LQ-N-D-L1, LQ-N-D2-L1)
     runs-on: ubuntu-latest
 
     services:
       postgres:
         image: postgres:17-alpine
         env:
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
           POSTGRES_DB: anonymize
         ports:
           - 5432:5432
@@ -138,7 +138,7 @@ jobs:
 
       - name: Run the PostgreSQL group
         env:
-          ANONYMIZE_TEST_POSTGRES_URL: pgsql://postgres:postgres@127.0.0.1:5432/anonymize?serverVersion=17
+          ANONYMIZE_TEST_POSTGRES_URL: pgsql://postgres@127.0.0.1:5432/anonymize?serverVersion=17
         run: vendor/bin/phpunit --no-coverage --group postgres --fail-on-skipped
 
   code-style:

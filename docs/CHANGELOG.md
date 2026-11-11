@@ -131,6 +131,13 @@ configuration change, same defaults; attribute-based selection is unchanged.
   spelling. A key that fits two columns differing only in case is refused. For a JOINED inheritance child only the
   columns of its own table are accepted (audit LQ-N-D-I1): the run reads that table alone, so inherited columns and
   the root discriminator were never in the row. A PostgreSQL CI job covers these cases.
+- **Anonymised camelCase columns work on PostgreSQL / Oracle (audit LQ-N-D2-L1).** With Doctrine's default naming
+  strategy (or an explicit `name: 'fullName'`), PostgreSQL stores an unquoted `fullName` as `fullname`. Pre-flight
+  refused such a property ("case mismatch"), and a direct `AnonymizeService::anonymizeEntity()` call skipped it while
+  still counting the row as updated, so the value was kept. Now pre-flight accepts the one column that differs only in
+  letter case (two such columns are refused as ambiguous), and the run reads and writes the row's own key, for
+  anonymised and identifier columns. A mapped anonymised column that is missing from the rows throws a
+  `RuntimeException` (the chunk is rolled back) instead of being skipped silently.
 - **A mis-cased class key in `nowo_anonymize.entities` fails the container build (audit LQ-N-L2)** instead of being
   accepted by the case-insensitive `class_exists()` and then selecting nothing.
 

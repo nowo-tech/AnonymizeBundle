@@ -8,8 +8,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
 
 /**
- * Doctrine's default naming strategy keeps the camelCase column name "accountStatus" unquoted, so PostgreSQL stores
- * (and returns) it as "accountstatus" (audit LQ-N-D-L1).
+ * Doctrine's default naming strategy keeps the camelCase column names "accountStatus" and "fullName" unquoted, so
+ * PostgreSQL stores (and returns) them as "accountstatus" and "fullname" (audits LQ-N-D-L1, LQ-N-D2-L1).
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
@@ -27,6 +27,9 @@ class PfCustomer
         public string $email,
         #[ORM\Column(type: 'string', length: 20)]
         public string $accountStatus,
+        #[ORM\Column(type: 'string', length: 100)]
+        #[AnonymizeProperty(type: 'name')]
+        public string $fullName = '',
     ) {
     }
 }

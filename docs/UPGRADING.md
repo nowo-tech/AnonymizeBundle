@@ -127,6 +127,9 @@ as in 1.4. The `anonymized` flag is still written only for `AnonymizableTrait` c
   use the column (`address_street`). Letter case does not matter (PostgreSQL returns `accountStatus` as
   `accountstatus`; both spellings work). On a JOINED inheritance child, use only the columns of the child's own
   table: inherited columns and the discriminator are in the parent table, which the run does not read.
+- Anonymised camelCase columns (Doctrine default naming strategy) now pass pre-flight and are anonymised on
+  PostgreSQL / Oracle. If you call `AnonymizeService::anonymizeEntity()` directly (without the pre-flight checks), a
+  mapped anonymised column that is not in the table now throws a `RuntimeException` instead of being skipped.
 - `nowo_anonymize.entities` keys must be written exactly as the class name (letter case included).
 - Optional, for DDD / hexagonal hosts: select entities and fields under `nowo_anonymize.entities` instead of
   attributes (see USAGE, "Using it from a DDD / hexagonal application").

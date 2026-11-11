@@ -22,6 +22,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use RuntimeException;
 
 use function array_filter;
 use function array_values;
@@ -36,8 +37,8 @@ use const PHP_VERSION_ID;
  * Pattern keys against real rows: pre-flight and the run must agree on which keys match (audit LQ-N-D-L1, LQ-N-D-I1).
  *
  * Runs on SQLite (in memory) always, and on PostgreSQL when ANONYMIZE_TEST_POSTGRES_URL is set (CI job "PostgreSQL",
- * e.g. pgsql://postgres:postgres@127.0.0.1:5432/anonymize?serverVersion=17). PostgreSQL folds the unquoted camelCase
- * column "accountStatus" to "accountstatus".
+ * e.g. pgsql://postgres@127.0.0.1:5432/anonymize?serverVersion=17, passwordless). PostgreSQL folds the unquoted
+ * camelCase columns "accountStatus" and "fullName" to "accountstatus" and "fullname".
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
@@ -69,8 +70,7 @@ final class PatternFieldsTest extends TestCase
 
         foreach (['accountStatus', 'accountstatus', 'ACCOUNTSTATUS'] as $key) {
             $em->getConnection()->executeStatement('DELETE FROM pf_customer');
-            $em->getConnection()->insert('pf_customer', ['id' => 1, 'email' => 'ana@example.test', $metadata->getColumnName('accountStatus') => 'active']);
-            $em->getConnection()->insert('pf_customer', ['id' => 2, 'email' => 'bob@example.test', $metadata->getColumnName('accountStatus') => 'closed']);
+            $this->insertCustomers($em);
 
             $attribute = new Anonymize(includePatterns: [$key => 'active']);
             self::assertSame([], $this->unknownFieldErrors($preFlight->performChecks($em, [PfCustomer::class => ['metadata' => $metadata, 'reflection' => $reflection, 'attribute' => $attribute]])), $key);
@@ -87,6 +87,58 @@ final class PatternFieldsTest extends TestCase
         $errors = $this->unknownFieldErrors($preFlight->performChecks($em, [PfCustomer::class => ['metadata' => $metadata, 'reflection' => $reflection, 'attribute' => $typo]]));
         self::assertCount(1, $errors);
         self::assertStringContainsString('Unknown field "acountStatus"', $errors[0]);
+    }
+
+    /**
+     * LQ-N-D2-L1: an anonymised camelCase column passes pre-flight (one column differing only in letter case) and is
+     * anonymised, through the row's own key, on PostgreSQL too. A row is never counted as updated while it keeps it.
+     */
+    #[DataProvider('databases')]
+    public function testCamelCaseAnonymizedColumnIsAnonymized(string $database): void
+    {
+        $em         = $this->entityManager($database);
+        $metadata   = $em->getClassMetadata(PfCustomer::class);
+        $reflection = new ReflectionClass(PfCustomer::class);
+        $service    = new AnonymizeService(new FakerFactory('en_US'), new PatternMatcher());
+        $this->insertCustomers($em);
+
+        $errors = (new PreFlightCheckService(new FakerFactory('en_US')))->performChecks($em, [PfCustomer::class => ['metadata' => $metadata, 'reflection' => $reflection, 'attribute' => new Anonymize()]]);
+        self::assertSame([], $errors, implode("\n", $errors));
+
+        $stats = $service->anonymizeEntity($em, $metadata, $reflection, $service->getAnonymizableProperties($reflection, $metadata), 100, false, null, null, new Anonymize());
+
+        self::assertSame(2, $stats['updated']);
+        self::assertSame(['email' => 2, 'fullName' => 2], $stats['propertyStats']);
+        $rows = $em->getConnection()->fetchAllNumeric('SELECT email, ' . $metadata->getColumnName('fullName') . ' FROM pf_customer ORDER BY id');
+        self::assertNotSame('ana@example.test', $rows[0][0]);
+        self::assertNotSame('Ana Real', $rows[0][1]);
+        self::assertNotSame('Bob Real', $rows[1][1]);
+    }
+
+    /**
+     * LQ-N-D2-L1: a mapped anonymised column missing from the table (no pre-flight, direct library call) stops the
+     * chunk with an exception; nothing is written and nothing is counted as updated.
+     */
+    public function testMissingAnonymizedColumnFailsInsteadOfKeepingTheValue(): void
+    {
+        $em         = $this->entityManager('sqlite');
+        $metadata   = $em->getClassMetadata(PfCustomer::class);
+        $reflection = new ReflectionClass(PfCustomer::class);
+        $service    = new AnonymizeService(new FakerFactory('en_US'), new PatternMatcher());
+        $connection = $em->getConnection();
+        $connection->executeStatement('DROP TABLE pf_customer');
+        $connection->executeStatement('CREATE TABLE pf_customer (id INTEGER NOT NULL PRIMARY KEY, email VARCHAR(180) NOT NULL, accountStatus VARCHAR(20) NOT NULL)');
+        $connection->insert('pf_customer', ['id' => 1, 'email' => 'ana@example.test', 'accountStatus' => 'active']);
+
+        try {
+            $service->anonymizeEntity($em, $metadata, $reflection, $service->getAnonymizableProperties($reflection, $metadata), 100, false, null, null, new Anonymize());
+            self::fail('Expected a RuntimeException');
+        } catch (RuntimeException $e) {
+            self::assertStringContainsString('Cannot anonymize ' . PfCustomer::class . '::fullName: column "fullName" is not in the rows read from table "pf_customer"', $e->getMessage());
+        }
+
+        self::assertSame('ana@example.test', $connection->fetchOne('SELECT email FROM pf_customer WHERE id = 1'));
+        self::assertFalse($connection->isTransactionActive());
     }
 
     /**
@@ -112,6 +164,13 @@ final class PatternFieldsTest extends TestCase
         self::assertStringContainsString('"owner.email"', $errors[3]);
 
         self::assertSame([], $this->unknownFieldErrors($this->check($em, $preFlight, PfParty::class, $inherited)));
+    }
+
+    private function insertCustomers(EntityManager $em): void
+    {
+        $metadata = $em->getClassMetadata(PfCustomer::class);
+        $em->getConnection()->insert('pf_customer', ['id' => 1, 'email' => 'ana@example.test', $metadata->getColumnName('accountStatus') => 'active', $metadata->getColumnName('fullName') => 'Ana Real']);
+        $em->getConnection()->insert('pf_customer', ['id' => 2, 'email' => 'bob@example.test', $metadata->getColumnName('accountStatus') => 'closed', $metadata->getColumnName('fullName') => 'Bob Real']);
     }
 
     /**

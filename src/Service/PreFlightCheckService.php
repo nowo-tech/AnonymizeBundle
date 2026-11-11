@@ -224,9 +224,9 @@ final readonly class PreFlightCheckService
                     $columns = $schemaManager->listTableColumns($tableName);
 
                     // Get actual column names from database (case-sensitive)
-                    $actualColumnNames    = [];
-                    $columnExists         = false;
-                    $caseInsensitiveMatch = null;
+                    $actualColumnNames      = [];
+                    $columnExists           = false;
+                    $caseInsensitiveMatches = [];
 
                     foreach ($columns as $column) {
                         $actualColumnName    = DbalHelper::getSchemaObjectName($column);
@@ -240,8 +240,15 @@ final readonly class PreFlightCheckService
 
                         // Case-insensitive match (for databases that are case-insensitive)
                         if (strcasecmp($actualColumnName, $expectedColumnName) === 0) {
-                            $caseInsensitiveMatch = $actualColumnName;
+                            $caseInsensitiveMatches[] = $actualColumnName;
                         }
+                    }
+
+                    // Since 1.5 (audit LQ-N-D2-L1): PostgreSQL folds an unquoted camelCase column ("fullName" is
+                    // stored as "fullname"; Oracle upper-cases it). The run finds the one column that differs only in
+                    // letter case (RowKey), so a unique such column is accepted; two of them are ambiguous.
+                    if (!$columnExists && count($caseInsensitiveMatches) === 1) {
+                        $columnExists = true;
                     }
 
                     if (!$columnExists) {
@@ -253,11 +260,11 @@ final readonly class PreFlightCheckService
                             $propertyName,
                         );
 
-                        // Add case-insensitive match suggestion if found
-                        if ($caseInsensitiveMatch !== null) {
+                        // Several columns differ from it only in letter case: ambiguous
+                        if ($caseInsensitiveMatches !== []) {
                             $errorMessage .= sprintf(
-                                '. Found similar column "%s" (case mismatch)',
-                                $caseInsensitiveMatch,
+                                '. Found similar columns "%s" (ambiguous letter case)',
+                                implode('", "', $caseInsensitiveMatches),
                             );
                         }
 
