@@ -59,6 +59,16 @@ services:
         arguments:
             $fakerFactory: '@nowo_anonymize.faker_factory'
 
+    # Since 1.5: selection without attributes (nowo_anonymize.entities). Alias the interface to your own provider
+    # to read it from elsewhere.
+    Nowo\AnonymizeBundle\Metadata\ConfigAnonymizeMetadataProvider:
+        arguments:
+            $entities: '%nowo_anonymize.entities%'
+
+    Nowo\AnonymizeBundle\Metadata\AnonymizeMetadataProviderInterface:
+        alias: Nowo\AnonymizeBundle\Metadata\ConfigAnonymizeMetadataProvider
+        public: true
+
     # AnonymizationHistoryService — alias by FQCN for autowiring in commands
     nowo_anonymize.service.anonymization_history:
         class: Nowo\AnonymizeBundle\Service\AnonymizationHistoryService

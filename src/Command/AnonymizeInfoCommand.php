@@ -158,7 +158,7 @@ final class AnonymizeInfoCommand extends AbstractCommand
                     $tableName       = $metadata->getTableName();
 
                     // Get anonymizable properties (may be empty when entity uses anonymizeService)
-                    $properties           = $this->anonymizeService->getAnonymizableProperties($reflection);
+                    $properties           = $this->anonymizeService->getAnonymizableProperties($reflection, $metadata);
                     $usesAnonymizeService = $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '';
 
                     if ($properties === [] && !$usesAnonymizeService) {

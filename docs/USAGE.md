@@ -862,7 +862,8 @@ php bin/console nowo:anonymize:generate-column-migration
 ```
 
 This command will:
-1. Scan all entities using `AnonymizableTrait`
+1. Scan all entities using `AnonymizableTrait` (since 1.5 also those configured with `mark_anonymized: true`, see
+   [Using it from a DDD / hexagonal application](#using-it-from-a-ddd--hexagonal-application))
 2. Check if the `anonymized` column already exists
 3. Generate SQL migrations to add the column if missing
 
@@ -1468,23 +1469,93 @@ class UserAccount
 AnonymizeBundle is an **operations tool in the infrastructure layer**: console commands that rewrite rows of your
 database copies with fake data. It has no entities of its own and talks to your tables through Doctrine DBAL.
 
+### Two ways to select what is anonymized
+
+Both paths are supported. The standard one is the default; the configuration one (since 1.5) is opt-in and needs no
+attribute, trait or bundle type in your domain.
+
+| | Standard Symfony host (default) | DDD / hexagonal host (opt-in, since 1.5) |
+| --- | --- | --- |
+| Entity selection | `#[Anonymize]` on the class | `nowo_anonymize.entities.<FQCN>` |
+| Fields | `#[AnonymizeProperty]` on properties / embeddable properties | `nowo_anonymize.entities.<FQCN>.properties.<field>` |
+| Embedded value objects | `#[ORM\Embedded]` + attributes on the embeddable | Doctrine path `embed.field` (XML `<embedded>` is read from the metadata) |
+| `anonymized` flag | `AnonymizableTrait` | `mark_anonymized: true` and an `anonymized` column in your XML mapping |
+| Custom provider | — | alias `AnonymizeMetadataProviderInterface` |
+
+**Standard path (unchanged)**
+
+```php
+#[ORM\Entity]
+#[Anonymize(excludePatterns: ['status' => 'keep'])]
+class Patient
+{
+    use AnonymizableTrait;
+
+    #[ORM\Column] #[AnonymizeProperty(type: 'email', weight: 1)]
+    private string $email;
+    // ...
+}
+```
+
+**DDD path: plain domain class, XML mapping, configuration**
+
+```php
+// src/Domain/Patient/Patient.php: no attribute, no trait
+final class Patient
+{
+    private bool $anonymized = false;   // mapped in XML only if you want the flag
+
+    public function __construct(
+        private string $id,
+        private string $email,
+        private string $fullName,
+        private ContactDetails $contact,   // embedded value object
+    ) {}
+}
+```
+
+```xml
+<!-- config/doctrine/Patient.orm.xml -->
+<entity name="App\Domain\Patient\Patient" table="patient">
+    <id name="id" type="string" length="36"/>
+    <field name="email" type="string"/>
+    <field name="fullName" type="string" column="full_name"/>
+    <field name="anonymized" type="boolean"/>
+    <embedded name="contact" class="App\Domain\Patient\ContactDetails" column-prefix="contact_"/>
+</entity>
+```
+
+```yaml
+# config/packages/nowo_anonymize.yaml (dev / test only, like the bundle)
+nowo_anonymize:
+    entities:
+        App\Domain\Patient\Patient:
+            exclude_patterns: { status: 'keep' }
+            mark_anonymized: true
+            properties:
+                email: { type: email, weight: 1 }
+                fullName: { type: name }
+                contact.phone: { type: phone }
+```
+
+All options are listed in [CONFIGURATION — entities](CONFIGURATION.md#entities-since-15). Attributes win where both
+exist, so a codebase can move class by class. `nowo:anonymize:info`, `nowo:anonymize:run` and
+`nowo:anonymize:generate-column-migration` use the same selection.
+
 ### What it touches
 
-- It finds what to anonymize from PHP attributes on your Doctrine entity classes: `#[Anonymize]` on the class and
-  `#[AnonymizeProperty]` on properties. There is no configuration-based alternative yet, so these attributes live
-  on the mapped classes.
 - Values are written with SQL `UPDATE` statements. Aggregates are not loaded, domain events are not raised and
   invariants are not checked. Run it only against copies (environment protection is on by default) and rebuild
   read models, search indexes and projections afterwards, for example from an `AfterEntityAnonymizeEvent` or
   `AfterAnonymizeEvent` listener.
-- `AnonymizableTrait` is optional; it adds a mapped `anonymized` column to the entity. The flag is only written for
-  classes that use the trait (see [Anonymization Tracking](#anonymization-tracking)).
+- The `anonymized` flag is written for classes that use `AnonymizableTrait` or are configured with
+  `mark_anonymized: true`, and only when the table has the column (see [Anonymization Tracking](#anonymization-tracking)).
 
 ### Keeping domain logic out of the attributes
 
 When an aggregate needs consistent fake data across several columns, put that rule in an infrastructure service
 that implements `Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface` and reference it with
-`#[Anonymize(anonymizeService: App\Infrastructure\Anonymize\CustomerAnonymizer::class)]`. It receives the raw row
+`#[Anonymize(anonymizeService: ...)]` or `anonymize_service:` in the configuration. It receives the raw row
 (column => value) and returns the columns to update, so no entity is hydrated:
 
 ```php
@@ -1512,11 +1583,12 @@ Custom value generators implement `Faker\FakerInterface`; value-level overrides 
 
 ### Known limitations
 
-- Selection only through PHP attributes; XML-mapped embeddables are not discovered.
-- The `anonymized` flag is set only on classes that use `AnonymizableTrait` (planned for 1.5: whenever the table has
-  the column).
-- `BeforeEntityAnonymizeEvent` is informational: to leave a class out, remove `#[Anonymize]` or narrow it with
-  `includePatterns` / `excludePatterns`.
+- Configured entries are keyed by the exact class (no inheritance lookup), like `#[Anonymize]`, which is read on the
+  class itself.
+- The events still expose `EntityManagerInterface` / `ClassMetadata` / `ReflectionProperty` (infrastructure tool);
+  `getEntityClass()` and `getColumnName()` give the scalar values.
+- `BeforeEntityAnonymizeEvent` is informational: to leave a class out, remove it from the selection or narrow it with
+  include / exclude patterns.
 
 ## Event System
 

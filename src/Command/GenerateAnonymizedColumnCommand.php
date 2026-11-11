@@ -10,8 +10,6 @@ use Exception;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
-use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
-use ReflectionClass;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -25,7 +23,7 @@ use function sprintf;
  *
  * This command generates SQL ALTER TABLE statements to add the `anonymized` boolean column
  * to all tables that have entities marked with the #[Anonymize] attribute and use the
- * AnonymizableTrait.
+ * AnonymizableTrait (since 1.5 also entities configured with `mark_anonymized: true`).
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
@@ -141,8 +139,8 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
                     $metadata   = $entityData['metadata'];
                     $reflection = $entityData['reflection'];
 
-                    // Check if entity uses AnonymizableTrait
-                    if (!$this->usesAnonymizableTrait($reflection)) {
+                    // Entity uses AnonymizableTrait, or (since 1.5) is configured with mark_anonymized
+                    if (!$this->anonymizeService->marksAnonymized($reflection)) {
                         continue;
                     }
 
@@ -256,36 +254,5 @@ final class GenerateAnonymizedColumnCommand extends AbstractCommand
         } catch (Exception) {
             return null;
         }
-    }
-
-    /**
-     * Checks if a class uses the AnonymizableTrait.
-     *
-     * @param ReflectionClass<object> $reflection The reflection class
-     *
-     * @return bool True if the class uses AnonymizableTrait
-     */
-    private function usesAnonymizableTrait(ReflectionClass $reflection): bool
-    {
-        $traitName = AnonymizableTrait::class;
-
-        foreach ($reflection->getTraitNames() as $trait) {
-            if ($trait === $traitName) {
-                return true;
-            }
-        }
-
-        // Check parent classes
-        $parent = $reflection->getParentClass();
-        while ($parent !== false) {
-            foreach ($parent->getTraitNames() as $trait) {
-                if ($trait === $traitName) {
-                    return true;
-                }
-            }
-            $parent = $parent->getParentClass();
-        }
-
-        return false;
     }
 }

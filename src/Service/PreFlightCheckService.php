@@ -16,6 +16,7 @@ use Nowo\AnonymizeBundle\Faker\HashPreserveFaker;
 use Nowo\AnonymizeBundle\Helper\AnonymizePropertyDiscovery;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Helper\OrmHelper;
+use Nowo\AnonymizeBundle\Metadata\AnonymizeMetadataProviderInterface;
 use ReflectionClass;
 use ValueError;
 
@@ -46,9 +47,11 @@ final readonly class PreFlightCheckService
      * Creates a new PreFlightCheckService instance.
      *
      * @param FakerFactoryInterface $fakerFactory The faker factory for validating faker types
+     * @param AnonymizeMetadataProviderInterface|null $metadataProvider Since 1.5: configured fields are checked too
      */
     public function __construct(
-        private FakerFactoryInterface $fakerFactory
+        private FakerFactoryInterface $fakerFactory,
+        private ?AnonymizeMetadataProviderInterface $metadataProvider = null,
     ) {
     }
 
@@ -79,7 +82,12 @@ final readonly class PreFlightCheckService
             $errors = array_merge($errors, $this->checkEntityExistence($em, $className, $metadata));
 
             // Check properties (includes Doctrine embedded paths like phoneNumber.number)
-            $properties = AnonymizePropertyDiscovery::discover($reflection);
+            try {
+                $properties = AnonymizePropertyDiscovery::discover($reflection, $metadata, $this->metadataProvider?->getProperties($reflection->getName()) ?? []);
+            } catch (InvalidArgumentException $e) {
+                $errors[] = $e->getMessage();
+                continue;
+            }
             foreach ($properties as $propertyData) {
                 $propertyName      = $propertyData['fieldName'];
                 $propertyAttribute = $propertyData['attribute'];

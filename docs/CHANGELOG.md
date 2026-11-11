@@ -101,6 +101,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Target **1.5.0** (minor). Architecture bar W2 (rule 2: a strict DDD host can use the bundle). Standard hosts: no
+configuration change, same defaults; attribute-based selection is unchanged.
+
+### Added
+
+- **Selection without attributes**: `nowo_anonymize.entities.<FQCN>` (entity settings of `#[Anonymize]`) with
+  `properties.<field>` (settings of `#[AnonymizeProperty]`), so a plain-PHP domain mapped in XML can be anonymized.
+  Attributes win (class-level `#[Anonymize]`; `#[AnonymizeProperty]` on the same field). Unknown classes fail the
+  container build; a configured field that matches no property is reported by the pre-flight checks.
+- `Nowo\AnonymizeBundle\Metadata\AnonymizeMetadataProviderInterface` (port) and `ConfigAnonymizeMetadataProvider`
+  (default, reads the configuration); alias the interface to read the selection from elsewhere.
+- `mark_anonymized: true` sets the `anonymized` column (when the table has it) for configured classes without
+  `AnonymizableTrait`; `nowo:anonymize:generate-column-migration` covers them. `AnonymizeService::marksAnonymized()`.
+- Embedded value objects mapped in XML are discovered from the Doctrine metadata
+  (`AnonymizePropertyDiscovery::discover($reflection, $metadata, $configured)`,
+  `AnonymizeService::getAnonymizableProperties($reflection, $metadata)`; both new parameters are optional).
+- Tests: XML-mapped host (no attributes, XML embeddable, `anonymized` column without the trait) run end to end.
+
+### Documentation
+
+- USAGE "Using it from a DDD / hexagonal application" shows both paths; CONFIGURATION documents `entities`.
+
 ## [1.4.1] - 2026-11-10
 
 `BeforeEntityAnonymizeEvent` is dispatched (it never was before 1.4.1), and a run fails instead of reporting updates when host code leaves a transaction open. See [UPGRADING](https://github.com/nowo-tech/AnonymizeBundle/blob/v1.4.1/docs/UPGRADING.md#to-141).
