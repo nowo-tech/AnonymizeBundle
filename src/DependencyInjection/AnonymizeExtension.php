@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\DependencyInjection;
 
 use InvalidArgumentException;
+use ReflectionClass;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -90,6 +91,12 @@ final class AnonymizeExtension extends Extension
             $className = ltrim($className, '\\');
             if (!class_exists($className)) {
                 throw new InvalidArgumentException(sprintf('The "nowo_anonymize.entities" key "%s" is not an existing class.', $className));
+            }
+
+            // class_exists() ignores case, the selection does not (audit LQ-N-L2): a mis-cased key would select nothing.
+            $canonical = (new ReflectionClass($className))->getName();
+            if ($canonical !== $className) {
+                throw new InvalidArgumentException(sprintf('The "nowo_anonymize.entities" key "%s" must be written exactly as the class name "%s".', $className, $canonical));
             }
 
             $this->assertArrays($entity, ['include_patterns', 'exclude_patterns'], $className);

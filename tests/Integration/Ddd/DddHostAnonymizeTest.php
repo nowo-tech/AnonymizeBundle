@@ -125,6 +125,35 @@ final class DddHostAnonymizeTest extends TestCase
         self::assertCount(1, array_filter($errors, static fn (string $error): bool => str_contains($error, 'The anonymized field "nickname" configured for "' . Patient::class . '" matches no property')));
     }
 
+    /**
+     * LQ-N-L1: a typo in a pattern key (config or attribute, entity or property level) stops the run before any write
+     * instead of matching no row and leaving the personal data in place.
+     */
+    public function testUnknownPatternFieldsStopTheRunBeforeAnyWrite(): void
+    {
+        $entities                                                            = self::ENTITIES;
+        $entities[Patient::class]['include_patterns']                        = ['stauts' => 'active'];
+        $entities[Patient::class]['properties']['email']['exclude_patterns'] = [['email' => '%@keep.test'], ['contact.zip' => '1%']];
+
+        [$exitCode, $out] = $this->runCommand($entities);
+
+        self::assertNotSame(0, $exitCode, $out);
+        $out = (string) preg_replace('/\s+/', ' ', $out);
+        self::assertStringContainsString('Unknown field "stauts" in the include patterns of ' . Patient::class, $out);
+        self::assertStringContainsString('Unknown field "contact.zip" in the exclude patterns of ' . Patient::class . '::email', $out);
+        self::assertSame('ana@example.test', $this->em->getConnection()->fetchOne("SELECT email FROM ddd_patient WHERE id = 'p-1'"));
+    }
+
+    public function testKnownColumnsAndEmbeddedColumnsPassThePatternCheck(): void
+    {
+        $entities                                     = self::ENTITIES;
+        $entities[Patient::class]['include_patterns'] = [['status' => 'active'], ['contact_city' => 'Madrid', 'anonymized' => '0']];
+        $provider                                     = new ConfigAnonymizeMetadataProvider($entities);
+        $service                                      = new AnonymizeService(new FakerFactory('en_US'), new PatternMatcher(), null, null, $provider);
+
+        self::assertSame([], (new PreFlightCheckService(new FakerFactory('en_US'), $provider))->performChecks($this->em, $service->getAnonymizableEntities($this->em)));
+    }
+
     public function testGenerateColumnCommandCoversConfiguredFlagEntities(): void
     {
         $this->em->getConnection()->executeStatement('ALTER TABLE ddd_patient RENAME TO ddd_patient_old');
@@ -141,9 +170,12 @@ final class DddHostAnonymizeTest extends TestCase
         self::assertStringContainsString('ALTER TABLE "ddd_patient" ADD COLUMN "anonymized"', $output->fetch());
     }
 
-    private function service(): AnonymizeService
+    /**
+     * @param array<string, array<string, mixed>> $entities
+     */
+    private function service(array $entities = self::ENTITIES): AnonymizeService
     {
-        return new AnonymizeService(new FakerFactory('en_US'), new PatternMatcher(), null, null, new ConfigAnonymizeMetadataProvider(self::ENTITIES));
+        return new AnonymizeService(new FakerFactory('en_US'), new PatternMatcher(), null, null, new ConfigAnonymizeMetadataProvider($entities));
     }
 
     private function environmentProtection(): EnvironmentProtectionService
@@ -152,17 +184,19 @@ final class DddHostAnonymizeTest extends TestCase
     }
 
     /**
+     * @param array<string, array<string, mixed>> $entities
+     *
      * @return array{int, string}
      */
-    private function runCommand(): array
+    private function runCommand(array $entities = self::ENTITIES): array
     {
         $doctrine = $this->createMock(ManagerRegistry::class);
         $doctrine->method('getManagerNames')->willReturn(['default' => 'doctrine.orm.default_entity_manager']);
         $doctrine->method('getManager')->willReturn($this->em);
 
         $command = new AnonymizeCommand(
-            $this->service(),
-            new PreFlightCheckService(new FakerFactory('en_US'), new ConfigAnonymizeMetadataProvider(self::ENTITIES)),
+            $this->service($entities),
+            new PreFlightCheckService(new FakerFactory('en_US'), new ConfigAnonymizeMetadataProvider($entities)),
             new AnonymizationHistoryService($this->tempDir . '/history'),
             $this->environmentProtection(),
             $doctrine,

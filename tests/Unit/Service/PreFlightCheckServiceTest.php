@@ -784,6 +784,8 @@ class PreFlightCheckServiceTest extends TestCase
             ->getMock();
         $metadata->isMappedSuperclass = false;
         $metadata->isEmbeddedClass    = false;
+        // Since 1.5 pattern keys must be columns of the table
+        $metadata->method('getColumnNames')->willReturn(['id', 'status', 'email', 'role', 'name', 'test_column']);
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -844,6 +846,8 @@ class PreFlightCheckServiceTest extends TestCase
             ->getMock();
         $metadata->isMappedSuperclass = false;
         $metadata->isEmbeddedClass    = false;
+        // Since 1.5 pattern keys must be columns of the table
+        $metadata->method('getColumnNames')->willReturn(['id', 'status', 'email', 'role', 'name', 'test_column']);
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -904,6 +908,8 @@ class PreFlightCheckServiceTest extends TestCase
             ->getMock();
         $metadata->isMappedSuperclass = false;
         $metadata->isEmbeddedClass    = false;
+        // Since 1.5 pattern keys must be columns of the table
+        $metadata->method('getColumnNames')->willReturn(['id', 'status', 'email', 'role', 'name', 'test_column']);
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')
@@ -967,6 +973,8 @@ class PreFlightCheckServiceTest extends TestCase
             ->getMock();
         $metadata->isMappedSuperclass = false;
         $metadata->isEmbeddedClass    = false;
+        // Since 1.5 pattern keys must be columns of the table
+        $metadata->method('getColumnNames')->willReturn(['id', 'status', 'email', 'role', 'name', 'test_column']);
         $metadata->method('getTableName')
             ->willReturn('test_table');
         $metadata->method('hasField')

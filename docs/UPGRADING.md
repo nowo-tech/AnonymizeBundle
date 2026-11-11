@@ -120,6 +120,12 @@ as in 1.4. The `anonymized` flag is still written only for `AnonymizableTrait` c
   services by hand keeps working; pass the provider to use the configured selection.
 - With the metadata passed (the commands do), an embedded value object mapped in XML is now followed, so
   `#[AnonymizeProperty]` on its fields is discovered. Before 1.5 such fields were silently ignored.
+- **Pattern keys are now checked before any write.** A key in `includePatterns` / `excludePatterns` (attributes or
+  configuration) that is not a column of the table, nor `association.field` of a joinable to-one relation, makes the
+  pre-flight checks fail and the run stops. Such a pattern never matched anything: fix the key (use the column name,
+  e.g. `customer_age`, not the property name `customerAge`). Embedded paths (`address.street`) are not pattern keys:
+  use the column (`address_street`).
+- `nowo_anonymize.entities` keys must be written exactly as the class name (letter case included).
 - Optional, for DDD / hexagonal hosts: select entities and fields under `nowo_anonymize.entities` instead of
   attributes (see USAGE, "Using it from a DDD / hexagonal application").
 

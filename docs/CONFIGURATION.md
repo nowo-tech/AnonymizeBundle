@@ -251,8 +251,9 @@ XML or with attributes). Attributes win: a class with `#[Anonymize]` uses the at
 | `properties.<field>.type` | required | Faker type (see [Available Faker Types](#available-faker-types)). |
 | `properties.<field>.weight` / `service` / `options` / `include_patterns` / `exclude_patterns` | `null` / `null` / `[]` / `[]` / `[]` | As on `#[AnonymizeProperty]`. |
 
-Every key must be an existing class (checked at container build). A configured field that matches no property is
-reported by the pre-flight checks and stops the run. To read the selection from somewhere else, alias
+Every key must be an existing class written with its exact letter case (checked at container build). A configured
+field that matches no property, and a pattern key that is not a column of the table (or `association.field` of a
+to-one relation), are reported by the pre-flight checks and stop the run. To read the selection from somewhere else, alias
 `Nowo\AnonymizeBundle\Metadata\AnonymizeMetadataProviderInterface` to your own service.
 
 **Example**:

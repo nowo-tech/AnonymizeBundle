@@ -20,13 +20,17 @@ use Nowo\AnonymizeBundle\Metadata\AnonymizeMetadataProviderInterface;
 use ReflectionClass;
 use ValueError;
 
+use function array_fill_keys;
+use function array_keys;
 use function array_slice;
 use function count;
+use function explode;
 use function in_array;
 use function is_array;
 use function is_int;
 use function is_string;
 use function sprintf;
+use function str_contains;
 
 /**
  * Service for pre-flight validation checks before anonymization.
@@ -81,6 +85,10 @@ final readonly class PreFlightCheckService
             // Check entity existence
             $errors = array_merge($errors, $this->checkEntityExistence($em, $className, $metadata));
 
+            // Since 1.5: every entity-level pattern key must be something the row actually carries (LQ-N-L1)
+            $errors = array_merge($errors, $this->checkPatternFields($em, $metadata, $attribute->includePatterns, $className, 'include'));
+            $errors = array_merge($errors, $this->checkPatternFields($em, $metadata, $attribute->excludePatterns, $className, 'exclude'));
+
             // Check properties (includes Doctrine embedded paths like phoneNumber.number)
             try {
                 $properties = AnonymizePropertyDiscovery::discover($reflection, $metadata, $this->metadataProvider?->getProperties($reflection->getName()) ?? []);
@@ -98,8 +106,10 @@ final readonly class PreFlightCheckService
                 // Validate faker type
                 $errors = array_merge($errors, $this->validateFakerType($propertyAttribute));
 
-                // Validate patterns
+                // Validate patterns (format, and since 1.5 that every key is a column or a joinable relation field)
                 $errors = array_merge($errors, $this->validatePatterns($propertyAttribute));
+                $errors = array_merge($errors, $this->checkPatternFields($em, $metadata, $propertyAttribute->includePatterns, $className . '::' . $propertyName, 'include'));
+                $errors = array_merge($errors, $this->checkPatternFields($em, $metadata, $propertyAttribute->excludePatterns, $className . '::' . $propertyName, 'exclude'));
 
                 $usesHashPreserve = $usesHashPreserve
                     || $propertyAttribute->type === FakerType::HASH_PRESERVE->value
@@ -309,6 +319,79 @@ final readonly class PreFlightCheckService
         }
 
         return $errors;
+    }
+
+    /**
+     * Since 1.5 (audit LQ-N-L1): a pattern key that the row does not carry matches nothing, so a typo in an include
+     * key would leave every row (and its personal data) untouched while the run reports success. Keys are matched
+     * against the selected row: a plain key must be a column of the entity's table (`customer_age`, `company_id`),
+     * a dotted key `association.field` an owning to-one association with a single join column and a mapped field of
+     * its target.
+     *
+     * @param ClassMetadata<object> $metadata
+     * @param Patterns $patterns
+     *
+     * @return list<string>
+     */
+    private function checkPatternFields(EntityManagerInterface $em, ClassMetadata $metadata, array $patterns, string $owner, string $type): array
+    {
+        // Non-string keys are reported by the format check (validatePatterns()); only named fields are looked up here.
+        $keys = [];
+        foreach ($this->isListOfPatternSets($patterns) ? $patterns : [$patterns] as $set) {
+            foreach (array_keys($set) as $key) {
+                if (is_string($key) && $key !== '' && !in_array($key, $keys, true)) {
+                    $keys[] = $key;
+                }
+            }
+        }
+        if ($keys === []) {
+            return [];
+        }
+
+        $columns = array_fill_keys($metadata->getColumnNames(), true);
+        foreach ($metadata->getAssociationNames() as $association) {
+            if ($metadata->isAssociationWithSingleJoinColumn($association)) {
+                $columns[$metadata->getSingleAssociationJoinColumnName($association)] = true;
+            }
+        }
+        $discriminator = OrmHelper::resolveDiscriminatorColumnName($metadata->discriminatorColumn);
+        if ($discriminator !== null) {
+            $columns[$discriminator] = true;
+        }
+
+        $errors = [];
+        foreach ($keys as $key) {
+            if (isset($columns[$key]) || $this->isJoinablePatternField($em, $metadata, $key)) {
+                continue;
+            }
+
+            $errors[] = sprintf(
+                'Unknown field "%s" in the %s patterns of %s: use a column of table "%s" or "association.field" of a to-one relation (a pattern on a missing field matches no row).',
+                $key,
+                $type,
+                $owner,
+                $metadata->getTableName(),
+            );
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @param ClassMetadata<object> $metadata
+     */
+    private function isJoinablePatternField(EntityManagerInterface $em, ClassMetadata $metadata, string $key): bool
+    {
+        if (!str_contains($key, '.')) {
+            return false;
+        }
+
+        [$association, $field] = explode('.', $key, 2);
+        if (!$metadata->hasAssociation($association) || !$metadata->isAssociationWithSingleJoinColumn($association)) {
+            return false;
+        }
+
+        return $em->getClassMetadata($metadata->getAssociationTargetClass($association))->hasField($field);
     }
 
     /**

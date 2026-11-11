@@ -266,6 +266,16 @@ class AnonymizeExtensionTest extends TestCase
         $this->loadConfigs($configs, new ContainerBuilder(new ParameterBag()));
     }
 
+    /** LQ-N-L2: a key with another letter case would load the class but select nothing. */
+    public function testMisCasedEntityClassFails(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('must be written exactly as the class name "' . Patient::class . '"');
+
+        $configs = [['entities' => [strtolower(Patient::class) => ['properties' => ['email' => ['type' => 'email']]]]]];
+        $this->loadConfigs($configs, new ContainerBuilder(new ParameterBag()));
+    }
+
     public function testNonArrayPatternsFail(): void
     {
         $this->expectException(InvalidArgumentException::class);

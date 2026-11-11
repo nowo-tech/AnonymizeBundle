@@ -119,6 +119,16 @@ configuration change, same defaults; attribute-based selection is unchanged.
   `AnonymizeService::getAnonymizableProperties($reflection, $metadata)`; both new parameters are optional).
 - Tests: XML-mapped host (no attributes, XML embeddable, `anonymized` column without the trait) run end to end.
 
+### Fixed
+
+- **A typo in a pattern key no longer skips personal data silently (audit LQ-N-L1).** The pre-flight checks now
+  require every include / exclude pattern key, entity- or property-level, from attributes or configuration, to be a
+  column of the entity's table (including to-one join columns and the discriminator) or `association.field` of an
+  owning to-one relation with a single join column. Before, an unknown key matched no row: an include pattern with a
+  typo left every row untouched and the run exited 0.
+- **A mis-cased class key in `nowo_anonymize.entities` fails the container build (audit LQ-N-L2)** instead of being
+  accepted by the case-insensitive `class_exists()` and then selecting nothing.
+
 ### Documentation
 
 - USAGE "Using it from a DDD / hexagonal application" shows both paths; CONFIGURATION documents `entities`.
