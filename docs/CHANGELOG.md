@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.6.0] - 2026-11-12](#160---2026-11-12)
 - [[1.5.0] - 2026-11-11](#150---2026-11-11)
 - [[1.4.1] - 2026-11-10](#141---2026-11-10)
 - [[1.4.0] - 2026-10-28](#140---2026-10-28)
@@ -102,6 +103,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-11-12
+
 Target **1.6.0** (minor). REQ-ARCH-001 rule 3: the anonymizer SPI and the five events can be used without Doctrine
 types. Standard hosts: nothing to change; the anonymized rows and columns are exactly those of 1.5 (equivalence tests).
 
@@ -146,7 +149,6 @@ types. Standard hosts: nothing to change; the anonymized rows and columns are ex
 ## [1.5.0] - 2026-11-11
 
 Entity and field selection from configuration (DDD hosts without attributes); pattern and anonymized columns resolved case-insensitively on PostgreSQL; a missing mapped column fails instead of keeping the value. See [UPGRADING](https://github.com/nowo-tech/AnonymizeBundle/blob/v1.5.0/docs/UPGRADING.md#to-150).
-
 
 ### Added
 
@@ -391,6 +393,7 @@ _(none)_
 
 ---
 
+[1.6.0]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.6.0
 [1.5.0]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.5.0
 [1.4.1]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.4.1
 [1.4.0]: https://github.com/nowo-tech/AnonymizeBundle/releases/tag/v1.4.0
