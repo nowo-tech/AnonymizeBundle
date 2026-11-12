@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\AnonymizeBundle\Tests\Integration\Kernel;
 
+use Composer\InstalledVersions;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
@@ -42,6 +43,13 @@ final class RowAnonymizerPortsKernelTest extends TestCase
 
     protected function setUp(): void
     {
+        // The CI matrix pins symfony/yaml (6.4) while symfony/console may resolve to 8.x: FrameworkBundle then cannot
+        // load yaml's LintCommand (incompatible signature) and no FrameworkBundle kernel boots. Not this bundle's code.
+        $yaml    = InstalledVersions::getVersion('symfony/yaml');
+        $console = InstalledVersions::getVersion('symfony/console');
+        if ($yaml !== null && $console !== null && version_compare($yaml, '7.0', '<') && version_compare($console, '8.0', '>=')) {
+            self::markTestSkipped(sprintf('symfony/yaml %s cannot be loaded with symfony/console %s.', $yaml, $console));
+        }
         $this->baseDir = sys_get_temp_dir() . '/nowo-anonymize-kernel-' . uniqid();
     }
 

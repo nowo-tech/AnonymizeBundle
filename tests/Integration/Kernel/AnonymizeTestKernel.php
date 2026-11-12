@@ -10,9 +10,6 @@ use Nowo\AnonymizeBundle\AnonymizeBundle;
 use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
-use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use Symfony\Component\DependencyInjection\Compiler\PassConfig;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
@@ -78,17 +75,5 @@ final class AnonymizeTestKernel extends Kernel
 
     protected function configureRoutes(RoutingConfigurator $routes): void
     {
-    }
-
-    protected function build(ContainerBuilder $container): void
-    {
-        // The CI matrix pins symfony/yaml (e.g. 6.4) while symfony/console floats (8.x): yaml's LintCommand then cannot
-        // be loaded, and lint:container reflects every service class. The host needs no YAML lint command here.
-        $container->addCompilerPass(new class implements CompilerPassInterface {
-            public function process(ContainerBuilder $container): void
-            {
-                $container->removeDefinition('console.command.yaml_lint');
-            }
-        }, PassConfig::TYPE_BEFORE_OPTIMIZATION, -1024);
     }
 }
