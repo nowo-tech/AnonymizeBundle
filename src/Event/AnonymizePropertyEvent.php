@@ -37,7 +37,8 @@ final class AnonymizePropertyEvent extends Event
      */
     private bool $skipAnonymization = false;
 
-    private AnonymizeTarget $target;
+    /** Null until first read for an event built with the deprecated constructor (built from the metadata then). */
+    private ?AnonymizeTarget $target = null;
 
     private string $propertyName;
 
@@ -61,7 +62,6 @@ final class AnonymizePropertyEvent extends Event
     {
         trigger_deprecation('nowo-tech/anonymize-bundle', '1.6', 'Constructing "%s" with Doctrine objects is deprecated, use "%s::create()" instead.', self::class, self::class);
 
-        $this->target       = AnonymizeTargetFactory::fromMetadata($metadata);
         $this->propertyName = $property->getName();
         $this->fieldName    = $property->getName();
         EventOrmState::attach($this, $entityManager, $metadata, null, $property);
@@ -155,7 +155,8 @@ final class AnonymizePropertyEvent extends Event
      */
     public function getTarget(): AnonymizeTarget
     {
-        return $this->target;
+        // @igor-ignore - Request-scoped Event DTO; built once from the metadata of a deprecated-constructor event.
+        return $this->target ??= AnonymizeTargetFactory::fromMetadata(EventOrmState::metadata($this) ?? throw new LogicException('This event carries neither a target nor class metadata.'));
     }
 
     /**
@@ -163,7 +164,7 @@ final class AnonymizePropertyEvent extends Event
      */
     public function getEntityClass(): string
     {
-        return $this->target->getEntityClass();
+        return $this->getTarget()->getEntityClass();
     }
 
     /**
@@ -171,7 +172,7 @@ final class AnonymizePropertyEvent extends Event
      */
     public function getTableName(): string
     {
-        return $this->target->getTableName();
+        return $this->getTarget()->getTableName();
     }
 
     /**

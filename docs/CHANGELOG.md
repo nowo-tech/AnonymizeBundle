@@ -121,6 +121,8 @@ types. Standard hosts: nothing to change; the anonymized rows and columns are ex
 - Tests: column-by-column equivalence of the deprecated and the new paths on fixture data (real and dry runs, row by
   row and by batch, service and property-listener paths); DDD host kernel (XML mapping, own `ManagerRegistry`, no
   DoctrineBundle) with `lint:container` for a service on the new port only, the deprecated port only and both.
+  Edge cases (audit MY-A-1): composite primary key (OFFSET paging), single-table inheritance child, `mark_anonymized`
+  with a service, include / exclude patterns dropping rows inside batch chunks.
 
 ### Deprecated
 

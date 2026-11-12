@@ -12,11 +12,18 @@ use function sprintf;
  * AnonymizeTarget. Same input, same output, so any difference in the database comes from the bundle.
  *
  * - `status = 'skip-service'`: the service returns no update (the row is not counted as updated).
- * - otherwise `email`, `full_name` and `contact_phone` become `anon:{table}:{column}:{id}`.
+ * - otherwise the table's columns ({@see COLUMNS} for `ddd_patient`, {@see COLUMNS_BY_TABLE} for the other fixture
+ *   tables) become `anon:{table}:{column}:{id}`; `{id}` joins every primary-key column with `/` (composite keys).
  */
 final class PatientRedaction
 {
     public const COLUMNS = ['email', 'full_name', 'contact_phone'];
+
+    /** Columns rewritten in the other fixture tables. */
+    public const COLUMNS_BY_TABLE = [
+        'eq_ticket' => ['subject', 'requester'],
+        'eq_party'  => ['name', 'email'],
+    ];
 
     /**
      * @param list<string> $identifierColumns
@@ -29,10 +36,10 @@ final class PatientRedaction
         if (($record['status'] ?? null) === 'skip-service') {
             return [];
         }
-        $id = (string) $record[$identifierColumns[0]];
+        $id = implode('/', array_map(static fn (string $column): string => (string) $record[$column], $identifierColumns));
 
         $updates = [];
-        foreach (self::COLUMNS as $column) {
+        foreach (self::COLUMNS_BY_TABLE[$table] ?? self::COLUMNS as $column) {
             $updates[$column] = sprintf('anon:%s:%s:%s', $table, $column, $id);
         }
 
