@@ -59,6 +59,10 @@ services:
         arguments:
             $fakerFactory: '@nowo_anonymize.faker_factory'
 
+    # 1.6.1 (REQ-RUNTIME-002): clears the AnonymizeService faker cache at the outermost console.terminate.
+    Nowo\AnonymizeBundle\EventListener\AnonymizeConsoleBoundaryListener:
+        public: false
+
     # Since 1.5: selection without attributes (nowo_anonymize.entities). Alias the interface to your own provider
     # to read it from elsewhere.
     Nowo\AnonymizeBundle\Metadata\ConfigAnonymizeMetadataProvider:

@@ -10,7 +10,7 @@
 
 ![FrankenPHP Friendly Worker Mode](docs/images/frankenphp-friendly.png)
 
-This bundle is **FrankenPHP worker mode friendly**.
+This bundle is **FrankenPHP worker mode friendly**, including **kernel reset false** (`FRANKENPHP_RESET_KERNEL=false`, also without `services_resetter`): see the [worker mode audit](docs/FRANKENPHP-WORKER-AUDIT.md).
 
 ## Table of contents
 

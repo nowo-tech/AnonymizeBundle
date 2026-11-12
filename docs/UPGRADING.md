@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 1.6.1](#to-161)
 - [To 1.6.0](#to-160)
   - [Standard host](#standard-host)
   - [DDD host](#ddd-host)
@@ -105,6 +106,23 @@
 - [Notes](#notes-17)
 
 ## Unreleased
+
+## To 1.6.1
+
+Target **1.6.1**, from **1.6.0**:
+
+```bash
+composer update nowo-tech/anonymize-bundle
+```
+
+Nothing to change: the same rows and columns are anonymized with the same values.
+
+- A `shuffle` faker with a `seed` returns the same value as in 1.6.0 for the same seed and pool, but no longer
+  reseeds PHP's global `mt_rand()`. If your own code relied on the global generator being reseeded at random after
+  a seeded shuffle (unlikely), call `mt_srand()` yourself.
+- The faker cache of `AnonymizeService` is now also cleared at the end of every outermost console command. If you run
+  `AnonymizeService` from your own long-lived process outside console commands, call `reset()` between units of work
+  (it is also tagged `kernel.reset`).
 
 ## To 1.6.0
 

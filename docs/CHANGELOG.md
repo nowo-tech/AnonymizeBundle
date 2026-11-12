@@ -103,6 +103,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Target **1.6.1** (patch). REQ-RUNTIME-002 (FrankenPHP worker mode with kernel reset false): the faker cache is cleared
+at the end of every console command, and a seeded `shuffle` faker no longer reseeds PHP's global `mt_rand()`. Same
+anonymized values. See [UPGRADING](UPGRADING.md#to-161).
+
+### Fixed
+
+- **`AnonymizeService` faker cache cleared at the outermost `console.terminate`.** It was cleared only by
+  `kernel.reset`, so a process that keeps one kernel without the services resetter (FrankenPHP worker mode with kernel
+  reset false, a scheduler or harness running commands in-process) kept the faker instances of one run for the next.
+  New `EventListener\AnonymizeConsoleBoundaryListener` (`@internal`, registered by the bundle) counts the command
+  nesting depth, so a command run from another command (`Application::doRun()`) never clears the outer run's fakers.
+  `reset()` / `kernel.reset` still clear it too.
+- **`ShuffleFaker` with a `seed` no longer touches the global `mt_rand()` state.** It called `mt_srand($seed)`, then
+  `mt_srand()` to "restore" it, which reseeded the process-wide generator at random: a caller's own `mt_srand()`
+  sequence (Faker's `seed()` uses it) was lost after every seeded shuffle. It now shuffles with a local `Random\Randomizer(new Random\Engine\Mt19937($seed))`,
+  which returns exactly the value 1.6.0 returned for the same seed and pool. Without a `seed`, `shuffle()` on the
+  global generator is used as before.
+
+### Tests
+
+- `ShuffleFakerSeedEquivalenceTest`: for 9 seeds (including 0, negative, above 2^32, `PHP_INT_MAX` and a numeric
+  string) × 5 pools (lists, string keys, one or two values) with and without `exclude`, the new output equals the 1.6.0
+  algorithm; six outputs recorded from 1.6.0 on PHP 8.2.35 are pinned; a seeded call leaves the caller's `mt_rand()`
+  sequence intact.
+- `AnonymizeConsoleBoundaryListenerTest`: the outermost terminate clears the cache, a nested command keeps it, the
+  depth never goes below zero.
+- `WorkerKeptAliveKernelTest`: one kernel, the services resetter never runs, `nowo:anonymize:run --force` 120 times
+  over two entity sets in alternation (3 and 4 rows, one excluded row each). Every run anonymizes exactly its own rows
+  and nothing of the other set, the seeded shuffle gives the same city on every run, the faker cache is empty after
+  every command, and memory grows less than 2 MiB after a 20-run warm-up.
+
+### Changed
+
+- CI: new Igor job (`composer igor`, REQ-CS-008), as in the sibling bundles.
+- Docs: `docs/FRANKENPHP-WORKER-AUDIT.md` re-audited for 1.6.1 (it still described v1.0.47 as "not applicable");
+  README states kernel reset false support.
+
 ## [1.6.0] - 2026-11-12
 
 Target **1.6.0** (minor). REQ-ARCH-001 rule 3: the anonymizer SPI and the five events can be used without Doctrine
