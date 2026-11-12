@@ -24,11 +24,15 @@ use function array_keys;
 use function gc_collect_cycles;
 use function ksort;
 use function memory_get_usage;
+use function restore_error_handler;
+use function set_error_handler;
 use function sprintf;
 use function str_contains;
 use function sys_get_temp_dir;
 use function uniqid;
 use function version_compare;
+
+use const E_USER_DEPRECATED;
 
 /**
  * 1.6.1, REQ-RUNTIME-002: one kept-alive kernel, the services resetter never runs (FrankenPHP worker mode with kernel
@@ -96,7 +100,32 @@ final class WorkerKeptAliveKernelTest extends TestCase
         (new Filesystem())->remove($this->baseDir);
     }
 
+    /**
+     * Deprecations of mixed Symfony component versions in the CI matrix (console `add()`, event-dispatcher hot-path
+     * events) are not this bundle's and are dropped; the bundle itself must trigger none (same policy as
+     * RowAnonymizerPortsKernelTest).
+     */
     public function testRunsInOneKernelWithoutResetterAnonymizeOnlyTheirOwnSetAndKeepMemoryFlat(): void
+    {
+        $deprecations = [];
+        // @phpstan-ignore frankenphp.worker.noSetErrorExceptionHandler (test only; restored in finally)
+        set_error_handler(static function (int $type, string $message) use (&$deprecations): bool {
+            if (str_contains($message, 'nowo-tech/anonymize-bundle')) {
+                $deprecations[] = $message;
+            }
+
+            return true;
+        }, E_USER_DEPRECATED);
+        try {
+            $this->runCommandsInOneKernel();
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertSame([], $deprecations);
+    }
+
+    private function runCommandsInOneKernel(): void
     {
         $this->kernel = new AnonymizeTestKernel($this->baseDir, static function (ContainerConfigurator $container): void {
             $container->extension('nowo_anonymize', [
