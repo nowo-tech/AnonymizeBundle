@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadata;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
-use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
+use Nowo\AnonymizeBundle\Metadata\AnonymizeTarget;
+use Nowo\AnonymizeBundle\Service\RowAnonymizerInterface;
 
 /**
  * Example: anonymize SmsNotification records via a custom service instead of AnonymizeProperty.
@@ -18,7 +17,7 @@ use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
-final class SmsNotificationAnonymizerService implements EntityAnonymizerServiceInterface
+final class SmsNotificationAnonymizerService implements RowAnonymizerInterface
 {
     public function __construct(
         private readonly FakerFactory $fakerFactory
@@ -36,12 +35,8 @@ final class SmsNotificationAnonymizerService implements EntityAnonymizerServiceI
     /**
      * {@inheritdoc}
      */
-    public function anonymize(
-        EntityManagerInterface $em,
-        ClassMetadata $metadata,
-        array $record,
-        bool $dryRun
-    ): array {
+    public function anonymizeRow(AnonymizeTarget $target, array $record, bool $dryRun): array
+    {
         $phoneFaker = $this->fakerFactory->create('phone', null);
         $textFaker  = $this->fakerFactory->create('text', null);
 
@@ -54,15 +49,11 @@ final class SmsNotificationAnonymizerService implements EntityAnonymizerServiceI
     /**
      * {@inheritdoc}
      */
-    public function anonymizeBatch(
-        EntityManagerInterface $em,
-        ClassMetadata $metadata,
-        array $records,
-        bool $dryRun
-    ): array {
+    public function anonymizeRows(AnonymizeTarget $target, array $records, bool $dryRun): array
+    {
         $result = [];
         foreach ($records as $index => $record) {
-            $updates = $this->anonymize($em, $metadata, $record, $dryRun);
+            $updates = $this->anonymizeRow($target, $record, $dryRun);
             if (!empty($updates)) {
                 $result[$index] = $updates;
             }

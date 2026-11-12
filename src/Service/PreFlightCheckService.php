@@ -364,7 +364,6 @@ final readonly class PreFlightCheckService
         }
 
         $joinedChild = $this->isJoinedInheritanceChild($metadata);
-        $columns     = [];
         if ($joinedChild) {
             // Only the child table is read: its primary key and the fields and join columns it declares itself
             $columns = $metadata->getIdentifierColumnNames();
@@ -377,7 +376,7 @@ final readonly class PreFlightCheckService
             $columns = $metadata->getColumnNames();
         }
         foreach ($metadata->getAssociationNames() as $association) {
-            if ($metadata->isAssociationWithSingleJoinColumn($association) && !($joinedChild && $metadata->isInheritedAssociation($association))) {
+            if ($metadata->isAssociationWithSingleJoinColumn($association) && (!$joinedChild || !$metadata->isInheritedAssociation($association))) {
                 $columns[] = $metadata->getSingleAssociationJoinColumnName($association);
             }
         }

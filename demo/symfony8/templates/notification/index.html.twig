@@ -23,7 +23,7 @@
 </div>
 <div class="alert alert-secondary" role="alert">
     <strong>🔧 Anonymization by service</strong><br>
-    <code>SmsNotification</code> uses <code>anonymizeService: SmsNotificationAnonymizerService::class</code>. Each SMS record is anonymized by that service (implementing <code>EntityAnonymizerServiceInterface</code>) instead of <code>AnonymizeProperty</code> attributes. <code>EmailNotification</code> keeps property-based anonymization.
+    <code>SmsNotification</code> uses <code>anonymizeService: SmsNotificationAnonymizerService::class</code>. Each SMS record is anonymized by that service (implementing the ORM-free <code>RowAnonymizerInterface</code>, since 1.6) instead of <code>AnonymizeProperty</code> attributes. <code>EmailNotification</code> keeps property-based anonymization.
 </div>
 
 <div class="card shadow-sm">

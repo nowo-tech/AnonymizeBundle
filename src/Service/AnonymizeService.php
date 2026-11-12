@@ -14,12 +14,15 @@ use Nowo\AnonymizeBundle\Attribute\AnonymizeProperty;
 use Nowo\AnonymizeBundle\Event\AfterEntityAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent;
 use Nowo\AnonymizeBundle\Event\BeforeEntityAnonymizeEvent;
+use Nowo\AnonymizeBundle\Event\Internal\EventOrmState;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use Nowo\AnonymizeBundle\Helper\AnonymizePropertyDiscovery;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Helper\OrmHelper;
 use Nowo\AnonymizeBundle\Helper\RowKey;
+use Nowo\AnonymizeBundle\Internal\AnonymizeTargetFactory;
+use Nowo\AnonymizeBundle\Internal\LegacyEntityAnonymizerAdapter;
 use Nowo\AnonymizeBundle\Metadata\AnonymizeMetadataProviderInterface;
 use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
 use Psr\Container\ContainerInterface;
@@ -38,6 +41,7 @@ use function is_bool;
 use function is_int;
 use function is_string;
 use function sprintf;
+use function trigger_deprecation;
 
 use const PHP_INT_MAX;
 
@@ -319,20 +323,30 @@ final class AnonymizeService implements ResetInterface
     /**
      * Resolves the entity-level anonymizer service from the plugin locator.
      *
-     * @throws RuntimeException When the service cannot be resolved or does not implement EntityAnonymizerServiceInterface
+     * Since 1.6 the result is always the row SPI: a service implementing {@see RowAnonymizerInterface} is used as is
+     * (also when it implements the deprecated interface too); a service implementing only the deprecated
+     * {@see EntityAnonymizerServiceInterface} is wrapped, unchanged, with this run's entity manager and metadata.
+     *
+     * @param ClassMetadata<object> $metadata
+     *
+     * @throws RuntimeException When the service cannot be resolved or implements neither interface
      */
-    private function resolveEntityAnonymizer(ContainerInterface $container, string $serviceId): EntityAnonymizerServiceInterface
+    private function resolveEntityAnonymizer(ContainerInterface $container, string $serviceId, EntityManagerInterface $em, ClassMetadata $metadata): RowAnonymizerInterface
     {
         try {
             $anonymizer = $container->get($serviceId);
         } catch (Throwable $e) {
             throw new RuntimeException(sprintf('Cannot get anonymizer service "%s": %s', $serviceId, $e->getMessage()), 0, $e);
         }
-        if (!$anonymizer instanceof EntityAnonymizerServiceInterface) {
-            throw new RuntimeException(sprintf('Service "%s" must implement %s.', $serviceId, EntityAnonymizerServiceInterface::class));
+        if ($anonymizer instanceof RowAnonymizerInterface) {
+            return $anonymizer;
         }
+        if (!$anonymizer instanceof EntityAnonymizerServiceInterface) {
+            throw new RuntimeException(sprintf('Service "%s" must implement %s (or the deprecated %s).', $serviceId, RowAnonymizerInterface::class, EntityAnonymizerServiceInterface::class));
+        }
+        trigger_deprecation('nowo-tech/anonymize-bundle', '1.6', 'The anonymizer service "%s" implements only "%s"; implement "%s" instead (removed in 2.0).', $serviceId, EntityAnonymizerServiceInterface::class, RowAnonymizerInterface::class);
 
-        return $anonymizer;
+        return new LegacyEntityAnonymizerAdapter($anonymizer, $em, $metadata);
     }
 
     /**
@@ -365,21 +379,7 @@ final class AnonymizeService implements ResetInterface
      */
     private function getDiscriminatorForTruncate(ClassMetadata $metadata): array
     {
-        $inheritanceType = $metadata->inheritanceType;
-        if ($inheritanceType === ClassMetadata::INHERITANCE_TYPE_NONE) {
-            return ['column' => null, 'value' => null];
-        }
-        $discValue = $metadata->discriminatorValue ?? null;
-        if ($discValue === null) {
-            return ['column' => null, 'value' => null];
-        }
-        // DiscriminatorColumnMapping object (ORM 3) or legacy array mapping (ORM 2)
-        $columnName = OrmHelper::resolveDiscriminatorColumnName($metadata->discriminatorColumn ?? null);
-        if ($columnName === null || $columnName === '') {
-            return ['column' => null, 'value' => null];
-        }
-
-        return ['column' => $columnName, 'value' => (string) $discValue];
+        return AnonymizeTargetFactory::discriminator($metadata);
     }
 
     /**
@@ -456,15 +456,14 @@ final class AnonymizeService implements ResetInterface
         // nested and nothing would reach the database, while the run reports the rows as updated.
         $nestingLevel = $connection->getTransactionNestingLevel();
 
+        // ORM-free view of the class for the row SPI and the events (since 1.6), built once per class
+        $target = AnonymizeTargetFactory::fromMetadata($metadata);
+
         // Dispatch BeforeEntityAnonymizeEvent (once per entity class, before any record is read)
         if ($this->eventDispatcher instanceof EventDispatcherInterface) {
-            $this->eventDispatcher->dispatch(new BeforeEntityAnonymizeEvent(
-                $em,
-                $metadata,
-                $reflection,
-                $totalRecords,
-                $dryRun,
-            ));
+            $beforeEvent = BeforeEntityAnonymizeEvent::create($target, $totalRecords, $dryRun);
+            EventOrmState::attach($beforeEvent, $em, $metadata, $reflection);
+            $this->eventDispatcher->dispatch($beforeEvent);
             $this->assertTransactionNestingLevel($connection, $nestingLevel, $metadata, 'a BeforeEntityAnonymizeEvent listener');
         }
 
@@ -493,10 +492,10 @@ final class AnonymizeService implements ResetInterface
                 $useBatch = false;
                 if ($entityAttribute instanceof Anonymize && $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '' && $this->container instanceof ContainerInterface) {
                     // Resolved once per entity, on the first chunk (no lookup when the table is empty)
-                    $anonymizer ??= $this->resolveEntityAnonymizer($this->container, $entityAttribute->anonymizeService);
+                    $anonymizer ??= $this->resolveEntityAnonymizer($this->container, $entityAttribute->anonymizeService, $em, $metadata);
                     if ($anonymizer->supportsBatch()) {
                         $useBatch   = true;
-                        $allUpdates = $anonymizer->anonymizeBatch($em, $metadata, $records, $dryRun);
+                        $allUpdates = $anonymizer->anonymizeRows($target, $records, $dryRun);
                         $processed += count($records);
                         foreach ($allUpdates as $index => $updates) {
                             if (empty($updates)) {
@@ -529,11 +528,11 @@ final class AnonymizeService implements ResetInterface
                         }
 
                         // When anonymizeService is set, delegate to the service instead of property-based anonymization
-                        if ($anonymizer instanceof EntityAnonymizerServiceInterface) {
+                        if ($anonymizer instanceof RowAnonymizerInterface) {
                             if ($isEntityExcluded) {
                                 continue;
                             }
-                            $updates = $anonymizer->anonymize($em, $metadata, $record, $dryRun);
+                            $updates = $anonymizer->anonymizeRow($target, $record, $dryRun);
                             if ($updates !== []) {
                                 if (!$dryRun) {
                                     $this->updateRecord($connection, $tableName, $record, $updates, $metadata);
@@ -644,16 +643,17 @@ final class AnonymizeService implements ResetInterface
 
                             // Dispatch AnonymizePropertyEvent to allow listeners to modify or skip anonymization
                             if ($this->eventDispatcher instanceof EventDispatcherInterface) {
-                                $event = new AnonymizePropertyEvent(
-                                    $em,
-                                    $metadata,
-                                    $property,
+                                $event = AnonymizePropertyEvent::create(
+                                    $target,
+                                    $property->getName(),
                                     $columnName,
                                     $originalValue,
                                     $anonymizedValue,
                                     $record,
                                     $dryRun,
+                                    $propertyName,
                                 );
+                                EventOrmState::attach($event, $em, $metadata, null, $property);
                                 $this->eventDispatcher->dispatch($event);
 
                                 // Check if listener requested to skip anonymization
@@ -717,15 +717,8 @@ final class AnonymizeService implements ResetInterface
 
         // Dispatch AfterEntityAnonymizeEvent
         if ($this->eventDispatcher instanceof EventDispatcherInterface) {
-            $event = new AfterEntityAnonymizeEvent(
-                $em,
-                $metadata,
-                $reflection,
-                $processed,
-                $updated,
-                $propertyStats,
-                $dryRun,
-            );
+            $event = AfterEntityAnonymizeEvent::create($target, $processed, $updated, $propertyStats, $dryRun);
+            EventOrmState::attach($event, $em, $metadata, $reflection);
             $this->eventDispatcher->dispatch($event);
         }
 
@@ -827,7 +820,7 @@ final class AnonymizeService implements ResetInterface
             // Convert to string for quote() method
             $where[] = sprintf(
                 '%s = %s',
-                DbalHelper::quoteIdentifier($connection, (string) $idKey),
+                DbalHelper::quoteIdentifier($connection, $idKey),
                 $connection->quote((string) ($record[$idKey] ?? '')),
             );
         }

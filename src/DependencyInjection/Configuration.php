@@ -102,7 +102,7 @@ final class Configuration implements ConfigurationInterface
                             ->scalarNode('connection')->defaultNull()->info('Doctrine connection name (null: every processed connection).')->end()
                             ->variableNode('include_patterns')->defaultValue([])->info('Same format as #[Anonymize(includePatterns: ...)].')->end()
                             ->variableNode('exclude_patterns')->defaultValue([])->info('Same format as #[Anonymize(excludePatterns: ...)].')->end()
-                            ->scalarNode('anonymize_service')->defaultNull()->info('Service id implementing EntityAnonymizerServiceInterface (replaces the properties).')->end()
+                            ->scalarNode('anonymize_service')->defaultNull()->info('Service id implementing RowAnonymizerInterface (or the deprecated EntityAnonymizerServiceInterface); replaces the properties.')->end()
                             ->booleanNode('truncate')->defaultFalse()->end()
                             ->integerNode('truncate_order')->defaultNull()->end()
                             ->booleanNode('mark_anonymized')

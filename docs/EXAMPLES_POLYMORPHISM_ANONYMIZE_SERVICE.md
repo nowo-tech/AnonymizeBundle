@@ -120,11 +120,10 @@ The service receives the **raw record** (keys = column names). You return a map 
 // src/Service/StoredDocumentAnonymizerService.php
 namespace App\Service;
 
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadata;
-use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
+use Nowo\AnonymizeBundle\Metadata\AnonymizeTarget;
+use Nowo\AnonymizeBundle\Service\RowAnonymizerInterface;
 
-class StoredDocumentAnonymizerService implements EntityAnonymizerServiceInterface
+class StoredDocumentAnonymizerService implements RowAnonymizerInterface
 {
     public function __construct(
         private AwsSourceBucketClient $sourceBucket,
@@ -132,12 +131,18 @@ class StoredDocumentAnonymizerService implements EntityAnonymizerServiceInterfac
         private string $destPrefix = 'anonymized/',
     ) {}
 
-    public function anonymize(
-        EntityManagerInterface $em,
-        ClassMetadata $metadata,
-        array $record,
-        bool $dryRun
-    ): array {
+    public function supportsBatch(): bool
+    {
+        return false;
+    }
+
+    public function anonymizeRows(AnonymizeTarget $target, array $records, bool $dryRun): array
+    {
+        return [];
+    }
+
+    public function anonymizeRow(AnonymizeTarget $target, array $record, bool $dryRun): array
+    {
         $currentPath = $record['storage_path'] ?? null;
         if ($currentPath === null || $currentPath === '') {
             return [];
@@ -191,7 +196,7 @@ services:
       $destPrefix: 'anonymized/%env(APP_ENV)%/'
 ```
 
-No need to tag it; the bundle only needs the service to exist and to implement `EntityAnonymizerServiceInterface`.
+No need to tag it; the bundle only needs the service to exist and to implement `RowAnonymizerInterface` (since 1.6; the deprecated `EntityAnonymizerServiceInterface` still works until 2.0).
 
 ### 4. Flow summary
 
@@ -211,6 +216,6 @@ If you prefer not to copy the real file (e.g. for size or privacy), generate a p
 
 ## See also
 
-- [USAGE.md](USAGE.md#anonymizing-via-a-custom-service-anonymizeservice) — `anonymizeService` and `EntityAnonymizerServiceInterface`.
+- [USAGE.md](USAGE.md#anonymizing-via-a-custom-service-anonymizeservice) — `anonymizeService` and `RowAnonymizerInterface`.
 - [USAGE.md](USAGE.md#polymorphic-entities-sticti) — Truncation and query filtering for polymorphic entities (STI/CTI).
 - Demo entities: `SmsNotification` + `SmsNotificationAnonymizerService` in the bundle demo (`demo/symfony8`).

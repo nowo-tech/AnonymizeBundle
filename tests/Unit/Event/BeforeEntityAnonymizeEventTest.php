@@ -7,6 +7,7 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Event;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Nowo\AnonymizeBundle\Event\BeforeEntityAnonymizeEvent;
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
@@ -16,6 +17,7 @@ use ReflectionClass;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
+#[IgnoreDeprecations]
 class BeforeEntityAnonymizeEventTest extends TestCase
 {
     public function testGetEntityManager(): void

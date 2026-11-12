@@ -24,6 +24,7 @@ use Nowo\AnonymizeBundle\Tests\Integration\Sqlite\Entity\E2eCompany;
 use Nowo\AnonymizeBundle\Tests\Integration\Sqlite\Entity\E2eCustomer;
 use Nowo\AnonymizeBundle\Tests\Integration\Sqlite\Entity\E2eDocument;
 use Nowo\AnonymizeBundle\Tests\Integration\Sqlite\Entity\E2eTempDocument;
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -94,6 +95,7 @@ final class AnonymizeCommandSqliteTest extends TestCase
         $this->removeDirectory($this->tempDir);
     }
 
+    #[IgnoreDeprecations]
     public function testForcedRunAnonymizesMatchingRowsTruncatesStiChildAndUsesCustomService(): void
     {
         [$exitCode, $out] = $this->runCommand(['--force' => true, '--debug' => true], verbosity: OutputInterface::VERBOSITY_VERBOSE);
@@ -145,6 +147,7 @@ final class AnonymizeCommandSqliteTest extends TestCase
     }
 
     /** Chunks of one row: keyset pagination must visit every row exactly once (also with the STI discriminator WHERE). */
+    #[IgnoreDeprecations]
     public function testBatchSizeOfOneStillAnonymizesEveryRow(): void
     {
         [$exitCode, $out] = $this->runCommand(['--force' => true, '--batch-size' => '1']);
@@ -159,6 +162,7 @@ final class AnonymizeCommandSqliteTest extends TestCase
         self::assertSame(['document', 'document'], $this->em->getConnection()->fetchFirstColumn('SELECT kind FROM e2e_document ORDER BY id'));
     }
 
+    #[IgnoreDeprecations]
     public function testDryRunWithCustomLocaleCountsWithoutWriting(): void
     {
         [$exitCode, $out] = $this->runCommand(['--dry-run' => true, '--locale' => 'es_ES', '--no-progress' => true]);
@@ -191,6 +195,7 @@ final class AnonymizeCommandSqliteTest extends TestCase
         self::assertSame(2, substr_count($out, 'Skipping entity:'));
     }
 
+    #[IgnoreDeprecations]
     public function testInteractiveRunConfirmsEntityAndProcessesIt(): void
     {
         [$exitCode, $out] = $this->runCommand(

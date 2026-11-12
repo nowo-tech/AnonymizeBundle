@@ -3,6 +3,10 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 1.6.0](#to-160)
+  - [Standard host](#standard-host)
+  - [DDD host](#ddd-host)
+  - [Removal in 2.0](#removal-in-20)
 - [To 1.5.0](#to-150)
 - [To 1.4.1](#to-141)
 - [To 1.4.0](#to-140)
@@ -101,6 +105,53 @@
 - [Notes](#notes-17)
 
 ## Unreleased
+
+## To 1.6.0
+
+Target **1.6.0**, from **1.5.x**:
+
+```bash
+composer update nowo-tech/anonymize-bundle
+```
+
+Nothing to change: the same rows and columns are anonymized, with the same guards (dry run, environment protection,
+`--force`, transactions, batch size). Code on the deprecated API keeps working until 2.0 and reports deprecations.
+
+### Standard host
+
+- **Entity anonymizer services**: replace `EntityAnonymizerServiceInterface` with `RowAnonymizerInterface`.
+
+  | 1.5 (deprecated) | 1.6 |
+  | --- | --- |
+  | `anonymize(EntityManagerInterface $em, ClassMetadata $metadata, array $record, bool $dryRun)` | `anonymizeRow(AnonymizeTarget $target, array $record, bool $dryRun)` |
+  | `anonymizeBatch(EntityManagerInterface $em, ClassMetadata $metadata, array $records, bool $dryRun)` | `anonymizeRows(AnonymizeTarget $target, array $records, bool $dryRun)` |
+  | `$metadata->getTableName()` / `getName()` / `getIdentifierColumnNames()` / `getColumnName($field)` | `$target->getTableName()` / `getEntityClass()` / `getIdentifierColumns()` / `getColumnName($field)` |
+  | `$em->getConnection()` | inject your own `Connection` (do not open or commit transactions on the bundle's connection) |
+
+  The method names differ, so one class may implement both interfaces during the migration; the bundle then calls
+  `RowAnonymizerInterface`.
+- **Event listeners**: replace the deprecated getters.
+
+  | Deprecated (removed in 2.0) | Use |
+  | --- | --- |
+  | `BeforeAnonymizeEvent` / `AfterAnonymizeEvent::getEntityManager()` | `getEntityManagerName()`, or inject the connection |
+  | `...EntityAnonymizeEvent::getMetadata()->getName()` / `getTableName()` | `getEntityClass()` / `getTableName()` / `getTarget()` |
+  | `...EntityAnonymizeEvent::getReflection()` | `getEntityClass()` |
+  | `AnonymizePropertyEvent::getProperty()->getName()` | `getPropertyName()` (`getFieldName()` for `embed.field`) |
+  | `AnonymizePropertyEvent::getMetadata()` / `getEntityManager()` | `getTarget()` / `getTableName()` |
+  | `new XxxEvent($em, $metadata, ...)` in tests | `XxxEvent::create(...)` |
+
+  On an event built with `create()` the deprecated getters throw a `LogicException` (there is no entity manager).
+
+### DDD host
+
+Implement `RowAnonymizerInterface` and read the events through the scalar accessors: no Doctrine type is needed in
+your infrastructure adapters (see USAGE, "Using it from a DDD / hexagonal application").
+
+### Removal in 2.0
+
+`EntityAnonymizerServiceInterface`, the Doctrine-typed event constructors and getters listed above. In 2.0 the event
+constructors take the arguments of `create()`.
 
 ## To 1.5.0
 

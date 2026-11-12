@@ -524,47 +524,40 @@ php bin/console doctrine:fixtures:load
 
 For some entities you may want to **delegate anonymization to a service** instead of using `AnonymizeProperty` attributes (e.g. polymorphic subtypes with different logic, external APIs, or complex rules). Use the `anonymizeService` option on `#[Anonymize]`:
 
-1. Implement `Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface`. The interface has three methods:
+1. Implement `Nowo\AnonymizeBundle\Service\RowAnonymizerInterface` (since 1.6; `EntityAnonymizerServiceInterface`, which takes the entity manager and the class metadata, is deprecated and removed in 2.0). The interface has three methods:
 
-   - **`supportsBatch(): bool`** — Return `true` if the service can anonymize a chunk of records in one go (then the bundle will call `anonymizeBatch()` per chunk); return `false` to work record-by-record (then the bundle will call `anonymize()` for each record).
-   - **`anonymize(...): array`** — Anonymize a single record; return a map `column => new value` for columns to update.
-   - **`anonymizeBatch(...): array`** — When `supportsBatch()` is true, the bundle calls this once per chunk with all records in the chunk; return a map `record index => (column => new value)`.
+   - **`supportsBatch(): bool`** — Return `true` if the service can anonymize a chunk of records in one go (then the bundle will call `anonymizeRows()` per chunk); return `false` to work record-by-record (then the bundle will call `anonymizeRow()` for each record).
+   - **`anonymizeRow(AnonymizeTarget $target, array $record, bool $dryRun): array`** — Anonymize a single record; return a map `column => new value` for columns to update.
+   - **`anonymizeRows(AnonymizeTarget $target, array $records, bool $dryRun): array`** — When `supportsBatch()` is true, the bundle calls this once per chunk with all records in the chunk; return a map `record index => (column => new value)`.
+
+   `AnonymizeTarget` names the class, the table, the primary-key columns and the field => column map, so no Doctrine type is needed.
 
 ```php
 namespace App\Service;
 
-use Doctrine\ORM\EntityManagerInterface;
-use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
-use Doctrine\ORM\Mapping\ClassMetadata;
+use Nowo\AnonymizeBundle\Metadata\AnonymizeTarget;
+use Nowo\AnonymizeBundle\Service\RowAnonymizerInterface;
 
-class SmsNotificationAnonymizerService implements EntityAnonymizerServiceInterface
+class SmsNotificationAnonymizerService implements RowAnonymizerInterface
 {
     public function supportsBatch(): bool
     {
         return false; // record-by-record
     }
 
-    public function anonymize(
-        EntityManagerInterface $em,
-        ClassMetadata $metadata,
-        array $record,
-        bool $dryRun
-    ): array {
+    public function anonymizeRow(AnonymizeTarget $target, array $record, bool $dryRun): array
+    {
         return [
             'recipient' => '+34' . random_int(600000000, 699999999),
             'message'   => 'Anonymized message ' . ($record['id'] ?? ''),
         ];
     }
 
-    public function anonymizeBatch(
-        EntityManagerInterface $em,
-        ClassMetadata $metadata,
-        array $records,
-        bool $dryRun
-    ): array {
+    public function anonymizeRows(AnonymizeTarget $target, array $records, bool $dryRun): array
+    {
         $result = [];
         foreach ($records as $index => $record) {
-            $result[$index] = $this->anonymize($em, $metadata, $record, $dryRun);
+            $result[$index] = $this->anonymizeRow($target, $record, $dryRun);
         }
         return $result;
     }
@@ -584,9 +577,9 @@ class SmsNotification extends AbstractNotification
 ```
 
 - When `anonymizeService` is set, **you do not need any `#[AnonymizeProperty]`** on that entity; the command will process it and call the service for each record (or per chunk when `supportsBatch()` is true). Property-level attributes, if present, are ignored; the service's return value is the only source of updates.
-- **Record-by-record vs batch**: If `supportsBatch()` returns `false`, the bundle calls `anonymize($record)` for each record. If it returns `true`, it calls `anonymizeBatch($records)` once per chunk (of size `batch_size`), so the service can optimize bulk work (e.g. one API call for many records).
-- Entity-level `includePatterns` / `excludePatterns` still apply: excluded records are skipped and the service is not called.
-- The bundle resolves the service by id (FQCN or alias) from its **plugin locator** — a service locator built at compile time with every service implementing `EntityAnonymizerServiceInterface` (or tagged `nowo_anonymize.entity_anonymizer`). The service **does not need to be public** (since the release after 1.2.4; older releases required `public: true`). See the demo: `SmsNotification` and `App\Service\SmsNotificationAnonymizerService` in `demo/symfony8`.
+- **Record-by-record vs batch**: If `supportsBatch()` returns `false`, the bundle calls `anonymizeRow($record)` for each record. If it returns `true`, it calls `anonymizeRows($records)` once per chunk (of size `batch_size`), so the service can optimize bulk work (e.g. one API call for many records).
+- Entity-level `includePatterns` / `excludePatterns` still apply: record by record, excluded records are skipped and the service is not called; by batch, the service receives the whole chunk and the bundle drops the updates of excluded records.
+- The bundle resolves the service by id (FQCN or alias) from its **plugin locator** — a service locator built at compile time with every service implementing `RowAnonymizerInterface` or the deprecated `EntityAnonymizerServiceInterface` (or tagged `nowo_anonymize.entity_anonymizer`). A service implementing both is called through `RowAnonymizerInterface`. The service **does not need to be public** (since the release after 1.2.4; older releases required `public: true`). See the demo: `SmsNotification` and `App\Service\SmsNotificationAnonymizerService` in `demo/symfony8`.
 
 **Example: polymorphic entity and migrating file paths (e.g. AWS S3)**  
 If your entity stores **file paths** (e.g. S3 keys) and anonymization should **copy the file from one bucket to another** and update the path in the DB, use a custom service that reads the path from the record, performs the copy (or uploads a placeholder), and returns the new path. See [EXAMPLES_POLYMORPHISM_ANONYMIZE_SERVICE.md](EXAMPLES_POLYMORPHISM_ANONYMIZE_SERVICE.md) for a full step-by-step example (polymorphism + service + flow).
@@ -754,7 +747,7 @@ class CustomFaker implements FakerInterface
 The bundle dispatches events that you can listen to for advanced customization:
 
 - **AnonymizePropertyEvent**: Dispatched before anonymizing each property
-  - Access via: `$event->getOriginalValue()`, `$event->getRecord()`, `$event->getEntityManager()`
+  - Access via: `$event->getOriginalValue()`, `$event->getRecord()`, `$event->getTableName()`, `$event->getPropertyName()`, `$event->getColumnName()`
   - Modify via: `$event->setAnonymizedValue($newValue)`
   - Skip via: `$event->setSkipAnonymization(true)`
 
@@ -780,8 +773,9 @@ class CustomAnonymizeListener
         // Access full record
         $record = $event->getRecord();
         
-        // Access EntityManager for related entities
-        $entityManager = $event->getEntityManager();
+        // Table and column of the value (since 1.6; no Doctrine type needed)
+        $table  = $event->getTableName();
+        $column = $event->getColumnName();
         
         // Modify the anonymized value
         $event->setAnonymizedValue('custom_value');
@@ -1133,7 +1127,7 @@ Custom fakers (`type: 'service'`) and entity anonymizers (`#[Anonymize(anonymize
 | Service | Included | Visibility |
 |---------|----------|------------|
 | Implements `Nowo\AnonymizeBundle\Faker\FakerInterface` | Always | Public or private |
-| Implements `Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface` | Always | Public or private |
+| Implements `Nowo\AnonymizeBundle\Service\RowAnonymizerInterface` (since 1.6) or the deprecated `EntityAnonymizerServiceInterface` | Always | Public or private |
 | Tagged `nowo_anonymize.faker` or `nowo_anonymize.entity_anonymizer` | Always | Public or private |
 | Only a public `generate()` / `__invoke()` method (duck typing, **deprecated** since 1.3) | When the service is **public** | Public only |
 | Any other service | Never | — |
@@ -1481,8 +1475,12 @@ attribute, trait or bundle type in your domain.
 | Embedded value objects | `#[ORM\Embedded]` + attributes on the embeddable | Doctrine path `embed.field` (XML `<embedded>` is read from the metadata) |
 | `anonymized` flag | `AnonymizableTrait` | `mark_anonymized: true` and an `anonymized` column in your XML mapping |
 | Custom provider | — | alias `AnonymizeMetadataProviderInterface` |
+| Custom anonymizer service | `RowAnonymizerInterface` (or the deprecated `EntityAnonymizerServiceInterface`) | `RowAnonymizerInterface` (since 1.6: no Doctrine type) |
+| Events | scalar accessors (the deprecated Doctrine getters still work until 2.0) | scalar accessors and `AnonymizeTarget` only (since 1.6) |
 
-**Standard path (unchanged)**
+#### Standard Symfony host
+
+Unchanged and zero-config: attributes on the mapped entity.
 
 ```php
 #[ORM\Entity]
@@ -1497,7 +1495,9 @@ class Patient
 }
 ```
 
-**DDD path: plain domain class, XML mapping, configuration**
+#### DDD / hexagonal host
+
+Plain domain class, XML mapping, configuration:
 
 ```php
 // src/Domain/Patient/Patient.php: no attribute, no trait
@@ -1554,39 +1554,64 @@ exist, so a codebase can move class by class. `nowo:anonymize:info`, `nowo:anony
 ### Keeping domain logic out of the attributes
 
 When an aggregate needs consistent fake data across several columns, put that rule in an infrastructure service
-that implements `Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface` and reference it with
-`#[Anonymize(anonymizeService: ...)]` or `anonymize_service:` in the configuration. It receives the raw row
-(column => value) and returns the columns to update, so no entity is hydrated:
+and reference it with `#[Anonymize(anonymizeService: ...)]` or `anonymize_service:` in the configuration. It receives
+the raw row (column => value) and returns the columns to update, so no entity is hydrated.
+
+#### Standard Symfony host
+
+Implement `Nowo\AnonymizeBundle\Service\RowAnonymizerInterface` (since 1.6). A service written for 1.5 on
+`EntityAnonymizerServiceInterface` keeps working unchanged until 2.0: the bundle calls it exactly as before, with the
+entity manager and the class metadata, and reports a deprecation once per class and run.
+
+#### DDD / hexagonal host
+
+`RowAnonymizerInterface` takes no Doctrine type: the bundle passes an `AnonymizeTarget` value object (entity class,
+table, primary-key columns, field => column map, discriminator) next to the raw row. Inject your own connection if the
+rule needs the database.
 
 ```php
-final readonly class CustomerAnonymizer implements EntityAnonymizerServiceInterface
+use Nowo\AnonymizeBundle\Metadata\AnonymizeTarget;
+use Nowo\AnonymizeBundle\Service\RowAnonymizerInterface;
+
+final readonly class CustomerAnonymizer implements RowAnonymizerInterface
 {
     public function supportsBatch(): bool { return false; }
 
-    public function anonymize(EntityManagerInterface $em, ClassMetadata $metadata, array $record, bool $dryRun): array
+    public function anonymizeRow(AnonymizeTarget $target, array $record, bool $dryRun): array
     {
-        $name = 'Customer ' . $record['id'];
+        $id = $record[$target->getIdentifierColumns()[0]];
 
-        return ['display_name' => $name, 'email' => sprintf('customer%s@example.invalid', $record['id'])];
+        return [
+            $target->getColumnName('displayName') => 'Customer ' . $id,
+            $target->getColumnName('email')       => sprintf('customer%s@example.invalid', $id),
+        ];
     }
 
-    public function anonymizeBatch(EntityManagerInterface $em, ClassMetadata $metadata, array $records, bool $dryRun): array
+    public function anonymizeRows(AnonymizeTarget $target, array $records, bool $dryRun): array
     {
         return [];
     }
 }
 ```
 
+The rows read, the chunks, the include / exclude patterns, the UPDATE statements, the per-chunk transactions, the
+dry run and the batch size are the same for both interfaces; a service that implements both is called through
+`RowAnonymizerInterface`.
+
 Custom value generators implement `Faker\FakerInterface`; value-level overrides go through `AnonymizePropertyEvent`
 (change the value or skip the column). Per-class hooks: `BeforeEntityAnonymizeEvent` (row count, dry run) and
-`AfterEntityAnonymizeEvent` (processed / updated counters). Keep these classes in your infrastructure layer.
+`AfterEntityAnonymizeEvent` (processed / updated counters). Since 1.6 a listener needs no Doctrine type:
+`getEntityClass()`, `getTableName()`, `getTarget()` on the per-class and per-property events, `getPropertyName()`,
+`getFieldName()` and `getColumnName()` on `AnonymizePropertyEvent`, `getEntityManagerName()` on
+`BeforeAnonymizeEvent` / `AfterAnonymizeEvent`. Keep these classes in your infrastructure layer.
 
 ### Known limitations
 
 - Configured entries are keyed by the exact class (no inheritance lookup), like `#[Anonymize]`, which is read on the
   class itself.
-- The events still expose `EntityManagerInterface` / `ClassMetadata` / `ReflectionProperty` (infrastructure tool);
-  `getEntityClass()` and `getColumnName()` give the scalar values.
+- Until 2.0 the events keep their deprecated Doctrine getters (`getEntityManager()`, `getMetadata()`,
+  `getReflection()`, `getProperty()`) and constructors for standard hosts; build events in your tests with the
+  `create()` factories.
 - `BeforeEntityAnonymizeEvent` is informational: to leave a class out, remove it from the selection or narrow it with
   include / exclude patterns.
 
