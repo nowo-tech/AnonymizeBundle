@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Faker;
 
 use InvalidArgumentException;
+use Random\Engine\Mt19937;
+use Random\Randomizer;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
@@ -54,18 +56,13 @@ final class ShuffleFaker implements FakerInterface
             }
         }
 
-        // Set seed for reproducible shuffling
         if ($seed !== null) {
-            mt_srand((int) $seed);
-        }
-
-        // Shuffle array
-        $shuffled = $values;
-        shuffle($shuffled);
-
-        // Reset seed if it was set
-        if ($seed !== null) {
-            mt_srand(); // Reset to random seed
+            // Reproducible shuffle on a local Mt19937 engine (1.6.1): the same output as the former
+            // mt_srand($seed) + shuffle(), without reseeding the process-wide mt_rand() state (REQ-RUNTIME-002).
+            $shuffled = (new Randomizer(new Mt19937((int) $seed)))->shuffleArray($values);
+        } else {
+            $shuffled = $values;
+            shuffle($shuffled);
         }
 
         // Return first value from shuffled array
