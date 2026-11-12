@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 1.6.2](#to-162)
 - [To 1.6.1](#to-161)
 - [To 1.6.0](#to-160)
   - [Standard host](#standard-host)
@@ -106,6 +107,19 @@
 - [Notes](#notes-17)
 
 ## Unreleased
+
+## To 1.6.2
+
+Target **1.6.2**, from **1.6.1**: patch, no configuration change.
+
+```bash
+composer update nowo-tech/anonymize-bundle
+```
+
+- The faker cache is now cleared when the outermost console run starts and when it ends, even when another console
+  listener throws or stops propagation; a nested run never clears the outer run's fakers.
+  `AnonymizeConsoleBoundaryListener` (`@internal`) is not autoconfigured any more, now also listens to `console.error`,
+  and its methods take the console event. New internal `Worker\UnitOfWorkFrames` (not a service).
 
 ## To 1.6.1
 
