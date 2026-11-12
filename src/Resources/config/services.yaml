@@ -59,9 +59,13 @@ services:
         arguments:
             $fakerFactory: '@nowo_anonymize.faker_factory'
 
-    # 1.6.1 (REQ-RUNTIME-002): clears the AnonymizeService faker cache at the outermost console.terminate.
+    # 1.6.1 (REQ-RUNTIME-002): clears the AnonymizeService faker cache at the outermost console run. autoconfigure off
+    # (1.6.2): it implements ResetInterface, but its console bookkeeping must survive kernel.reset.
     Nowo\AnonymizeBundle\EventListener\AnonymizeConsoleBoundaryListener:
         public: false
+        autoconfigure: false
+        tags:
+            - { name: kernel.event_subscriber }
 
     # Since 1.5: selection without attributes (nowo_anonymize.entities). Alias the interface to your own provider
     # to read it from elsewhere.

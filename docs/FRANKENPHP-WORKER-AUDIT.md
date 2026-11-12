@@ -7,6 +7,7 @@
 | Audit date | 2026-09-24; re-audited 2026-11-12 |
 | Method | Manual review of `src/` + remediation of W-01 / W-02 / W-03 (2026-09-24) and W-05 / W-06 (1.6.1); one-kernel worker test without the services resetter; Igor in CI |
 | Remediation (2026-11-12, 1.6.1) | W-05 closed: seeded `ShuffleFaker` uses a local `Random\Randomizer(new Mt19937($seed))` (same output as 1.6.0). W-06 closed: `AnonymizeConsoleBoundaryListener` clears the `AnonymizeService` faker cache at the outermost `console.terminate`. Worker test: `tests/Integration/Kernel/WorkerKeptAliveKernelTest.php` |
+| Remediation (2026-11-12, 1.6.2, audits NM / NL L1) | Console bookkeeping in `Worker\UnitOfWorkFrames` at `PHP_INT_MAX` (frames keyed by Command + input, failing frames healed at the next command); the outermost run also clears the faker cache at its start |
 | **Verdict** | ✅ **Safe with kernel reset false** (scenario B, and A) — the bundle runs from console commands (normally `dev` / `test` only); in a process that keeps one kernel without the services resetter, every command starts with an empty faker cache, no global RNG state is changed, and memory stays flat over many runs. Residual: W-04 (timeout wiring, Low). |
 
 ## Table of contents
@@ -49,7 +50,7 @@ A bundle that is safe under **B** is safe under **A** and under classic mode / P
 | Area | Status | Notes |
 |------|--------|-------|
 | Mutable state in shared services | ✅ | Locale overrides use a **local** generator (W-01 closed); `AnonymizeService::$fakerCache` bounded (one faker per type) and cleared at the outermost `console.terminate` (W-06, 1.6.1) and by `kernel.reset` |
-| Boundary events (no `kernel.reset` needed) | ✅ | `EventListener\AnonymizeConsoleBoundaryListener` (1.6.1): `console.command` (4096) increments a nesting depth, `console.terminate` (-4096) decrements it and clears the faker cache when it is back to 0 |
+| Boundary events (no `kernel.reset` needed) | ✅ | `EventListener\AnonymizeConsoleBoundaryListener` (1.6.1; frames since 1.6.2): `console.command` / `console.error` / `console.terminate` at `PHP_INT_MAX` keep one frame per console run (Command + input); the outermost run clears the faker cache at its start and at its `console.terminate` (-4096) |
 | Static properties / `static` locals | ✅ | Helpers only have pure static methods. Since 1.6 the `@internal` `Event\Internal\EventOrmState` keeps a static `WeakMap` keyed by event objects (the Doctrine objects behind the deprecated event getters): entries are collected with their event, so nothing survives the run |
 | `ResetInterface` / `kernel.reset` coverage | ✅ | `AnonymizeStatistics` implements `ResetInterface` (W-03 closed; autoconfigure → `kernel.reset`) |
 | Request / user / locale captured in services | ✅ | Faker locale from `%nowo_anonymize.locale%`, not the request |
@@ -68,7 +69,7 @@ A bundle that is safe under **B** is safe under **A** and under classic mode / P
 | Service | Shared | Mutable state | Scenario A | Scenario B |
 |---------|--------|---------------|------------|------------|
 | `AnonymizeService` | yes | `$fakerCache` (faker instances per type, no row data) | ✅ reset | ✅ cleared at the outermost `console.terminate` (1.6.1) |
-| `AnonymizeConsoleBoundaryListener` (1.6.1, `@internal`) | yes | `$depth` (console nesting depth, no request data) | ✅ | ✅ |
+| `AnonymizeConsoleBoundaryListener` (1.6.1, `@internal`) | yes | a private `Worker\UnitOfWorkFrames` since 1.6.2 (console frames bounded by the nesting depth, per-event verdicts in a `WeakMap`; no request data; `reset()` exists, not tagged `kernel.reset`) | ✅ | ✅ |
 | `FakerFactory` | yes | none (`readonly`) | ✅ | ✅ |
 | `AnonymizeStatistics` | yes | accumulators; **`ResetInterface`** | ✅ | ✅ under A; under B empty unless injected across requests without reset — prefer `new` or rely on A |
 | `AnonymizationHistoryService` | yes | none after construction | ✅ | ✅ |
@@ -115,6 +116,13 @@ A bundle that is safe under **B** is safe under **A** and under classic mode / P
   resetter the faker instances of one run were reused by the next command in the same process.
 - **Fix:** `src/EventListener/AnonymizeConsoleBoundaryListener.php` clears it at the outermost `console.terminate`
   (nesting depth counter, so a command run from another command keeps the outer run's fakers).
+- **Audit NM / NL L1 (1.6.2, Low):** the depth counter (`++` at 4096, `--` at -4096) leaked when a console listener in
+  between threw or stopped propagation, so the outermost command of a long-lived process stopped clearing the cache;
+  reverse case: a nested command whose `console.command` was stopped above 4096 cleared the outer run's fakers mid-run.
+  Now `Worker\UnitOfWorkFrames` fed at `PHP_INT_MAX` (audits NL2-v / NL2-v2 design: frames keyed by Command + input, a
+  terminate without a frame never removes another run's frame, a frame left failing by a throwing error listener is
+  dropped at the next command), and the outermost run also clears at its START. Tests: `AnonymizeConsoleBoundaryListenerTest`
+  (real console `Application`), `UnitOfWorkFramesTest`.
 
 ## Open residuals (Low)
 
