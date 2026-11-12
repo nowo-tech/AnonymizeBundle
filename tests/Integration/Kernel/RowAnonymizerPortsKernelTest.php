@@ -15,7 +15,6 @@ use Nowo\AnonymizeBundle\Tests\Fixtures\RowAnonymizer\RowPatientAnonymizer;
 use Nowo\AnonymizeBundle\Tests\Integration\Ddd\Domain\ContactDetails;
 use Nowo\AnonymizeBundle\Tests\Integration\Ddd\Domain\Patient;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -25,6 +24,8 @@ use Symfony\Component\Filesystem\Filesystem;
 use function count;
 use function sprintf;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\inline_service;
+
+use const E_USER_DEPRECATED;
 
 /**
  * 1.6, DDD host kernel: an XML-mapped plain-PHP domain selected through `nowo_anonymize.entities`, the host's own
@@ -65,14 +66,15 @@ final class RowAnonymizerPortsKernelTest extends TestCase
     }
 
     /**
-     * No #[IgnoreDeprecations]: a host on the new port boots, lints and runs without any deprecation.
+     * A host on the new port boots, lints and runs without any deprecation from this bundle (deprecations of mixed
+     * Symfony component versions in the CI matrix are not this bundle's).
      *
      * @param class-string $anonymizerClass
      */
     #[DataProvider('newPorts')]
     public function testNewPortLintsAndRunsWithoutDeprecations(string $anonymizerClass, bool $batch): void
     {
-        $this->assertLintAndRun($anonymizerClass, $batch);
+        self::assertSame([], $this->bundleDeprecations(fn () => $this->assertLintAndRun($anonymizerClass, $batch)));
     }
 
     /**
@@ -85,10 +87,41 @@ final class RowAnonymizerPortsKernelTest extends TestCase
     }
 
     #[DataProvider('batchModes')]
-    #[IgnoreDeprecations]
     public function testDeprecatedPortOnlyLintsAndRunsTheSame(bool $batch): void
     {
-        $this->assertLintAndRun(LegacyPatientAnonymizer::class, $batch);
+        $deprecations = $this->bundleDeprecations(fn () => $this->assertLintAndRun(LegacyPatientAnonymizer::class, $batch));
+
+        self::assertNotSame([], $deprecations);
+        foreach ($deprecations as $deprecation) {
+            self::assertStringContainsString('The anonymizer service "app.patient_anonymizer" implements only', $deprecation);
+        }
+    }
+
+    /**
+     * Runs $test and returns the deprecations this bundle triggered meanwhile (others are dropped).
+     *
+     * @param callable(): void $test
+     *
+     * @return list<string>
+     */
+    private function bundleDeprecations(callable $test): array
+    {
+        $deprecations = [];
+        // @phpstan-ignore frankenphp.worker.noSetErrorExceptionHandler (test only; restored in finally)
+        set_error_handler(static function (int $type, string $message) use (&$deprecations): bool {
+            if (str_contains($message, 'nowo-tech/anonymize-bundle')) {
+                $deprecations[] = $message;
+            }
+
+            return true;
+        }, E_USER_DEPRECATED);
+        try {
+            $test();
+        } finally {
+            restore_error_handler();
+        }
+
+        return $deprecations;
     }
 
     /**
