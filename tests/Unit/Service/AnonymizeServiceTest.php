@@ -31,6 +31,7 @@ use Nowo\AnonymizeBundle\Service\AnonymizeStatistics;
 use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
@@ -765,6 +766,8 @@ class AnonymizeServiceTest extends TestCase
             ->willReturn('notifications');
         $metadata->method('getFieldNames')
             ->willReturn(['id', 'message']);
+        $metadata->method('getColumnName')
+            ->willReturnArgument(0);
         $metadata->method('getIdentifierColumnNames')
             ->willReturn(['id']);
         $metadata->inheritanceType     = ClassMetadata::INHERITANCE_TYPE_SINGLE_TABLE;
@@ -1300,6 +1303,7 @@ class AnonymizeServiceTest extends TestCase
     /**
      * BeforeEntityAnonymizeEvent is dispatched once per entity class, after counting and before reading any record.
      */
+    #[IgnoreDeprecations]
     public function testAnonymizeEntityDispatchesBeforeEntityAnonymizeEventFirst(): void
     {
         $em              = $this->createMock(EntityManagerInterface::class);
@@ -2669,6 +2673,7 @@ class AnonymizeServiceTest extends TestCase
     /**
      * Test that anonymizeEntity delegates to anonymizeService when entity has anonymizeService and container is set.
      */
+    #[IgnoreDeprecations]
     public function testAnonymizeEntityDelegatesToAnonymizeServiceWhenSet(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
@@ -2742,6 +2747,7 @@ class AnonymizeServiceTest extends TestCase
     /**
      * Test that anonymizeEntity with anonymizeService in dry-run does not execute UPDATE.
      */
+    #[IgnoreDeprecations]
     public function testAnonymizeEntityDelegatesToAnonymizeServiceDryRun(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
@@ -2828,6 +2834,7 @@ class AnonymizeServiceTest extends TestCase
     /**
      * Test that anonymizeEntity skips record when entity is excluded by patterns but anonymizeService is set (no update).
      */
+    #[IgnoreDeprecations]
     public function testAnonymizeEntityWithAnonymizeServiceSkipsExcludedRecord(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);
@@ -2872,6 +2879,7 @@ class AnonymizeServiceTest extends TestCase
     /**
      * Test that when anonymizeService supportsBatch() returns true, anonymizeBatch() is called per chunk and anonymize() is not.
      */
+    #[IgnoreDeprecations]
     public function testAnonymizeEntityUsesAnonymizeBatchWhenSupportsBatch(): void
     {
         $em         = $this->createMock(EntityManagerInterface::class);

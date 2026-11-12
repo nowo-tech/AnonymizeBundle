@@ -7,6 +7,7 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Event;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent;
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
@@ -17,6 +18,7 @@ use ReflectionProperty;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech
  */
+#[IgnoreDeprecations]
 class AnonymizePropertyEventTest extends TestCase
 {
     /** @var EntityManagerInterface&MockObject */

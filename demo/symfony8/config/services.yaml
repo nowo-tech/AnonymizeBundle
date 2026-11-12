@@ -12,7 +12,7 @@ services:
 
 # The anonymize bundle (and its nowo_anonymize.faker_factory service) is loaded in dev/test only.
 # The anonymizer can stay private: the bundle resolves it from its plugin locator
-# (every service implementing EntityAnonymizerServiceInterface).
+# (every service implementing RowAnonymizerInterface or the deprecated EntityAnonymizerServiceInterface).
 when@dev: &anonymizer_services
     services:
         App\Service\SmsNotificationAnonymizerService:

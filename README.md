@@ -68,7 +68,7 @@ Looking for: **database anonymization**, **test data generator**, **GDPR complia
 - ✅ Database export: Export databases to files with optional compression
 - ✅ Configurable output directories: Customize where statistics and exports are saved
 - ✅ Table truncation: Empty tables before anonymization with configurable execution order (for polymorphic entities, only rows of that discriminator are deleted)
-- ✅ Custom entity anonymizer: Delegate anonymization to a service per entity via `anonymizeService` (`EntityAnonymizerServiceInterface`)
+- ✅ Custom entity anonymizer: Delegate anonymization to a service per entity via `anonymizeService` (`RowAnonymizerInterface`, ORM-free since 1.6)
 - ✅ **FrankenPHP** — Compatible with FrankenPHP (including worker mode); demos run with FrankenPHP and Caddy; export subprocesses use hard timeouts so workers are not left hung (see [DEMO-FRANKENPHP.md](docs/DEMO-FRANKENPHP.md#timeouts-req-runtime-001))
 
 ## Installation
@@ -120,7 +120,7 @@ php bin/console nowo:anonymize:run
 
 You can limit to specific connections (`--connection`) or entities (`--entity`, e.g. to test one entity or its `anonymizeService`). See [COMMANDS.md](docs/COMMANDS.md) for all options.
 
-For detailed usage examples, see [USAGE.md](docs/USAGE.md).
+For detailed usage examples, see [USAGE.md](docs/USAGE.md). Standard Symfony hosts (attributes) and DDD / hexagonal hosts (configuration, XML mapping, ORM-free `RowAnonymizerInterface` and event accessors since 1.6) are both covered in [Using it from a DDD / hexagonal application](docs/USAGE.md#using-it-from-a-ddd--hexagonal-application).
 
 ## Requirements
 

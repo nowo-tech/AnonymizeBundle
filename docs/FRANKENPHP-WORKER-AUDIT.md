@@ -45,7 +45,7 @@ A bundle that is safe under **B** is safe under **A** and under classic mode / P
 | Area | Status | Notes |
 |------|--------|-------|
 | Mutable state in shared services | ✅ | Locale overrides use a **local** generator (W-01 closed); `AnonymizeService::$fakerCache` bounded |
-| Static properties / `static` locals | ✅ | None; helpers only have pure static methods |
+| Static properties / `static` locals | ✅ | Helpers only have pure static methods. Since 1.6 the `@internal` `Event\Internal\EventOrmState` keeps a static `WeakMap` keyed by event objects (the Doctrine objects behind the deprecated event getters): entries are collected with their event, so nothing survives the run |
 | `ResetInterface` / `kernel.reset` coverage | ✅ | `AnonymizeStatistics` implements `ResetInterface` (W-03 closed; autoconfigure → `kernel.reset`) |
 | Request / user / locale captured in services | ✅ | Faker locale from `%nowo_anonymize.locale%`, not the request |
 | Superglobals / env mutation | ✅ | `$_SERVER` / `getenv()` at call time only |
@@ -72,6 +72,7 @@ A bundle that is safe under **B** is safe under **A** and under classic mode / P
 | `ShuffleFaker` | yes | none; brief `mt_srand` | ✅ (W-05) | ✅ (W-05) |
 | Other fakers | yes | constructor generator or none | ✅ | ✅ |
 | Console commands | lazy | CLI only | N/A | N/A |
+| `LegacyEntityAnonymizerAdapter` (1.6, `@internal`) | no | built per class and per run around a deprecated-SPI anonymizer; never a container service | N/A | N/A |
 
 ## Closed findings (2026-09-24)
 

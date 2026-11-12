@@ -8,6 +8,7 @@ use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Faker\FakerInterface;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
+use Nowo\AnonymizeBundle\Service\RowAnonymizerInterface;
 use ReflectionClass;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
@@ -25,7 +26,7 @@ use function is_string;
  * come from entity attributes. Instead of injecting the whole service container, they receive
  * a service locator restricted to:
  *
- * - every service whose class implements {@see FakerInterface} or {@see EntityAnonymizerServiceInterface}
+ * - every service whose class implements {@see FakerInterface}, {@see RowAnonymizerInterface} or the deprecated {@see EntityAnonymizerServiceInterface}
  *   (any visibility; private services work too);
  * - every service tagged {@see self::FAKER_TAG} or {@see self::ANONYMIZER_TAG};
  * - for backward compatibility, every public service whose class exposes a public `generate()`
@@ -42,7 +43,7 @@ final class AnonymizeServiceLocatorPass implements CompilerPassInterface
     /** Tag for custom faker services that do not implement FakerInterface (generate()/__invoke duck typing). */
     public const FAKER_TAG = 'nowo_anonymize.faker';
 
-    /** Tag for entity anonymizer services (implementing EntityAnonymizerServiceInterface is enough). */
+    /** Tag for entity anonymizer services (implementing RowAnonymizerInterface or EntityAnonymizerServiceInterface is enough). */
     public const ANONYMIZER_TAG = 'nowo_anonymize.entity_anonymizer';
 
     /** Service ids whose `$container` argument receives the plugin locator. */
@@ -108,7 +109,7 @@ final class AnonymizeServiceLocatorPass implements CompilerPassInterface
         if (!$reflection instanceof ReflectionClass) {
             return false;
         }
-        if ($reflection->implementsInterface(FakerInterface::class) || $reflection->implementsInterface(EntityAnonymizerServiceInterface::class)) {
+        if ($reflection->implementsInterface(FakerInterface::class) || $reflection->implementsInterface(RowAnonymizerInterface::class) || $reflection->implementsInterface(EntityAnonymizerServiceInterface::class)) {
             return true;
         }
 

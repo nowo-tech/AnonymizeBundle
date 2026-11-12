@@ -10,6 +10,7 @@ use Exception;
 use InvalidArgumentException;
 use Nowo\AnonymizeBundle\Event\AfterAnonymizeEvent;
 use Nowo\AnonymizeBundle\Event\BeforeAnonymizeEvent;
+use Nowo\AnonymizeBundle\Event\Internal\EventOrmState;
 use Nowo\AnonymizeBundle\Helper\DbalHelper;
 use Nowo\AnonymizeBundle\Internal\PrivateDirectory;
 use Nowo\AnonymizeBundle\Service\AnonymizationHistoryService;
@@ -466,7 +467,8 @@ final class AnonymizeCommand extends AbstractCommand
         $eventDispatcher = $this->eventDispatcher;
         if ($eventDispatcher instanceof EventDispatcherInterface) {
             $entityClasses = array_keys($entities);
-            $event         = new BeforeAnonymizeEvent($em, $entityClasses, $dryRun);
+            $event         = BeforeAnonymizeEvent::create($entityClasses, $dryRun, $managerName);
+            EventOrmState::attach($event, $em);
             $eventDispatcher->dispatch($event);
             // Allow listeners to modify entity classes
             $entities = array_intersect_key($entities, array_flip($event->getEntityClasses()));
@@ -715,7 +717,8 @@ final class AnonymizeCommand extends AbstractCommand
         // Dispatch AfterAnonymizeEvent
         if ($this->eventDispatcher instanceof EventDispatcherInterface) {
             $entityClasses = array_keys($entities);
-            $event         = new AfterAnonymizeEvent($em, $entityClasses, $totalProcessed, $totalUpdated, $dryRun);
+            $event         = AfterAnonymizeEvent::create($entityClasses, $totalProcessed, $totalUpdated, $dryRun, $managerName);
+            EventOrmState::attach($event, $em);
             $this->eventDispatcher->dispatch($event);
         }
 

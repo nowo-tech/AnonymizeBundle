@@ -29,6 +29,7 @@ use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use RuntimeException;
@@ -351,6 +352,7 @@ class AnonymizeCommandTest extends TestCase
     /**
      * Test that when entity has anonymizeService and no #[AnonymizeProperty], command shows "Using custom anonymize service" and runs anonymization (lines 560-561, 600-601, 608-609).
      */
+    #[IgnoreDeprecations]
     public function testExecuteWhenEntityUsesCustomAnonymizeServiceAndNoPropertiesShowsMessageAndProcesses(): void
     {
         eval('
@@ -429,6 +431,7 @@ class AnonymizeCommandTest extends TestCase
     /**
      * Test that with --no-progress the command processes entities without creating a progress bar (covers noProgress branch lines 643-645, 675-677).
      */
+    #[IgnoreDeprecations]
     public function testExecuteWithNoProgressProcessesWithoutProgressBar(): void
     {
         eval('

@@ -67,7 +67,7 @@ use function is_string;
  * EVENTS:
  * The bundle dispatches events that you can listen to:
  * - AnonymizePropertyEvent: Dispatched before anonymizing each property
- *   - Access via: $event->getOriginalValue(), $event->getRecord(), $event->getEntityManager()
+ *   - Access via: $event->getOriginalValue(), $event->getRecord(), $event->getTarget() (class, table, columns)
  *   - Modify via: $event->setAnonymizedValue($newValue)
  *   - Skip via: $event->setSkipAnonymization(true)
  * - BeforeAnonymizeEvent: Dispatched before starting anonymization

@@ -102,6 +102,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Target **1.6.0** (minor). REQ-ARCH-001 rule 3: the anonymizer SPI and the five events can be used without Doctrine
+types. Standard hosts: nothing to change; the anonymized rows and columns are exactly those of 1.5 (equivalence tests).
+
+### Added
+
+- **`Nowo\AnonymizeBundle\Service\RowAnonymizerInterface`**, the ORM-free twin of `EntityAnonymizerServiceInterface`:
+  `supportsBatch()`, `anonymizeRow(AnonymizeTarget $target, array $record, bool $dryRun)` and
+  `anonymizeRows(AnonymizeTarget $target, array $records, bool $dryRun)`. Selected as before
+  (`#[Anonymize(anonymizeService: ...)]` / `anonymize_service:`) and collected by the plugin locator. A service that
+  implements both interfaces is called through the new one.
+- **`Nowo\AnonymizeBundle\Metadata\AnonymizeTarget`** value object: entity class, table, primary-key columns,
+  field => column map and discriminator; names only, no connection parameters.
+- Event accessors without Doctrine types: `getTableName()` and `getTarget()` on `BeforeEntityAnonymizeEvent`,
+  `AfterEntityAnonymizeEvent` and `AnonymizePropertyEvent` (plus `getEntityClass()` and `getFieldName()` on the
+  latter), `getEntityManagerName()` on `BeforeAnonymizeEvent` / `AfterAnonymizeEvent`, and a static `create()`
+  factory on every event.
+- Tests: column-by-column equivalence of the deprecated and the new paths on fixture data (real and dry runs, row by
+  row and by batch, service and property-listener paths); DDD host kernel (XML mapping, own `ManagerRegistry`, no
+  DoctrineBundle) with `lint:container` for a service on the new port only, the deprecated port only and both.
+  Edge cases (audit MY-A-1): composite primary key (OFFSET paging), single-table inheritance child, `mark_anonymized`
+  with a service, include / exclude patterns dropping rows inside batch chunks.
+
+### Deprecated
+
+- `EntityAnonymizerServiceInterface` (removed in 2.0): implement `RowAnonymizerInterface`. A service that implements
+  only the old interface still works unchanged and triggers a deprecation once per class and run.
+- On the events: the constructors that take Doctrine objects (use `create()`), `getEntityManager()`, `getMetadata()`,
+  `getReflection()` (entity events) and `getProperty()` (`AnonymizePropertyEvent`). They keep returning the run's
+  objects until 2.0.
+
+### Security
+
+- The events no longer hold the entity manager in a property: a VarDumper dump, `var_export()`, `print_r()` or an
+  `(array)` cast of an event does not show the connection parameters (password included). The deprecated getters read
+  it from an internal `WeakMap`.
+
+### Unchanged (data-destructive tool)
+
+- Dry run, environment guards, `--force` confirmation, per-chunk transactions and their nesting-level checks, batch
+  sizes and keyset pagination, include / exclude patterns and the `anonymized` flag rules are unchanged.
+
 ## [1.5.0] - 2026-11-11
 
 Entity and field selection from configuration (DDD hosts without attributes); pattern and anonymized columns resolved case-insensitively on PostgreSQL; a missing mapped column fails instead of keeping the value. See [UPGRADING](https://github.com/nowo-tech/AnonymizeBundle/blob/v1.5.0/docs/UPGRADING.md#to-150).

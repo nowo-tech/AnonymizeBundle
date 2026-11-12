@@ -24,6 +24,7 @@ use Nowo\AnonymizeBundle\Tests\Integration\Sqlite\Entity\E2eCompany;
 use Nowo\AnonymizeBundle\Tests\Integration\Sqlite\Entity\E2eCustomer;
 use Nowo\AnonymizeBundle\Tests\Integration\Sqlite\Entity\E2eTempDocument;
 use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
@@ -93,6 +94,7 @@ final class AnonymizeServiceSqliteTest extends TestCase
         self::assertFalse($this->em->getConnection()->isTransactionActive());
     }
 
+    #[IgnoreDeprecations]
     public function testBatchAnonymizerSkipsEmptyUnknownAndExcludedRows(): void
     {
         $anonymizer = new class implements EntityAnonymizerServiceInterface {
@@ -184,6 +186,7 @@ final class AnonymizeServiceSqliteTest extends TestCase
         self::assertSame([], $method->invoke($service, [['a' => '1'], 'not-a-set']));
     }
 
+    #[IgnoreDeprecations]
     public function testBeforeEntityEventRunsBeforeRowsAreWritten(): void
     {
         $dispatcher = new EventDispatcher();
@@ -243,6 +246,7 @@ final class AnonymizeServiceSqliteTest extends TestCase
         self::assertSame(0, $after);
     }
 
+    #[IgnoreDeprecations]
     public function testBeforeEntityListenerLeavingATransactionOpenAbortsTheRun(): void
     {
         $dispatcher = new EventDispatcher();
@@ -264,6 +268,7 @@ final class AnonymizeServiceSqliteTest extends TestCase
         self::assertSame(['first', 'second', 'third'], $this->messages());
     }
 
+    #[IgnoreDeprecations]
     public function testAnonymizerLeavingATransactionOpenFailsInsteadOfReportingUpdates(): void
     {
         $anonymizer = new class implements EntityAnonymizerServiceInterface {

@@ -6,6 +6,7 @@ namespace Nowo\AnonymizeBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Nowo\AnonymizeBundle\Metadata\AnonymizeTarget;
 
 /**
  * Interface for custom entity anonymization via a service.
@@ -16,6 +17,11 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  *
  * The service can work record-by-record (anonymize) or by batch (anonymizeBatch).
  * When supportsBatch() returns true, the bundle calls anonymizeBatch() per chunk; otherwise it calls anonymize() for each record.
+ *
+ * @deprecated since 1.6.0, implement the ORM-free {@see RowAnonymizerInterface} instead (same selection, same rows,
+ *             same writes; it receives an {@see AnonymizeTarget} instead of the entity
+ *             manager and the class metadata). Removed in 2.0. A service that implements both is called through
+ *             RowAnonymizerInterface.
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2025 Nowo.tech

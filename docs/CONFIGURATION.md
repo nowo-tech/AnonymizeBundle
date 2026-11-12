@@ -245,7 +245,7 @@ XML or with attributes). Attributes win: a class with `#[Anonymize]` uses the at
 | --- | --- | --- |
 | `connection` | `null` | Doctrine connection name (`null`: every processed connection). |
 | `include_patterns` / `exclude_patterns` | `[]` | Entity-level patterns, same format as the attribute. |
-| `anonymize_service` | `null` | Service id implementing `EntityAnonymizerServiceInterface`. |
+| `anonymize_service` | `null` | Service id implementing `RowAnonymizerInterface` (since 1.6; or the deprecated `EntityAnonymizerServiceInterface`). |
 | `truncate` / `truncate_order` | `false` / `null` | As on the attribute. |
 | `mark_anonymized` | `false` | Set the table's `anonymized` column (when it exists) on every anonymized row, as `AnonymizableTrait` does; `nowo:anonymize:generate-column-migration` covers these entities too. |
 | `properties.<field>.type` | required | Faker type (see [Available Faker Types](#available-faker-types)). |
@@ -376,7 +376,7 @@ Defined in the `#[Anonymize]` attribute, these patterns determine if a **record*
 #[Anonymize(
     includePatterns: ['column' => 'pattern'],
     excludePatterns: ['column' => 'pattern'],
-    anonymizeService: null,    // Optional: service id implementing EntityAnonymizerServiceInterface
+    anonymizeService: null,    // Optional: service id implementing RowAnonymizerInterface (or the deprecated EntityAnonymizerServiceInterface)
     truncate: false,          // Optional: empty table before anonymization
     truncate_order: null      // Optional: order for truncation (lower = earlier)
 )]
@@ -386,7 +386,7 @@ Defined in the `#[Anonymize]` attribute, these patterns determine if a **record*
 - If patterns match → Record is a candidate (properties are evaluated, or service is called if `anonymizeService` is set)
 - If patterns don't match → **Entire record is skipped** (nothing is anonymized)
 - If no patterns defined → All records are candidates
-- If `anonymizeService` is set → The given service is called for each record instead of applying `AnonymizeProperty`; the service must implement `EntityAnonymizerServiceInterface` and return `[ column => value ]` for updates. See [USAGE.md](USAGE.md#anonymizing-via-a-custom-service-anonymizeservice).
+- If `anonymizeService` is set → The given service is called for each record instead of applying `AnonymizeProperty`; the service must implement `RowAnonymizerInterface` (since 1.6; the deprecated `EntityAnonymizerServiceInterface` still works until 2.0) and return `[ column => value ]` for updates. See [USAGE.md](USAGE.md#anonymizing-via-a-custom-service-anonymizeservice).
 - If `truncate: true` → Table (or for polymorphic entities only rows with this entity's discriminator) is emptied **BEFORE** anonymization (executed first). For Doctrine STI/CTI, only rows matching the entity's discriminator value are deleted; for normal entities the whole table is truncated.
 - If `truncate_order` is set → Tables are truncated in order (lower numbers = earlier)
 - If `truncate_order` is null → Tables are truncated alphabetically after explicit orders
@@ -500,13 +500,19 @@ The bundle provides a comprehensive event system for extensibility. You can list
 
 ### Available Events
 
+Since 1.6 every event can be read without Doctrine types (REQ-ARCH-001 rule 3). The Doctrine getters and the
+constructors that take Doctrine objects are deprecated and removed in 2.0; in tests, build events with the static
+`create()` factories. The entity manager behind the deprecated getters is not stored on the event object, so dumping
+an event does not reveal the connection parameters.
+
 #### BeforeAnonymizeEvent
 
 Dispatched once before anonymization starts, before any entities are processed.
 
 **Properties**:
-- `getEntityManager()`: Returns the EntityManagerInterface
 - `getEntityClasses()`: Returns array of entity class names to be anonymized
+- `getEntityManagerName()`: Returns the Doctrine entity manager (connection) name of the run (since 1.6)
+- `getEntityManager()`: **Deprecated since 1.6** (removed in 2.0), use `getEntityManagerName()` or inject your own connection
 - `setEntityClasses(array $entityClasses)`: Modify which entities will be processed
 - `isDryRun()`: Returns whether this is a dry run
 
@@ -515,8 +521,9 @@ Dispatched once before anonymization starts, before any entities are processed.
 Dispatched once after anonymization completes, after all entities have been processed.
 
 **Properties**:
-- `getEntityManager()`: Returns the EntityManagerInterface
 - `getEntityClasses()`: Returns array of entity class names that were anonymized
+- `getEntityManagerName()`: Returns the Doctrine entity manager (connection) name of the run (since 1.6)
+- `getEntityManager()`: **Deprecated since 1.6** (removed in 2.0)
 - `getTotalProcessed()`: Returns total number of records processed
 - `getTotalUpdated()`: Returns total number of records updated
 - `isDryRun()`: Returns whether this was a dry run
@@ -533,10 +540,10 @@ services): since 1.4.1 the run fails with a `RuntimeException` when the connecti
 because the per-chunk commits would only be nested and nothing would be written.
 
 **Properties**:
-- `getEntityManager()`: Returns the EntityManagerInterface
-- `getMetadata()`: Returns the ClassMetadata
-- `getReflection()`: Returns the ReflectionClass
 - `getEntityClass()`: Returns the entity class name
+- `getTableName()`: Returns the table name (since 1.6)
+- `getTarget()`: Returns the ORM-free `AnonymizeTarget` (class, table, key columns, field => column map; since 1.6)
+- `getEntityManager()`, `getMetadata()`, `getReflection()`: **Deprecated since 1.6** (removed in 2.0)
 - `getTotalRecords()`: Returns total number of records for this entity
 - `isDryRun()`: Returns whether this is a dry run
 
@@ -545,10 +552,10 @@ because the per-chunk commits would only be nested and nothing would be written.
 Dispatched once per entity class after processing its records.
 
 **Properties**:
-- `getEntityManager()`: Returns the EntityManagerInterface
-- `getMetadata()`: Returns the ClassMetadata
-- `getReflection()`: Returns the ReflectionClass
 - `getEntityClass()`: Returns the entity class name
+- `getTableName()`: Returns the table name (since 1.6)
+- `getTarget()`: Returns the ORM-free `AnonymizeTarget` (since 1.6)
+- `getEntityManager()`, `getMetadata()`, `getReflection()`: **Deprecated since 1.6** (removed in 2.0)
 - `getProcessed()`: Returns number of records processed
 - `getUpdated()`: Returns number of records updated
 - `getPropertyStats()`: Returns statistics per property (property name => count)
@@ -559,10 +566,10 @@ Dispatched once per entity class after processing its records.
 Dispatched before anonymizing each property, allowing listeners to modify the anonymized value or skip anonymization.
 
 **Properties**:
-- `getEntityManager()`: Returns the EntityManagerInterface
-- `getMetadata()`: Returns the ClassMetadata
-- `getProperty()`: Returns the ReflectionProperty
+- `getEntityClass()`, `getTableName()`, `getTarget()`: The class, the table and the ORM-free `AnonymizeTarget` (since 1.6)
 - `getPropertyName()`: Returns the property name
+- `getFieldName()`: Returns the mapped field name, `embed.field` for an embedded value object (since 1.6)
+- `getEntityManager()`, `getMetadata()`, `getProperty()`: **Deprecated since 1.6** (removed in 2.0)
 - `getColumnName()`: Returns the database column name
 - `getOriginalValue()`: Returns the original value before anonymization
 - `getAnonymizedValue()`: Returns the anonymized value
