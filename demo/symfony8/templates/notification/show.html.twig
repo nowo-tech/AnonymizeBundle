@@ -5,38 +5,30 @@
 {% block body %}
 {% include '_breadcrumbs.html.twig' with {entityName: 'Notifications (Polymorphic STI)', connection: connection, currentPage: 'Show', routePrefix: 'notification', listRoute: 'notification_index'} only %}
 
-<div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h2 class="mb-0">Notification #{{ notification.id }} <span class="badge bg-{{ notification_type == 'email' ? 'primary' : 'secondary' }}">{{ notification_type }}</span></h2>
-        <a href="{{ path('notification_index', {connection: connection}) }}" class="btn btn-outline-primary">Back to list</a>
+<div class="nowo-ui-card">
+    <div class="nowo-ui-card__header">
+        <h2 class="nowo-ui-card__title">Notification #{{ notification.id }} <span class="nowo-ui-badge nowo-ui-badge--{{ notification_type == 'email' ? 'primary' : 'neutral' }}">{{ notification_type }}</span></h2>
+        <a href="{{ path('notification_index', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--outline">Back to list</a>
     </div>
-    <div class="card-body">
-        <dl class="row">
-            <dt class="col-sm-3">ID</dt>
-            <dd class="col-sm-9">{{ notification.id }}</dd>
+    <div class="nowo-ui-card__body">
+        <dl class="nowo-ui-detail-list">
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">ID</dt><dd class="nowo-ui-detail-list__value">{{ notification.id }}</dd></div>
 
-            <dt class="col-sm-3">Type</dt>
-            <dd class="col-sm-9">{{ notification_type == 'email' ? 'Email' : 'SMS' }}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Type</dt><dd class="nowo-ui-detail-list__value">{{ notification_type == 'email' ? 'Email' : 'SMS' }}</dd></div>
 
-            <dt class="col-sm-3">Recipient</dt>
-            <dd class="col-sm-9"><code>{{ notification.recipient }}</code></dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Recipient</dt><dd class="nowo-ui-detail-list__value"><code>{{ notification.recipient }}</code></dd></div>
 
             {% if notification_type == 'email' %}
-            <dt class="col-sm-3">Subject</dt>
-            <dd class="col-sm-9">{{ notification.subject }}</dd>
-            <dt class="col-sm-3">Body</dt>
-            <dd class="col-sm-9">{{ notification.body }}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Subject</dt><dd class="nowo-ui-detail-list__value">{{ notification.subject }}</dd></div>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Body</dt><dd class="nowo-ui-detail-list__value">{{ notification.body }}</dd></div>
             {% else %}
-            <dt class="col-sm-3">Message</dt>
-            <dd class="col-sm-9">{{ notification.message }}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Message</dt><dd class="nowo-ui-detail-list__value">{{ notification.message }}</dd></div>
             {% endif %}
 
-            <dt class="col-sm-3">Created at</dt>
-            <dd class="col-sm-9">{{ notification.createdAt ? notification.createdAt|date('Y-m-d H:i:s') : '-' }}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Created at</dt><dd class="nowo-ui-detail-list__value">{{ notification.createdAt ? notification.createdAt|date('Y-m-d H:i:s') : '-' }}</dd></div>
 
             {% if hasAnonymizedColumn|default(false) and notification.anonymized|default(false) %}
-            <dt class="col-sm-3">Anonymized</dt>
-            <dd class="col-sm-9">{% include '_anonymized_badge.html.twig' with {value: notification.anonymized} %}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Anonymized</dt><dd class="nowo-ui-detail-list__value">{% include '_anonymized_badge.html.twig' with {value: notification.anonymized} %}</dd></div>
             {% endif %}
         </dl>
     </div>

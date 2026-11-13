@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Form;
 
 use App\Entity\Product;
-use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
@@ -15,42 +14,61 @@ use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class ProductType extends AbstractType
+final class ProductType extends DemoFormType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $builder
-            ->add('name', TextType::class, [
-                'required' => true,
-                'attr'     => ['class' => 'form-control'],
-            ])
-            ->add('description', TextareaType::class, [
-                'required' => false,
-                'attr'     => ['class' => 'form-control', 'rows' => 4],
-            ])
-            ->add('price', MoneyType::class, [
-                'required' => true,
-                'currency' => 'USD',
-                'attr'     => ['class' => 'form-control'],
-            ])
-            ->add('imageUrl', UrlType::class, [
-                'required' => false,
-                'attr'     => ['class' => 'form-control'],
-            ])
-            ->add('status', ChoiceType::class, [
-                'choices' => [
-                    'Active'   => 'active',
-                    'Inactive' => 'inactive',
-                    'Draft'    => 'draft',
-                ],
-                'required' => true,
-                'attr'     => ['class' => 'form-select'],
-            ])
-            ->add('createdAt', DateTimeType::class, [
-                'required' => false,
-                'widget'   => 'single_text',
-                'attr'     => ['class' => 'form-control'],
-            ]);
+        $this->addWithDefaults($builder, 'name', TextType::class, [
+            'label'              => 'Name',
+            'translation_domain' => false,
+            'placeholder'        => false,
+            'help'               => false,
+            'required'           => true,
+        ]);
+        $this->addWithDefaults($builder, 'description', TextareaType::class, [
+            'label'              => 'Description',
+            'translation_domain' => false,
+            'placeholder'        => false,
+            'help'               => false,
+            'required'           => false,
+            'attr'               => ['rows' => 4],
+        ]);
+        $this->addWithDefaults($builder, 'price', MoneyType::class, [
+            'label'              => 'Price',
+            'translation_domain' => false,
+            'placeholder'        => false,
+            'help'               => false,
+            'required'           => true,
+            'currency'           => 'USD',
+        ]);
+        $this->addWithDefaults($builder, 'imageUrl', UrlType::class, [
+            'label'              => 'Image url',
+            'translation_domain' => false,
+            'placeholder'        => false,
+            'help'               => false,
+            'required'           => false,
+        ]);
+        $this->addWithDefaults($builder, 'status', ChoiceType::class, [
+            'label'              => 'Status',
+            'translation_domain' => false,
+            'placeholder'        => false,
+            'help'               => false,
+            'choices'            => [
+                'Active'   => 'active',
+                'Inactive' => 'inactive',
+                'Draft'    => 'draft',
+            ],
+            'required' => true,
+        ]);
+        $this->addWithDefaults($builder, 'createdAt', DateTimeType::class, [
+            'label'              => 'Created at',
+            'translation_domain' => false,
+            'placeholder'        => false,
+            'help'               => false,
+            'required'           => false,
+            'widget'             => 'single_text',
+        ]);
+        $this->addSaveButton($builder);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -4,76 +4,62 @@
 
 {% block body %}
 {% include '_breadcrumbs.html.twig' with {entityName: 'Device Infos', isMongo: true, routePrefix: 'mongodb_device_info', currentPage: 'Show'} %}
-<div class="alert alert-info" role="alert">
+<div class="nowo-ui-flash nowo-ui-flash--info" role="note">
     <strong>ℹ️ Anonymized Fields</strong><br>
     This MongoDB document demonstrates technical fakers: uuid, ip_address, mac_address, hash, coordinate, color.
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h2 class="mb-0">Device Info Details <span class="badge bg-info connection-badge">MongoDB</span></h2>
-        <div class="btn-group">
-            <a href="{{ path('mongodb_device_info_edit', {id: device._id}) }}" class="btn btn-primary">Edit</a>
-            <a href="{{ path('mongodb_device_info_index') }}" class="btn btn-secondary">Back to List</a>
+<div class="nowo-ui-card">
+    <div class="nowo-ui-card__header">
+        <h2 class="nowo-ui-card__title">Device Info Details <span class="nowo-ui-badge nowo-ui-badge--info">MongoDB</span></h2>
+        <div class="nowo-ui-row-actions">
+            <a href="{{ path('mongodb_device_info_edit', {id: device._id}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Edit</a>
+            <a href="{{ path('mongodb_device_info_index') }}" class="nowo-ui-btn nowo-ui-btn--outline">Back to List</a>
         </div>
     </div>
-    <div class="card-body">
-        <dl class="row">
-            <dt class="col-sm-3">ID</dt>
-            <dd class="col-sm-9"><code>{{ device._id }}</code></dd>
+    <div class="nowo-ui-card__body">
+        <dl class="nowo-ui-detail-list">
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">ID</dt><dd class="nowo-ui-detail-list__value"><code>{{ device._id }}</code></dd></div>
 
-            <dt class="col-sm-3">Device ID (UUID)</dt>
-            <dd class="col-sm-9"><code>{{ device.deviceId }}</code></dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Device ID (UUID)</dt><dd class="nowo-ui-detail-list__value"><code>{{ device.deviceId }}</code></dd></div>
 
-            <dt class="col-sm-3">IP Address</dt>
-            <dd class="col-sm-9">{{ device.ipAddress }}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">IP Address</dt><dd class="nowo-ui-detail-list__value">{{ device.ipAddress }}</dd></div>
 
-            <dt class="col-sm-3">MAC Address</dt>
-            <dd class="col-sm-9"><code>{{ device.macAddress }}</code></dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">MAC Address</dt><dd class="nowo-ui-detail-list__value"><code>{{ device.macAddress }}</code></dd></div>
 
-            <dt class="col-sm-3">Device Hash</dt>
-            <dd class="col-sm-9"><code class="small">{{ device.deviceHash ?? '-' }}</code></dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Device Hash</dt><dd class="nowo-ui-detail-list__value"><code class="nowo-ui-code">{{ device.deviceHash ?? '-' }}</code></dd></div>
 
-            <dt class="col-sm-3">Location (Coordinates)</dt>
-            <dd class="col-sm-9">{{ device.location ?? '-' }}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Location (Coordinates)</dt><dd class="nowo-ui-detail-list__value">{{ device.location ?? '-' }}</dd></div>
 
-            <dt class="col-sm-3">Theme Color</dt>
-            <dd class="col-sm-9"><span class="badge" style="background-color: {{ device.themeColor }}">{{ device.themeColor }}</span></dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Theme Color</dt><dd class="nowo-ui-detail-list__value"><span class="nowo-ui-badge nowo-ui-badge--neutral" style="background-color: {{ device.themeColor }}">{{ device.themeColor }}</span></dd></div>
 
-            <dt class="col-sm-3">Device Name</dt>
-            <dd class="col-sm-9">{{ device.deviceName ?? '-' }}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Device Name</dt><dd class="nowo-ui-detail-list__value">{{ device.deviceName ?? '-' }}</dd></div>
 
-            <dt class="col-sm-3">OS Version</dt>
-            <dd class="col-sm-9">{{ device.osVersion ?? '-' }}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">OS Version</dt><dd class="nowo-ui-detail-list__value">{{ device.osVersion ?? '-' }}</dd></div>
 
-            <dt class="col-sm-3">Browser Version</dt>
-            <dd class="col-sm-9">{{ device.browserVersion ?? '-' }}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Browser Version</dt><dd class="nowo-ui-detail-list__value">{{ device.browserVersion ?? '-' }}</dd></div>
 
-            <dt class="col-sm-3">Is Active</dt>
-            <dd class="col-sm-9">
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Is Active</dt><dd class="nowo-ui-detail-list__value">
                 {% if device.isActive|default(false) %}
-                    <span class="badge bg-success">Yes</span>
+                    <span class="nowo-ui-badge nowo-ui-badge--success">Yes</span>
                 {% else %}
-                    <span class="badge bg-secondary">No</span>
+                    <span class="nowo-ui-badge nowo-ui-badge--neutral">No</span>
                 {% endif %}
-            </dd>
+            </dd></div>
 
-            <dt class="col-sm-3">Last Seen</dt>
-            <dd class="col-sm-9">{{ device.lastSeen ? device.lastSeen.toDateTime()|date('Y-m-d H:i:s') : '-' }}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Last Seen</dt><dd class="nowo-ui-detail-list__value">{{ device.lastSeen ? device.lastSeen.toDateTime()|date('Y-m-d H:i:s') : '-' }}</dd></div>
 
-            <dt class="col-sm-3">Anonymized</dt>
-            <dd class="col-sm-9">
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Anonymized</dt><dd class="nowo-ui-detail-list__value">
                 {% if device.anonymized|default(false) %}
                                     {% include '_anonymized_badge.html.twig' with {value: device.anonymized|default(false)} %}
                                 {% endif %}
-            </dd>
+            </dd></div>
         </dl>
 
-        <div class="mt-4">
+        <div>
             {% set delete_form = demo_delete_form('mongodb_device_info_delete', {id: device._id}, device._id, 'Are you sure you want to delete this device?') %}
             {{ form_start(delete_form) }}
-                {% for child in delete_form %}{% if not child.rendered %}{{ form_row(child) }}{% endif %}{% endfor %}
-                <button type="submit" class="btn btn-danger">Delete Device</button>
+                {{ form_row(delete_form.delete, {label: 'Delete Device', attr: {class: 'nowo-ui-btn nowo-ui-btn--danger'}}) }}
             {{ form_end(delete_form) }}
         </div>
     </div>

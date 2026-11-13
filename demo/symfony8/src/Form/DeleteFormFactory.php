@@ -7,6 +7,7 @@ namespace App\Form;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use function sprintf;
@@ -28,7 +29,7 @@ final readonly class DeleteFormFactory
      *
      * @return FormInterface<null>
      */
-    public function create(string $id, string $route = '', array $routeParams = [], string $confirm = 'Are you sure?', string $class = 'd-inline'): FormInterface
+    public function create(string $id, string $route = '', array $routeParams = [], string $confirm = 'Are you sure?', string $class = 'nowo-ui-row-actions__form'): FormInterface
     {
         $options = [
             'csrf_token_id' => 'delete' . $id,
@@ -45,13 +46,18 @@ final readonly class DeleteFormFactory
     }
 
     /**
-     * Binds the delete POST of the given id and tells whether it carries a valid CSRF token.
+     * Binds the delete POST of the given id. A missing or invalid CSRF token (or a foreign origin) answers 422, so the
+     * delete never runs.
      */
     public function isValidSubmission(Request $request, string $id): bool
     {
         $form = $this->create($id);
         $form->handleRequest($request);
 
-        return $form->isSubmitted() && $form->isValid();
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            throw new UnprocessableEntityHttpException('Invalid CSRF token.');
+        }
+
+        return true;
     }
 }

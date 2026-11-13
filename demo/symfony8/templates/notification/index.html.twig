@@ -6,35 +6,35 @@
 {% include '_breadcrumbs.html.twig' with {entityName: 'Notifications (Polymorphic STI)', connection: connection, currentPage: 'List', routePrefix: 'notification', listRoute: 'notification_index'} only %}
 
 {% if not hasAnonymizedColumn|default(false) %}
-<div class="alert alert-warning" role="alert">
+<div class="nowo-ui-flash nowo-ui-flash--warning" role="note">
     <strong>⚠️ Column "anonymized" not found</strong><br>
     To add the anonymization tracking column, run:<br>
-    <code class="d-inline-block mt-2 p-2 bg-light rounded">
+    <code class="nowo-ui-code">
         php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
     </code>
 </div>
 {% endif %}
 
-<div class="alert alert-info" role="alert">
+<div class="nowo-ui-flash nowo-ui-flash--info" role="note">
     <strong>ℹ️ Polymorphic truncate (STI)</strong><br>
     This table <code>notifications</code> uses Single Table Inheritance with discriminator <code>type</code> (email / sms).
     <code>EmailNotification</code> has <code>truncate: true, truncate_order: 1</code> and <code>SmsNotification</code> has <code>truncate: true, truncate_order: 2</code>.
     When you run anonymization, only rows of each type are deleted (DELETE WHERE type = 'email', then WHERE type = 'sms'), not the whole table at once.
 </div>
-<div class="alert alert-secondary" role="alert">
+<div class="nowo-ui-flash nowo-ui-flash--info" role="note">
     <strong>🔧 Anonymization by service</strong><br>
     <code>SmsNotification</code> uses <code>anonymizeService: SmsNotificationAnonymizerService::class</code>. Each SMS record is anonymized by that service (implementing the ORM-free <code>RowAnonymizerInterface</code>, since 1.6) instead of <code>AnonymizeProperty</code> attributes. <code>EmailNotification</code> keeps property-based anonymization.
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-header">
-        <h2 class="mb-0">Notifications <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
+<div class="nowo-ui-card">
+    <div class="nowo-ui-card__header">
+        <h2 class="nowo-ui-card__title">Notifications <span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span></h2>
     </div>
-    <div class="card-body">
+    <div class="nowo-ui-card__body">
         {% if notification_list|length > 0 %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-light">
+            <div class="nowo-ui-table-wrap">
+                <table class="nowo-ui-table nowo-ui-table--striped">
+                    <thead>
                         <tr>
                             <th>ID</th>
                             <th>Type</th>
@@ -57,9 +57,9 @@
                             {% set created = n.createdAt ?? n['createdAt'] ?? n['created_at'] ?? null %}
                             <tr>
                                 <td>{{ id }}</td>
-                                <td><span class="badge bg-{{ type == 'email' ? 'primary' : 'secondary' }}">{{ type }}</span></td>
+                                <td><span class="nowo-ui-badge nowo-ui-badge--{{ type == 'email' ? 'primary' : 'neutral' }}">{{ type }}</span></td>
                                 <td><code>{{ recipient }}</code></td>
-                                <td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ subjectOrMessage }}</td>
+                                <td>{{ subjectOrMessage }}</td>
                                 <td>{{ created and not created is iterable ? (created.timestamp is defined ? created|date('Y-m-d H:i') : created) : '-' }}</td>
                                 {% if hasAnonymizedColumn|default(false) %}
                                 <td>
@@ -69,7 +69,7 @@
                                 </td>
                                 {% endif %}
                                 <td>
-                                    <a href="{{ path('notification_show', {connection: connection, id: id}) }}" class="btn btn-sm btn-outline-secondary">Show</a>
+                                    <a href="{{ path('notification_show', {connection: connection, id: id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Show</a>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -77,7 +77,7 @@
                 </table>
             </div>
         {% else %}
-            <p class="text-muted">No notifications found. With <code>make setup</code> (or <code>doctrine:fixtures:load</code>) notifications are loaded automatically. To load only now: <code>php bin/console doctrine:fixtures:load --no-interaction --em={{ connection }}</code></p>
+            <p class="nowo-ui-muted">No notifications found. With <code>make setup</code> (or <code>doctrine:fixtures:load</code>) notifications are loaded automatically. To load only now: <code>php bin/console doctrine:fixtures:load --no-interaction --em={{ connection }}</code></p>
         {% endif %}
     </div>
 </div>

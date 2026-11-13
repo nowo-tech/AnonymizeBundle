@@ -6,19 +6,19 @@
 {% include '_breadcrumbs.html.twig' with {entityName: 'Users', connection: connection, routePrefix: 'user', currentPage: 'List'} %}
 
 {% if not hasAnonymizedColumn|default(false) %}
-<div class="alert alert-warning" role="alert">
+<div class="nowo-ui-flash nowo-ui-flash--warning" role="note">
     <strong>⚠️ Column "anonymized" not found</strong><br>
     To add the anonymization tracking column, run:<br>
-    <code class="d-inline-block mt-2 p-2 bg-light rounded">
+    <code class="nowo-ui-code">
         php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
     </code>
 </div>
 {% endif %}
 
-<div class="alert alert-info" role="alert">
+<div class="nowo-ui-flash nowo-ui-flash--info" role="note">
     <strong>ℹ️ Anonymized Fields</strong><br>
     The following fields in this entity are configured for anonymization:
-    <ul class="mb-0 mt-2">
+    <ul>
         <li><strong>email</strong> - Email faker</li>
         <li><strong>firstName</strong> - Name faker</li>
         <li><strong>lastName</strong> - Surname faker</li>
@@ -29,16 +29,16 @@
     </ul>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h2 class="mb-0">Users <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
-        <a href="{{ path('user_new', {connection: connection}) }}" class="btn btn-primary">Create New User</a>
+<div class="nowo-ui-card">
+    <div class="nowo-ui-card__header">
+        <h2 class="nowo-ui-card__title">Users <span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span></h2>
+        <a href="{{ path('user_new', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Create New User</a>
     </div>
-    <div class="card-body">
+    <div class="nowo-ui-card__body">
         {% if users|length > 0 %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-light">
+            <div class="nowo-ui-table-wrap">
+                <table class="nowo-ui-table nowo-ui-table--striped">
+                    <thead>
                         <tr>
                             <th>ID</th>
                             <th>Email</th>
@@ -62,7 +62,7 @@
                                 <td>{{ user.lastName }}</td>
                                 <td>{{ user.age }}</td>
                                 <td>{{ user.phone ?? '-' }}</td>
-                                <td><span class="badge bg-secondary">{{ user.status }}</span></td>
+                                <td><span class="nowo-ui-badge nowo-ui-badge--neutral">{{ user.status }}</span></td>
                                 {% if hasAnonymizedColumn|default(false) %}
                                 <td>
                                     {% if user.anonymized|default(false) %}
@@ -71,13 +71,11 @@
                                 </td>
                                 {% endif %}
                                 <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="{{ path('user_show', {connection: connection, id: user.id}) }}" class="btn btn-sm btn-outline-secondary">Show</a>
-                                        <a href="{{ path('user_edit', {connection: connection, id: user.id}) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    <div class="nowo-ui-row-actions">
+                                        <a href="{{ path('user_show', {connection: connection, id: user.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Show</a>
+                                        <a href="{{ path('user_edit', {connection: connection, id: user.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Edit</a>
                                         {% set delete_form = demo_delete_form('user_delete', {connection: connection, id: user.id}, user.id, 'Are you sure?') %}
                                         {{ form_start(delete_form) }}
-                                            {% for child in delete_form %}{% if not child.rendered %}{{ form_row(child) }}{% endif %}{% endfor %}
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                                         {{ form_end(delete_form) }}
                                     </div>
                                 </td>
@@ -87,7 +85,7 @@
                 </table>
             </div>
         {% else %}
-            <p class="text-muted">No users found. <a href="{{ path('user_new', {connection: connection}) }}">Create the first one</a>.</p>
+            <p class="nowo-ui-muted">No users found. <a href="{{ path('user_new', {connection: connection}) }}">Create the first one</a>.</p>
         {% endif %}
     </div>
 </div>

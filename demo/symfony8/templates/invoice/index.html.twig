@@ -5,19 +5,19 @@
 {% block body %}
 {% include '_breadcrumbs.html.twig' with {entityName: 'Invoices', connection: connection, routePrefix: 'invoice', currentPage: 'List'} %}
 {% if not hasAnonymizedColumn|default(false) %}
-<div class="alert alert-warning" role="alert">
+<div class="nowo-ui-flash nowo-ui-flash--warning" role="note">
     <strong>⚠️ Column "anonymized" not found</strong><br>
     To add the anonymization tracking column, run:<br>
-    <code class="d-inline-block mt-2 p-2 bg-light rounded">
+    <code class="nowo-ui-code">
         php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
     </code>
 </div>
 {% endif %}
 
-<div class="alert alert-info" role="alert">
+<div class="nowo-ui-flash nowo-ui-flash--info" role="note">
     <strong>ℹ️ Anonymized Fields</strong><br>
     The following fields in this entity are configured for anonymization:
-    <ul class="mb-0 mt-2">
+    <ul>
         <li><strong>invoiceNumber</strong> - Service faker (CustomReferenceFaker)</li>
         <li><strong>companyName</strong> - Company faker (corporation type)</li>
         <li><strong>companyAddress</strong> - Address faker (full format)</li>
@@ -29,16 +29,16 @@
     </ul>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h2 class="mb-0">Invoices <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
-        <a href="{{ path('invoice_new', {connection: connection}) }}" class="btn btn-primary">Create New Invoice</a>
+<div class="nowo-ui-card">
+    <div class="nowo-ui-card__header">
+        <h2 class="nowo-ui-card__title">Invoices <span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span></h2>
+        <a href="{{ path('invoice_new', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Create New Invoice</a>
     </div>
-    <div class="card-body">
+    <div class="nowo-ui-card__body">
         {% if invoices|length > 0 %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-light">
+            <div class="nowo-ui-table-wrap">
+                <table class="nowo-ui-table nowo-ui-table--striped">
+                    <thead>
                         <tr>
                             <th>ID</th>
                             <th>Invoice Number</th>
@@ -59,7 +59,7 @@
                                 <td>{{ invoice.invoiceNumber }}</td>
                                 <td>{{ invoice.companyName }}</td>
                                 <td>${{ invoice.amount }}</td>
-                                <td><span class="badge bg-secondary">{{ invoice.status }}</span></td>
+                                <td><span class="nowo-ui-badge nowo-ui-badge--neutral">{{ invoice.status }}</span></td>
                                 <td>{{ invoice.issueDate ? invoice.issueDate|date('Y-m-d') : 'N/A' }}</td>
                                 {% if hasAnonymizedColumn|default(false) %}
                                 <td>
@@ -69,13 +69,11 @@
                                 </td>
                                 {% endif %}
                                 <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="{{ path('invoice_show', {connection: connection, id: invoice.id}) }}" class="btn btn-sm btn-outline-secondary">Show</a>
-                                        <a href="{{ path('invoice_edit', {connection: connection, id: invoice.id}) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    <div class="nowo-ui-row-actions">
+                                        <a href="{{ path('invoice_show', {connection: connection, id: invoice.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Show</a>
+                                        <a href="{{ path('invoice_edit', {connection: connection, id: invoice.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Edit</a>
                                         {% set delete_form = demo_delete_form('invoice_delete', {connection: connection, id: invoice.id}, invoice.id, 'Are you sure?') %}
                                         {{ form_start(delete_form) }}
-                                            {% for child in delete_form %}{% if not child.rendered %}{{ form_row(child) }}{% endif %}{% endfor %}
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                                         {{ form_end(delete_form) }}
                                     </div>
                                 </td>
@@ -85,7 +83,7 @@
                 </table>
             </div>
         {% else %}
-            <p class="text-muted">No invoices found. <a href="{{ path('invoice_new', {connection: connection}) }}">Create the first one</a>.</p>
+            <p class="nowo-ui-muted">No invoices found. <a href="{{ path('invoice_new', {connection: connection}) }}">Create the first one</a>.</p>
         {% endif %}
     </div>
 </div>
