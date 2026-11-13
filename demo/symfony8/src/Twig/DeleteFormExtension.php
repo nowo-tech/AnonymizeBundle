@@ -23,7 +23,7 @@ final readonly class DeleteFormExtension
      * @param array<string, mixed> $routeParams
      */
     #[AsTwigFunction('demo_delete_form')]
-    public function deleteForm(string $route, array $routeParams, mixed $id, string $confirm = 'Are you sure?', string $class = 'd-inline'): FormView
+    public function deleteForm(string $route, array $routeParams, mixed $id, string $confirm = 'Are you sure?', string $class = 'nowo-ui-row-actions__form'): FormView
     {
         return $this->deleteForms->create((string) $id, $route, $routeParams, $confirm, $class)->createView();
     }

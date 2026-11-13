@@ -7,6 +7,8 @@
         "doctrine/orm": "^2.13 || ^3.0",
         "ext-mongodb": "^2.5",
         "mongodb/mongodb": "^2.5",
+        "nowo-tech/form-kit-bundle": "^2.22",
+        "nowo-tech/ui-kit-bundle": "^2.49",
         "php": ">=8.4,<8.6",
         "symfony/asset": "^8.0",
         "symfony/console": "^8.0",

@@ -5,43 +5,37 @@
 {% block body %}
 {% include '_breadcrumbs.html.twig' with {entityName: 'Log Entries', connection: connection, routePrefix: 'log_entry', currentPage: 'Show'} %}
 
-<div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h2 class="mb-0">Log Entry Details <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
-        <div class="btn-group">
-            <a href="{{ path('log_entry_edit', {connection: connection, id: log_entry.id}) }}" class="btn btn-primary">Edit</a>
-            <a href="{{ path('log_entry_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+<div class="nowo-ui-card">
+    <div class="nowo-ui-card__header">
+        <h2 class="nowo-ui-card__title">Log Entry Details <span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span></h2>
+        <div class="nowo-ui-row-actions">
+            <a href="{{ path('log_entry_edit', {connection: connection, id: log_entry.id}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Edit</a>
+            <a href="{{ path('log_entry_index', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--outline">Back to List</a>
         </div>
     </div>
-    <div class="card-body">
-        <dl class="row">
-            <dt class="col-sm-3">ID</dt>
-            <dd class="col-sm-9">{{ log_entry.id }}</dd>
+    <div class="nowo-ui-card__body">
+        <dl class="nowo-ui-detail-list">
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">ID</dt><dd class="nowo-ui-detail-list__value">{{ log_entry.id }}</dd></div>
 
-            <dt class="col-sm-3">Message</dt>
-            <dd class="col-sm-9">{{ log_entry.message }}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Message</dt><dd class="nowo-ui-detail-list__value">{{ log_entry.message }}</dd></div>
 
-            <dt class="col-sm-3">IP Address</dt>
-            <dd class="col-sm-9"><code>{{ log_entry.ipAddress }}</code></dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">IP Address</dt><dd class="nowo-ui-detail-list__value"><code>{{ log_entry.ipAddress }}</code></dd></div>
 
-            <dt class="col-sm-3">Logged At</dt>
-            <dd class="col-sm-9">{{ log_entry.loggedAt ? log_entry.loggedAt|date('Y-m-d H:i:s') : '-' }}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Logged At</dt><dd class="nowo-ui-detail-list__value">{{ log_entry.loggedAt ? log_entry.loggedAt|date('Y-m-d H:i:s') : '-' }}</dd></div>
 
             {% if hasAnonymizedColumn|default(false) %}
-            <dt class="col-sm-3">Anonymized</dt>
-            <dd class="col-sm-9">
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Anonymized</dt><dd class="nowo-ui-detail-list__value">
                 {% if log_entry.anonymized|default(false) %}
                 {% include '_anonymized_badge.html.twig' with {value: log_entry.anonymized|default(false)} %}
                 {% endif %}
-            </dd>
+            </dd></div>
             {% endif %}
         </dl>
 
-        <div class="mt-4">
+        <div>
             {% set delete_form = demo_delete_form('log_entry_delete', {connection: connection, id: log_entry.id}, log_entry.id, 'Are you sure you want to delete this log entry?') %}
             {{ form_start(delete_form) }}
-                {% for child in delete_form %}{% if not child.rendered %}{{ form_row(child) }}{% endif %}{% endfor %}
-                <button type="submit" class="btn btn-danger">Delete Log Entry</button>
+                {{ form_row(delete_form.delete, {label: 'Delete Log Entry', attr: {class: 'nowo-ui-btn nowo-ui-btn--danger'}}) }}
             {{ form_end(delete_form) }}
         </div>
     </div>

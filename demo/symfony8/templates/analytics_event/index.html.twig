@@ -5,15 +5,15 @@
 {% block body %}
 {% include '_breadcrumbs.html.twig' with {entityName: 'Analytics Events', isMongo: true, routePrefix: 'mongodb_analytics_event', currentPage: 'List'} %}
 {% if error|default(false) %}
-<div class="alert alert-danger" role="alert">
+<div class="nowo-ui-flash nowo-ui-flash--error" role="alert">
     <strong>⚠️ Error:</strong> {{ error }}
 </div>
 {% endif %}
 
-<div class="alert alert-info" role="alert">
+<div class="nowo-ui-flash nowo-ui-flash--info" role="note">
     <strong>ℹ️ Anonymized Fields</strong><br>
     This MongoDB document demonstrates structured data fakers:
-    <ul class="mb-0 mt-2">
+    <ul>
         <li><strong>eventId</strong> - UUID faker</li>
         <li><strong>eventType</strong> - Enum faker</li>
         <li><strong>country</strong> - Country faker</li>
@@ -26,16 +26,16 @@
     </ul>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h2 class="mb-0">Analytics Events <span class="badge bg-info connection-badge">MongoDB</span></h2>
-        <a href="{{ path('mongodb_analytics_event_new') }}" class="btn btn-primary">Create New</a>
+<div class="nowo-ui-card">
+    <div class="nowo-ui-card__header">
+        <h2 class="nowo-ui-card__title">Analytics Events <span class="nowo-ui-badge nowo-ui-badge--info">MongoDB</span></h2>
+        <a href="{{ path('mongodb_analytics_event_new') }}" class="nowo-ui-btn nowo-ui-btn--primary">Create New</a>
     </div>
-    <div class="card-body">
+    <div class="nowo-ui-card__body">
         {% if events|length > 0 %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-light">
+            <div class="nowo-ui-table-wrap">
+                <table class="nowo-ui-table nowo-ui-table--striped">
+                    <thead>
                         <tr>
                             <th>ID</th>
                             <th>Event ID</th>
@@ -51,12 +51,12 @@
                     <tbody>
                         {% for event in events %}
                         <tr>
-                            <td><code class="small">{{ event._id|slice(0, 8) }}...</code></td>
-                            <td><code class="small">{{ event.eventId|slice(0, 8) }}...</code></td>
-                            <td><span class="badge bg-{{ event.eventType == 'purchase' ? 'success' : (event.eventType == 'click' ? 'info' : 'primary') }}">{{ event.eventType }}</span></td>
+                            <td><code class="nowo-ui-code">{{ event._id|slice(0, 8) }}...</code></td>
+                            <td><code class="nowo-ui-code">{{ event.eventId|slice(0, 8) }}...</code></td>
+                            <td><span class="nowo-ui-badge nowo-ui-badge--{{ event.eventType == 'purchase' ? 'success' : (event.eventType == 'click' ? 'info' : 'primary') }}">{{ event.eventType }}</span></td>
                             <td>{{ event.country }}</td>
                             <td>{{ event.language }}</td>
-                            <td><span class="badge bg-secondary">{{ event.category ?? '-' }}</span></td>
+                            <td><span class="nowo-ui-badge nowo-ui-badge--neutral">{{ event.category ?? '-' }}</span></td>
                             <td>{{ event.timestamp ? event.timestamp.toDateTime()|date('Y-m-d H:i') : '-' }}</td>
                             <td>
                                 {% if event.anonymized|default(false) %}
@@ -64,13 +64,11 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <div class="btn-group" role="group">
-                                    <a href="{{ path('mongodb_analytics_event_show', {id: event._id}) }}" class="btn btn-sm btn-outline-primary">Show</a>
-                                    <a href="{{ path('mongodb_analytics_event_edit', {id: event._id}) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                <div class="nowo-ui-row-actions">
+                                    <a href="{{ path('mongodb_analytics_event_show', {id: event._id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Show</a>
+                                    <a href="{{ path('mongodb_analytics_event_edit', {id: event._id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Edit</a>
                                     {% set delete_form = demo_delete_form('mongodb_analytics_event_delete', {id: event._id}, event._id, 'Are you sure you want to delete this item?') %}
                                     {{ form_start(delete_form) }}
-                                        {% for child in delete_form %}{% if not child.rendered %}{{ form_row(child) }}{% endif %}{% endfor %}
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                                     {{ form_end(delete_form) }}
                                 </div>
                             </td>
@@ -80,7 +78,7 @@
                 </table>
             </div>
         {% else %}
-            <p class="text-muted">No analytics events found.</p>
+            <p class="nowo-ui-muted">No analytics events found.</p>
         {% endif %}
     </div>
 </div>

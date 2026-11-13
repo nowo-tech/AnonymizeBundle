@@ -2,6 +2,10 @@
 
 {% block title %}Home - Anonymize Bundle Demo{% endblock %}
 
+{% block nowo_ui_page_header %}
+    {{ include(nowo_ui_partial('page_header'), {title: 'Welcome to the Anonymize Bundle Demo', intro: 'This demo shows how to use the AnonymizeBundle with multiple database connections.'}) }}
+{% endblock %}
+
 {% block body %}
 {% set connectionList = [
     { id: 'default', label: 'MySQL' },
@@ -20,10 +24,10 @@
             { name: 'Employees', route: 'employee_index' },
             { name: 'Email Subscriptions', route: 'email_subscription_index' },
             { name: 'System Logs', route: 'system_log_index' },
-            { name: 'Temp Data', route: 'temp_data_index', badge: { text: 'Truncate Order: 1', class: 'bg-info' } },
-            { name: 'Cache Data', route: 'cache_data_index', badge: { text: 'Truncate Order: 2', class: 'bg-info' } },
-            { name: 'Log Entries', route: 'log_entry_index', badge: { text: 'Truncate Order: null', class: 'bg-secondary' } },
-            { name: 'Notifications', route: 'notification_index', badge: { text: 'Polymorphic STI', class: 'bg-warning text-dark' }, hint: 'Single table inheritance: truncate deletes by discriminator (email / sms).' }
+            { name: 'Temp Data', route: 'temp_data_index', badge: { text: 'Truncate Order: 1', class: 'info' } },
+            { name: 'Cache Data', route: 'cache_data_index', badge: { text: 'Truncate Order: 2', class: 'info' } },
+            { name: 'Log Entries', route: 'log_entry_index', badge: { text: 'Truncate Order: null', class: 'neutral' } },
+            { name: 'Notifications', route: 'notification_index', badge: { text: 'Polymorphic STI', class: 'warning' }, hint: 'Single table inheritance: truncate deletes by discriminator (email / sms).' }
         ]
     },
     {
@@ -48,104 +52,73 @@
     { name: 'Analytics Events', route: 'mongodb_analytics_event_index' }
 ] %}
 
-<div class="row">
-    <div class="col-12">
-        <div class="card shadow-sm mb-4">
-            <div class="card-header">
-                <h2 class="mb-0">Welcome to the Anonymize Bundle Demo</h2>
-            </div>
-            <div class="card-body">
-                <p class="mb-0">This demo shows how to use the AnonymizeBundle with multiple database connections.</p>
-            </div>
+<div class="nowo-ui-cards">
+    <section class="nowo-ui-card">
+        <div class="nowo-ui-card__header">
+            <h3 class="nowo-ui-card__title">Available Connections</h3>
         </div>
-    </div>
+        <div class="nowo-ui-card__body">
+            <ul>
+                <li><strong>default</strong> - MySQL 8.0 (Docker service <code class="nowo-ui-code">mysql</code>)</li>
+                <li><strong>postgres</strong> - PostgreSQL 16 (Docker service <code class="nowo-ui-code">postgres</code>)</li>
+                <li><strong>mongodb</strong> - MongoDB 7.0 (optional host port 27018)</li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="nowo-ui-card">
+        <div class="nowo-ui-card__header">
+            <h3 class="nowo-ui-card__title">Database Interfaces</h3>
+        </div>
+        <div class="nowo-ui-card__body">
+            <ul>
+                <li><a class="nowo-ui-link" href="http://localhost:8084" target="_blank" rel="noopener">phpMyAdmin (MySQL)</a></li>
+                <li><a class="nowo-ui-link" href="http://localhost:8085" target="_blank" rel="noopener">pgAdmin (PostgreSQL)</a></li>
+                <li><a class="nowo-ui-link" href="http://localhost:8086" target="_blank" rel="noopener">Mongo Express (MongoDB)</a></li>
+            </ul>
+        </div>
+    </section>
 </div>
 
-<div class="row">
-    <div class="col-md-6 mb-4">
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <h3 class="mb-0">Available Connections</h3>
-            </div>
-            <div class="card-body">
-                <ul class="list-unstyled mb-0">
-                    <li class="mb-2"><strong>default</strong> - MySQL 8.0 (Docker service <code>mysql</code>)</li>
-                    <li class="mb-2"><strong>postgres</strong> - PostgreSQL 16 (Docker service <code>postgres</code>)</li>
-                    <li class="mb-0"><strong>mongodb</strong> - MongoDB 7.0 (optional host port 27018)</li>
-                </ul>
-            </div>
-        </div>
+<section class="nowo-ui-card">
+    <div class="nowo-ui-card__header">
+        <h3 class="nowo-ui-card__title">CRUD by Connection</h3>
     </div>
+    <div class="nowo-ui-card__body">
+        <p>You can manage entities in each connection:</p>
 
-    <div class="col-md-6 mb-4">
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <h3 class="mb-0">Database Interfaces</h3>
-            </div>
-            <div class="card-body">
-                <ul class="list-unstyled mb-0">
-                    <li class="mb-2"><a href="http://localhost:8084" target="_blank" class="text-decoration-none">phpMyAdmin (MySQL)</a></li>
-                    <li class="mb-2"><a href="http://localhost:8085" target="_blank" class="text-decoration-none">pgAdmin (PostgreSQL)</a></li>
-                    <li class="mb-0"><a href="http://localhost:8086" target="_blank" class="text-decoration-none">Mongo Express (MongoDB)</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-12">
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <h3 class="mb-0">CRUD by Connection</h3>
-            </div>
-            <div class="card-body">
-                <p>You can manage entities in each connection:</p>
-
-                {% for section in crudSections %}
-                <div class="{{ section.title ? 'mt-4' : '' }}">
-                    {% if section.title %}
-                    <h4>{{ section.title }}</h4>
-                    {% endif %}
-                    <div class="row">
-                        {% for item in section.items %}
-                        <div class="col-md-6 mb-3">
-                            <h5>
-                                {{ item.name }}
-                                {% if item.badge is defined %}
-                                <span class="badge {{ item.badge.class }}">{{ item.badge.text }}</span>
-                                {% endif %}
-                            </h5>
-                            <ul class="list-unstyled">
-                                {% for conn in connectionList %}
-                                <li><a href="{{ path(item.route, {connection: conn.id}) }}" class="text-decoration-none">{{ item.name }} in {{ conn.label }}</a></li>
-                                {% endfor %}
-                            </ul>
-                            {% if item.hint is defined %}
-                            <small class="text-muted">{{ item.hint }}</small>
+        {% for section in crudSections %}
+            {% if section.title %}
+                <h4>{{ section.title }}</h4>
+            {% endif %}
+            <div class="nowo-ui-cards">
+                {% for item in section.items %}
+                    <div>
+                        <h5>
+                            {{ item.name }}
+                            {% if item.badge is defined %}
+                                <span class="nowo-ui-badge nowo-ui-badge--{{ item.badge.class }}">{{ item.badge.text }}</span>
                             {% endif %}
-                        </div>
-                        {% endfor %}
+                        </h5>
+                        <ul>
+                            {% for conn in connectionList %}
+                                <li><a class="nowo-ui-link" href="{{ path(item.route, {connection: conn.id}) }}">{{ item.name }} in {{ conn.label }}</a></li>
+                            {% endfor %}
+                        </ul>
+                        {% if item.hint is defined %}
+                            <small class="nowo-ui-muted">{{ item.hint }}</small>
+                        {% endif %}
                     </div>
-                </div>
                 {% endfor %}
-
-                <div class="mt-3">
-                    <h5>MongoDB Collections</h5>
-                    <div class="row">
-                        {% for column in mongoItems|batch(3) %}
-                        <div class="col-md-6 mb-3">
-                            <ul class="list-unstyled">
-                                {% for item in column %}
-                                <li><a href="{{ path(item.route) }}" class="text-decoration-none">{{ item.name }}</a></li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
             </div>
-        </div>
+        {% endfor %}
+
+        <h5>MongoDB Collections</h5>
+        <ul>
+            {% for item in mongoItems %}
+                <li><a class="nowo-ui-link" href="{{ path(item.route) }}">{{ item.name }}</a></li>
+            {% endfor %}
+        </ul>
     </div>
-</div>
+</section>
 {% endblock %}

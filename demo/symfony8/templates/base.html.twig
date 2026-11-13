@@ -1,111 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Anonymize Bundle Demo{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            padding-top: 56px;
-        }
-        aside {
-            position: fixed;
-            top: 56px;
-            left: 0;
-            width: 280px;
-            height: calc(100vh - 56px);
-            background: white;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            z-index: 1030;
-            overflow-y: auto;
-            padding: 0;
-        }
-        .sidebar-nav {
-            padding: 20px 0;
-        }
-        .sidebar-nav .nav-link {
-            padding: 10px 20px 10px 35px;
-            border-left: 3px solid transparent;
-            transition: all 0.3s;
-            color: #333;
-            text-decoration: none;
-            display: block;
-        }
-        .sidebar-nav .nav-link:hover {
-            background: #f8f9fa;
-            border-left-color: #667eea;
-            color: #667eea;
-        }
-        .sidebar-nav .nav-link.active {
-            background: #f0f4ff;
-            border-left-color: #667eea;
-            color: #667eea;
-            font-weight: 600;
-        }
-        .sidebar-nav .nav-section {
-            padding: 15px 20px 8px;
-            color: #667eea;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
-        }
-        .connection-badge {
-            font-size: 0.75rem;
-        }
-        main {
-            margin-left: 280px;
-            padding-left: 20px;
-            padding-right: 20px;
-            transition: margin-left 0.3s;
-        }
-        /* Mobile: Sidebar oculto, se abre con botón */
-        @media (max-width: 767px) {
-            aside {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
-            aside.show {
-                transform: translateX(0);
-            }
-            main {
-                margin-left: 0;
-                padding-left: 15px;
-                padding-right: 15px;
-            }
-            .sidebar-overlay {
-                position: fixed;
-                top: 56px;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0,0,0,0.5);
-                z-index: 1029;
-                opacity: 0;
-                visibility: hidden;
-                transition: opacity 0.3s, visibility 0.3s;
-            }
-            .sidebar-overlay.show {
-                opacity: 1;
-                visibility: visible;
-            }
-        }
-    </style>
-    {% block stylesheets %}{% endblock %}
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;">
-        <div class="container-fluid">
-            <button class="btn btn-link text-white d-md-none" type="button" id="sidebarToggle" aria-label="Toggle menu">
-                ☰
-            </button>
-            <a class="navbar-brand" href="{{ path('home') }}">Anonymize Bundle Demo - CRUD</a>
-        </div>
-    </nav>
+{#- REQ-DEMO-014: the demo shell is UiKit's admin layout with UiKit's signed-in app shell (header, aside) and UiKit's
+    default theme (nowo-ui.css from the bundle's own asset package, no CSS framework, no CDN, no token overrides). -#}
+{% extends '@NowoUiKit/layout/admin.html.twig' %}
 
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+{% block nowo_ui_document_title %}{% block title %}Anonymize Bundle Demo{% endblock %}{% endblock %}
 
+{% block nowo_ui_body %}
     {% set sidebarConnections = [
         { id: 'default', label: 'MySQL' },
         { id: 'postgres', label: 'PostgreSQL' }
@@ -142,85 +41,43 @@
             { name: 'Analytics Events', route: 'mongodb_analytics_event_index' }
         ] }
     ] %}
-    <aside id="sidebar">
-        <nav class="sidebar-nav">
-            <ul class="list-unstyled mb-0">
-                <li><a class="nav-link" href="{{ path('home') }}">Home</a></li>
+    {% set _current = app.request.pathInfo %}
+    {% set _brand %}
+        <a class="nowo-ui-brand" href="{{ path('home') }}">Anonymize Bundle Demo - CRUD</a>
+    {% endset %}
+    {% set _header_end %}
+        {{ include('@NowoUiKitBundle/partials/_theme_toggle.html.twig', { compact: true }, false) }}
+    {% endset %}
+    {% set _aside %}
+        <div class="nowo-ui-aside__inner">
+            <nav class="nowo-ui-aside__nav" aria-label="Demo navigation">
+                <a class="nowo-ui-aside__link{{ _current == path('home') ? ' nowo-ui-aside__link--active' }}" href="{{ path('home') }}">Home</a>
                 {% for group in sidebarMenu %}
-                <li><div class="nav-section">{{ group.section }}</div></li>
-                {% if group.mongo is defined and group.mongo %}
-                    {% for item in group.items %}
-                    <li><a class="nav-link" href="{{ path(item.route) }}">{{ item.name }}</a></li>
-                    {% endfor %}
-                {% else %}
-                    {% for item in group.items %}
-                        {% for conn in sidebarConnections %}
-                        <li><a class="nav-link" href="{{ path(item.route, {connection: conn.id}) }}">{{ item.name }} ({{ conn.label }})</a></li>
+                    <p class="nowo-ui-aside__label">{{ group.section }}</p>
+                    {% if group.mongo is defined and group.mongo %}
+                        {% for item in group.items %}
+                            {% set _href = path(item.route) %}
+                            <a class="nowo-ui-aside__link{{ _current starts with _href ? ' nowo-ui-aside__link--active' }}" href="{{ _href }}">{{ item.name }}</a>
                         {% endfor %}
-                    {% endfor %}
-                {% endif %}
+                    {% else %}
+                        {% for item in group.items %}
+                            {% for conn in sidebarConnections %}
+                                {% set _href = path(item.route, {connection: conn.id}) %}
+                                <a class="nowo-ui-aside__link{{ _current starts with _href ? ' nowo-ui-aside__link--active' }}" href="{{ _href }}">{{ item.name }} ({{ conn.label }})</a>
+                            {% endfor %}
+                        {% endfor %}
+                    {% endif %}
                 {% endfor %}
-            </ul>
-        </nav>
-    </aside>
+            </nav>
+        </div>
+    {% endset %}
 
-    <main class="py-4">
-        {% for message in app.flashes('success') %}
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-
-        {% for message in app.flashes('error') %}
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-
-        {% block body %}{% endblock %}
-    </main>
-
-    <script>
-        // Mark active link
-        const currentPath = window.location.pathname;
-        const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
-        navLinks.forEach(link => {
-            if (link.getAttribute('href') === currentPath || currentPath.startsWith(link.getAttribute('href'))) {
-                link.classList.add('active');
-            }
-        });
-
-        // Sidebar toggle para mobile
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-
-        function toggleSidebar() {
-            sidebar.classList.toggle('show');
-            sidebarOverlay.classList.toggle('show');
-        }
-
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', toggleSidebar);
-        }
-
-        if (sidebarOverlay) {
-            sidebarOverlay.addEventListener('click', toggleSidebar);
-        }
-
-        // Cerrar sidebar al hacer clic en un link (solo en mobile)
-        if (window.innerWidth < 768) {
-            navLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    sidebar.classList.remove('show');
-                    sidebarOverlay.classList.remove('show');
-                });
-            });
-        }
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    {% block javascripts %}{% endblock %}
-</body>
-</html>
+    {{ include(nowo_ui_partial('app_shell_open'), {brand_html: _brand, header_end: _header_end, aside_html: _aside, content_width: 'full'}) }}
+        <div class="nowo-ui-content" id="nowo-ui-content">
+            {% block nowo_ui_flashes %}
+                {{ include(nowo_ui_partial('flashes'), {}) }}
+            {% endblock %}
+            {% block nowo_ui_content %}{% block body %}{% endblock %}{% endblock %}
+        </div>
+    {{ include(nowo_ui_partial('app_shell_close'), {}) }}
+{% endblock %}

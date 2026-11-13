@@ -5,59 +5,51 @@
 {% block body %}
 {% include '_breadcrumbs.html.twig' with {entityName: 'Products', connection: connection, routePrefix: 'product', currentPage: 'Show'} %}
 {% if not hasAnonymizedColumn|default(false) %}
-<div class="alert alert-warning" role="alert">
+<div class="nowo-ui-flash nowo-ui-flash--warning" role="note">
     <strong>⚠️ Column "anonymized" not found</strong><br>
     To add the anonymization tracking column, run:<br>
-    <code class="d-inline-block mt-2 p-2 bg-light rounded">
+    <code class="nowo-ui-code">
         php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
     </code>
 </div>
 {% endif %}
 
-<div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h2 class="mb-0">Product Details <span class="badge bg-{{ connection == 'default' ? 'success' : 'primary' }} connection-badge">{{ connection }}</span></h2>
-        <div class="btn-group">
-            <a href="{{ path('product_edit', {connection: connection, id: product.id}) }}" class="btn btn-primary">Edit</a>
-            <a href="{{ path('product_index', {connection: connection}) }}" class="btn btn-secondary">Back to List</a>
+<div class="nowo-ui-card">
+    <div class="nowo-ui-card__header">
+        <h2 class="nowo-ui-card__title">Product Details <span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span></h2>
+        <div class="nowo-ui-row-actions">
+            <a href="{{ path('product_edit', {connection: connection, id: product.id}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Edit</a>
+            <a href="{{ path('product_index', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--outline">Back to List</a>
         </div>
     </div>
-    <div class="card-body">
-        <dl class="row">
-            <dt class="col-sm-3">ID</dt>
-            <dd class="col-sm-9">{{ product.id }}</dd>
+    <div class="nowo-ui-card__body">
+        <dl class="nowo-ui-detail-list">
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">ID</dt><dd class="nowo-ui-detail-list__value">{{ product.id }}</dd></div>
 
-            <dt class="col-sm-3">Name</dt>
-            <dd class="col-sm-9">{{ product.name }}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Name</dt><dd class="nowo-ui-detail-list__value">{{ product.name }}</dd></div>
 
-            <dt class="col-sm-3">Description</dt>
-            <dd class="col-sm-9">{{ product.description ?? '-' }}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Description</dt><dd class="nowo-ui-detail-list__value">{{ product.description ?? '-' }}</dd></div>
 
-            <dt class="col-sm-3">Price</dt>
-            <dd class="col-sm-9">${{ product.price }}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Price</dt><dd class="nowo-ui-detail-list__value">${{ product.price }}</dd></div>
 
-            <dt class="col-sm-3">Image URL</dt>
-            <dd class="col-sm-9">
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Image URL</dt><dd class="nowo-ui-detail-list__value">
                 {% if product.imageUrl %}
                     <a href="{{ product.imageUrl }}" target="_blank" rel="noopener noreferrer">{{ product.imageUrl }}</a>
                 {% else %}
                     -
                 {% endif %}
-            </dd>
+            </dd></div>
 
-            <dt class="col-sm-3">Status</dt>
-            <dd class="col-sm-9"><span class="badge bg-secondary">{{ product.status }}</span></dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Status</dt><dd class="nowo-ui-detail-list__value"><span class="nowo-ui-badge nowo-ui-badge--neutral">{{ product.status }}</span></dd></div>
 
-            <dt class="col-sm-3">Created At</dt>
-            <dd class="col-sm-9">{{ product.createdAt ? product.createdAt|date('Y-m-d H:i:s') : '-' }}</dd>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Created At</dt><dd class="nowo-ui-detail-list__value">{{ product.createdAt ? product.createdAt|date('Y-m-d H:i:s') : '-' }}</dd></div>
 
             {% if hasAnonymizedColumn|default(false) %}
-            <dt class="col-sm-3">Anonymized</dt>
-            <dd class="col-sm-9">
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Anonymized</dt><dd class="nowo-ui-detail-list__value">
                 {% if product.anonymized|default(false) %}
                                     {% include '_anonymized_badge.html.twig' with {value: product.anonymized|default(false)} %}
                                 {% endif %}
-            </dd>
+            </dd></div>
             {% endif %}
         </dl>
     </div>

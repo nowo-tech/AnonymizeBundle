@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Form\Mongo;
 
+use App\Form\DemoFormType;
 use ArrayAccess;
 use DateTime;
 use DateTimeInterface;
 use MongoDB\BSON\UTCDateTime;
-use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -27,9 +27,11 @@ use function is_scalar;
  * bool01 (choice "1"/"0" stored as bool), datetime (datetime-local stored as UTCDateTime); path is the nested
  * document path when the field is not stored at the top level.
  *
- * @extends AbstractType<array<string, mixed>>
+ * REQ-DEMO-015: a FormKit form (profile `demo`, from {@see DemoFormType}) with CSRF.
+ *
+ * @extends DemoFormType<array<string, mixed>>
  */
-abstract class AbstractMongoDocumentType extends AbstractType
+abstract class AbstractMongoDocumentType extends DemoFormType
 {
     /**
      * @return array<string, array{0: class-string, 1: array<string, mixed>, 2: string, 3: mixed, 4?: list<string>}>
@@ -49,8 +51,10 @@ abstract class AbstractMongoDocumentType extends AbstractType
                     'required'     => false,
                 ];
             }
-            $builder->add($name, $type, $fieldOptions);
+            $fieldOptions += ['translation_domain' => false, 'placeholder' => false, 'help' => false];
+            $this->addWithDefaults($builder, $name, $type, $fieldOptions);
         }
+        $this->addSaveButton($builder);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
