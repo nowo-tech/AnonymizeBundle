@@ -2,11 +2,11 @@
 
 **Baseline spec**: [`spec.md`](spec.md)  
 **Package**: `nowo-tech/anonymize-bundle`  
-**Last audited**: 2026-10-27
+**Last audited**: 2026-11-16
 
 Paths in the tables are relative to `src/`. Tests under `tests/` are out of Packagist scope.
 
-Audit command: `git ls-files src | wc -l` (85 production files).
+Audit command: `git ls-files src | wc -l` (95 production files).
 
 ## Symfony config (`src/Resources/config/`)
 
@@ -53,6 +53,7 @@ Audit command: `git ls-files src | wc -l` (85 production files).
 | `Event/BeforeEntityAnonymizeEvent.php` | Pre-entity hook | FR-EVT-001 |
 | `Event/AfterEntityAnonymizeEvent.php` | Post-entity hook | FR-EVT-001 |
 | `Event/AnonymizePropertyEvent.php` | Per-property hook | FR-EVT-001 |
+| `Event/Internal/EventOrmState.php` | Doctrine objects behind the deprecated ORM getters of the events (since 1.6) | FR-EVT-001, FR-META-001 |
 
 ## Enums
 
@@ -133,6 +134,7 @@ Audit command: `git ls-files src | wc -l` (85 production files).
 | `Service/CommandRunnerInterface.php` | External command runner | FR-SVC-005 |
 | `Service/SystemCommandRunner.php` | Symfony Process runner | FR-SVC-005 |
 | `Service/ArgvCommandRunnerInterface.php` | Shell-free (argv) command runner contract | FR-SVC-005 |
+| `Service/RowAnonymizerInterface.php` | ORM-free row SPI for custom anonymizer services (since 1.6) | FR-SVC-001, FR-META-001 |
 
 ## Helpers & internal
 
@@ -142,6 +144,24 @@ Audit command: `git ls-files src | wc -l` (85 production files).
 | `Helper/OrmHelper.php` | ORM metadata helpers | FR-HELPER-001 |
 | `Helper/AnonymizePropertyDiscovery.php` | `#[AnonymizeProperty]` discovery on fields and Doctrine embeddables | FR-HELPER-001, FR-ATTR-001 |
 | `Internal/PrivateDirectory.php` | Owner-only (0700) export / history / stats directories | FR-SVC-005, FR-SVC-006 |
+| `Helper/RowKey.php` | Case-folded column lookup in fetched rows (PostgreSQL / Oracle) | FR-HELPER-001 |
+| `Internal/AnonymizeTargetFactory.php` | Builds the ORM-free `AnonymizeTarget` from Doctrine metadata | FR-SVC-001, FR-META-001 |
+| `Internal/LegacyEntityAnonymizerAdapter.php` | Adapts deprecated `EntityAnonymizerServiceInterface` services to the row SPI | FR-SVC-001 |
+
+## Metadata (attribute-free hosts)
+
+| Source file | Spec section | Requirement IDs |
+| --- | --- | --- |
+| `Metadata/AnonymizeMetadataProviderInterface.php` | Selection for classes without `#[Anonymize]` attributes (DDD / XML-mapped hosts) | FR-META-001 |
+| `Metadata/ConfigAnonymizeMetadataProvider.php` | Default provider from `nowo_anonymize.entities` | FR-META-001, FR-CFG-001 |
+| `Metadata/AnonymizeTarget.php` | ORM-free class/table/columns value object carried by the SPI and events | FR-META-001, FR-EVT-001 |
+
+## Worker runtime (FrankenPHP / long-lived processes)
+
+| Source file | Spec section | Requirement IDs |
+| --- | --- | --- |
+| `EventListener/AnonymizeConsoleBoundaryListener.php` | Clears the faker cache at the outermost console command boundary | FR-WORKER-001 |
+| `Worker/UnitOfWorkFrames.php` | Outermost request / message / command frame tracking | FR-WORKER-001 |
 
 ## Coverage summary
 
@@ -151,12 +171,14 @@ Audit command: `git ls-files src | wc -l` (85 production files).
 | Bundle & DI | 4 | 4 |
 | Attributes & trait | 3 | 3 |
 | CLI | 8 | 8 |
-| Events | 5 | 5 |
+| Events | 6 | 6 |
 | Enums | 2 | 2 |
-| Faker (factory + impls) | 41 | 41 |
-| Services | 13 | 13 |
-| Helpers & internal | 4 | 4 |
-| **Total production sources** | **85** | **85** |
+| Faker (factory + impls) | 45 | 45 |
+| Services | 14 | 14 |
+| Helpers & internal | 7 | 7 |
+| Metadata | 3 | 3 |
+| Worker runtime | 2 | 2 |
+| **Total production sources** | **95** | **95** |
 
 ## Maintainer tooling (out of `src/`, REQ-GIT-001)
 

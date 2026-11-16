@@ -105,6 +105,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- Spec Kit baseline: `code-inventory.md` maps all 95 `src/` files again (10 files added in 1.5–1.6 were missing: metadata provider, `AnonymizeTarget`, row SPI, worker boundary listener) and `spec.md` gains `FR-META-001` and `FR-WORKER-001` (REQ-SPECKIT-001/003).
+
 ### Changed
 
 - Demo uses the UiKit base style and FormKit forms (REQ-DEMO-014/015).
