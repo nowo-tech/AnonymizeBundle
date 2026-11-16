@@ -90,6 +90,11 @@ Doctrine entity anonymization for **dev/test** environments: PHP attributes mark
 - **FR-HELPER-001**: `DbalHelper` / `OrmHelper` abstract connection and metadata access.
 - **FR-INT-001**: *(retired)* The unused internal `KernelParameterBagAdapter` was removed; services read parameters through the injected `ParameterBagInterface`.
 
+### Metadata & worker runtime
+
+- **FR-META-001**: `AnonymizeMetadataProviderInterface` (default `ConfigAnonymizeMetadataProvider`, `nowo_anonymize.entities`) selects classes without attributes; `AnonymizeTarget` (built by `AnonymizeTargetFactory`) is the ORM-free description passed to the row SPI `RowAnonymizerInterface` and to the events (REQ-ARCH-001).
+- **FR-WORKER-001**: `AnonymizeConsoleBoundaryListener` + `UnitOfWorkFrames` reset per-run state (faker cache) only at the outermost console command, so a kept-alive worker without the services resetter does not leak state (REQ-RUNTIME-002).
+
 ### Repository hygiene (maintainers)
 
 - **REQ-GIT-001**: Git history must not contain Cursor agent `Co-authored-by` trailers (`cursoragent@cursor.com`). Enforced by `.githooks/commit-msg`, `.scripts/check-no-cursor-coauthor.sh`, `.scripts/strip-cursor-coauthor-from-history.sh`, `make check-no-cursor-coauthor` (in `release-check`), and CI job `git-hygiene` with full history (`fetch-depth: 0`). Documented in [`docs/GITHUB_CI.md`](../../docs/GITHUB_CI.md), [`docs/CONTRIBUTING.md`](../../docs/CONTRIBUTING.md), and [`docs/RELEASE.md`](../../docs/RELEASE.md).
@@ -104,7 +109,7 @@ Doctrine entity anonymization for **dev/test** environments: PHP attributes mark
 
 ## Success Criteria
 
-- **SC-001**: **83/83** production files mapped in [`code-inventory.md`](code-inventory.md).
+- **SC-001**: **95/95** production files mapped in [`code-inventory.md`](code-inventory.md).
 - **SC-002**: Config keys match [`docs/CONFIGURATION.md`](../../docs/CONFIGURATION.md).
 - **SC-003**: `composer qa` and demo `make release-check` pass (includes `check-no-cursor-coauthor`).
 - **SC-004**: PHPUnit covers Faker edge cases, environment guard, and batch iteration; orchestration classes excluded per [`phpunit.xml.dist`](../../phpunit.xml.dist) are covered by integration tests (see [`docs/TEST_COVERAGE_PROPOSAL.md`](../../docs/TEST_COVERAGE_PROPOSAL.md)).
