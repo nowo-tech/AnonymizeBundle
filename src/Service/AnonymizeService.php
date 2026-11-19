@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Platforms\MySQL80Platform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
@@ -482,7 +483,11 @@ final class AnonymizeService implements ResetInterface
         // ORDER BY key LIMIT n). OFFSET re-scans every previous chunk (O(n²)) and, while the application deletes rows
         // of a chunk already done, skips rows that then stay un-anonymised.
         $keyColumns = $metadata->getIdentifierColumnNames();
-        $lastKey    = null;
+        // Key values are written as integers only for integer-typed key columns (UM-AN-1): a digit-only string key of
+        // a VARCHAR column compared with an unquoted number compares numerically on MySQL / MariaDB (rows skipped or
+        // matched twice) and fails on PostgreSQL.
+        $integerKeys = $this->integerKeyColumns($metadata, $keyColumns);
+        $lastKey     = null;
         // Since 1.7 (REQ-RUNTIME-003): each chunk is read and written in ONE transaction run by transaction-doctrine.
         // Outside a dry run the chunk's rows of the main table are then read again BY KEY with a row lock
         // (SELECT ... WHERE key IN (...) FOR UPDATE): an application write to a row of the chunk waits until the chunk
@@ -494,11 +499,11 @@ final class AnonymizeService implements ResetInterface
         $runner     = DoctrineTransactionRunner::forConnection($connection, null);
         $lockClause = $dryRun ? '' : $this->chunkLockClause($connection, 't0');
         while (true) {
-            $chunkQuery = $this->appendKeysetChunk($connection, $query, $hasWhere, 't0', $keyColumns, $lastKey, $batchSize);
+            $chunkQuery = $this->appendKeysetChunk($connection, $query, $hasWhere, 't0', $keyColumns, $integerKeys, $lastKey, $batchSize);
 
             // The keyset read (its last row is the cursor, even when the application deleted it meanwhile)
             /** @var list<array<string, mixed>> $chunk */
-            $chunk = $runner->run(function () use ($connection, $chunkQuery, $query, $hasWhere, $lockClause, $keyColumns, $em, $metadata, $reflection, $properties, $dryRun, $entityAttribute, $target, $tableName, &$anonymizer, &$processed, &$updated, &$propertyStats, &$hasAnonymizedColumn): array {
+            $chunk = $runner->run(function () use ($connection, $chunkQuery, $query, $hasWhere, $lockClause, $keyColumns, $integerKeys, $em, $metadata, $reflection, $properties, $dryRun, $entityAttribute, $target, $tableName, &$anonymizer, &$processed, &$updated, &$propertyStats, &$hasAnonymizedColumn): array {
                 $chunk = $connection->fetchAllAssociative($chunkQuery);
                 if (count($chunk) === 0) {
                     return [];
@@ -508,7 +513,7 @@ final class AnonymizeService implements ResetInterface
                     throw new RuntimeException(sprintf('Cannot anonymize %s: table "%s" has no primary key column to read it in chunks. Nothing of this chunk was written.', $metadata->getName(), $tableName));
                 }
                 // Rows the application deleted since the keyset read are no longer there; the others are current
-                $records = $lockClause === '' ? $chunk : $connection->fetchAllAssociative($this->lockedChunkQuery($connection, $query, $hasWhere, 't0', $keyColumns, $chunk, $tableName) . $lockClause);
+                $records = $lockClause === '' ? $chunk : $connection->fetchAllAssociative($this->lockedChunkQuery($connection, $query, $hasWhere, 't0', $keyColumns, $integerKeys, $chunk, $tableName) . $lockClause);
 
                 $useBatch = false;
                 if ($entityAttribute instanceof Anonymize && $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '' && $this->container instanceof ContainerInterface) {
@@ -722,12 +727,13 @@ final class AnonymizeService implements ResetInterface
             if ($progressCallback !== null) {
                 $progressCallback($processed, $totalRecords, sprintf('Processed %d/%d records (%d updated)', $processed, $totalRecords, $updated));
             }
+            if (count($chunk) < $batchSize) {
+                break; // the last chunk
+            }
             $lastKey = $this->lastKeyOf($chunk[count($chunk) - 1], $keyColumns);
             if ($lastKey === null) {
-                break; // the key columns are always selected (t0.*); never restart from the first chunk
-            }
-            if (count($chunk) < $batchSize) {
-                break;
+                // UM-AN-2: a full chunk without a cursor cannot go on; never report the rest as done
+                throw new RuntimeException(sprintf('Anonymization of %s stopped after %d row(s): a primary key column is missing or NULL in the last row read from table "%s", so the next chunk cannot be found. The rows already processed are committed; the rest were not anonymized.', $metadata->getName(), $processed, $tableName));
             }
         }
 
@@ -1084,6 +1090,7 @@ final class AnonymizeService implements ResetInterface
      * lexicographically).
      *
      * @param list<string> $keyColumns The primary key columns (at least one)
+     * @param array<string, bool> $integerKeys Whether each key column is integer-typed
      * @param array<string, mixed>|null $lastKey The last chunk's key, by column (null for the first chunk)
      */
     private function appendKeysetChunk(
@@ -1092,6 +1099,7 @@ final class AnonymizeService implements ResetInterface
         bool $hasWhere,
         string $mainTableAlias,
         array $keyColumns,
+        array $integerKeys,
         ?array $lastKey,
         int $limit
     ): string {
@@ -1107,7 +1115,7 @@ final class AnonymizeService implements ResetInterface
             // read on InnoDB, locking) every earlier row.
             $condition = null;
             foreach (array_reverse($keys, true) as $column => $key) {
-                $value     = $this->keyLiteral($connection, $lastKey[$column] ?? null);
+                $value     = $this->keyLiteral($connection, $lastKey[$column] ?? null, $integerKeys[$column] ?? false);
                 $condition = $condition === null
                     ? sprintf('%s > %s', $key, $value)
                     : sprintf('%1$s >= %2$s AND (%1$s > %2$s OR %3$s)', $key, $value, $condition);
@@ -1119,14 +1127,17 @@ final class AnonymizeService implements ResetInterface
     }
 
     /**
-     * The rows of a chunk again, by key, for the locking read (the lock clause is appended by the caller).
+     * The rows of a chunk again, by key, for the locking read (the lock clause is appended by the caller):
+     * `key IN (...)`, or `(k1, k2) IN ((...), (...))` for composite keys, so the optimizer looks the rows up by key
+     * whatever the batch size (UM-AN-4).
      *
      * @param list<string> $keyColumns The primary key columns (at least one)
+     * @param array<string, bool> $integerKeys Whether each key column is integer-typed
      * @param list<array<string, mixed>> $chunk The rows of the keyset read
      *
      * @throws RuntimeException When a row lacks a key column (nothing of the chunk is written)
      */
-    private function lockedChunkQuery(Connection $connection, string $query, bool $hasWhere, string $mainTableAlias, array $keyColumns, array $chunk, string $tableName): string
+    private function lockedChunkQuery(Connection $connection, string $query, bool $hasWhere, string $mainTableAlias, array $keyColumns, array $integerKeys, array $chunk, string $tableName): string
     {
         $alias = DbalHelper::quoteIdentifier($connection, $mainTableAlias);
         $keys  = [];
@@ -1134,25 +1145,52 @@ final class AnonymizeService implements ResetInterface
             $keys[$column] = $alias . '.' . DbalHelper::quoteIdentifier($connection, $column);
         }
 
-        $rows = [];
+        $tuples = [];
         foreach ($chunk as $row) {
-            $key   = $this->lastKeyOf($row, $keyColumns) ?? throw new RuntimeException(sprintf('Cannot lock a row of table "%s": a primary key column is missing or NULL in the row. Nothing of this chunk was written.', $tableName));
-            $parts = [];
-            foreach ($keys as $column => $quoted) {
-                $parts[] = sprintf('%s = %s', $quoted, $this->keyLiteral($connection, $key[$column]));
+            $key    = $this->lastKeyOf($row, $keyColumns) ?? throw new RuntimeException(sprintf('Cannot lock a row of table "%s": a primary key column is missing or NULL in the row. Nothing of this chunk was written.', $tableName));
+            $values = [];
+            foreach ($keyColumns as $column) {
+                $values[] = $this->keyLiteral($connection, $key[$column], $integerKeys[$column] ?? false);
             }
-            $rows[] = count($parts) === 1 ? $parts[0] : '(' . implode(' AND ', $parts) . ')';
+            $tuples[] = count($values) === 1 ? $values[0] : '(' . implode(', ', $values) . ')';
         }
+        $target = count($keys) === 1 ? implode('', $keys) : '(' . implode(', ', $keys) . ')';
 
-        return $query . sprintf(' %s (%s) ORDER BY %s', $hasWhere ? 'AND' : 'WHERE', implode(' OR ', $rows), implode(', ', $keys));
+        return $query . sprintf(' %s %s IN (%s) ORDER BY %s', $hasWhere ? 'AND' : 'WHERE', $target, implode(', ', $tuples), implode(', ', $keys));
     }
 
     /**
-     * Integer keys inline (some drivers return them as digit strings); anything else is quoted.
+     * A key value as SQL: inline for an integer-typed key column (some drivers return integers as digit strings),
+     * quoted otherwise. Decided by the column's mapped type, never by the value: a digit-only string of a VARCHAR
+     * key stays a string (UM-AN-1).
      */
-    private function keyLiteral(Connection $connection, mixed $value): string
+    private function keyLiteral(Connection $connection, mixed $value, bool $integerColumn): string
     {
-        return is_int($value) || (is_string($value) && ctype_digit($value)) ? (string) $value : $connection->quote((string) $value);
+        return $integerColumn && (is_int($value) || (is_string($value) && ctype_digit($value))) ? (string) $value : $connection->quote((string) $value);
+    }
+
+    /**
+     * Whether each key column is mapped to an integer type (integer, smallint, bigint). Join columns used as keys,
+     * and anything that cannot be resolved, count as not integer, so their values are quoted (always valid SQL).
+     *
+     * @param ClassMetadata<object> $metadata
+     * @param list<string> $keyColumns
+     *
+     * @return array<string, bool>
+     */
+    private function integerKeyColumns(ClassMetadata $metadata, array $keyColumns): array
+    {
+        $integer = [];
+        foreach ($keyColumns as $column) {
+            try {
+                $type = $metadata->getTypeOfField($metadata->getFieldForColumn($column));
+            } catch (Throwable) {
+                $type = null;
+            }
+            $integer[$column] = in_array($type, [Types::INTEGER, Types::SMALLINT, Types::BIGINT], true);
+        }
+
+        return $integer;
     }
 
     /**

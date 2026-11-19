@@ -18,6 +18,7 @@ use Nowo\AnonymizeBundle\Event\AnonymizePropertyEvent;
 use Nowo\AnonymizeBundle\Faker\FakerFactory;
 use Nowo\AnonymizeBundle\Service\AnonymizeService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
+use Nowo\AnonymizeBundle\Tests\Integration\Concurrency\Entity\CcCode;
 use Nowo\AnonymizeBundle\Tests\Integration\Concurrency\Entity\CcCustomer;
 use Nowo\AnonymizeBundle\Tests\Integration\Concurrency\Entity\CcLine;
 use Nowo\TransactionContract\TransientStorageFailure;
@@ -169,6 +170,30 @@ final class ChunkConcurrencyTest extends TestCase
         foreach ($emails as $email) {
             self::assertStringNotContainsString('real-', (string) $email);
         }
+    }
+
+    /**
+     * UM-AN-1: a VARCHAR key with digit-only values crosses chunk boundaries as a string. Inlined as numbers, MySQL
+     * and MariaDB compared the column numerically ("code > 189" skipped "19", "2" and "9"; "code = 9" also matched
+     * "9x") and PostgreSQL failed (character varying > integer). Every row is processed once and anonymized.
+     */
+    public function testStringKeyWithDigitOnlyValuesCrossesChunkBoundaries(): void
+    {
+        $em         = $this->entityManager();
+        $connection = $em->getConnection();
+        $codes      = ['10', '189', '19', '2', '9', '9x', 'A'];
+        foreach ($codes as $code) {
+            $connection->insert('cc_code', ['code' => $code, 'email' => 'real-' . $code . '@example.test']);
+        }
+
+        $stats = $this->anonymize($em, CcCode::class, 2);
+
+        self::assertSame(7, $stats['processed']);
+        self::assertSame(7, $stats['updated']);
+        foreach ($connection->fetchAllKeyValue('SELECT code, email FROM cc_code') as $code => $email) {
+            self::assertStringNotContainsString('real-', (string) $email, 'row ' . $code . ' kept real data');
+        }
+        self::assertCount(7, $connection->fetchFirstColumn('SELECT code FROM cc_code'));
     }
 
     /**

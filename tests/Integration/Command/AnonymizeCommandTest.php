@@ -837,7 +837,7 @@ class AnonymizeCommandTest extends TestCase
 
         $this->assertSame(1, $exitCode);
         $this->assertStringContainsString('Lock conflict (deadlock, lock wait timeout or serialization failure)', (string) $out);
-        $this->assertStringContainsString('earlier chunks are committed. Re-run the command', (string) $out);
+        $this->assertStringContainsString('previous chunks, if any, are committed. Re-run the command', (string) $out);
     }
 
     /**

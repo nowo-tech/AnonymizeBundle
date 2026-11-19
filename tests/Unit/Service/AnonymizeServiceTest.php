@@ -383,12 +383,17 @@ class AnonymizeServiceTest extends TestCase
     }
 
     /**
-     * Single-column primary key: chunks are read with keyset pagination (WHERE pk > last), never OFFSET.
+     * Single-column primary key: chunks are read with keyset pagination (WHERE pk > last), never OFFSET. Values of an
+     * integer-typed key are inline. A full chunk whose last row has no key value fails the run (UM-AN-2) instead of
+     * stopping and reporting success.
      */
     public function testAnonymizeEntityReadsSingleKeyTablesWithKeysetChunks(): void
     {
         [$em, $connection, $metadata] = $this->chunkedEntityMocks(['id']);
-        $queries                      = [];
+        $metadata->method('getFieldForColumn')->willReturn('id');
+        $metadata->method('getTypeOfField')->willReturn('integer');
+        $metadata->method('getName')->willReturn('App\\Entity\\Keyed');
+        $queries = [];
         $connection->method('fetchAllAssociative')->willReturnCallback(static function (string $sql) use (&$queries): array {
             $queries[] = $sql;
 
@@ -400,15 +405,69 @@ class AnonymizeServiceTest extends TestCase
             };
         });
 
-        $this->service->anonymizeEntity($em, $metadata, $this->createMock(ReflectionClass::class), [], 1);
+        try {
+            $this->service->anonymizeEntity($em, $metadata, $this->createMock(ReflectionClass::class), [], 1);
+            self::fail('Expected a RuntimeException');
+        } catch (RuntimeException $e) {
+            self::assertStringContainsString('Anonymization of App\\Entity\\Keyed stopped after 3 row(s): a primary key column is missing or NULL in the last row read from table "test_table"', $e->getMessage());
+        }
 
-        self::assertCount(3, $queries, 'stops when a row has no key value');
+        self::assertCount(3, $queries);
         self::assertStringEndsWith('ORDER BY "t0"."id" LIMIT 1', $queries[0]);
         self::assertStringContainsString('WHERE "t0"."id" > 7 ORDER BY', $queries[1]);
         self::assertStringContainsString("WHERE \"t0\".\"id\" > 'k-9' ORDER BY", $queries[2]);
         foreach ($queries as $sql) {
             self::assertStringNotContainsString('OFFSET', $sql);
         }
+    }
+
+    /**
+     * UM-AN-1: a digit-only value of a string-typed key is quoted (decided by the column type, not by the value), in
+     * the keyset predicate and in the locking read. Inlined, MySQL compares the VARCHAR column numerically.
+     */
+    public function testAnonymizeEntityQuotesDigitOnlyValuesOfStringKeys(): void
+    {
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
+        $em->method('getConnection')->willReturn($connection);
+        $metadata->method('getTableName')->willReturn('test_table');
+        $metadata->method('getIdentifierColumnNames')->willReturn(['code']);
+        $metadata->method('getFieldForColumn')->willReturn('code');
+        $metadata->method('getTypeOfField')->willReturn('string');
+        $connection->method('getDatabasePlatform')->willReturn(new PostgreSQLPlatform());
+        $connection->method('fetchOne')->willReturn(2);
+        $connection->method('quote')->willReturnCallback(static fn (string $s): string => "'" . $s . "'");
+        $queries = [];
+        $connection->method('fetchAllAssociative')->willReturnCallback(static function (string $sql) use (&$queries): array {
+            $queries[] = $sql;
+
+            return count($queries) <= 2 ? [['code' => '189']] : [];
+        });
+
+        $this->service->anonymizeEntity($em, $metadata, $this->createMock(ReflectionClass::class), [], 1);
+
+        self::assertStringEndsWith(' WHERE "t0"."code" IN (\'189\') ORDER BY "t0"."code" FOR UPDATE OF "t0"', $queries[1]);
+        self::assertStringContainsString(' WHERE "t0"."code" > \'189\' ORDER BY', $queries[2]);
+    }
+
+    /**
+     * A key column that cannot be resolved to a mapped field (a join column used as key) counts as not integer.
+     */
+    public function testAnonymizeEntityQuotesKeysThatAreNotMappedFields(): void
+    {
+        [$em, $connection, $metadata] = $this->chunkedEntityMocks(['owner_id']);
+        $metadata->method('getFieldForColumn')->willThrowException(new RuntimeException('not a field'));
+        $queries = [];
+        $connection->method('fetchAllAssociative')->willReturnCallback(static function (string $sql) use (&$queries): array {
+            $queries[] = $sql;
+
+            return count($queries) === 1 ? [['owner_id' => 5]] : [];
+        });
+
+        $this->service->anonymizeEntity($em, $metadata, $this->createMock(ReflectionClass::class), [], 1);
+
+        self::assertStringContainsString(" WHERE \"t0\".\"owner_id\" > '5' ORDER BY", $queries[1]);
     }
 
     /**
@@ -429,7 +488,7 @@ class AnonymizeServiceTest extends TestCase
         $this->service->anonymizeEntity($em, $metadata, $this->createMock(ReflectionClass::class), [], 1);
 
         self::assertStringEndsWith('ORDER BY "t0"."a", "t0"."b" LIMIT 1', $queries[0]);
-        self::assertStringEndsWith("WHERE \"t0\".\"a\" >= 1 AND (\"t0\".\"a\" > 1 OR \"t0\".\"b\" > 'x') ORDER BY \"t0\".\"a\", \"t0\".\"b\" LIMIT 1", $queries[1]);
+        self::assertStringEndsWith("WHERE \"t0\".\"a\" >= '1' AND (\"t0\".\"a\" > '1' OR \"t0\".\"b\" > 'x') ORDER BY \"t0\".\"a\", \"t0\".\"b\" LIMIT 1", $queries[1]);
         foreach ($queries as $sql) {
             self::assertStringNotContainsString('OFFSET', $sql);
             self::assertStringNotContainsString('FOR UPDATE', $sql, 'no row lock on SQLite');
@@ -463,11 +522,11 @@ class AnonymizeServiceTest extends TestCase
      */
     public static function lockClauses(): iterable
     {
-        yield 'postgresql' => [new PostgreSQLPlatform(), false, ['id'], 'SELECT "t0".* FROM "test_table" AS "t0" WHERE ("t0"."id" = 1 OR "t0"."id" = 2) ORDER BY "t0"."id" FOR UPDATE OF "t0"'];
-        yield 'postgresql composite' => [new PostgreSQLPlatform(), false, ['id', 'k'], 'SELECT "t0".* FROM "test_table" AS "t0" WHERE (("t0"."id" = 1 AND "t0"."k" = \'a\') OR ("t0"."id" = 2 AND "t0"."k" = \'b\')) ORDER BY "t0"."id", "t0"."k" FOR UPDATE OF "t0"'];
-        yield 'mysql 8' => [new MySQL80Platform(), false, ['id'], 'SELECT `t0`.* FROM `test_table` AS `t0` WHERE (`t0`.`id` = 1 OR `t0`.`id` = 2) ORDER BY `t0`.`id` FOR UPDATE OF `t0`'];
-        yield 'mariadb' => [new MariaDBPlatform(), false, ['id'], 'SELECT `t0`.* FROM `test_table` AS `t0` WHERE (`t0`.`id` = 1 OR `t0`.`id` = 2) ORDER BY `t0`.`id` FOR UPDATE'];
-        yield 'mysql 5.7' => [new MySQLPlatform(), false, ['id'], 'SELECT `t0`.* FROM `test_table` AS `t0` WHERE (`t0`.`id` = 1 OR `t0`.`id` = 2) ORDER BY `t0`.`id` FOR UPDATE'];
+        yield 'postgresql' => [new PostgreSQLPlatform(), false, ['id'], 'SELECT "t0".* FROM "test_table" AS "t0" WHERE "t0"."id" IN (1, 2) ORDER BY "t0"."id" FOR UPDATE OF "t0"'];
+        yield 'postgresql composite' => [new PostgreSQLPlatform(), false, ['id', 'k'], 'SELECT "t0".* FROM "test_table" AS "t0" WHERE ("t0"."id", "t0"."k") IN ((1, \'a\'), (2, \'b\')) ORDER BY "t0"."id", "t0"."k" FOR UPDATE OF "t0"'];
+        yield 'mysql 8' => [new MySQL80Platform(), false, ['id'], 'SELECT `t0`.* FROM `test_table` AS `t0` WHERE `t0`.`id` IN (1, 2) ORDER BY `t0`.`id` FOR UPDATE OF `t0`'];
+        yield 'mariadb' => [new MariaDBPlatform(), false, ['id'], 'SELECT `t0`.* FROM `test_table` AS `t0` WHERE `t0`.`id` IN (1, 2) ORDER BY `t0`.`id` FOR UPDATE'];
+        yield 'mysql 5.7' => [new MySQLPlatform(), false, ['id'], 'SELECT `t0`.* FROM `test_table` AS `t0` WHERE `t0`.`id` IN (1, 2) ORDER BY `t0`.`id` FOR UPDATE'];
         yield 'sqlite' => [new SQLitePlatform(), false, ['id'], null];
         yield 'postgresql dry run' => [new PostgreSQLPlatform(), true, ['id'], null];
     }
@@ -484,6 +543,8 @@ class AnonymizeServiceTest extends TestCase
         $em->method('getConnection')->willReturn($connection);
         $metadata->method('getTableName')->willReturn('test_table');
         $metadata->method('getIdentifierColumnNames')->willReturn($idColumns);
+        $metadata->method('getFieldForColumn')->willReturnArgument(0);
+        $metadata->method('getTypeOfField')->willReturnCallback(static fn (string $field): string => $field === 'id' ? 'integer' : 'string');
         $connection->method('getDatabasePlatform')->willReturn($platform);
         $connection->method('fetchOne')->willReturn(2);
         $connection->method('quote')->willReturnCallback(static fn (string $s): string => "'" . $s . "'");

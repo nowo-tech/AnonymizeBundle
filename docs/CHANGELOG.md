@@ -113,7 +113,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `docs/CONCURRENCY.md` (REQ-RUNTIME-003): the write paths, how a chunk is written, the console conflict answer, the host options (lock timeouts, `--batch-size`) and the residual risks. In short: run the command while the application does not write.
 - Two-connection race tests (`tests/Integration/Concurrency`, group `database`) and the CI jobs "Load readiness" (MySQL 8.4, MariaDB 11.4 and PostgreSQL 16, on DBAL 4 and DBAL 3) and "Dependency floor (nowo-tech/transaction-* lowest, demo lock)", with `.scripts/check-demo-lock.py`.
-- `nowo:anonymize:run` reports a lock conflict (deadlock, lock wait timeout, serialization failure) with its own message: the current chunk was rolled back, earlier chunks are committed, and a re-run is safe.
+- `nowo:anonymize:run` reports a lock conflict (deadlock, lock wait timeout, serialization failure) with its own message: the current chunk was rolled back, previous chunks (if any) are committed, and a re-run is safe.
 
 ### Changed
 
@@ -124,7 +124,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Tables with a composite primary key are read in keyset chunks instead of `LIMIT/OFFSET`. Before, if the application deleted a row of a chunk already done during a run, the next row shifted out of the run and stayed un-anonymized.
+- Tables with a composite primary key are read in keyset chunks instead of `LIMIT/OFFSET`. If the application deleted a row of a chunk already done during a run, the next row shifted out of the run and stayed un-anonymized. This affected every table in 1.0.12–1.3.0, and tables with a composite key in 1.4.0–1.6.2 (single-column keys moved to keyset chunks in 1.4.0).
+- Key values in the chunk SQL follow the key column's mapped type: inline only for `integer`, `smallint` and `bigint` columns, quoted otherwise. Since 1.4.0, a digit-only value of a string primary key (for example `VARCHAR` `'189'`) was inlined as a number. On MySQL and MariaDB the column was then compared numerically: later rows were skipped and stayed un-anonymized while the run reported success, or rows were matched twice (`'9x' = 9`). On PostgreSQL the run failed on the second chunk. Affected: single-column string keys in 1.4.0–1.6.2.
+- A full chunk whose last row has no key value fails the run with a message, instead of stopping silently and reporting success.
 - The values written for a row are computed from its current, locked version. Before, an application write that landed between the chunk's read and its `UPDATE` (for example, an erased e-mail) could be overwritten with a masked or hashed form of the old value. A column the application had just filled in could also be skipped, because the run had read it as `NULL`.
 - A table without a primary key now fails the run before anything is written. Before, it could stop after the first chunk and report the rest as done. Mapped ORM entities always have a key.
 

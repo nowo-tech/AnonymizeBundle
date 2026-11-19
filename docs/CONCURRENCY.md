@@ -29,7 +29,7 @@ what it cannot prevent.
 
 | Path | Transaction | Concurrency control | Conflict answer |
 |------|-------------|---------------------|-----------------|
-| `nowo:anonymize:run`, one chunk of one entity (`AnonymizeService::anonymizeEntity()`) | One transaction per chunk (`DoctrineTransactionRunner::forConnection()`); the size is `--batch-size` (default 100) | Keyset read on the primary key (also for composite keys since 1.7), then the chunk's rows read again by key with `FOR UPDATE` (`FOR UPDATE OF t0` on PostgreSQL and MySQL 8+, plain `FOR UPDATE` on MariaDB and MySQL 5.7, no lock on SQLite). `UPDATE … WHERE <primary key> = …` per row | A lock conflict rolls back the current chunk and is rethrown as `Nowo\TransactionContract\TransientStorageFailure`. The command prints a lock-conflict message and exits with `1`. Earlier chunks stay committed |
+| `nowo:anonymize:run`, one chunk of one entity (`AnonymizeService::anonymizeEntity()`) | One transaction per chunk (`DoctrineTransactionRunner::forConnection()`); the size is `--batch-size` (default 100) | Keyset read on the primary key (also for composite keys since 1.7), then the chunk's rows read again by key with `FOR UPDATE` (`FOR UPDATE OF t0` on PostgreSQL and MySQL 8+, plain `FOR UPDATE` on MariaDB and MySQL 5.7, no lock on SQLite). `UPDATE … WHERE <primary key> = …` per row | A lock conflict rolls back the current chunk and is rethrown as `Nowo\TransactionContract\TransientStorageFailure`. The command prints a lock-conflict message and exits with `1`. Previous chunks, if any, stay committed |
 | `nowo:anonymize:run`, `truncate: true` (`AnonymizeService::truncateTables()`) | None: one autocommit statement per table (`TRUNCATE` is DDL and commits implicitly on MySQL and MariaDB) | The server's table lock: `ACCESS EXCLUSIVE` on PostgreSQL, a metadata lock on MySQL and MariaDB. Each waits for the application's open transactions on the table | The database error is rethrown; the command exits with `1` |
 | `nowo:anonymize:run`, `truncate: true` on a polymorphic entity | One autocommit `DELETE … WHERE <discriminator> = …` | Row locks | As above |
 | Run history (`AnonymizationHistoryService`) | No database: one JSON file per run, written after the run | A unique run id per file | Not a database write |
@@ -44,7 +44,9 @@ For each entity, until the table is done:
    `k1 >= v1 AND (k1 > v1 OR k2 > v2)`, so every database can use a range scan. This read takes no lock, so InnoDB
    does not lock the rows it scans past.
 3. Outside a dry run, the chunk's rows are read again **by key**, with the lock clause:
-   `… WHERE (<key> = 1 OR <key> = 2 …) ORDER BY <key> FOR UPDATE OF t0`. Only those rows are locked, in key order.
+   `… WHERE <key> IN (1, 2, …) ORDER BY <key> FOR UPDATE OF t0`, or `(k1, k2) IN ((…), (…))` for composite keys.
+   Only those rows are locked, in key order. The lookup is by key for any batch size; very large values of
+   `--batch-size` (tens of thousands) still make one long transaction, so keep it in the hundreds or low thousands.
    A row the application deleted since step 2 is gone; every other row is its current version.
 4. The values are computed from the locked rows: fakers, patterns, row anonymizer services and
    `AnonymizePropertyEvent` listeners. Then one `UPDATE` is run per row.
@@ -64,7 +66,13 @@ What this prevents:
 - **Rows skipped on composite keys.** Before 1.7, tables with a composite primary key were read with `LIMIT/OFFSET`.
   If the application deleted a row of a chunk already done, the next row shifted out of the run and stayed
   un-anonymized. Keyset chunks do not shift.
-- **Half-written chunks.** A failure rolls back the whole chunk. Earlier chunks are complete.
+- **Half-written chunks.** A failure rolls back the whole chunk. Previous chunks, if any, are complete.
+- **Rows skipped or matched twice on string keys.** Key values are written into the SQL by the key column's mapped
+  type: inline only for integer columns, quoted otherwise. Before, a digit-only value of a `VARCHAR` key (`'189'`) was
+  inlined as a number. MySQL and MariaDB then compared the column numerically, so rows were skipped (left
+  un-anonymized) or matched twice (`'9x' = 9`), and PostgreSQL failed on the second chunk.
+- **Silent stop.** If a full chunk's last row has no key value, the run fails instead of stopping and reporting
+  success.
 
 ## Conflict answer and codes
 
@@ -74,10 +82,11 @@ emitted.
 The console equivalent of the rule is:
 
 - A lock conflict fails the run with exit code `1` and this message: "Lock conflict (deadlock, lock wait timeout or
-  serialization failure) while anonymizing entity manager …: the current chunk was rolled back, earlier chunks are
-  committed. Re-run the command …".
-- In terms of rule 6 this is `CONFLICT_002`: part of the run is committed. Re-running is safe: every row is
-  anonymized again with new values.
+  serialization failure) while anonymizing entity manager …: the current chunk was rolled back; previous chunks, if
+  any, are committed. Re-run the command …".
+- In terms of rule 6 it is `CONFLICT_002` when an earlier chunk (of this entity or of an earlier one) was committed,
+  and `CONFLICT_001` when the conflict hit the first chunk of the first entity, so nothing was committed. In both
+  cases re-running is safe: every row is anonymized again with new values.
 - Other database errors, including unique violations and lost connections, are not mapped. They are printed as
   "Error processing entity manager …" and also exit with `1`.
 

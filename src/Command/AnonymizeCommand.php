@@ -365,9 +365,9 @@ final class AnonymizeCommand extends AbstractCommand
                     return $connectionExit;
                 }
             } catch (TransientStorageFailure) {
-                // Since 1.7 (REQ-RUNTIME-003): a lock conflict rolled back the current chunk only; earlier chunks stay
-                // committed. Re-running anonymizes every row again, which is safe.
-                $io->error(sprintf('Lock conflict (deadlock, lock wait timeout or serialization failure) while anonymizing entity manager %s: the current chunk was rolled back, earlier chunks are committed. Re-run the command, ideally while the application does not write to these tables.', $managerName));
+                // Since 1.7 (REQ-RUNTIME-003): a lock conflict rolled back the current chunk only; previous chunks, if
+                // any, stay committed. Re-running anonymizes every row again, which is safe.
+                $io->error(sprintf('Lock conflict (deadlock, lock wait timeout or serialization failure) while anonymizing entity manager %s: the current chunk was rolled back; previous chunks, if any, are committed. Re-run the command, ideally while the application does not write to these tables.', $managerName));
 
                 return self::FAILURE;
             } catch (Exception $e) {
