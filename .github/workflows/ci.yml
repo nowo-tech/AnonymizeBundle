@@ -238,10 +238,9 @@ jobs:
           extensions: json, pdo, pdo_sqlite
           tools: composer:v2
 
+      # From the lock (as the PHPStan job resolves it), so only nowo-tech/transaction-* moves
       - name: Install dependencies
-        run: |
-          composer config platform.php 8.4.1
-          composer update --prefer-dist --no-progress --no-interaction
+        run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: Downgrade nowo-tech/transaction-* to the lowest allowed versions
         run: |
