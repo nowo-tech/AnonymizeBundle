@@ -127,6 +127,7 @@ For detailed usage examples, see [USAGE.md](docs/USAGE.md). Standard Symfony hos
 - PHP >= 8.2, < 8.6
 - **Symfony >= 6.4** || >= 7.0 || >= 8.0
 - Doctrine ORM >= 2.13 || >= 3.0
+- Doctrine DBAL >= 3.8.2 || >= 4.0 (since 1.7, with `nowo-tech/transaction-doctrine` ^1.6)
 - Doctrine Bundle >= 2.8 || >= 3.0 (3.0 required for Symfony 8)
 
 > **Note**: This bundle requires **Symfony 6.4 or higher** (6.4 LTS is the lowest version tested in CI). Older 6.x releases are not supported: the bundle relies on `#[Autowire]` (6.1) and `#[AsAlias]` (6.3).
@@ -202,6 +203,7 @@ See [FAKERS.md](docs/FAKERS.md) for complete list and configuration options.
 - [GitHub Actions CI requirements](docs/GITHUB_CI.md)
 - [Demo with FrankenPHP (development and production)](docs/DEMO-FRANKENPHP.md)
 - [FrankenPHP worker mode audit](docs/FRANKENPHP-WORKER-AUDIT.md)
+- [Concurrency (REQ-RUNTIME-003)](docs/CONCURRENCY.md)
 - [Commands](docs/COMMANDS.md)
 - [Faker Types](docs/FAKERS.md)
 - [Example: Polymorphism + anonymize service](docs/EXAMPLES_POLYMORPHISM_ANONYMIZE_SERVICE.md)

@@ -156,6 +156,11 @@ empty. Memory margin: less than 2 MiB growth after a 20-run warm-up. Unit tests:
   its own entity managers at every boundary; otherwise entities it loaded before an anonymization run keep their
   pre-anonymization values in its identity map.
 
+- **Concurrency (REQ-RUNTIME-003).** Each chunk runs in one transaction through transaction-doctrine's
+  `DoctrineTransactionRunner::forConnection()`. The runner is created per entity run and is stateless. After a failure
+  it rolls back only the levels it opened, and it never touches an entity manager. Write paths, row locks and residual
+  risks: [CONCURRENCY.md](CONCURRENCY.md).
+
 ## Re-audit triggers
 
 Re-run when adding: HTTP/Messenger/Twig entry points; new mutable properties on shared fakers/services; Faker `unique()`; caches keyed by user data; `$_ENV` / `putenv` / `ini_set`.

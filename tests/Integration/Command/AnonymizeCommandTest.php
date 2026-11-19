@@ -29,6 +29,7 @@ use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
+use Nowo\TransactionContract\TransientStorageFailure;
 use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
@@ -816,6 +817,27 @@ class AnonymizeCommandTest extends TestCase
 
         $this->assertSame(1, $exitCode);
         $this->assertStringContainsString('Error processing entity manager', $out);
+    }
+
+    /**
+     * Since 1.7 (REQ-RUNTIME-003): a lock conflict (TransientStorageFailure from the chunk runner) fails the run with
+     * a message saying that only the current chunk was rolled back and that a re-run is safe.
+     */
+    public function testExecuteReportsALockConflictAsRetryable(): void
+    {
+        $doctrine = $this->createMock(ManagerRegistry::class);
+        $doctrine->method('getManagerNames')->willReturn(['default' => 'default']);
+        $doctrine->method('getManager')->with('default')->willThrowException(new TransientStorageFailure());
+
+        $command = $this->createDefaultAnonymizeCommand($doctrine);
+        $output  = new BufferedOutput();
+
+        $exitCode = $command->run(new ArrayInput(['--force' => true]), $output);
+        $out      = preg_replace('/\s+/', ' ', $output->fetch());
+
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('Lock conflict (deadlock, lock wait timeout or serialization failure)', (string) $out);
+        $this->assertStringContainsString('previous chunks, if any, are committed. Re-run the command', (string) $out);
     }
 
     /**

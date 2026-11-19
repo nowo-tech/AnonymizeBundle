@@ -7,6 +7,9 @@ namespace Nowo\AnonymizeBundle\Tests\Unit\Service;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Platforms\MariaDBPlatform;
+use Doctrine\DBAL\Platforms\MySQL80Platform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
@@ -31,6 +34,7 @@ use Nowo\AnonymizeBundle\Service\AnonymizeStatistics;
 use Nowo\AnonymizeBundle\Service\EntityAnonymizerServiceInterface;
 use Nowo\AnonymizeBundle\Service\PatternMatcher;
 use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -379,12 +383,17 @@ class AnonymizeServiceTest extends TestCase
     }
 
     /**
-     * Single-column primary key: chunks are read with keyset pagination (WHERE pk > last), never OFFSET.
+     * Single-column primary key: chunks are read with keyset pagination (WHERE pk > last), never OFFSET. Values of an
+     * integer-typed key are inline. A full chunk whose last row has no key value fails the run (UM-AN-2) instead of
+     * stopping and reporting success.
      */
     public function testAnonymizeEntityReadsSingleKeyTablesWithKeysetChunks(): void
     {
         [$em, $connection, $metadata] = $this->chunkedEntityMocks(['id']);
-        $queries                      = [];
+        $metadata->method('getFieldForColumn')->willReturn('id');
+        $metadata->method('getTypeOfField')->willReturn('integer');
+        $metadata->method('getName')->willReturn('App\\Entity\\Keyed');
+        $queries = [];
         $connection->method('fetchAllAssociative')->willReturnCallback(static function (string $sql) use (&$queries): array {
             $queries[] = $sql;
 
@@ -396,9 +405,14 @@ class AnonymizeServiceTest extends TestCase
             };
         });
 
-        $this->service->anonymizeEntity($em, $metadata, $this->createMock(ReflectionClass::class), [], 1);
+        try {
+            $this->service->anonymizeEntity($em, $metadata, $this->createMock(ReflectionClass::class), [], 1);
+            self::fail('Expected a RuntimeException');
+        } catch (RuntimeException $e) {
+            self::assertStringContainsString('Anonymization of App\\Entity\\Keyed stopped after 3 row(s): a primary key column is missing or NULL in the last row read from table "test_table"', $e->getMessage());
+        }
 
-        self::assertCount(3, $queries, 'stops when a row has no key value');
+        self::assertCount(3, $queries);
         self::assertStringEndsWith('ORDER BY "t0"."id" LIMIT 1', $queries[0]);
         self::assertStringContainsString('WHERE "t0"."id" > 7 ORDER BY', $queries[1]);
         self::assertStringContainsString("WHERE \"t0\".\"id\" > 'k-9' ORDER BY", $queries[2]);
@@ -408,22 +422,180 @@ class AnonymizeServiceTest extends TestCase
     }
 
     /**
-     * Composite primary keys keep LIMIT/OFFSET ordered by every key column.
+     * UM-AN-1: a digit-only value of a string-typed key is quoted (decided by the column type, not by the value), in
+     * the keyset predicate and in the locking read. Inlined, MySQL compares the VARCHAR column numerically.
      */
-    public function testAnonymizeEntityKeepsOffsetChunksForCompositeKeys(): void
+    public function testAnonymizeEntityQuotesDigitOnlyValuesOfStringKeys(): void
+    {
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
+        $em->method('getConnection')->willReturn($connection);
+        $metadata->method('getTableName')->willReturn('test_table');
+        $metadata->method('getIdentifierColumnNames')->willReturn(['code']);
+        $metadata->method('getFieldForColumn')->willReturn('code');
+        $metadata->method('getTypeOfField')->willReturn('string');
+        $connection->method('getDatabasePlatform')->willReturn(new PostgreSQLPlatform());
+        $connection->method('fetchOne')->willReturn(2);
+        $connection->method('quote')->willReturnCallback(static fn (string $s): string => "'" . $s . "'");
+        $queries = [];
+        $connection->method('fetchAllAssociative')->willReturnCallback(static function (string $sql) use (&$queries): array {
+            $queries[] = $sql;
+
+            return count($queries) <= 2 ? [['code' => '189']] : [];
+        });
+
+        $this->service->anonymizeEntity($em, $metadata, $this->createMock(ReflectionClass::class), [], 1);
+
+        self::assertStringEndsWith(' WHERE "t0"."code" IN (\'189\') ORDER BY "t0"."code" FOR UPDATE OF "t0"', $queries[1]);
+        self::assertStringContainsString(' WHERE "t0"."code" > \'189\' ORDER BY', $queries[2]);
+    }
+
+    /**
+     * A key column that cannot be resolved to a mapped field (a join column used as key) counts as not integer.
+     */
+    public function testAnonymizeEntityQuotesKeysThatAreNotMappedFields(): void
+    {
+        [$em, $connection, $metadata] = $this->chunkedEntityMocks(['owner_id']);
+        $metadata->method('getFieldForColumn')->willThrowException(new RuntimeException('not a field'));
+        $queries = [];
+        $connection->method('fetchAllAssociative')->willReturnCallback(static function (string $sql) use (&$queries): array {
+            $queries[] = $sql;
+
+            return count($queries) === 1 ? [['owner_id' => 5]] : [];
+        });
+
+        $this->service->anonymizeEntity($em, $metadata, $this->createMock(ReflectionClass::class), [], 1);
+
+        self::assertStringContainsString(" WHERE \"t0\".\"owner_id\" > '5' ORDER BY", $queries[1]);
+    }
+
+    /**
+     * Since 1.7 (REQ-RUNTIME-003): composite primary keys use keyset chunks too (lexicographic comparison on every key
+     * column), never OFFSET: a row the application deletes in a chunk already done cannot shift a later row out of
+     * the run.
+     */
+    public function testAnonymizeEntityUsesKeysetChunksForCompositeKeys(): void
     {
         [$em, $connection, $metadata] = $this->chunkedEntityMocks(['a', 'b']);
         $queries                      = [];
         $connection->method('fetchAllAssociative')->willReturnCallback(static function (string $sql) use (&$queries): array {
             $queries[] = $sql;
 
-            return count($queries) === 1 ? [['a' => 1, 'b' => 1]] : [];
+            return count($queries) === 1 ? [['a' => 1, 'b' => 'x']] : [];
         });
 
         $this->service->anonymizeEntity($em, $metadata, $this->createMock(ReflectionClass::class), [], 1);
 
-        self::assertStringEndsWith('ORDER BY "t0"."a", "t0"."b" LIMIT 1 OFFSET 0', $queries[0]);
-        self::assertStringEndsWith('LIMIT 1 OFFSET 1', $queries[1]);
+        self::assertStringEndsWith('ORDER BY "t0"."a", "t0"."b" LIMIT 1', $queries[0]);
+        self::assertStringEndsWith("WHERE \"t0\".\"a\" >= '1' AND (\"t0\".\"a\" > '1' OR \"t0\".\"b\" > 'x') ORDER BY \"t0\".\"a\", \"t0\".\"b\" LIMIT 1", $queries[1]);
+        foreach ($queries as $sql) {
+            self::assertStringNotContainsString('OFFSET', $sql);
+            self::assertStringNotContainsString('FOR UPDATE', $sql, 'no row lock on SQLite');
+        }
+    }
+
+    /**
+     * A table without a primary key cannot be read in chunks: the run fails before writing instead of stopping after
+     * the first chunk and reporting the rest as done.
+     */
+    public function testAnonymizeEntityRefusesATableWithoutPrimaryKey(): void
+    {
+        [$em, $connection, $metadata] = $this->chunkedEntityMocks([]);
+        $metadata->method('getName')->willReturn('App\\Entity\\NoKey');
+        $connection->method('fetchAllAssociative')->willReturn([['email' => 'a@example.test']]);
+        $connection->expects(self::never())->method('executeStatement');
+        $connection->expects(self::never())->method('commit');
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Cannot anonymize App\\Entity\\NoKey: table "test_table" has no primary key column');
+
+        $this->service->anonymizeEntity($em, $metadata, $this->createMock(ReflectionClass::class), [], 10);
+    }
+
+    /**
+     * Since 1.7 (REQ-RUNTIME-003): outside a dry run the chunk's rows are read again by key with a row lock, inside
+     * the chunk's transaction (FOR UPDATE OF the main alias where the platform supports it). The keyset read itself
+     * takes no lock, and a dry run or SQLite reads once.
+     *
+     * @return iterable<string, array{AbstractPlatform, bool, list<string>, string|null}>
+     */
+    public static function lockClauses(): iterable
+    {
+        yield 'postgresql' => [new PostgreSQLPlatform(), false, ['id'], 'SELECT "t0".* FROM "test_table" AS "t0" WHERE "t0"."id" IN (1, 2) ORDER BY "t0"."id" FOR UPDATE OF "t0"'];
+        yield 'postgresql composite' => [new PostgreSQLPlatform(), false, ['id', 'k'], 'SELECT "t0".* FROM "test_table" AS "t0" WHERE ("t0"."id", "t0"."k") IN ((1, \'a\'), (2, \'b\')) ORDER BY "t0"."id", "t0"."k" FOR UPDATE OF "t0"'];
+        yield 'mysql 8' => [new MySQL80Platform(), false, ['id'], 'SELECT `t0`.* FROM `test_table` AS `t0` WHERE `t0`.`id` IN (1, 2) ORDER BY `t0`.`id` FOR UPDATE OF `t0`'];
+        yield 'mariadb' => [new MariaDBPlatform(), false, ['id'], 'SELECT `t0`.* FROM `test_table` AS `t0` WHERE `t0`.`id` IN (1, 2) ORDER BY `t0`.`id` FOR UPDATE'];
+        yield 'mysql 5.7' => [new MySQLPlatform(), false, ['id'], 'SELECT `t0`.* FROM `test_table` AS `t0` WHERE `t0`.`id` IN (1, 2) ORDER BY `t0`.`id` FOR UPDATE'];
+        yield 'sqlite' => [new SQLitePlatform(), false, ['id'], null];
+        yield 'postgresql dry run' => [new PostgreSQLPlatform(), true, ['id'], null];
+    }
+
+    /**
+     * @param list<string> $idColumns
+     */
+    #[DataProvider('lockClauses')]
+    public function testAnonymizeEntityLocksTheChunkRowsByKeyInsideTheTransaction(AbstractPlatform $platform, bool $dryRun, array $idColumns, ?string $lockedRead): void
+    {
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
+        $em->method('getConnection')->willReturn($connection);
+        $metadata->method('getTableName')->willReturn('test_table');
+        $metadata->method('getIdentifierColumnNames')->willReturn($idColumns);
+        $metadata->method('getFieldForColumn')->willReturnArgument(0);
+        $metadata->method('getTypeOfField')->willReturnCallback(static fn (string $field): string => $field === 'id' ? 'integer' : 'string');
+        $connection->method('getDatabasePlatform')->willReturn($platform);
+        $connection->method('fetchOne')->willReturn(2);
+        $connection->method('quote')->willReturnCallback(static fn (string $s): string => "'" . $s . "'");
+        $events = [];
+        $connection->method('beginTransaction')->willReturnCallback(static function () use (&$events): void {
+            $events[] = 'begin';
+        });
+        $connection->method('commit')->willReturnCallback(static function () use (&$events): void {
+            $events[] = 'commit';
+        });
+        $connection->method('fetchAllAssociative')->willReturnCallback(static function (string $sql) use (&$events): array {
+            $events[] = $sql;
+
+            return [['id' => 1, 'k' => 'a'], ['id' => 2, 'k' => 'b']];
+        });
+
+        $result = $this->service->anonymizeEntity($em, $metadata, $this->createMock(ReflectionClass::class), [], 10, $dryRun);
+
+        self::assertSame(2, $result['processed']);
+        self::assertSame('begin', $events[0], 'the chunk is read inside its transaction');
+        self::assertStringNotContainsString('FOR UPDATE', $events[1], 'the keyset read takes no lock');
+        self::assertStringEndsWith(' LIMIT 10', $events[1]);
+        if ($lockedRead === null) {
+            self::assertSame(['begin', $events[1], 'commit'], $events);
+
+            return;
+        }
+        self::assertSame(['begin', $events[1], $lockedRead, 'commit'], $events);
+    }
+
+    /**
+     * A row of the keyset read without its key value cannot be locked: the chunk fails before writing.
+     */
+    public function testAnonymizeEntityRefusesToLockARowWithoutKey(): void
+    {
+        $em         = $this->createMock(EntityManagerInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $metadata   = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
+        $em->method('getConnection')->willReturn($connection);
+        $metadata->method('getTableName')->willReturn('test_table');
+        $metadata->method('getIdentifierColumnNames')->willReturn(['id']);
+        $connection->method('getDatabasePlatform')->willReturn(new PostgreSQLPlatform());
+        $connection->method('fetchOne')->willReturn(1);
+        $connection->method('fetchAllAssociative')->willReturn([['id' => null, 'email' => 'a@example.test']]);
+        $connection->expects(self::never())->method('executeStatement');
+        $connection->expects(self::never())->method('commit');
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Cannot lock a row of table "test_table": a primary key column is missing or NULL in the row.');
+
+        $this->service->anonymizeEntity($em, $metadata, $this->createMock(ReflectionClass::class), [], 10);
     }
 
     /**
