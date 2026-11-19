@@ -19,6 +19,7 @@ use Nowo\AnonymizeBundle\Service\AnonymizeStatistics;
 use Nowo\AnonymizeBundle\Service\AnonymizeStatisticsDisplay;
 use Nowo\AnonymizeBundle\Service\EnvironmentProtectionService;
 use Nowo\AnonymizeBundle\Service\PreFlightCheckService;
+use Nowo\TransactionContract\TransientStorageFailure;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -363,6 +364,12 @@ final class AnonymizeCommand extends AbstractCommand
                 if ($connectionExit !== null) {
                     return $connectionExit;
                 }
+            } catch (TransientStorageFailure) {
+                // Since 1.7 (REQ-RUNTIME-003): a lock conflict rolled back the current chunk only; earlier chunks stay
+                // committed. Re-running anonymizes every row again, which is safe.
+                $io->error(sprintf('Lock conflict (deadlock, lock wait timeout or serialization failure) while anonymizing entity manager %s: the current chunk was rolled back, earlier chunks are committed. Re-run the command, ideally while the application does not write to these tables.', $managerName));
+
+                return self::FAILURE;
             } catch (Exception $e) {
                 $io->error(sprintf('Error processing entity manager %s: %s', $managerName, $e->getMessage()));
 

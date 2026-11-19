@@ -109,9 +109,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Spec Kit baseline: `code-inventory.md` maps all 95 `src/` files again (10 files added in 1.5–1.6 were missing: metadata provider, `AnonymizeTarget`, row SPI, worker boundary listener) and `spec.md` gains `FR-META-001` and `FR-WORKER-001` (REQ-SPECKIT-001/003).
 
+### Added
+
+- `docs/CONCURRENCY.md` (REQ-RUNTIME-003): the write paths, how a chunk is written, the console conflict answer, the host options (lock timeouts, `--batch-size`) and the residual risks. In short: run the command while the application does not write.
+- Two-connection race tests (`tests/Integration/Concurrency`, group `database`) and the CI jobs "Load readiness" (MySQL 8.4, MariaDB 11.4 and PostgreSQL 16, on DBAL 4 and DBAL 3) and "Dependency floor (nowo-tech/transaction-* lowest, demo lock)", with `.scripts/check-demo-lock.py`.
+- `nowo:anonymize:run` reports a lock conflict (deadlock, lock wait timeout, serialization failure) with its own message: the current chunk was rolled back, earlier chunks are committed, and a re-run is safe.
+
 ### Changed
 
 - Demo uses the UiKit base style and FormKit forms (REQ-DEMO-014/015).
+- Each chunk runs in one transaction through `nowo-tech/transaction-doctrine` (`DoctrineTransactionRunner::forConnection()`, new requirement `^1.6`, with `nowo-tech/transaction-contract ^1.0`). After a failure the levels it opened are rolled back, savepoint-aware. A lock conflict is rethrown from `AnonymizeService::anonymizeEntity()` as `Nowo\TransactionContract\TransientStorageFailure` (a `RuntimeException`, with the DBAL exception as previous) instead of the DBAL exception.
+- Outside a dry run, the chunk's rows are read again by key with a row lock (`FOR UPDATE OF` on PostgreSQL and MySQL 8+, `FOR UPDATE` on MariaDB and MySQL 5.7, none on SQLite) inside the chunk's transaction. An application write to one of those rows waits until the chunk commits.
+- `doctrine/dbal` requirement raised to `^3.8.2 || ^4.0` (transaction-doctrine's floor).
+
+### Fixed
+
+- Tables with a composite primary key are read in keyset chunks instead of `LIMIT/OFFSET`. Before, if the application deleted a row of a chunk already done during a run, the next row shifted out of the run and stayed un-anonymized.
+- The values written for a row are computed from its current, locked version. Before, an application write that landed between the chunk's read and its `UPDATE` (for example, an erased e-mail) could be overwritten with a masked or hashed form of the old value. A column the application had just filled in could also be skipped, because the run had read it as `NULL`.
+- A table without a primary key now fails the run before anything is written. Before, it could stop after the first chunk and report the rest as done. Mapped ORM entities always have a key.
 
 ## [1.6.2] - 2026-11-12
 

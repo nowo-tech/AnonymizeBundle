@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Nowo\AnonymizeBundle\Service;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
+use Doctrine\DBAL\Platforms\MySQL80Platform;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
@@ -25,6 +28,7 @@ use Nowo\AnonymizeBundle\Internal\AnonymizeTargetFactory;
 use Nowo\AnonymizeBundle\Internal\LegacyEntityAnonymizerAdapter;
 use Nowo\AnonymizeBundle\Metadata\AnonymizeMetadataProviderInterface;
 use Nowo\AnonymizeBundle\Trait\AnonymizableTrait;
+use Nowo\TransactionDoctrine\DoctrineTransactionRunner;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionProperty;
@@ -33,8 +37,10 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Service\ResetInterface;
 use Throwable;
 
+use function array_reverse;
 use function count;
 use function ctype_digit;
+use function implode;
 use function in_array;
 use function is_array;
 use function is_bool;
@@ -472,23 +478,38 @@ final class AnonymizeService implements ResetInterface
         }
 
         $anonymizer = null;
-        $offset     = 0;
-        // Keyset pagination on a single-column primary key (WHERE pk > last ORDER BY pk LIMIT n): OFFSET re-scans every
-        // previous chunk (O(n²) on large tables). Composite keys keep LIMIT/OFFSET.
-        $idColumns = $metadata->getIdentifierColumnNames();
-        $keyColumn = count($idColumns) === 1 ? $idColumns[0] : null;
-        $lastKey   = null;
+        // Since 1.7 (REQ-RUNTIME-003): keyset pagination on the primary key, also for composite keys (WHERE key > last
+        // ORDER BY key LIMIT n). OFFSET re-scans every previous chunk (O(n²)) and, while the application deletes rows
+        // of a chunk already done, skips rows that then stay un-anonymised.
+        $keyColumns = $metadata->getIdentifierColumnNames();
+        $lastKey    = null;
+        // Since 1.7 (REQ-RUNTIME-003): each chunk is read and written in ONE transaction run by transaction-doctrine.
+        // Outside a dry run the chunk's rows of the main table are then read again BY KEY with a row lock
+        // (SELECT ... WHERE key IN (...) FOR UPDATE): an application write to a row of the chunk waits until the chunk
+        // commits, so the values written are never derived from a stale read (a masked or hashed original the
+        // application just erased) and the row read is the row written. Locking by key (not on the keyset scan)
+        // locks exactly the chunk's rows, never the rows an InnoDB scan passes over. After a failure the runner rolls
+        // the levels it opened back (savepoint-aware) and a lock conflict (deadlock, lock wait timeout, serialization
+        // failure) is rethrown as TransientStorageFailure.
+        $runner     = DoctrineTransactionRunner::forConnection($connection, null);
+        $lockClause = $dryRun ? '' : $this->chunkLockClause($connection, 't0');
         while (true) {
-            $chunkQuery = $keyColumn !== null
-                ? $this->appendKeysetChunk($connection, $query, $hasWhere, 't0', $keyColumn, $lastKey, $batchSize)
-                : $this->appendOrderByAndLimit($connection, $query, $metadata, 't0', $batchSize, $offset);
-            $records = $connection->fetchAllAssociative($chunkQuery);
-            if (count($records) === 0) {
-                break;
-            }
+            $chunkQuery = $this->appendKeysetChunk($connection, $query, $hasWhere, 't0', $keyColumns, $lastKey, $batchSize);
 
-            $connection->beginTransaction();
-            try {
+            // The keyset read (its last row is the cursor, even when the application deleted it meanwhile)
+            /** @var list<array<string, mixed>> $chunk */
+            $chunk = $runner->run(function () use ($connection, $chunkQuery, $query, $hasWhere, $lockClause, $keyColumns, $em, $metadata, $reflection, $properties, $dryRun, $entityAttribute, $target, $tableName, &$anonymizer, &$processed, &$updated, &$propertyStats, &$hasAnonymizedColumn): array {
+                $chunk = $connection->fetchAllAssociative($chunkQuery);
+                if (count($chunk) === 0) {
+                    return [];
+                }
+                if ($keyColumns === []) {
+                    // Without a key the next chunk cannot be found: never report a partial run as complete
+                    throw new RuntimeException(sprintf('Cannot anonymize %s: table "%s" has no primary key column to read it in chunks. Nothing of this chunk was written.', $metadata->getName(), $tableName));
+                }
+                // Rows the application deleted since the keyset read are no longer there; the others are current
+                $records = $lockClause === '' ? $chunk : $connection->fetchAllAssociative($this->lockedChunkQuery($connection, $query, $hasWhere, 't0', $keyColumns, $chunk, $tableName) . $lockClause);
+
                 $useBatch = false;
                 if ($entityAttribute instanceof Anonymize && $entityAttribute->anonymizeService !== null && $entityAttribute->anonymizeService !== '' && $this->container instanceof ContainerInterface) {
                     // Resolved once per entity, on the first chunk (no lookup when the table is empty)
@@ -692,23 +713,20 @@ final class AnonymizeService implements ResetInterface
                     }
                 }
 
-                $connection->commit();
-            } catch (Throwable $e) {
-                $connection->rollBack();
-                throw $e;
+                return $chunk;
+            });
+            if (count($chunk) === 0) {
+                break;
             }
 
             if ($progressCallback !== null) {
                 $progressCallback($processed, $totalRecords, sprintf('Processed %d/%d records (%d updated)', $processed, $totalRecords, $updated));
             }
-            $offset += $batchSize;
-            if ($keyColumn !== null) {
-                $lastKey = $records[count($records) - 1][$keyColumn] ?? null;
-                if ($lastKey === null) {
-                    break; // the key column is always selected (t0.*); never restart from the first chunk
-                }
+            $lastKey = $this->lastKeyOf($chunk[count($chunk) - 1], $keyColumns);
+            if ($lastKey === null) {
+                break; // the key columns are always selected (t0.*); never restart from the first chunk
             }
-            if (count($records) < $batchSize) {
+            if (count($chunk) < $batchSize) {
                 break;
             }
         }
@@ -1062,58 +1080,117 @@ final class AnonymizeService implements ResetInterface
     }
 
     /**
-     * Next chunk after $lastKey ordered by the single-column primary key (keyset pagination).
+     * Next chunk after $lastKey ordered by the primary key (keyset pagination; composite keys compare
+     * lexicographically).
+     *
+     * @param list<string> $keyColumns The primary key columns (at least one)
+     * @param array<string, mixed>|null $lastKey The last chunk's key, by column (null for the first chunk)
      */
     private function appendKeysetChunk(
         Connection $connection,
         string $query,
         bool $hasWhere,
         string $mainTableAlias,
-        string $keyColumn,
-        mixed $lastKey,
+        array $keyColumns,
+        ?array $lastKey,
         int $limit
     ): string {
-        $key = DbalHelper::quoteIdentifier($connection, $mainTableAlias) . '.' . DbalHelper::quoteIdentifier($connection, $keyColumn);
-        if ($lastKey !== null) {
-            // Integer keys inline (some drivers return them as digit strings); anything else is quoted.
-            $value = is_int($lastKey) || (is_string($lastKey) && ctype_digit($lastKey)) ? (string) $lastKey : $connection->quote((string) $lastKey);
-            $query .= sprintf(' %s %s > %s', $hasWhere ? 'AND' : 'WHERE', $key, $value);
+        $alias = DbalHelper::quoteIdentifier($connection, $mainTableAlias);
+        $keys  = [];
+        foreach ($keyColumns as $column) {
+            $keys[$column] = $alias . '.' . DbalHelper::quoteIdentifier($connection, $column);
         }
 
-        return $query . sprintf(' ORDER BY %s LIMIT %d', $key, $limit);
+        if ($lastKey !== null && $keys !== []) {
+            // Built from the last column outwards: k1 >= v1 AND (k1 > v1 OR (k2 >= v2 AND (k2 > v2 OR k3 > v3))). The
+            // leading ">=" lets every database use a range scan on the key instead of scanning (and, in a locking
+            // read on InnoDB, locking) every earlier row.
+            $condition = null;
+            foreach (array_reverse($keys, true) as $column => $key) {
+                $value     = $this->keyLiteral($connection, $lastKey[$column] ?? null);
+                $condition = $condition === null
+                    ? sprintf('%s > %s', $key, $value)
+                    : sprintf('%1$s >= %2$s AND (%1$s > %2$s OR %3$s)', $key, $value, $condition);
+            }
+            $query .= sprintf(' %s %s', $hasWhere ? 'AND' : 'WHERE', $condition);
+        }
+
+        return $query . ($keys === [] ? '' : ' ORDER BY ' . implode(', ', $keys)) . sprintf(' LIMIT %d', $limit);
     }
 
     /**
-     * Appends ORDER BY primary key and LIMIT/OFFSET to a query for stable chunked reads.
+     * The rows of a chunk again, by key, for the locking read (the lock clause is appended by the caller).
      *
-     * @param Connection $connection The database connection
-     * @param string $query The base SELECT query (with WHERE if any)
-     * @param ClassMetadata<object> $metadata The entity metadata
-     * @param string $mainTableAlias The main table alias (e.g. t0)
-     * @param int $limit Maximum number of rows
-     * @param int $offset Offset for pagination
+     * @param list<string> $keyColumns The primary key columns (at least one)
+     * @param list<array<string, mixed>> $chunk The rows of the keyset read
      *
-     * @return string The query with ORDER BY, LIMIT and OFFSET
+     * @throws RuntimeException When a row lacks a key column (nothing of the chunk is written)
      */
-    private function appendOrderByAndLimit(
-        Connection $connection,
-        string $query,
-        ClassMetadata $metadata,
-        string $mainTableAlias,
-        int $limit,
-        int $offset
-    ): string {
-        $idColumns  = $metadata->getIdentifierColumnNames();
-        $orderParts = [];
-        foreach ($idColumns as $col) {
-            $orderParts[] = DbalHelper::quoteIdentifier($connection, $mainTableAlias) . '.'
-                . DbalHelper::quoteIdentifier($connection, $col);
-        }
-        $suffix = sprintf(' LIMIT %d OFFSET %d', $limit, $offset);
-        if ($orderParts === []) {
-            return $query . $suffix;
+    private function lockedChunkQuery(Connection $connection, string $query, bool $hasWhere, string $mainTableAlias, array $keyColumns, array $chunk, string $tableName): string
+    {
+        $alias = DbalHelper::quoteIdentifier($connection, $mainTableAlias);
+        $keys  = [];
+        foreach ($keyColumns as $column) {
+            $keys[$column] = $alias . '.' . DbalHelper::quoteIdentifier($connection, $column);
         }
 
-        return $query . ' ORDER BY ' . implode(', ', $orderParts) . $suffix;
+        $rows = [];
+        foreach ($chunk as $row) {
+            $key   = $this->lastKeyOf($row, $keyColumns) ?? throw new RuntimeException(sprintf('Cannot lock a row of table "%s": a primary key column is missing or NULL in the row. Nothing of this chunk was written.', $tableName));
+            $parts = [];
+            foreach ($keys as $column => $quoted) {
+                $parts[] = sprintf('%s = %s', $quoted, $this->keyLiteral($connection, $key[$column]));
+            }
+            $rows[] = count($parts) === 1 ? $parts[0] : '(' . implode(' AND ', $parts) . ')';
+        }
+
+        return $query . sprintf(' %s (%s) ORDER BY %s', $hasWhere ? 'AND' : 'WHERE', implode(' OR ', $rows), implode(', ', $keys));
+    }
+
+    /**
+     * Integer keys inline (some drivers return them as digit strings); anything else is quoted.
+     */
+    private function keyLiteral(Connection $connection, mixed $value): string
+    {
+        return is_int($value) || (is_string($value) && ctype_digit($value)) ? (string) $value : $connection->quote((string) $value);
+    }
+
+    /**
+     * The key of a chunk's last row, by key column, or null when a key column is missing or NULL in the row.
+     *
+     * The row key may differ from the column name in letter case only (PostgreSQL case-folds unquoted names).
+     *
+     * @param array<string, mixed> $row
+     * @param list<string> $keyColumns
+     *
+     * @return array<string, mixed>|null
+     */
+    private function lastKeyOf(array $row, array $keyColumns): ?array
+    {
+        $key = [];
+        foreach ($keyColumns as $column) {
+            $rowKey = RowKey::resolve($row, $column);
+            if ($rowKey === null || $row[$rowKey] === null) {
+                return null;
+            }
+            $key[$column] = $row[$rowKey];
+        }
+
+        return $key;
+    }
+
+    /**
+     * Row-locking clause for a chunk read (REQ-RUNTIME-003): locks the main table's rows only where the platform can
+     * say so (FOR UPDATE OF on PostgreSQL and MySQL 8+), the joined rows too on MariaDB and older MySQL (no OF). No
+     * clause on SQLite (one writer per database file) and on other platforms.
+     */
+    private function chunkLockClause(Connection $connection, string $mainTableAlias): string
+    {
+        $platform = $connection->getDatabasePlatform();
+        if ($platform instanceof PostgreSQLPlatform || $platform instanceof MySQL80Platform) {
+            return ' FOR UPDATE OF ' . DbalHelper::quoteIdentifier($connection, $mainTableAlias);
+        }
+
+        return $platform instanceof AbstractMySQLPlatform ? ' FOR UPDATE' : '';
     }
 }

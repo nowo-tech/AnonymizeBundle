@@ -108,6 +108,15 @@
 
 ## Unreleased
 
+Concurrency (REQ-RUNTIME-003), see [CONCURRENCY.md](CONCURRENCY.md):
+
+- **New requirements:** `nowo-tech/transaction-doctrine ^1.6` and `nowo-tech/transaction-contract ^1.0`. The `doctrine/dbal` floor is now `^3.8.2 || ^4.0`: DBAL 2.13 and 3.0–3.8.1 are no longer supported. Nothing needs to be registered: the bundle uses the runner class directly, and adds no DBAL middleware and no listener.
+- **BC (exception type):** a deadlock, lock wait timeout or serialization failure inside a chunk is now thrown from `AnonymizeService::anonymizeEntity()` as `Nowo\TransactionContract\TransientStorageFailure` (it extends `RuntimeException`). Before, the DBAL exception was thrown. The DBAL exception is now available from `getPrevious()`. Code that catches `Doctrine\DBAL\Exception\DeadlockException` or `LockWaitTimeoutException` around that call must catch `TransientStorageFailure` instead. Other exceptions are unchanged.
+- **Row locks:** outside a dry run, a chunk locks its rows (`--batch-size`, default 100) until it commits, so application writes to those rows wait. Set a lock timeout on the connection (PostgreSQL waits forever by default). Lower `--batch-size` on busy tables.
+- **Run while the application does not write.** Writes that land after a row's chunk committed are not anonymized again (see the residual risks in [CONCURRENCY.md](CONCURRENCY.md#residual-risks)).
+- Row anonymizer services and `AnonymizePropertyEvent` listeners run while the chunk's rows are locked. Keep slow I/O (HTTP, mail, files) out of them.
+- Composite primary keys are read in keyset chunks. The row order is the same, ordered by the key columns.
+
 ## To 1.6.2
 
 Target **1.6.2**, from **1.6.1**: patch, no configuration change.
