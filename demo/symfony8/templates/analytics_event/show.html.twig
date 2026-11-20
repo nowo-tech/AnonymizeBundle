@@ -29,7 +29,7 @@
 
             <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Language</dt><dd class="nowo-ui-detail-list__value">{{ event.language }}</dd></div>
 
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Event Data (JSON)</dt><dd class="nowo-ui-detail-list__value"><pre class="small">{{ event.eventData|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></dd></div>
+            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Event Data (JSON)</dt><dd class="nowo-ui-detail-list__value"><pre class="nowo-ui-code-block">{{ event.eventData|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></dd></div>
 
             <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Description</dt><dd class="nowo-ui-detail-list__value">{{ event.description ?? '-' }}</dd></div>
 
