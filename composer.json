@@ -58,7 +58,7 @@
         "doctrine/orm": "^2.13 || ^3.0",
         "fakerphp/faker": "^1.23",
         "nowo-tech/transaction-contract": "^1.0",
-        "nowo-tech/transaction-doctrine": "^1.6",
+        "nowo-tech/transaction-doctrine": "^1.8.1",
         "psr/clock": "^1.0",
         "symfony/config": "^6.4 || ^7.0 || ^8.0",
         "symfony/console": "^6.4 || ^7.0 || ^8.0",
