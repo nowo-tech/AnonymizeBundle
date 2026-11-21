@@ -240,3 +240,19 @@ clean:
 # REQ-MAKE-008: update-deps
 # Optional: monorepo helper absent on standalone GitHub Actions checkout (REQ-MAKE-009).
 -include $(abspath $(CURDIR)/../../../.scripts/Makefile.demo-update-deps.mk)
+
+# REQ-DEMO-013: Playwright in the official image (no Node on the host); the demo must be up (make up).
+# The image tag follows the exact @playwright/test version pinned in e2e/package.json (browsers ship with the image).
+PLAYWRIGHT_VERSION := $(shell sed -n 's/.*"@playwright\/test": "\([0-9.]*\)".*/\1/p' e2e/package.json)
+PLAYWRIGHT_IMAGE ?= mcr.microsoft.com/playwright:v$(PLAYWRIGHT_VERSION)-jammy
+
+.PHONY: test-e2e
+test-e2e: ensure-up
+	@mkdir -p e2e/node_modules
+	@PORT=$$(grep -E '^PORT=' .env 2>/dev/null | cut -d= -f2 | tr -d '\r'); PORT=$${PORT:-8002}; \
+	docker run --rm --network host \
+		-v "$(CURDIR)/e2e:/e2e" -w /e2e \
+		-e CI="$${CI:-}" \
+		-e DEMO_BASE_URL=http://127.0.0.1:$$PORT \
+		$(PLAYWRIGHT_IMAGE) \
+		bash -lc 'npm ci --no-fund --no-audit && npx playwright test --project=chromium'

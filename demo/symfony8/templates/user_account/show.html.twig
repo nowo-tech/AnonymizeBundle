@@ -2,40 +2,34 @@
 
 {% block title %}User Account Details - {{ connection|upper }}{% endblock %}
 
+{% block nowo_ui_page_header %}
+    {% set _toolbar %}<a href="{{ path('user_account_edit', {connection: connection, id: useraccount.id}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Edit</a> <a href="{{ path('user_account_index', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--outline">Back to List</a>{% endset %}
+    {{ include(nowo_ui_partial('page_header'), {title: 'User Account Details', toolbar: _toolbar}) }}
+{% endblock %}
+
 {% block body %}
-{% include '_breadcrumbs.html.twig' with {entityName: 'User Account', connection: connection, routePrefix: 'user_account', currentPage: 'Show'} %}
-
-<div class="nowo-ui-card">
-    <div class="nowo-ui-card__header">
-        <h2 class="nowo-ui-card__title">User Account Details <span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span></h2>
-        <div class="nowo-ui-row-actions">
-            <a href="{{ path('user_account_edit', {connection: connection, id: useraccount.id}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Edit</a>
-            <a href="{{ path('user_account_index', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--outline">Back to List</a>
-        </div>
-    </div>
-    <div class="nowo-ui-card__body">
-        <dl class="nowo-ui-detail-list">
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">ID</dt><dd class="nowo-ui-detail-list__value">{{ useraccount.id }}</dd></div>
-            {% for field in useraccount|keys %}
-                {% if field != 'id' and field != 'anonymized' %}
-                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">{{ field|replace({'_': ' '})|title }}</dt><dd class="nowo-ui-detail-list__value">{{ useraccount[field] ?? '-' }}</dd></div>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Details', kind: 'detail'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span>{% endblock %}
+        {% block section_body %}
+            <dl class="nowo-ui-detail-list">
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">ID</dt><dd class="nowo-ui-detail-list__value">{{ useraccount.id }}</dd></div>
+                {% for field in useraccount|keys %}
+                    {% if field != 'id' and field != 'anonymized' %}
+                    <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">{{ field|replace({'_': ' '})|title }}</dt><dd class="nowo-ui-detail-list__value">{{ useraccount[field] ?? '-' }}</dd></div>
+                    {% endif %}
+                {% endfor %}
+                {% if hasAnonymizedColumn|default(false) %}
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Anonymized</dt><dd class="nowo-ui-detail-list__value">
+                    {% if useraccount.anonymized|default(false) %}
+                    {% include '_anonymized_badge.html.twig' with {value: useraccount.anonymized|default(false)} %}
+                    {% endif %}
+                </dd></div>
                 {% endif %}
-            {% endfor %}
-            {% if hasAnonymizedColumn|default(false) %}
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Anonymized</dt><dd class="nowo-ui-detail-list__value">
-                {% if useraccount.anonymized|default(false) %}
-                {% include '_anonymized_badge.html.twig' with {value: useraccount.anonymized|default(false)} %}
-                {% endif %}
-            </dd></div>
-            {% endif %}
-        </dl>
-
-        <div>
-            {% set delete_form = demo_delete_form('user_account_delete', {connection: connection, id: useraccount.id}, useraccount.id, 'Are you sure you want to delete this useraccount?') %}
-            {{ form_start(delete_form) }}
-                {{ form_row(delete_form.delete, {label: 'Delete User Account', attr: {class: 'nowo-ui-btn nowo-ui-btn--danger'}}) }}
-            {{ form_end(delete_form) }}
-        </div>
-    </div>
-</div>
+            </dl>
+        {% endblock %}
+        {% block section_footer %}
+            {% set delete_form = demo_delete_form('user_account_delete', {connection: connection, id: useraccount.id}, useraccount.id) %}
+            {% include '_delete.html.twig' with {form: delete_form, dialog_id: 'delete-' ~ (useraccount.id), message: 'Are you sure you want to delete this useraccount?', label: 'Delete User Account'} only %}
+        {% endblock %}
+    {% endembed %}
 {% endblock %}

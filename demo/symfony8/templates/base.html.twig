@@ -1,83 +1,58 @@
-{#- REQ-DEMO-014: the demo shell is UiKit's admin layout with UiKit's signed-in app shell (header, aside) and UiKit's
-    default theme (nowo-ui.css from the bundle's own asset package, no CSS framework, no CDN, no token overrides). -#}
-{% extends '@NowoUiKit/layout/admin.html.twig' %}
-
+{#- REQ-DEMO-014: the demo runs inside UiKit's shared demo platform shell. This file only declares the demo; the 40 CRUD
+    pages (every list on the MySQL and the PostgreSQL connection, plus the MongoDB collections) are the shell's aside nav. -#}
+{% extends '@NowoUiKit/demo_platform/layout.html.twig' %}
+{% set nowo_ui_demo_platform = {
+    bundle: 'Anonymize',
+    home_route: 'home',
+    repository: 'https://github.com/nowo-tech/AnonymizeBundle',
+    translation_domain: false,
+    nav: [
+        {label: 'Home', route: 'home', section: 'Anonymize'},
+        {label: 'Users (MySQL)', route: 'user_index', params: {connection: 'default'}, section: 'Users', testid: 'demo-nav-user_index-default'},
+        {label: 'Users (PostgreSQL)', route: 'user_index', params: {connection: 'postgres'}, section: 'Users', testid: 'demo-nav-user_index-postgres'},
+        {label: 'Customers (MySQL)', route: 'customer_index', params: {connection: 'default'}, section: 'Customers', testid: 'demo-nav-customer_index-default'},
+        {label: 'Customers (PostgreSQL)', route: 'customer_index', params: {connection: 'postgres'}, section: 'Customers', testid: 'demo-nav-customer_index-postgres'},
+        {label: 'Products (MySQL)', route: 'product_index', params: {connection: 'default'}, section: 'Products', testid: 'demo-nav-product_index-default'},
+        {label: 'Products (PostgreSQL)', route: 'product_index', params: {connection: 'postgres'}, section: 'Products', testid: 'demo-nav-product_index-postgres'},
+        {label: 'Orders (MySQL)', route: 'order_index', params: {connection: 'default'}, section: 'Orders', testid: 'demo-nav-order_index-default'},
+        {label: 'Orders (PostgreSQL)', route: 'order_index', params: {connection: 'postgres'}, section: 'Orders', testid: 'demo-nav-order_index-postgres'},
+        {label: 'Invoices (MySQL)', route: 'invoice_index', params: {connection: 'default'}, section: 'Invoices', testid: 'demo-nav-invoice_index-default'},
+        {label: 'Invoices (PostgreSQL)', route: 'invoice_index', params: {connection: 'postgres'}, section: 'Invoices', testid: 'demo-nav-invoice_index-postgres'},
+        {label: 'Employees (MySQL)', route: 'employee_index', params: {connection: 'default'}, section: 'Employees', testid: 'demo-nav-employee_index-default'},
+        {label: 'Employees (PostgreSQL)', route: 'employee_index', params: {connection: 'postgres'}, section: 'Employees', testid: 'demo-nav-employee_index-postgres'},
+        {label: 'Email Subscriptions (MySQL)', route: 'email_subscription_index', params: {connection: 'default'}, section: 'Email Subscriptions', testid: 'demo-nav-email_subscription_index-default'},
+        {label: 'Email Subscriptions (PostgreSQL)', route: 'email_subscription_index', params: {connection: 'postgres'}, section: 'Email Subscriptions', testid: 'demo-nav-email_subscription_index-postgres'},
+        {label: 'System Logs (MySQL)', route: 'system_log_index', params: {connection: 'default'}, section: 'System Logs', testid: 'demo-nav-system_log_index-default'},
+        {label: 'System Logs (PostgreSQL)', route: 'system_log_index', params: {connection: 'postgres'}, section: 'System Logs', testid: 'demo-nav-system_log_index-postgres'},
+        {label: 'Temp Data (MySQL)', route: 'temp_data_index', params: {connection: 'default'}, section: 'Truncate Examples', testid: 'demo-nav-temp_data_index-default'},
+        {label: 'Temp Data (PostgreSQL)', route: 'temp_data_index', params: {connection: 'postgres'}, section: 'Truncate Examples', testid: 'demo-nav-temp_data_index-postgres'},
+        {label: 'Cache Data (MySQL)', route: 'cache_data_index', params: {connection: 'default'}, section: 'Truncate Examples', testid: 'demo-nav-cache_data_index-default'},
+        {label: 'Cache Data (PostgreSQL)', route: 'cache_data_index', params: {connection: 'postgres'}, section: 'Truncate Examples', testid: 'demo-nav-cache_data_index-postgres'},
+        {label: 'Log Entries (MySQL)', route: 'log_entry_index', params: {connection: 'default'}, section: 'Truncate Examples', testid: 'demo-nav-log_entry_index-default'},
+        {label: 'Log Entries (PostgreSQL)', route: 'log_entry_index', params: {connection: 'postgres'}, section: 'Truncate Examples', testid: 'demo-nav-log_entry_index-postgres'},
+        {label: 'Notifications STI (MySQL)', route: 'notification_index', params: {connection: 'default'}, section: 'Truncate Examples', testid: 'demo-nav-notification_index-default'},
+        {label: 'Notifications STI (PostgreSQL)', route: 'notification_index', params: {connection: 'postgres'}, section: 'Truncate Examples', testid: 'demo-nav-notification_index-postgres'},
+        {label: 'Contacts (MySQL)', route: 'contact_index', params: {connection: 'default'}, section: 'Advanced Examples', testid: 'demo-nav-contact_index-default'},
+        {label: 'Contacts (PostgreSQL)', route: 'contact_index', params: {connection: 'postgres'}, section: 'Advanced Examples', testid: 'demo-nav-contact_index-postgres'},
+        {label: 'Persons (MySQL)', route: 'person_index', params: {connection: 'default'}, section: 'Advanced Examples', testid: 'demo-nav-person_index-default'},
+        {label: 'Persons (PostgreSQL)', route: 'person_index', params: {connection: 'postgres'}, section: 'Advanced Examples', testid: 'demo-nav-person_index-postgres'},
+        {label: 'Email Signatures (MySQL)', route: 'email_signature_index', params: {connection: 'default'}, section: 'Advanced Examples', testid: 'demo-nav-email_signature_index-default'},
+        {label: 'Email Signatures (PostgreSQL)', route: 'email_signature_index', params: {connection: 'postgres'}, section: 'Advanced Examples', testid: 'demo-nav-email_signature_index-postgres'},
+        {label: 'User Accounts (MySQL)', route: 'user_account_index', params: {connection: 'default'}, section: 'Advanced Examples', testid: 'demo-nav-user_account_index-default'},
+        {label: 'User Accounts (PostgreSQL)', route: 'user_account_index', params: {connection: 'postgres'}, section: 'Advanced Examples', testid: 'demo-nav-user_account_index-postgres'},
+        {label: 'Custom Faker Examples (MySQL)', route: 'custom_faker_example_index', params: {connection: 'default'}, section: 'Advanced Examples', testid: 'demo-nav-custom_faker_example_index-default'},
+        {label: 'Custom Faker Examples (PostgreSQL)', route: 'custom_faker_example_index', params: {connection: 'postgres'}, section: 'Advanced Examples', testid: 'demo-nav-custom_faker_example_index-postgres'},
+        {label: 'Faker Type Examples (MySQL)', route: 'faker_type_example_index', params: {connection: 'default'}, section: 'Advanced Examples', testid: 'demo-nav-faker_type_example_index-default'},
+        {label: 'Faker Type Examples (PostgreSQL)', route: 'faker_type_example_index', params: {connection: 'postgres'}, section: 'Advanced Examples', testid: 'demo-nav-faker_type_example_index-postgres'},
+        {label: 'Marketing Campaigns (MySQL)', route: 'marketing_campaign_index', params: {connection: 'default'}, section: 'Advanced Examples', testid: 'demo-nav-marketing_campaign_index-default'},
+        {label: 'Marketing Campaigns (PostgreSQL)', route: 'marketing_campaign_index', params: {connection: 'postgres'}, section: 'Advanced Examples', testid: 'demo-nav-marketing_campaign_index-postgres'},
+        {label: 'User Activities', route: 'mongodb_user_activity_index', active: ['mongodb_user_activity_*'], section: 'MongoDB'},
+        {label: 'Customer Profiles', route: 'mongodb_customer_profile_index', active: ['mongodb_customer_profile_*'], section: 'MongoDB'},
+        {label: 'Transaction Logs', route: 'mongodb_transaction_log_index', active: ['mongodb_transaction_log_*'], section: 'MongoDB'},
+        {label: 'Device Infos', route: 'mongodb_device_info_index', active: ['mongodb_device_info_*'], section: 'MongoDB'},
+        {label: 'Analytics Events', route: 'mongodb_analytics_event_index', active: ['mongodb_analytics_event_*'], section: 'MongoDB'},
+    ],
+} %}
 {% block nowo_ui_document_title %}{% block title %}Anonymize Bundle Demo{% endblock %}{% endblock %}
 
-{% block nowo_ui_body %}
-    {% set sidebarConnections = [
-        { id: 'default', label: 'MySQL' },
-        { id: 'postgres', label: 'PostgreSQL' }
-    ] %}
-    {% set sidebarMenu = [
-        { section: 'Users', items: [ { name: 'Users', route: 'user_index' } ] },
-        { section: 'Customers', items: [ { name: 'Customers', route: 'customer_index' } ] },
-        { section: 'Products', items: [ { name: 'Products', route: 'product_index' } ] },
-        { section: 'Orders', items: [ { name: 'Orders', route: 'order_index' } ] },
-        { section: 'Invoices', items: [ { name: 'Invoices', route: 'invoice_index' } ] },
-        { section: 'Employees', items: [ { name: 'Employees', route: 'employee_index' } ] },
-        { section: 'Email Subscriptions', items: [ { name: 'Email Subscriptions', route: 'email_subscription_index' } ] },
-        { section: 'System Logs', items: [ { name: 'System Logs', route: 'system_log_index' } ] },
-        { section: 'Truncate Examples', items: [
-            { name: 'Temp Data', route: 'temp_data_index' },
-            { name: 'Cache Data', route: 'cache_data_index' },
-            { name: 'Log Entries', route: 'log_entry_index' },
-            { name: 'Notifications STI', route: 'notification_index' }
-        ] },
-        { section: 'Advanced Examples', items: [
-            { name: 'Contacts', route: 'contact_index' },
-            { name: 'Persons', route: 'person_index' },
-            { name: 'Email Signatures', route: 'email_signature_index' },
-            { name: 'User Accounts', route: 'user_account_index' },
-            { name: 'Custom Faker Examples', route: 'custom_faker_example_index' },
-            { name: 'Faker Type Examples', route: 'faker_type_example_index' },
-            { name: 'Marketing Campaigns', route: 'marketing_campaign_index' }
-        ] },
-        { section: 'MongoDB', mongo: true, items: [
-            { name: 'User Activities', route: 'mongodb_user_activity_index' },
-            { name: 'Customer Profiles', route: 'mongodb_customer_profile_index' },
-            { name: 'Transaction Logs', route: 'mongodb_transaction_log_index' },
-            { name: 'Device Infos', route: 'mongodb_device_info_index' },
-            { name: 'Analytics Events', route: 'mongodb_analytics_event_index' }
-        ] }
-    ] %}
-    {% set _current = app.request.pathInfo %}
-    {% set _brand %}
-        <a class="nowo-ui-brand" href="{{ path('home') }}">Anonymize Bundle Demo - CRUD</a>
-    {% endset %}
-    {% set _header_end %}
-        {{ include('@NowoUiKitBundle/partials/_theme_toggle.html.twig', { compact: true }, false) }}
-    {% endset %}
-    {% set _aside %}
-        <div class="nowo-ui-aside__inner">
-            <nav class="nowo-ui-aside__nav" aria-label="Demo navigation">
-                <a class="nowo-ui-aside__link{{ _current == path('home') ? ' nowo-ui-aside__link--active' }}" href="{{ path('home') }}">Home</a>
-                {% for group in sidebarMenu %}
-                    <p class="nowo-ui-aside__label">{{ group.section }}</p>
-                    {% if group.mongo is defined and group.mongo %}
-                        {% for item in group.items %}
-                            {% set _href = path(item.route) %}
-                            <a class="nowo-ui-aside__link{{ _current starts with _href ? ' nowo-ui-aside__link--active' }}" href="{{ _href }}">{{ item.name }}</a>
-                        {% endfor %}
-                    {% else %}
-                        {% for item in group.items %}
-                            {% for conn in sidebarConnections %}
-                                {% set _href = path(item.route, {connection: conn.id}) %}
-                                <a class="nowo-ui-aside__link{{ _current starts with _href ? ' nowo-ui-aside__link--active' }}" href="{{ _href }}">{{ item.name }} ({{ conn.label }})</a>
-                            {% endfor %}
-                        {% endfor %}
-                    {% endif %}
-                {% endfor %}
-            </nav>
-        </div>
-    {% endset %}
-
-    {{ include(nowo_ui_partial('app_shell_open'), {brand_html: _brand, header_end: _header_end, aside_html: _aside, content_width: 'full'}) }}
-        <div class="nowo-ui-content" id="nowo-ui-content">
-            {% block nowo_ui_flashes %}
-                {{ include(nowo_ui_partial('flashes'), {}) }}
-            {% endblock %}
-            {% block nowo_ui_content %}{% block body %}{% endblock %}{% endblock %}
-        </div>
-    {{ include(nowo_ui_partial('app_shell_close'), {}) }}
-{% endblock %}
+{% block nowo_ui_content %}{% block body %}{% endblock %}{% endblock %}

@@ -2,92 +2,90 @@
 
 {% block title %}User Activities - MongoDB{% endblock %}
 
+{% block nowo_ui_page_header %}
+    {% set _toolbar %}<a href="{{ path('mongodb_user_activity_new') }}" class="nowo-ui-btn nowo-ui-btn--primary">Create New Activity</a>{% endset %}
+    {{ include(nowo_ui_partial('page_header'), {title: 'User Activities', toolbar: _toolbar}) }}
+{% endblock %}
+
 {% block body %}
-{% include '_breadcrumbs.html.twig' with {entityName: 'User Activities', isMongo: true, routePrefix: 'mongodb_user_activity', currentPage: 'List'} %}
-<div class="nowo-ui-flash nowo-ui-flash--info" role="note">
-    <strong>ℹ️ Anonymized Fields</strong><br>
-    The following fields in this document are configured for anonymization:
-    <ul>
-        <li><strong>userEmail</strong> - Email faker</li>
-        <li><strong>userName</strong> - Name faker</li>
-        <li><strong>ipAddress</strong> - IP address faker</li>
-        <li><strong>timestamp</strong> - Date faker (past dates, range: -1 year to now)</li>
-        <li><strong>metadata</strong> - Name faker (for metadata fields)</li>
-    </ul>
-</div>
-
-<div class="nowo-ui-card">
-    <div class="nowo-ui-card__header">
-        <h2 class="nowo-ui-card__title">User Activities <span class="nowo-ui-badge nowo-ui-badge--success">MongoDB</span></h2>
-        <a href="{{ path('mongodb_user_activity_new') }}" class="nowo-ui-btn nowo-ui-btn--primary">Create New Activity</a>
-    </div>
-    <div class="nowo-ui-card__body">
-        {% if error is defined and error %}
-            <div class="nowo-ui-flash nowo-ui-flash--error" role="alert">
-                <strong>⚠️ Error:</strong> {{ error }}
-                <hr>
-                <strong>To fix this:</strong>
-                <ul>
-                    <li>Make sure MongoDB service is running: <code>docker-compose ps mongodb</code></li>
-                    <li>Check MONGODB_URL environment variable is set in docker-compose.yml</li>
-                    <li>Rebuild containers: <code>docker-compose build --no-cache php</code></li>
-                    <li>Install dependencies: <code>docker-compose exec php composer install</code></li>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Anonymized Fields', kind: 'detail'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--info">Info</span>{% endblock %}
+        {% block section_body %}
+            <p>The following fields in this document are configured for anonymization:
+            </p>
+            <ul>
+                    <li><strong>userEmail</strong> - Email faker</li>
+                    <li><strong>userName</strong> - Name faker</li>
+                    <li><strong>ipAddress</strong> - IP address faker</li>
+                    <li><strong>timestamp</strong> - Date faker (past dates, range: -1 year to now)</li>
+                    <li><strong>metadata</strong> - Name faker (for metadata fields)</li>
                 </ul>
-            </div>
-        {% endif %}
+        {% endblock %}
+    {% endembed %}
 
-        {% if activities|length > 0 %}
-            <div class="nowo-ui-table-wrap">
-                <table class="nowo-ui-table nowo-ui-table--striped">
-                    <thead>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'User Activities', kind: 'table', empty: not (activities|length > 0), state: error|default(null) ? 'error' : null, state_message: error|default(null) ? error : 'No activities found.'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--success">MongoDB</span>{% endblock %}
+        {% block section_body %}
+            <table class="nowo-ui-data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User Email</th>
+                        <th>User Name</th>
+                        <th>IP Address</th>
+                        <th>Action</th>
+                        <th>Timestamp</th>
+                        <th>Anonymized</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for activity in activities %}
                         <tr>
-                            <th>ID</th>
-                            <th>User Email</th>
-                            <th>User Name</th>
-                            <th>IP Address</th>
-                            <th>Action</th>
-                            <th>Timestamp</th>
-                            <th>Anonymized</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for activity in activities %}
-                            <tr>
-                                <td>{{ activity._id }}</td>
-                                <td>{{ activity.userEmail ?? '-' }}</td>
-                                <td>{{ activity.userName ?? '-' }}</td>
-                                <td>{{ activity.ipAddress ?? '-' }}</td>
-                                <td><span class="nowo-ui-badge nowo-ui-badge--info">{{ activity.action ?? '-' }}</span></td>
-                                <td>
-                                    {% if activity.timestamp %}
-                                        {{ activity.timestamp.toDateTime()|date('Y-m-d H:i:s') }}
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if activity.anonymized|default(false) %}
-                                    {% include '_anonymized_badge.html.twig' with {value: activity.anonymized|default(false)} %}
+                            <td>{{ activity._id }}</td>
+                            <td>{{ activity.userEmail ?? '-' }}</td>
+                            <td>{{ activity.userName ?? '-' }}</td>
+                            <td>{{ activity.ipAddress ?? '-' }}</td>
+                            <td><span class="nowo-ui-badge nowo-ui-badge--info">{{ activity.action ?? '-' }}</span></td>
+                            <td>
+                                {% if activity.timestamp %}
+                                    {{ activity.timestamp.toDateTime()|date('Y-m-d H:i:s') }}
+                                {% else %}
+                                    -
                                 {% endif %}
-                                </td>
-                                <td>
-                                    <div class="nowo-ui-row-actions">
-                                        <a href="{{ path('mongodb_user_activity_show', {id: activity._id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Show</a>
-                                        <a href="{{ path('mongodb_user_activity_edit', {id: activity._id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Edit</a>
-                                        {% set delete_form = demo_delete_form('mongodb_user_activity_delete', {id: activity._id}, activity._id, 'Are you sure?') %}
-                                        {{ form_start(delete_form) }}
-                                        {{ form_end(delete_form) }}
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="nowo-ui-muted">No activities found. <a href="{{ path('mongodb_user_activity_new') }}">Create the first one</a>.</p>
-        {% endif %}
-    </div>
-</div>
+                            </td>
+                            <td>
+                                {% if activity.anonymized|default(false) %}
+                                {% include '_anonymized_badge.html.twig' with {value: activity.anonymized|default(false)} %}
+                            {% endif %}
+                            </td>
+                            <td>
+                                <div class="nowo-ui-row-actions">
+                                    <a href="{{ path('mongodb_user_activity_show', {id: activity._id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Show</a>
+                                    <a href="{{ path('mongodb_user_activity_edit', {id: activity._id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Edit</a>
+                                    {% set delete_form = demo_delete_form('mongodb_user_activity_delete', {id: activity._id}, activity._id) %}
+
+                                    {% include '_delete.html.twig' with {form: delete_form, dialog_id: 'delete-' ~ (activity._id), message: 'Are you sure?', size: 'sm'} only %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endblock %}
+        {% block section_empty_action %}<a class="nowo-ui-btn nowo-ui-btn--outline" href="{{ path('mongodb_user_activity_new') }}">Create the first one</a>{% endblock %}
+    {% endembed %}
+
+    {% if error is defined and error %}
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'To fix this', kind: 'detail'} %}
+        {% block section_body %}
+            <ul>
+                                <li>Make sure MongoDB service is running: <code class="nowo-ui-code">docker-compose ps mongodb</code></li>
+                                <li>Check MONGODB_URL environment variable is set in docker-compose.yml</li>
+                                <li>Rebuild containers: <code class="nowo-ui-code">docker-compose build --no-cache php</code></li>
+                                <li>Install dependencies: <code class="nowo-ui-code">docker-compose exec php composer install</code></li>
+                            </ul>
+        {% endblock %}
+    {% endembed %}
+    {% endif %}
 {% endblock %}

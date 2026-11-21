@@ -1,0 +1,12 @@
+{#- Delete: a danger button opens UiKit's confirm dialog (Cancel has the focus); the dialog posts the CSRF delete form.
+    Variables: form (delete form view), dialog_id, message, size ('sm' in table rows), label (default "Delete"). -#}
+{% set _label = label|default('Delete') %}
+<button type="button" class="nowo-ui-btn nowo-ui-btn--danger{{ size|default(null) == 'sm' ? ' nowo-ui-btn--sm' }}" data-nowo-confirm-open data-nowo-confirm-target="{{ dialog_id }}">{{ _label }}</button>
+{% set _footer %}
+    <button type="button" class="nowo-ui-btn nowo-ui-btn--outline" data-nowo-confirm-close autofocus>Cancel</button>
+    {{ form_start(form) }}
+        {{ form_row(form.delete, {label: _label, attr: {class: 'nowo-ui-btn nowo-ui-btn--danger'}}) }}
+        {{ form_rest(form) }}
+    {{ form_end(form, {render_rest: false}) }}
+{% endset %}
+{{ include(nowo_ui_partial('confirm'), {id: dialog_id, title: _label ~ '?', body: message|default('Are you sure?'), footer: _footer}) }}

@@ -2,56 +2,46 @@
 
 {% block title %}Invoice #{{ invoice.id }} - {{ connection|upper }}{% endblock %}
 
+{% block nowo_ui_page_header %}
+    {% set _toolbar %}<a href="{{ path('invoice_edit', {connection: connection, id: invoice.id}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Edit</a> <a href="{{ path('invoice_index', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--outline">Back to List</a>{% endset %}
+    {{ include(nowo_ui_partial('page_header'), {title: 'Invoice Details', toolbar: _toolbar}) }}
+{% endblock %}
+
 {% block body %}
-{% include '_breadcrumbs.html.twig' with {entityName: 'Invoices', connection: connection, routePrefix: 'invoice', currentPage: 'Show'} %}
-{% if not hasAnonymizedColumn|default(false) %}
-<div class="nowo-ui-flash nowo-ui-flash--warning" role="note">
-    <strong>⚠️ Column "anonymized" not found</strong><br>
-    To add the anonymization tracking column, run:<br>
-    <code class="nowo-ui-code">
-        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
-    </code>
-</div>
-{% endif %}
+    {% if not hasAnonymizedColumn|default(false) %}
+        {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Column "anonymized" not found', kind: 'detail'} %}
+            {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--warning">Warning</span>{% endblock %}
+            {% block section_body %}
+                <p>To add the anonymization tracking column, run:<br>
+                <code class="nowo-ui-code">
+                    php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+                </code></p>
+            {% endblock %}
+        {% endembed %}
+    {% endif %}
 
-<div class="nowo-ui-card">
-    <div class="nowo-ui-card__header">
-        <h2 class="nowo-ui-card__title">Invoice Details <span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span></h2>
-        <div class="nowo-ui-row-actions">
-            <a href="{{ path('invoice_edit', {connection: connection, id: invoice.id}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Edit</a>
-            <a href="{{ path('invoice_index', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--outline">Back to List</a>
-        </div>
-    </div>
-    <div class="nowo-ui-card__body">
-        <dl class="nowo-ui-detail-list">
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">ID</dt><dd class="nowo-ui-detail-list__value">{{ invoice.id }}</dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Invoice Number</dt><dd class="nowo-ui-detail-list__value">{{ invoice.invoiceNumber }}</dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Company Name</dt><dd class="nowo-ui-detail-list__value">{{ invoice.companyName }}</dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Company Address</dt><dd class="nowo-ui-detail-list__value">{{ invoice.companyAddress }}</dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Bank Account</dt><dd class="nowo-ui-detail-list__value">{{ invoice.bankAccount ?? '-' }}</dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Credit Card</dt><dd class="nowo-ui-detail-list__value">{{ invoice.creditCard ?? '-' }}</dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Amount</dt><dd class="nowo-ui-detail-list__value">${{ invoice.amount }}</dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Issue Date</dt><dd class="nowo-ui-detail-list__value">{{ invoice.issueDate ? invoice.issueDate|date('Y-m-d H:i:s') : '-' }}</dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Due Date</dt><dd class="nowo-ui-detail-list__value">{{ invoice.dueDate ? invoice.dueDate|date('Y-m-d H:i:s') : '-' }}</dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Status</dt><dd class="nowo-ui-detail-list__value"><span class="nowo-ui-badge nowo-ui-badge--neutral">{{ invoice.status }}</span></dd></div>
-
-            {% if hasAnonymizedColumn|default(false) %}
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Anonymized</dt><dd class="nowo-ui-detail-list__value">
-                {% if invoice.anonymized|default(false) %}
-                                    {% include '_anonymized_badge.html.twig' with {value: invoice.anonymized|default(false)} %}
-                                {% endif %}
-            </dd></div>
-            {% endif %}
-        </dl>
-    </div>
-</div>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Details', kind: 'detail'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span>{% endblock %}
+        {% block section_body %}
+            <dl class="nowo-ui-detail-list">
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">ID</dt><dd class="nowo-ui-detail-list__value">{{ invoice.id }}</dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Invoice Number</dt><dd class="nowo-ui-detail-list__value">{{ invoice.invoiceNumber }}</dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Company Name</dt><dd class="nowo-ui-detail-list__value">{{ invoice.companyName }}</dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Company Address</dt><dd class="nowo-ui-detail-list__value">{{ invoice.companyAddress }}</dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Bank Account</dt><dd class="nowo-ui-detail-list__value">{{ invoice.bankAccount ?? '-' }}</dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Credit Card</dt><dd class="nowo-ui-detail-list__value">{{ invoice.creditCard ?? '-' }}</dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Amount</dt><dd class="nowo-ui-detail-list__value">${{ invoice.amount }}</dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Issue Date</dt><dd class="nowo-ui-detail-list__value">{{ invoice.issueDate ? invoice.issueDate|date('Y-m-d H:i:s') : '-' }}</dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Due Date</dt><dd class="nowo-ui-detail-list__value">{{ invoice.dueDate ? invoice.dueDate|date('Y-m-d H:i:s') : '-' }}</dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Status</dt><dd class="nowo-ui-detail-list__value"><span class="nowo-ui-badge nowo-ui-badge--neutral">{{ invoice.status }}</span></dd></div>
+                {% if hasAnonymizedColumn|default(false) %}
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Anonymized</dt><dd class="nowo-ui-detail-list__value">
+                    {% if invoice.anonymized|default(false) %}
+                                        {% include '_anonymized_badge.html.twig' with {value: invoice.anonymized|default(false)} %}
+                                    {% endif %}
+                </dd></div>
+                {% endif %}
+            </dl>
+        {% endblock %}
+    {% endembed %}
 {% endblock %}

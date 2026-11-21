@@ -2,86 +2,88 @@
 
 {% block title %}Orders - {{ connection|upper }}{% endblock %}
 
+{% block nowo_ui_page_header %}
+    {% set _toolbar %}<a href="{{ path('order_new', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Create New Order</a>{% endset %}
+    {{ include(nowo_ui_partial('page_header'), {title: 'Orders', toolbar: _toolbar}) }}
+{% endblock %}
+
 {% block body %}
-{% include '_breadcrumbs.html.twig' with {entityName: 'Orders', connection: connection, routePrefix: 'order', currentPage: 'List'} %}
-{% if not hasAnonymizedColumn|default(false) %}
-<div class="nowo-ui-flash nowo-ui-flash--warning" role="note">
-    <strong>⚠️ Column "anonymized" not found</strong><br>
-    To add the anonymization tracking column, run:<br>
-    <code class="nowo-ui-code">
-        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
-    </code>
-</div>
-{% endif %}
+    {% if not hasAnonymizedColumn|default(false) %}
+        {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Column "anonymized" not found', kind: 'detail'} %}
+            {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--warning">Warning</span>{% endblock %}
+            {% block section_body %}
+                <p>To add the anonymization tracking column, run:<br>
+                <code class="nowo-ui-code">
+                    php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+                </code></p>
+            {% endblock %}
+        {% endembed %}
+    {% endif %}
 
-<div class="nowo-ui-flash nowo-ui-flash--info" role="note">
-    <strong>ℹ️ Anonymized Fields</strong><br>
-    The following fields in this entity are configured for anonymization:
-    <ul>
-        <li><strong>orderNumber</strong> - Service faker (CustomReferenceFaker)</li>
-        <li><strong>shippingAddress</strong> - Address faker (full format)</li>
-        <li><strong>billingAddress</strong> - Address faker (full format)</li>
-        <li><strong>totalAmount</strong> - Age faker (numeric range: 50-5000)</li>
-        <li><strong>orderDate</strong> - Date faker (past dates)</li>
-        <li><strong>customerEmail</strong> - Email faker</li>
-    </ul>
-    <p class="nowo-ui-muted"><strong>Note:</strong> This entity uses inclusion patterns (status='completed') and exclusion patterns (id<=5).</p>
-</div>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Anonymized Fields', kind: 'detail'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--info">Info</span>{% endblock %}
+        {% block section_body %}
+            <p>The following fields in this entity are configured for anonymization:
+            </p>
+            <ul>
+                    <li><strong>orderNumber</strong> - Service faker (CustomReferenceFaker)</li>
+                    <li><strong>shippingAddress</strong> - Address faker (full format)</li>
+                    <li><strong>billingAddress</strong> - Address faker (full format)</li>
+                    <li><strong>totalAmount</strong> - Age faker (numeric range: 50-5000)</li>
+                    <li><strong>orderDate</strong> - Date faker (past dates)</li>
+                    <li><strong>customerEmail</strong> - Email faker</li>
+                </ul>
+                <p class="nowo-ui-muted"><strong>Note:</strong> This entity uses inclusion patterns (status='completed') and exclusion patterns (id<=5).</p>
+        {% endblock %}
+    {% endembed %}
 
-<div class="nowo-ui-card">
-    <div class="nowo-ui-card__header">
-        <h2 class="nowo-ui-card__title">Orders <span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span></h2>
-        <a href="{{ path('order_new', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Create New Order</a>
-    </div>
-    <div class="nowo-ui-card__body">
-        {% if orders|length > 0 %}
-            <div class="nowo-ui-table-wrap">
-                <table class="nowo-ui-table nowo-ui-table--striped">
-                    <thead>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Orders', kind: 'table', empty: not (orders|length > 0), state_message: 'No orders found.'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span>{% endblock %}
+        {% block section_body %}
+            <table class="nowo-ui-data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Order Number</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Order Date</th>
+                        {% if hasAnonymizedColumn|default(false) %}
+                        <th>Anonymized</th>
+                        {% endif %}
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
                         <tr>
-                            <th>ID</th>
-                            <th>Order Number</th>
-                            <th>Total Amount</th>
-                            <th>Status</th>
-                            <th>Order Date</th>
+                            <td>{{ order.id }}</td>
+                            <td>{{ order.orderNumber ?? 'N/A' }}</td>
+                            <td>${{ order.totalAmount }}</td>
+                            <td><span class="nowo-ui-badge nowo-ui-badge--neutral">{{ order.status }}</span></td>
+                            <td>{{ order.orderDate ? order.orderDate|date('Y-m-d H:i:s') : 'N/A' }}</td>
                             {% if hasAnonymizedColumn|default(false) %}
-                            <th>Anonymized</th>
+                            <td>
+                                {% if order.anonymized|default(false) %}
+                                {% include '_anonymized_badge.html.twig' with {value: order.anonymized|default(false)} %}
                             {% endif %}
-                            <th>Actions</th>
+                            </td>
+                            {% endif %}
+                            <td>
+                                <div class="nowo-ui-row-actions">
+                                    <a href="{{ path('order_show', {connection: connection, id: order.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Show</a>
+                                    <a href="{{ path('order_edit', {connection: connection, id: order.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Edit</a>
+                                    {% set delete_form = demo_delete_form('order_delete', {connection: connection, id: order.id}, order.id) %}
+
+                                    {% include '_delete.html.twig' with {form: delete_form, dialog_id: 'delete-' ~ (order.id), message: 'Are you sure?', size: 'sm'} only %}
+                                </div>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {% for order in orders %}
-                            <tr>
-                                <td>{{ order.id }}</td>
-                                <td>{{ order.orderNumber ?? 'N/A' }}</td>
-                                <td>${{ order.totalAmount }}</td>
-                                <td><span class="nowo-ui-badge nowo-ui-badge--neutral">{{ order.status }}</span></td>
-                                <td>{{ order.orderDate ? order.orderDate|date('Y-m-d H:i:s') : 'N/A' }}</td>
-                                {% if hasAnonymizedColumn|default(false) %}
-                                <td>
-                                    {% if order.anonymized|default(false) %}
-                                    {% include '_anonymized_badge.html.twig' with {value: order.anonymized|default(false)} %}
-                                {% endif %}
-                                </td>
-                                {% endif %}
-                                <td>
-                                    <div class="nowo-ui-row-actions">
-                                        <a href="{{ path('order_show', {connection: connection, id: order.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Show</a>
-                                        <a href="{{ path('order_edit', {connection: connection, id: order.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Edit</a>
-                                        {% set delete_form = demo_delete_form('order_delete', {connection: connection, id: order.id}, order.id, 'Are you sure?') %}
-                                        {{ form_start(delete_form) }}
-                                        {{ form_end(delete_form) }}
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="nowo-ui-muted">No orders found. <a href="{{ path('order_new', {connection: connection}) }}">Create the first one</a>.</p>
-        {% endif %}
-    </div>
-</div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endblock %}
+        {% block section_empty_action %}<a class="nowo-ui-btn nowo-ui-btn--outline" href="{{ path('order_new', {connection: connection}) }}">Create the first one</a>{% endblock %}
+    {% endembed %}
+
 {% endblock %}

@@ -2,82 +2,84 @@
 
 {% block title %}Customers - {{ connection|upper }}{% endblock %}
 
+{% block nowo_ui_page_header %}
+    {% set _toolbar %}<a href="{{ path('customer_new', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Create New Customer</a>{% endset %}
+    {{ include(nowo_ui_partial('page_header'), {title: 'Customers', toolbar: _toolbar}) }}
+{% endblock %}
+
 {% block body %}
-{% include '_breadcrumbs.html.twig' with {entityName: 'Customers', connection: connection, routePrefix: 'customer', currentPage: 'List'} %}
-{% if not hasAnonymizedColumn|default(false) %}
-<div class="nowo-ui-flash nowo-ui-flash--warning" role="note">
-    <strong>⚠️ Column "anonymized" not found</strong><br>
-    To add the anonymization tracking column, run:<br>
-    <code class="nowo-ui-code">
-        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
-    </code>
-</div>
-{% endif %}
+    {% if not hasAnonymizedColumn|default(false) %}
+        {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Column "anonymized" not found', kind: 'detail'} %}
+            {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--warning">Warning</span>{% endblock %}
+            {% block section_body %}
+                <p>To add the anonymization tracking column, run:<br>
+                <code class="nowo-ui-code">
+                    php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+                </code></p>
+            {% endblock %}
+        {% endembed %}
+    {% endif %}
 
-<div class="nowo-ui-flash nowo-ui-flash--info" role="note">
-    <strong>ℹ️ Anonymized Fields</strong><br>
-    The following fields in this entity are configured for anonymization:
-    <ul>
-        <li><strong>email</strong> - Email faker</li>
-        <li><strong>name</strong> - Name faker</li>
-        <li><strong>referenceCode</strong> - Custom service faker</li>
-    </ul>
-</div>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Anonymized Fields', kind: 'detail'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--info">Info</span>{% endblock %}
+        {% block section_body %}
+            <p>The following fields in this entity are configured for anonymization:
+            </p>
+            <ul>
+                    <li><strong>email</strong> - Email faker</li>
+                    <li><strong>name</strong> - Name faker</li>
+                    <li><strong>referenceCode</strong> - Custom service faker</li>
+                </ul>
+        {% endblock %}
+    {% endembed %}
 
-<div class="nowo-ui-card">
-    <div class="nowo-ui-card__header">
-        <h2 class="nowo-ui-card__title">Customers <span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span></h2>
-        <a href="{{ path('customer_new', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Create New Customer</a>
-    </div>
-    <div class="nowo-ui-card__body">
-        {% if customers|length > 0 %}
-            <div class="nowo-ui-table-wrap">
-                <table class="nowo-ui-table nowo-ui-table--striped">
-                    <thead>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Customers', kind: 'table', empty: not (customers|length > 0), state_message: 'No customers found.'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span>{% endblock %}
+        {% block section_body %}
+            <table class="nowo-ui-data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Email</th>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>Reference Code</th>
+                        {% if hasAnonymizedColumn|default(false) %}
+                        <th>Anonymized</th>
+                        {% endif %}
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
                         <tr>
-                            <th>ID</th>
-                            <th>Email</th>
-                            <th>Name</th>
-                            <th>Status</th>
-                            <th>Reference Code</th>
+                            <td>{{ customer.id }}</td>
+                            <td>{{ customer.email }}</td>
+                            <td>{{ customer.name }}</td>
+                            <td><span class="nowo-ui-badge nowo-ui-badge--neutral">{{ customer.status }}</span></td>
+                            <td>{{ customer.referenceCode ?? '-' }}</td>
                             {% if hasAnonymizedColumn|default(false) %}
-                            <th>Anonymized</th>
+                            <td>
+                                {% if customer.anonymized|default(false) %}
+                                {% include '_anonymized_badge.html.twig' with {value: customer.anonymized|default(false)} %}
                             {% endif %}
-                            <th>Actions</th>
+                            </td>
+                            {% endif %}
+                            <td>
+                                <div class="nowo-ui-row-actions">
+                                    <a href="{{ path('customer_show', {connection: connection, id: customer.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Show</a>
+                                    <a href="{{ path('customer_edit', {connection: connection, id: customer.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Edit</a>
+                                    {% set delete_form = demo_delete_form('customer_delete', {connection: connection, id: customer.id}, customer.id) %}
+
+                                    {% include '_delete.html.twig' with {form: delete_form, dialog_id: 'delete-' ~ (customer.id), message: 'Are you sure?', size: 'sm'} only %}
+                                </div>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {% for customer in customers %}
-                            <tr>
-                                <td>{{ customer.id }}</td>
-                                <td>{{ customer.email }}</td>
-                                <td>{{ customer.name }}</td>
-                                <td><span class="nowo-ui-badge nowo-ui-badge--neutral">{{ customer.status }}</span></td>
-                                <td>{{ customer.referenceCode ?? '-' }}</td>
-                                {% if hasAnonymizedColumn|default(false) %}
-                                <td>
-                                    {% if customer.anonymized|default(false) %}
-                                    {% include '_anonymized_badge.html.twig' with {value: customer.anonymized|default(false)} %}
-                                {% endif %}
-                                </td>
-                                {% endif %}
-                                <td>
-                                    <div class="nowo-ui-row-actions">
-                                        <a href="{{ path('customer_show', {connection: connection, id: customer.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Show</a>
-                                        <a href="{{ path('customer_edit', {connection: connection, id: customer.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Edit</a>
-                                        {% set delete_form = demo_delete_form('customer_delete', {connection: connection, id: customer.id}, customer.id, 'Are you sure?') %}
-                                        {{ form_start(delete_form) }}
-                                        {{ form_end(delete_form) }}
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="nowo-ui-muted">No customers found. <a href="{{ path('customer_new', {connection: connection}) }}">Create the first one</a>.</p>
-        {% endif %}
-    </div>
-</div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endblock %}
+        {% block section_empty_action %}<a class="nowo-ui-btn nowo-ui-btn--outline" href="{{ path('customer_new', {connection: connection}) }}">Create the first one</a>{% endblock %}
+    {% endembed %}
+
 {% endblock %}

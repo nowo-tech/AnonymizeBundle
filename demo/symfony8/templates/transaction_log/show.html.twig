@@ -2,56 +2,43 @@
 
 {% block title %}Transaction Log Details - MongoDB{% endblock %}
 
+{% block nowo_ui_page_header %}
+    {% set _toolbar %}<a href="{{ path('mongodb_transaction_log_edit', {id: transaction._id}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Edit</a> <a href="{{ path('mongodb_transaction_log_index') }}" class="nowo-ui-btn nowo-ui-btn--outline">Back to List</a>{% endset %}
+    {{ include(nowo_ui_partial('page_header'), {title: 'Transaction Log Details', toolbar: _toolbar}) }}
+{% endblock %}
+
 {% block body %}
-{% include '_breadcrumbs.html.twig' with {entityName: 'Transaction Logs', isMongo: true, routePrefix: 'mongodb_transaction_log', currentPage: 'Show'} %}
-<div class="nowo-ui-flash nowo-ui-flash--info" role="note">
-    <strong>ℹ️ Anonymized Fields</strong><br>
-    This MongoDB document demonstrates financial fakers: email, iban, credit_card, masking, numeric, hash.
-</div>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Anonymized Fields', kind: 'detail'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--info">Info</span>{% endblock %}
+        {% block section_body %}
+            <p>This MongoDB document demonstrates financial fakers: email, iban, credit_card, masking, numeric, hash.</p>
+        {% endblock %}
+    {% endembed %}
 
-<div class="nowo-ui-card">
-    <div class="nowo-ui-card__header">
-        <h2 class="nowo-ui-card__title">Transaction Log Details <span class="nowo-ui-badge nowo-ui-badge--info">MongoDB</span></h2>
-        <div class="nowo-ui-row-actions">
-            <a href="{{ path('mongodb_transaction_log_edit', {id: transaction._id}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Edit</a>
-            <a href="{{ path('mongodb_transaction_log_index') }}" class="nowo-ui-btn nowo-ui-btn--outline">Back to List</a>
-        </div>
-    </div>
-    <div class="nowo-ui-card__body">
-        <dl class="nowo-ui-detail-list">
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">ID</dt><dd class="nowo-ui-detail-list__value"><code>{{ transaction._id }}</code></dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Transaction ID</dt><dd class="nowo-ui-detail-list__value"><code>{{ transaction.transactionId }}</code></dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Customer Email</dt><dd class="nowo-ui-detail-list__value">{{ transaction.customerEmail }}</dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">IBAN</dt><dd class="nowo-ui-detail-list__value"><code>{{ transaction.iban ?? '-' }}</code></dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Credit Card</dt><dd class="nowo-ui-detail-list__value"><code class="nowo-ui-code">{{ transaction.creditCard ?? '-' }}</code></dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Masked Card</dt><dd class="nowo-ui-detail-list__value"><code>{{ transaction.maskedCard ?? '-' }}</code></dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Amount</dt><dd class="nowo-ui-detail-list__value"><strong>{{ transaction.amount|number_format(2, '.', ',') }} {{ transaction.currency }}</strong></dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Transaction Hash</dt><dd class="nowo-ui-detail-list__value"><code class="nowo-ui-code">{{ transaction.transactionHash ?? '-' }}</code></dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Status</dt><dd class="nowo-ui-detail-list__value"><span class="nowo-ui-badge nowo-ui-badge--{{ transaction.status == 'completed' ? 'success' : (transaction.status == 'failed' ? 'danger' : (transaction.status == 'refunded' ? 'warning' : 'info')) }}">{{ transaction.status }}</span></dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Transaction Date</dt><dd class="nowo-ui-detail-list__value">{{ transaction.transactionDate ? transaction.transactionDate.toDateTime()|date('Y-m-d H:i:s') : '-' }}</dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Anonymized</dt><dd class="nowo-ui-detail-list__value">
-                {% if transaction.anonymized|default(false) %}
-                                    {% include '_anonymized_badge.html.twig' with {value: transaction.anonymized|default(false)} %}
-                                {% endif %}
-            </dd></div>
-        </dl>
-
-        <div>
-            {% set delete_form = demo_delete_form('mongodb_transaction_log_delete', {id: transaction._id}, transaction._id, 'Are you sure you want to delete this transaction?') %}
-            {{ form_start(delete_form) }}
-                {{ form_row(delete_form.delete, {label: 'Delete Transaction', attr: {class: 'nowo-ui-btn nowo-ui-btn--danger'}}) }}
-            {{ form_end(delete_form) }}
-        </div>
-    </div>
-</div>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Details', kind: 'detail'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--info">MongoDB</span>{% endblock %}
+        {% block section_body %}
+            <dl class="nowo-ui-detail-list">
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">ID</dt><dd class="nowo-ui-detail-list__value"><code class="nowo-ui-code">{{ transaction._id }}</code></dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Transaction ID</dt><dd class="nowo-ui-detail-list__value"><code class="nowo-ui-code">{{ transaction.transactionId }}</code></dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Customer Email</dt><dd class="nowo-ui-detail-list__value">{{ transaction.customerEmail }}</dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">IBAN</dt><dd class="nowo-ui-detail-list__value"><code class="nowo-ui-code">{{ transaction.iban ?? '-' }}</code></dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Credit Card</dt><dd class="nowo-ui-detail-list__value"><code class="nowo-ui-code">{{ transaction.creditCard ?? '-' }}</code></dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Masked Card</dt><dd class="nowo-ui-detail-list__value"><code class="nowo-ui-code">{{ transaction.maskedCard ?? '-' }}</code></dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Amount</dt><dd class="nowo-ui-detail-list__value"><strong>{{ transaction.amount|number_format(2, '.', ',') }} {{ transaction.currency }}</strong></dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Transaction Hash</dt><dd class="nowo-ui-detail-list__value"><code class="nowo-ui-code">{{ transaction.transactionHash ?? '-' }}</code></dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Status</dt><dd class="nowo-ui-detail-list__value"><span class="nowo-ui-badge nowo-ui-badge--{{ transaction.status == 'completed' ? 'success' : (transaction.status == 'failed' ? 'danger' : (transaction.status == 'refunded' ? 'warning' : 'info')) }}">{{ transaction.status }}</span></dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Transaction Date</dt><dd class="nowo-ui-detail-list__value">{{ transaction.transactionDate ? transaction.transactionDate.toDateTime()|date('Y-m-d H:i:s') : '-' }}</dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Anonymized</dt><dd class="nowo-ui-detail-list__value">
+                    {% if transaction.anonymized|default(false) %}
+                                        {% include '_anonymized_badge.html.twig' with {value: transaction.anonymized|default(false)} %}
+                                    {% endif %}
+                </dd></div>
+            </dl>
+        {% endblock %}
+        {% block section_footer %}
+            {% set delete_form = demo_delete_form('mongodb_transaction_log_delete', {id: transaction._id}, transaction._id) %}
+            {% include '_delete.html.twig' with {form: delete_form, dialog_id: 'delete-' ~ (transaction._id), message: 'Are you sure you want to delete this transaction?', label: 'Delete Transaction'} only %}
+        {% endblock %}
+    {% endembed %}
 {% endblock %}
