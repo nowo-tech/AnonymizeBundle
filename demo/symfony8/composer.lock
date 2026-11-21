@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9976203d71050cae3841f213c63012a6",
+    "content-hash": "c61e6dd621ad5b021a74067c85df9d6f",
     "packages": [
         {
             "name": "doctrine/collections",
@@ -956,16 +956,16 @@
         },
         {
             "name": "nowo-tech/ui-kit-bundle",
-            "version": "v2.49.1",
+            "version": "v2.63.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nowo-tech/UiKitBundle.git",
-                "reference": "5fa60b93bdf46cff838f6615d3d6134cae030926"
+                "reference": "9bf9e7f9d22405fc6981fc4c800e15ba3db42e9a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nowo-tech/UiKitBundle/zipball/5fa60b93bdf46cff838f6615d3d6134cae030926",
-                "reference": "5fa60b93bdf46cff838f6615d3d6134cae030926",
+                "url": "https://api.github.com/repos/nowo-tech/UiKitBundle/zipball/9bf9e7f9d22405fc6981fc4c800e15ba3db42e9a",
+                "reference": "9bf9e7f9d22405fc6981fc4c800e15ba3db42e9a",
                 "shasum": ""
             },
             "require": {
@@ -1012,7 +1012,8 @@
                 "symfony/validator": "Colour validation in the optional appearance forms"
             },
             "bin": [
-                "bin/nowo-ui-token-lint"
+                "bin/nowo-ui-token-lint",
+                "bin/nowo-ui-demo-style-lint"
             ],
             "type": "symfony-bundle",
             "autoload": {
@@ -1054,8 +1055,8 @@
                 "issues": "https://github.com/nowo-tech/UiKitBundle/issues",
                 "source": "https://github.com/nowo-tech/UiKitBundle"
             },
-            "time": "2026-11-12T23:56:18+00:00",
-            "published-time": "2026-11-12T23:59:36+00:00"
+            "time": "2026-11-21T09:07:10+00:00",
+            "published-time": "2026-11-21T09:09:29+00:00"
         },
         {
             "name": "psr/cache",
@@ -5751,11 +5752,11 @@
         },
         {
             "name": "nowo-tech/anonymize-bundle",
-            "version": "dev-chore/transaction-doctrine-1.8",
+            "version": "dev-chore/demo-platform-shell",
             "dist": {
                 "type": "path",
                 "url": "/var/anonymize-bundle",
-                "reference": "ab4fcfc1e6dcb16b6e263d92b6aaaa5952a97a1a"
+                "reference": "61d53ed57330216746ca6dbc1f12c0226ec64b64"
             },
             "require": {
                 "doctrine/dbal": "^3.8.2 || ^4.0",
@@ -6510,20 +6511,20 @@
         },
         {
             "name": "symfony/process",
-            "version": "v8.1.10",
+            "version": "v7.4.22",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/process.git",
-                "reference": "08aa69fa0998bb65a089f9e148a2c0f8b391398e"
+                "reference": "a5a6912edbbfc4c98cd080bc4bbe37c8e7eeb20a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/process/zipball/08aa69fa0998bb65a089f9e148a2c0f8b391398e",
-                "reference": "08aa69fa0998bb65a089f9e148a2c0f8b391398e",
+                "url": "https://api.github.com/repos/symfony/process/zipball/a5a6912edbbfc4c98cd080bc4bbe37c8e7eeb20a",
+                "reference": "a5a6912edbbfc4c98cd080bc4bbe37c8e7eeb20a",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.4.1"
+                "php": ">=8.2"
             },
             "type": "library",
             "autoload": {
@@ -6551,7 +6552,7 @@
             "description": "Executes commands in sub-processes",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/process/tree/v8.1.10"
+                "source": "https://github.com/symfony/process/tree/v7.4.22"
             },
             "funding": [
                 {
@@ -6571,8 +6572,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-10-25T14:40:25+00:00",
-            "published-time": "2026-10-28T18:25:20+00:00"
+            "time": "2026-10-25T14:40:16+00:00",
+            "published-time": "2026-10-28T18:21:18+00:00"
         },
         {
             "name": "symfony/web-profiler-bundle",

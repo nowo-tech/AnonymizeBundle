@@ -2,89 +2,91 @@
 
 {% block title %}Invoices - {{ connection|upper }}{% endblock %}
 
+{% block nowo_ui_page_header %}
+    {% set _toolbar %}<a href="{{ path('invoice_new', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Create New Invoice</a>{% endset %}
+    {{ include(nowo_ui_partial('page_header'), {title: 'Invoices', toolbar: _toolbar}) }}
+{% endblock %}
+
 {% block body %}
-{% include '_breadcrumbs.html.twig' with {entityName: 'Invoices', connection: connection, routePrefix: 'invoice', currentPage: 'List'} %}
-{% if not hasAnonymizedColumn|default(false) %}
-<div class="nowo-ui-flash nowo-ui-flash--warning" role="note">
-    <strong>⚠️ Column "anonymized" not found</strong><br>
-    To add the anonymization tracking column, run:<br>
-    <code class="nowo-ui-code">
-        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
-    </code>
-</div>
-{% endif %}
+    {% if not hasAnonymizedColumn|default(false) %}
+        {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Column "anonymized" not found', kind: 'detail'} %}
+            {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--warning">Warning</span>{% endblock %}
+            {% block section_body %}
+                <p>To add the anonymization tracking column, run:<br>
+                <code class="nowo-ui-code">
+                    php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+                </code></p>
+            {% endblock %}
+        {% endembed %}
+    {% endif %}
 
-<div class="nowo-ui-flash nowo-ui-flash--info" role="note">
-    <strong>ℹ️ Anonymized Fields</strong><br>
-    The following fields in this entity are configured for anonymization:
-    <ul>
-        <li><strong>invoiceNumber</strong> - Service faker (CustomReferenceFaker)</li>
-        <li><strong>companyName</strong> - Company faker (corporation type)</li>
-        <li><strong>companyAddress</strong> - Address faker (full format)</li>
-        <li><strong>bankAccount</strong> - IBAN faker (ES country)</li>
-        <li><strong>creditCard</strong> - Masking faker (preserve start/end)</li>
-        <li><strong>amount</strong> - Age faker (numeric range: 100-10000)</li>
-        <li><strong>issueDate</strong> - Date faker (past dates)</li>
-        <li><strong>dueDate</strong> - Date faker (future dates)</li>
-    </ul>
-</div>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Anonymized Fields', kind: 'detail'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--info">Info</span>{% endblock %}
+        {% block section_body %}
+            <p>The following fields in this entity are configured for anonymization:
+            </p>
+            <ul>
+                    <li><strong>invoiceNumber</strong> - Service faker (CustomReferenceFaker)</li>
+                    <li><strong>companyName</strong> - Company faker (corporation type)</li>
+                    <li><strong>companyAddress</strong> - Address faker (full format)</li>
+                    <li><strong>bankAccount</strong> - IBAN faker (ES country)</li>
+                    <li><strong>creditCard</strong> - Masking faker (preserve start/end)</li>
+                    <li><strong>amount</strong> - Age faker (numeric range: 100-10000)</li>
+                    <li><strong>issueDate</strong> - Date faker (past dates)</li>
+                    <li><strong>dueDate</strong> - Date faker (future dates)</li>
+                </ul>
+        {% endblock %}
+    {% endembed %}
 
-<div class="nowo-ui-card">
-    <div class="nowo-ui-card__header">
-        <h2 class="nowo-ui-card__title">Invoices <span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span></h2>
-        <a href="{{ path('invoice_new', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Create New Invoice</a>
-    </div>
-    <div class="nowo-ui-card__body">
-        {% if invoices|length > 0 %}
-            <div class="nowo-ui-table-wrap">
-                <table class="nowo-ui-table nowo-ui-table--striped">
-                    <thead>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Invoices', kind: 'table', empty: not (invoices|length > 0), state_message: 'No invoices found.'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span>{% endblock %}
+        {% block section_body %}
+            <table class="nowo-ui-data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Invoice Number</th>
+                        <th>Company Name</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Issue Date</th>
+                        {% if hasAnonymizedColumn|default(false) %}
+                        <th>Anonymized</th>
+                        {% endif %}
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
                         <tr>
-                            <th>ID</th>
-                            <th>Invoice Number</th>
-                            <th>Company Name</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Issue Date</th>
+                            <td>{{ invoice.id }}</td>
+                            <td>{{ invoice.invoiceNumber }}</td>
+                            <td>{{ invoice.companyName }}</td>
+                            <td>${{ invoice.amount }}</td>
+                            <td><span class="nowo-ui-badge nowo-ui-badge--neutral">{{ invoice.status }}</span></td>
+                            <td>{{ invoice.issueDate ? invoice.issueDate|date('Y-m-d') : 'N/A' }}</td>
                             {% if hasAnonymizedColumn|default(false) %}
-                            <th>Anonymized</th>
+                            <td>
+                                {% if invoice.anonymized|default(false) %}
+                                {% include '_anonymized_badge.html.twig' with {value: invoice.anonymized|default(false)} %}
                             {% endif %}
-                            <th>Actions</th>
+                            </td>
+                            {% endif %}
+                            <td>
+                                <div class="nowo-ui-row-actions">
+                                    <a href="{{ path('invoice_show', {connection: connection, id: invoice.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Show</a>
+                                    <a href="{{ path('invoice_edit', {connection: connection, id: invoice.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Edit</a>
+                                    {% set delete_form = demo_delete_form('invoice_delete', {connection: connection, id: invoice.id}, invoice.id) %}
+
+                                    {% include '_delete.html.twig' with {form: delete_form, dialog_id: 'delete-' ~ (invoice.id), message: 'Are you sure?', size: 'sm'} only %}
+                                </div>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {% for invoice in invoices %}
-                            <tr>
-                                <td>{{ invoice.id }}</td>
-                                <td>{{ invoice.invoiceNumber }}</td>
-                                <td>{{ invoice.companyName }}</td>
-                                <td>${{ invoice.amount }}</td>
-                                <td><span class="nowo-ui-badge nowo-ui-badge--neutral">{{ invoice.status }}</span></td>
-                                <td>{{ invoice.issueDate ? invoice.issueDate|date('Y-m-d') : 'N/A' }}</td>
-                                {% if hasAnonymizedColumn|default(false) %}
-                                <td>
-                                    {% if invoice.anonymized|default(false) %}
-                                    {% include '_anonymized_badge.html.twig' with {value: invoice.anonymized|default(false)} %}
-                                {% endif %}
-                                </td>
-                                {% endif %}
-                                <td>
-                                    <div class="nowo-ui-row-actions">
-                                        <a href="{{ path('invoice_show', {connection: connection, id: invoice.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Show</a>
-                                        <a href="{{ path('invoice_edit', {connection: connection, id: invoice.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Edit</a>
-                                        {% set delete_form = demo_delete_form('invoice_delete', {connection: connection, id: invoice.id}, invoice.id, 'Are you sure?') %}
-                                        {{ form_start(delete_form) }}
-                                        {{ form_end(delete_form) }}
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="nowo-ui-muted">No invoices found. <a href="{{ path('invoice_new', {connection: connection}) }}">Create the first one</a>.</p>
-        {% endif %}
-    </div>
-</div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endblock %}
+        {% block section_empty_action %}<a class="nowo-ui-btn nowo-ui-btn--outline" href="{{ path('invoice_new', {connection: connection}) }}">Create the first one</a>{% endblock %}
+    {% endembed %}
+
 {% endblock %}

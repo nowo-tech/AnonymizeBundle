@@ -10,11 +10,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-use function sprintf;
-
 /**
  * Demo delete forms (REQ-TWIG-005): form name "delete_{id}", CSRF token id "delete{id}" (the id the controllers
- * always checked), POST to the entity/document delete route, confirm prompt on submit.
+ * always checked), POST to the entity/document delete route. The confirmation is UiKit's confirm dialog (templates/_delete.html.twig), never a native prompt.
  */
 final readonly class DeleteFormFactory
 {
@@ -29,13 +27,12 @@ final readonly class DeleteFormFactory
      *
      * @return FormInterface<null>
      */
-    public function create(string $id, string $route = '', array $routeParams = [], string $confirm = 'Are you sure?', string $class = 'nowo-ui-row-actions__form'): FormInterface
+    public function create(string $id, string $route = '', array $routeParams = [], string $class = 'nowo-ui-form'): FormInterface
     {
         $options = [
             'csrf_token_id' => 'delete' . $id,
             'attr'          => [
-                'class'    => $class,
-                'onsubmit' => sprintf("return confirm('%s')", $confirm),
+                'class' => $class,
             ],
         ];
         if ($route !== '') {

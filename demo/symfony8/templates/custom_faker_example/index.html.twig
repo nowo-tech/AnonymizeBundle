@@ -2,75 +2,73 @@
 
 {% block title %}Custom Faker Example - {{ connection|upper }}{% endblock %}
 
+{% block nowo_ui_page_header %}
+    {% set _toolbar %}<a href="{{ path('custom_faker_example_new', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Create New Custom Faker Example</a>{% endset %}
+    {{ include(nowo_ui_partial('page_header'), {title: 'Custom Faker Example', toolbar: _toolbar}) }}
+{% endblock %}
+
 {% block body %}
-{% include '_breadcrumbs.html.twig' with {entityName: 'Custom Faker Example', connection: connection, routePrefix: 'custom_faker_example', currentPage: 'List'} %}
+    {% if not hasAnonymizedColumn|default(false) %}
+        {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Column "anonymized" not found', kind: 'detail'} %}
+            {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--warning">Warning</span>{% endblock %}
+            {% block section_body %}
+                <p>To add the anonymization tracking column, run:<br>
+                <code class="nowo-ui-code">
+                    php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+                </code></p>
+            {% endblock %}
+        {% endembed %}
+    {% endif %}
 
-{% if not hasAnonymizedColumn|default(false) %}
-<div class="nowo-ui-flash nowo-ui-flash--warning" role="note">
-    <strong>⚠️ Column "anonymized" not found</strong><br>
-    To add the anonymization tracking column, run:<br>
-    <code class="nowo-ui-code">
-        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
-    </code>
-</div>
-{% endif %}
-
-<div class="nowo-ui-card">
-    <div class="nowo-ui-card__header">
-        <h2 class="nowo-ui-card__title">Custom Faker Example <span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span></h2>
-        <a href="{{ path('custom_faker_example_new', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Create New Custom Faker Example</a>
-    </div>
-    <div class="nowo-ui-card__body">
-        {% if customfakerexample_list|length > 0 %}
-            <div class="nowo-ui-table-wrap">
-                <table class="nowo-ui-table nowo-ui-table--striped">
-                    <thead>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Custom Faker Example', kind: 'table', empty: not (customfakerexample_list|length > 0), state_message: 'No customfakerexample found.'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span>{% endblock %}
+        {% block section_body %}
+            <table class="nowo-ui-data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        {% for field in customfakerexample_list[0]|keys %}
+                            {% if field != 'id' and field != 'anonymized' %}
+                            <th>{{ field|replace({'_': ' '})|title }}</th>
+                            {% endif %}
+                        {% endfor %}
+                        {% if hasAnonymizedColumn|default(false) %}
+                        <th>Anonymized</th>
+                        {% endif %}
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customfakerexample in customfakerexample_list %}
                         <tr>
-                            <th>ID</th>
+                            <td>{{ customfakerexample.id ?? customfakerexample.id }}</td>
                             {% for field in customfakerexample_list[0]|keys %}
                                 {% if field != 'id' and field != 'anonymized' %}
-                                <th>{{ field|replace({'_': ' '})|title }}</th>
+                                <td>{{ customfakerexample[field] ?? '-' }}</td>
                                 {% endif %}
                             {% endfor %}
                             {% if hasAnonymizedColumn|default(false) %}
-                            <th>Anonymized</th>
-                            {% endif %}
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for customfakerexample in customfakerexample_list %}
-                            <tr>
-                                <td>{{ customfakerexample.id ?? customfakerexample.id }}</td>
-                                {% for field in customfakerexample_list[0]|keys %}
-                                    {% if field != 'id' and field != 'anonymized' %}
-                                    <td>{{ customfakerexample[field] ?? '-' }}</td>
-                                    {% endif %}
-                                {% endfor %}
-                                {% if hasAnonymizedColumn|default(false) %}
-                                <td>
-                                    {% if customfakerexample.anonymized|default(false) %}
-                                    {% include '_anonymized_badge.html.twig' with {value: customfakerexample.anonymized|default(false)} %}
-                                    {% endif %}
-                                </td>
+                            <td>
+                                {% if customfakerexample.anonymized|default(false) %}
+                                {% include '_anonymized_badge.html.twig' with {value: customfakerexample.anonymized|default(false)} %}
                                 {% endif %}
-                                <td>
-                                    <div class="nowo-ui-row-actions">
-                                        <a href="{{ path('custom_faker_example_show', {connection: connection, id: customfakerexample.id ?? customfakerexample.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Show</a>
-                                        <a href="{{ path('custom_faker_example_edit', {connection: connection, id: customfakerexample.id ?? customfakerexample.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Edit</a>
-                                        {% set delete_form = demo_delete_form('custom_faker_example_delete', {connection: connection, id: customfakerexample.id ?? customfakerexample.id}, (customfakerexample.id ?? customfakerexample.id), 'Are you sure?') %}
-                                        {{ form_start(delete_form) }}
-                                        {{ form_end(delete_form) }}
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="nowo-ui-muted">No customfakerexample found. <a href="{{ path('custom_faker_example_new', {connection: connection}) }}">Create the first one</a>.</p>
-        {% endif %}
-    </div>
-</div>
+                            </td>
+                            {% endif %}
+                            <td>
+                                <div class="nowo-ui-row-actions">
+                                    <a href="{{ path('custom_faker_example_show', {connection: connection, id: customfakerexample.id ?? customfakerexample.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Show</a>
+                                    <a href="{{ path('custom_faker_example_edit', {connection: connection, id: customfakerexample.id ?? customfakerexample.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Edit</a>
+                                    {% set delete_form = demo_delete_form('custom_faker_example_delete', {connection: connection, id: customfakerexample.id ?? customfakerexample.id}, (customfakerexample.id ?? customfakerexample.id)) %}
+
+                                    {% include '_delete.html.twig' with {form: delete_form, dialog_id: 'delete-' ~ ((customfakerexample.id ?? customfakerexample.id)), message: 'Are you sure?', size: 'sm'} only %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endblock %}
+        {% block section_empty_action %}<a class="nowo-ui-btn nowo-ui-btn--outline" href="{{ path('custom_faker_example_new', {connection: connection}) }}">Create the first one</a>{% endblock %}
+    {% endembed %}
+
 {% endblock %}

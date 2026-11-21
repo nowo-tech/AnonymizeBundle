@@ -2,35 +2,30 @@
 
 {% block title %}Notification #{{ notification.id }} - {{ connection|upper }}{% endblock %}
 
+{% block nowo_ui_page_header %}
+    {% set _toolbar %}<a href="{{ path('notification_index', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--outline">Back to list</a>{% endset %}
+    {{ include(nowo_ui_partial('page_header'), {title: 'Notification #' ~ notification.id, toolbar: _toolbar}) }}
+{% endblock %}
+
 {% block body %}
-{% include '_breadcrumbs.html.twig' with {entityName: 'Notifications (Polymorphic STI)', connection: connection, currentPage: 'Show', routePrefix: 'notification', listRoute: 'notification_index'} only %}
-
-<div class="nowo-ui-card">
-    <div class="nowo-ui-card__header">
-        <h2 class="nowo-ui-card__title">Notification #{{ notification.id }} <span class="nowo-ui-badge nowo-ui-badge--{{ notification_type == 'email' ? 'primary' : 'neutral' }}">{{ notification_type }}</span></h2>
-        <a href="{{ path('notification_index', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--outline">Back to list</a>
-    </div>
-    <div class="nowo-ui-card__body">
-        <dl class="nowo-ui-detail-list">
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">ID</dt><dd class="nowo-ui-detail-list__value">{{ notification.id }}</dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Type</dt><dd class="nowo-ui-detail-list__value">{{ notification_type == 'email' ? 'Email' : 'SMS' }}</dd></div>
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Recipient</dt><dd class="nowo-ui-detail-list__value"><code>{{ notification.recipient }}</code></dd></div>
-
-            {% if notification_type == 'email' %}
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Subject</dt><dd class="nowo-ui-detail-list__value">{{ notification.subject }}</dd></div>
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Body</dt><dd class="nowo-ui-detail-list__value">{{ notification.body }}</dd></div>
-            {% else %}
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Message</dt><dd class="nowo-ui-detail-list__value">{{ notification.message }}</dd></div>
-            {% endif %}
-
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Created at</dt><dd class="nowo-ui-detail-list__value">{{ notification.createdAt ? notification.createdAt|date('Y-m-d H:i:s') : '-' }}</dd></div>
-
-            {% if hasAnonymizedColumn|default(false) and notification.anonymized|default(false) %}
-            <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Anonymized</dt><dd class="nowo-ui-detail-list__value">{% include '_anonymized_badge.html.twig' with {value: notification.anonymized} %}</dd></div>
-            {% endif %}
-        </dl>
-    </div>
-</div>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Details', kind: 'detail'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--{{ notification_type == 'email' ? 'primary' : 'neutral' }}">{{ notification_type }}</span>{% endblock %}
+        {% block section_body %}
+            <dl class="nowo-ui-detail-list">
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">ID</dt><dd class="nowo-ui-detail-list__value">{{ notification.id }}</dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Type</dt><dd class="nowo-ui-detail-list__value">{{ notification_type == 'email' ? 'Email' : 'SMS' }}</dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Recipient</dt><dd class="nowo-ui-detail-list__value"><code class="nowo-ui-code">{{ notification.recipient }}</code></dd></div>
+                {% if notification_type == 'email' %}
+                    <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Subject</dt><dd class="nowo-ui-detail-list__value">{{ notification.subject }}</dd></div>
+                    <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Body</dt><dd class="nowo-ui-detail-list__value">{{ notification.body }}</dd></div>
+                {% else %}
+                    <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Message</dt><dd class="nowo-ui-detail-list__value">{{ notification.message }}</dd></div>
+                {% endif %}
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Created at</dt><dd class="nowo-ui-detail-list__value">{{ notification.createdAt ? notification.createdAt|date('Y-m-d H:i:s') : '-' }}</dd></div>
+                {% if hasAnonymizedColumn|default(false) and notification.anonymized|default(false) %}
+                    <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Anonymized</dt><dd class="nowo-ui-detail-list__value">{% include '_anonymized_badge.html.twig' with {value: notification.anonymized} %}</dd></div>
+                {% endif %}
+            </dl>
+        {% endblock %}
+    {% endembed %}
 {% endblock %}

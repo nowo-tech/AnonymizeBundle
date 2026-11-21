@@ -2,77 +2,77 @@
 
 {% block title %}Log Entries - {{ connection|upper }}{% endblock %}
 
+{% block nowo_ui_page_header %}
+    {% set _toolbar %}<a href="{{ path('log_entry_new', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Create New Log Entry</a>{% endset %}
+    {{ include(nowo_ui_partial('page_header'), {title: 'Log Entries', toolbar: _toolbar}) }}
+{% endblock %}
+
 {% block body %}
-{% include '_breadcrumbs.html.twig' with {entityName: 'Log Entries', connection: connection, routePrefix: 'log_entry', currentPage: 'List'} %}
+    {% if not hasAnonymizedColumn|default(false) %}
+        {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Column "anonymized" not found', kind: 'detail'} %}
+            {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--warning">Warning</span>{% endblock %}
+            {% block section_body %}
+                <p>To add the anonymization tracking column, run:<br>
+                <code class="nowo-ui-code">
+                    php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
+                </code></p>
+            {% endblock %}
+        {% endembed %}
+    {% endif %}
 
-{% if not hasAnonymizedColumn|default(false) %}
-<div class="nowo-ui-flash nowo-ui-flash--warning" role="note">
-    <strong>⚠️ Column "anonymized" not found</strong><br>
-    To add the anonymization tracking column, run:<br>
-    <code class="nowo-ui-code">
-        php bin/console nowo:anonymize:generate-column-migration --connection {{ connection }}
-    </code>
-</div>
-{% endif %}
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Truncate Feature', kind: 'detail'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--info">Info</span>{% endblock %}
+        {% block section_body %}
+            <p>This entity is configured with <code class="nowo-ui-code">truncate: true, truncate_order: null</code>.
+            The table will be emptied before anonymization runs (alphabetically after explicit orders).</p>
+        {% endblock %}
+    {% endembed %}
 
-<div class="nowo-ui-flash nowo-ui-flash--info" role="note">
-    <strong>ℹ️ Truncate Feature</strong><br>
-    This entity is configured with <code>truncate: true, truncate_order: null</code>.
-    The table will be emptied before anonymization runs (alphabetically after explicit orders).
-</div>
-
-<div class="nowo-ui-card">
-    <div class="nowo-ui-card__header">
-        <h2 class="nowo-ui-card__title">Log Entries <span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span></h2>
-        <a href="{{ path('log_entry_new', {connection: connection}) }}" class="nowo-ui-btn nowo-ui-btn--primary">Create New Log Entry</a>
-    </div>
-    <div class="nowo-ui-card__body">
-        {% if log_entry_list|length > 0 %}
-            <div class="nowo-ui-table-wrap">
-                <table class="nowo-ui-table nowo-ui-table--striped">
-                    <thead>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Log Entries', kind: 'table', empty: not (log_entry_list|length > 0), state_message: 'No log entries found.'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--{{ connection == 'default' ? 'success' : 'primary' }}">{{ connection }}</span>{% endblock %}
+        {% block section_body %}
+            <table class="nowo-ui-data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Message</th>
+                        <th>IP Address</th>
+                        <th>Logged At</th>
+                        {% if hasAnonymizedColumn|default(false) %}
+                        <th>Anonymized</th>
+                        {% endif %}
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log_entry in log_entry_list %}
                         <tr>
-                            <th>ID</th>
-                            <th>Message</th>
-                            <th>IP Address</th>
-                            <th>Logged At</th>
+                            <td>{{ log_entry.id ?? log_entry.id }}</td>
+                            <td>{{ log_entry.message ?? '-' }}</td>
+                            <td><code class="nowo-ui-code">{{ log_entry.ipAddress ?? '-' }}</code></td>
+                            <td>{{ log_entry.loggedAt ? log_entry.loggedAt|date('Y-m-d H:i:s') : '-' }}</td>
                             {% if hasAnonymizedColumn|default(false) %}
-                            <th>Anonymized</th>
-                            {% endif %}
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for log_entry in log_entry_list %}
-                            <tr>
-                                <td>{{ log_entry.id ?? log_entry.id }}</td>
-                                <td>{{ log_entry.message ?? '-' }}</td>
-                                <td><code>{{ log_entry.ipAddress ?? '-' }}</code></td>
-                                <td>{{ log_entry.loggedAt ? log_entry.loggedAt|date('Y-m-d H:i:s') : '-' }}</td>
-                                {% if hasAnonymizedColumn|default(false) %}
-                                <td>
-                                    {% if log_entry.anonymized|default(false) %}
-                                    {% include '_anonymized_badge.html.twig' with {value: log_entry.anonymized|default(false)} %}
-                                    {% endif %}
-                                </td>
+                            <td>
+                                {% if log_entry.anonymized|default(false) %}
+                                {% include '_anonymized_badge.html.twig' with {value: log_entry.anonymized|default(false)} %}
                                 {% endif %}
-                                <td>
-                                    <div class="nowo-ui-row-actions">
-                                        <a href="{{ path('log_entry_show', {connection: connection, id: log_entry.id ?? log_entry.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Show</a>
-                                        <a href="{{ path('log_entry_edit', {connection: connection, id: log_entry.id ?? log_entry.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Edit</a>
-                                        {% set delete_form = demo_delete_form('log_entry_delete', {connection: connection, id: log_entry.id ?? log_entry.id}, (log_entry.id ?? log_entry.id), 'Are you sure?') %}
-                                        {{ form_start(delete_form) }}
-                                        {{ form_end(delete_form) }}
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="nowo-ui-muted">No log entries found. <a href="{{ path('log_entry_new', {connection: connection}) }}">Create the first one</a>.</p>
-        {% endif %}
-    </div>
-</div>
+                            </td>
+                            {% endif %}
+                            <td>
+                                <div class="nowo-ui-row-actions">
+                                    <a href="{{ path('log_entry_show', {connection: connection, id: log_entry.id ?? log_entry.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Show</a>
+                                    <a href="{{ path('log_entry_edit', {connection: connection, id: log_entry.id ?? log_entry.id}) }}" class="nowo-ui-btn nowo-ui-btn--sm nowo-ui-btn--outline">Edit</a>
+                                    {% set delete_form = demo_delete_form('log_entry_delete', {connection: connection, id: log_entry.id ?? log_entry.id}, (log_entry.id ?? log_entry.id)) %}
+
+                                    {% include '_delete.html.twig' with {form: delete_form, dialog_id: 'delete-' ~ ((log_entry.id ?? log_entry.id)), message: 'Are you sure?', size: 'sm'} only %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endblock %}
+        {% block section_empty_action %}<a class="nowo-ui-btn nowo-ui-btn--outline" href="{{ path('log_entry_new', {connection: connection}) }}">Create the first one</a>{% endblock %}
+    {% endembed %}
+
 {% endblock %}

@@ -1,0 +1,14 @@
+{
+  "name": "nowo-demo-e2e",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Playwright e2e for the demo: UiKit demo platform shell rules and axe (REQ-DEMO-013, REQ-DEMO-014)",
+  "scripts": {
+    "test": "playwright test --project=chromium",
+    "install-browsers": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.64.0"
+  }
+}
