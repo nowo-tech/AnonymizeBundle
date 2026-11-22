@@ -112,6 +112,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Demo: aligned with UiKit. The Bootstrap leftovers (`small`, `mt-2`, `d-block`) are gone (UiKit `nowo-ui-code-block` and a muted note); UiKit's `app_shell` (aside menu) stays.
 - Requires `nowo-tech/transaction-doctrine` ^1.8.1 (fixes GHSA-9wh3-m3m5-jffx and GHSA-65w2-9r4h-848g).
 
+### Fixed
+
+- Demo: a from-scratch bring-up (`make up` / `make setup` on empty volumes) works and can be repeated. The MySQL and PostgreSQL containers no longer mount the stale schema dumps `demo/docker/init/*/init.sql` (removed; they pre-created 9 tables and lacked `notifications` etc.), so `doctrine:schema:create` failed with "table already exists" and the PostgreSQL fixture load failed with `relation "notifications" does not exist`. The Makefile (`setup`, `db-reset`) now uses `doctrine:schema:update --force`, which is idempotent, and the fixtures create all data.
+
 ## [1.7.0] - 2026-11-19
 
 ### Documentation
