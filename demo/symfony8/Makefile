@@ -134,9 +134,9 @@ setup: ensure-up
 	-$(COMPOSE) exec -T php php bin/console doctrine:database:create --if-not-exists --no-interaction --connection=postgres
 	@echo "Creating schemas..."
 	@echo "  - MySQL schema..."
-	-$(COMPOSE) exec -T php php bin/console doctrine:schema:create --no-interaction --em=default
+	-$(COMPOSE) exec -T php php bin/console doctrine:schema:update --force --no-interaction --em=default
 	@echo "  - PostgreSQL schema..."
-	-$(COMPOSE) exec -T php php bin/console doctrine:schema:create --no-interaction --em=postgres
+	-$(COMPOSE) exec -T php php bin/console doctrine:schema:update --force --no-interaction --em=postgres
 	@echo "Loading fixtures..."
 	@echo "  - MySQL fixtures..."
 	-$(COMPOSE) exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=default
@@ -178,9 +178,9 @@ db-drop:
 db-reset: db-drop db-create
 	@echo "🔄 Resetting database schemas..."
 	@echo "  - MySQL..."
-	-$(COMPOSE) exec -T php php bin/console doctrine:schema:create --no-interaction --em=default
+	-$(COMPOSE) exec -T php php bin/console doctrine:schema:update --force --no-interaction --em=default
 	@echo "  - PostgreSQL..."
-	-$(COMPOSE) exec -T php php bin/console doctrine:schema:create --no-interaction --em=postgres
+	-$(COMPOSE) exec -T php php bin/console doctrine:schema:update --force --no-interaction --em=postgres
 	@echo "📥 Loading fixtures..."
 	@echo "  - MySQL fixtures..."
 	-$(COMPOSE) exec -T php php bin/console doctrine:fixtures:load --no-interaction --em=default
