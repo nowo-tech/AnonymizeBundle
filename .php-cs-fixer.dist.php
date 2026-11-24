@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * PHP-CS-Fixer configuration (PSR-12 + Symfony canonical).
+ * PHP-CS-Fixer configuration (PER-CS + Symfony canonical).
  * Standard for Nowo bundles. Run: make cs-check | make cs-fix
  */
 use PhpCsFixer\Config;
@@ -15,7 +15,8 @@ return (new Config())
     ->setRiskyAllowed(true)
     ->setRules([
         // Base: PSR-12 + Symfony convention
-        '@PSR12' => true,
+        '@PER-CS' => true,
+        '@PER-CS:risky' => true,
         '@Symfony' => true,
         '@Symfony:risky' => true,
 
@@ -116,6 +117,7 @@ return (new Config())
     ])
     ->setFinder(
         (new Finder())
+            ->notPath('#^demo/[^/]+/config/(bundles|reference)\.php$#')
             ->in(__DIR__)
             ->exclude(['vendor', 'var', 'coverage', '.phpunit.cache'])
             // Unit and integration suites stay in the finder
